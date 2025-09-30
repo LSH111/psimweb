@@ -1,65 +1,17 @@
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>2단계 인증 로그인 (아이디/비번 + SMS)</title>
-  <style>
-    :root{
-      --bg:#f6f7fb; --card:#ffffff; --text:#1f2937; --muted:#6b7280;
-      --primary:#2563eb; --primary-strong:#1d4ed8; --ring:rgba(37,99,235,.35);
-      --error:#dc2626; --border:#e5e7eb; --success:#16a34a;
-    }
-    @media (prefers-color-scheme: dark){
-      :root{ --bg:#0b1220; --card:#0f172a; --text:#e5e7eb; --muted:#94a3b8;
-        --primary:#3b82f6; --primary-strong:#2563eb; --ring:rgba(59,130,246,.35);
-        --error:#f87171; --border:#1f2a44; --success:#22c55e; }
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans KR",sans-serif;
-      background:
-        radial-gradient(60vmax 60vmax at 10% 10%, rgba(99,102,241,.08), transparent 60%),
-        radial-gradient(50vmax 50vmax at 90% 20%, rgba(59,130,246,.08), transparent 60%),
-        var(--bg);
-      color:var(--text); display:grid; place-items:center; padding:24px;
-    }
-    .card{
-      width:100%; max-width:480px; background:var(--card); border:1px solid var(--border);
-      border-radius:16px; padding:24px; box-shadow:0 20px 40px rgba(0,0,0,.06);
-      animation:floatIn .35s ease-out;
-    }
-    @keyframes floatIn{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
-    .header{display:flex; align-items:center; gap:12px; margin-bottom:18px}
-    .logo{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--primary-strong));display:grid;place-items:center;color:#fff;font-weight:700}
-    h1{font-size:1.25rem; margin:0}
-    .sub{color:var(--muted); font-size:.9rem; margin:4px 0 0}
-    .banner{background:rgba(37,99,235,.08); border:1px dashed var(--primary); border-radius:12px; padding:10px 12px; font-size:.9rem; margin-bottom:12px}
-    .banner code{font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-
-    form{display:grid; gap:14px}
-    .field{display:grid; gap:8px}
-    label{font-size:.9rem}
-    .control{display:flex; align-items:center; gap:8px; border:1px solid var(--border); border-radius:12px; padding:12px 14px}
-    .control:focus-within{outline:3px solid var(--ring); outline-offset:1px}
-    .input{width:100%; border:0; outline:0; background:transparent; color:var(--text); font-size:1rem;}
-    .row{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap}
-    .hint{color:var(--muted); font-size:.85rem}
-    .error{color:var(--error); font-size:.9rem; min-height:1.2em}
-    .ok{color:var(--success); font-size:.9rem; min-height:1.2em}
-    .btn{appearance:none; border:0; cursor:pointer; border-radius:12px; padding:12px 16px; width:100%; background:linear-gradient(180deg,var(--primary),var(--primary-strong)); color:#fff; font-weight:600; font-size:1rem}
-    .btn:active{transform:translateY(1px) scale(.995)}
-    .btn[disabled]{opacity:.6; cursor:not-allowed;}
-    .link{color:var(--primary); text-decoration:none; font-size:.9rem}
-    .hide{display:none !important}
-    .otp-grid{display:grid; grid-template-columns:1fr auto; gap:10px}
-    .foot{color:var(--muted); font-size:.85rem; text-align:center}
-    .mono{font-variant-numeric: tabular-nums}
-  </style>
+  <jsp:include page="/WEB-INF/views/fragments/_head.jspf"/>
+  <title>로그인</title>
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/pages/ts_login.css"/>
 </head>
 <body>
-  <!-- 실제 배포 시, 서버가 data-phone="01012345678" 같이 '숫자만' 값을 채워 넣어주세요 -->
+  <jsp:include page="/WEB-INF/views/fragments/_header.jspf"/>
+  <main class="main container">
+    <div class="card">
+      <!-- 실제 배포 시, 서버가 data-phone="01012345678" 같이 '숫자만' 값을 채워 넣어주세요 -->
   <main id="app" class="card" role="main" aria-labelledby="title" data-phone="01012345678">
     <div class="header">
       <div class="logo" aria-hidden="true">TS</div>
@@ -314,5 +266,8 @@
       // location.href = (await resp.json()).redirect || '/';
     });
   </script>
+    </div>
+  </main>
+  <jsp:include page="/WEB-INF/views/fragments/_footer.jspf"/>
 </body>
 </html>

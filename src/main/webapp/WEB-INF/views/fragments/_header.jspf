@@ -1,0 +1,12 @@
+<header class="app-header">
+  <div class="container">
+    <a href="${pageContext.request.contextPath}/login" class="logo">PSIM</a>
+    <nav class="nav">
+      <a href="${pageContext.request.contextPath}/parking/map">Map</a>
+      <a href="${pageContext.request.contextPath}/parking/list">List</a>
+      <a href="${pageContext.request.contextPath}/parking/on">On</a>
+      <a href="${pageContext.request.contextPath}/parking/off">Off</a>
+      <a href="${pageContext.request.contextPath}/parking/build">Build</a>
+    </nav>
+  </div>
+</header>

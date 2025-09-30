@@ -1,0 +1,9 @@
+.app-header, .app-footer { background:#161b22; border-bottom:1px solid #30363d; }
+.app-footer { border-top:1px solid #30363d; border-bottom:none; margin-top:24px; }
+.logo { font-weight:700; color:#fff; }
+.nav { display:flex; flex-wrap:wrap; gap:var(--gap); }
+.main { padding:16px 0; }
+.card { background:#0b1220; border:1px solid #233; border-radius:14px; padding:16px; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+.grid { display:grid; gap:var(--gap); grid-template-columns: repeat(12, 1fr); }
+@media (max-width: 1024px) { .grid { grid-template-columns: repeat(8, 1fr); } }
+@media (max-width: 768px) { .grid { grid-template-columns: repeat(4, 1fr); } }

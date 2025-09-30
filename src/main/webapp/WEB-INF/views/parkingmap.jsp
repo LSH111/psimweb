@@ -1,82 +1,17 @@
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>행정구역도(WFS JSONP 4종) + VWorld WMTS + 더미10 · 반경토글(표시) · 하단리스트(2행) · 에러로그(URL/최소화)</title>
-
-<!-- OpenLayers (CDN) -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@10.6.1/ol.css">
-<script src="https://cdn.jsdelivr.net/npm/ol@10.6.1/dist/ol.js"></script>
-
-<style>
-  :root{ --bg:#0b1220; --panel:#0f172a; --text:#e5e7eb; --muted:#94a3b8; --border:#20304f; --accent:#2563eb; }
-  html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans KR",sans-serif}
-  #map{position:fixed;inset:0}
-
-  /* 하단 리스트(bottom sheet) */
-  .bottom{
-    position:fixed; left:12px; right:12px; bottom:12px; z-index:30;
-    background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:10px 10px 12px;
-    box-shadow:0 10px 30px rgba(0,0,0,.35); display:flex; flex-direction:column; gap:8px;
-  }
-  .row{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
-  .title{font-weight:800}
-  .muted{color:var(--muted)}
-  .btn{border:1px solid var(--border); background:transparent; color:#c7d2fe; border-radius:10px; padding:8px 12px; font-weight:700; cursor:pointer}
-  .btn.min{padding:6px 10px}
-  .chipbar{display:flex; gap:8px; flex-wrap:wrap}
-  .chip{
-    background:#152347; border:1px solid var(--border); color:#c7d2fe; padding:6px 10px; border-radius:999px; cursor:pointer; user-select:none; font-weight:700; font-size:.9rem
-  }
-  .chip.on{ background:#1d3a7a; color:#fff; border-color:transparent }
-
-  /* 2열 그리드 카드 + 스크롤(높이는 JS로 ‘2행’만 보이도록 동적 제한) */
-  .list{overflow:auto; border:1px solid var(--border); border-radius:12px; background:#0c1530; padding:8px}
-  .grid{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:8px}
-  .card{
-    padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:#0e1a39; cursor:pointer;
-    display:grid; gap:4px; min-height:74px;
-  }
-  .card:hover{background:#122147}
-  .nm{font-weight:800}
-  .sub{color:var(--muted); font-size:.86rem; display:flex; gap:6px; flex-wrap:wrap}
-  .badge{display:inline-block; font-size:.78rem; padding:2px 8px; border-radius:999px; border:1px solid var(--border); background:#12203c}
-  .sep{opacity:.4}
-
-  /* 최소화 상태 */
-  .bottom.min .list{ display:none }
-  .bottom .minbtn{ margin-left:auto }
-  .bottom.min .minbtn::after{ content:'펼치기' }
-  .bottom .minbtn::after{ content:'접기' }
-
-  /* 에러 로그 (우측) */
-  .errdock{
-    position:fixed; right:12px; z-index:1000; width:min(560px,calc(100% - 24px));
-    background:#0f172a; border:1px solid var(--border); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.35);
-  }
-  .errdock .hdr{ display:flex; align-items:center; gap:8px; padding:8px 10px; border-bottom:1px solid var(--border) }
-  .errdock .title{ font-weight:800 }
-  .errdock .body{ max-height:38vh; overflow:auto; padding:8px 10px; font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.86rem; background:#0b1220 }
-  .logrow{ border-bottom:1px dashed #1d2741; padding:6px 0 }
-  .time{ color:#9ca3af; margin-right:6px }
-  .lvl{ color:#fca5a5; font-weight:800; margin-right:6px }
-  .url{ color:#60a5fa; word-break:break-all }
-  .btnsm{ border:1px solid var(--border); background:#0b1530; color:#c7d2fe; border-radius:8px; padding:6px 10px; cursor:pointer; font-weight:700 }
-  .errdock.min .body{ display:none }
-  .errdock .minbtn{ margin-left:auto }
-  .errdock.min .minbtn::after{ content:'펼치기' }
-  .errdock .minbtn::after{ content:'접기' }
-
-  /* 반응형 */
-  @media (max-width:480px){
-    .bottom{ left:8px; right:8px; bottom:8px; }
-    .errdock{ left:8px; right:8px; width:auto }
-  }
-</style>
+  <jsp:include page="/WEB-INF/views/fragments/_head.jspf"/>
+  <title>주차장 지도</title>
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/pages/parkingmap.css"/>
 </head>
 <body>
-<div id="map" aria-label="지도"></div>
+  <jsp:include page="/WEB-INF/views/fragments/_header.jspf"/>
+  <main class="main container">
+    <div class="card">
+      <div id="map" aria-label="지도"></div>
 
 <!-- 하단 리스트 패널 -->
 <section class="bottom" id="bottom">
@@ -563,5 +498,8 @@
   ok('WMTS + 행정경계(WFS JSONP) + 현재위치 팔로우 준비 완료');
 })();
 </script>
+    </div>
+  </main>
+  <jsp:include page="/WEB-INF/views/fragments/_footer.jspf"/>
 </body>
 </html>

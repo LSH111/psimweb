@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.psim.web.mapper.ParkingMapper">
+  <resultMap id="ParkingLotMap" type="com.psim.web.vo.ParkingLotVO">
+    <id column="id" property="id"/>
+    <result column="name" property="name"/>
+    <result column="address" property="address"/>
+    <result column="capacity" property="capacity"/>
+  </resultMap>
+
+  <select id="selectAllLots" resultMap="ParkingLotMap">
+    SELECT id, name, address, capacity
+    FROM parking_lot
+    ORDER BY id DESC
+  </select>
+
+  <insert id="insertLot" parameterType="com.psim.web.vo.ParkingLotVO" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO parking_lot(name, address, capacity)
+    VALUES(#{name}, #{address}, #{capacity})
+  </insert>
+
+  <insert id="insertEvent" parameterType="com.psim.web.vo.ParkingEventVO" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO parking_event(lot_id, car_no, type, at)
+    VALUES(#{lotId}, #{carNo}, #{type}, #{at})
+  </insert>
+</mapper>

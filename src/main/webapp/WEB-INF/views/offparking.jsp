@@ -1,76 +1,17 @@
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>노상주차장 상세</title>
-<style>
-  :root{
-    --bg:#f6f7fb; --card:#fff; --text:#1f2937; --muted:#6b7280;
-    --primary:#2563eb; --primary-2:#1d4ed8; --border:#e5e7eb;
-    --warn:#dc2626; --ok:#16a34a;
-  }
-  @media (prefers-color-scheme: dark){
-    :root{
-      --bg:#0b1220; --card:#0f172a; --text:#e5e7eb; --muted:#94a3b8;
-      --primary:#3b82f6; --primary-2:#2563eb; --border:#20304f;
-      --warn:#f87171; --ok:#34d399;
-    }
-  }
-  *{box-sizing:border-box}
-  body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans KR",sans-serif; background:var(--bg); color:var(--text); padding:12px}
-  .wrap{max-width:1100px; margin:0 auto; display:grid; gap:12px}
-  .head{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-  .title{font-weight:800; font-size:1.2rem}
-  .muted{color:var(--muted)}
-  .badge{display:inline-block; padding:4px 8px; border:1px solid var(--border); border-radius:999px; font-size:.8rem; background:#eef2ff}
-  .row{display:grid; gap:10px; grid-template-columns:1fr}
-  @media(min-width:900px){ .row{ grid-template-columns:1fr 1fr } }
-  .card{background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px}
-  h2{font-size:1rem; margin:.2rem 0 .6rem}
-  .grid{display:grid; grid-template-columns:1fr; gap:8px}
-  @media(min-width:700px){ .grid{grid-template-columns: 1fr 1fr} }
-  label{display:block; font-size:.85rem; color:var(--muted); margin-bottom:4px}
-  .ctl{display:flex; gap:8px; border:1px solid var(--border); border-radius:10px; padding:10px 12px; background:transparent; align-items:center; flex-wrap:wrap}
-  input,textarea,select{border:0; outline:0; width:100%; background:transparent; color:var(--text); font-size:1rem}
-  input[readonly]{color:var(--muted)}
-  textarea{min-height:80px; resize:vertical}
-  .actions{display:flex; gap:8px; flex-wrap:wrap}
-  .btn{border:0; border-radius:10px; padding:10px 14px; cursor:pointer; font-weight:700; color:#fff; background:linear-gradient(180deg,var(--primary),var(--primary-2))}
-  .btn.ghost{background:transparent; color:var(--primary); border:1px solid var(--border)}
-  .btn.light{background:#eef2ff; color:#1e40af; border:1px solid var(--border)}
-  .thumb{width:100%; max-height:260px; object-fit:contain; border:1px solid var(--border); border-radius:10px; background:#fff}
-  .mono{font-variant-numeric: tabular-nums}
-  .suffix{white-space:nowrap; color:var(--muted); font-size:.95rem}
-  .row-1c{grid-template-columns:1fr}
-  .help{font-size:.85rem; color:var(--muted)}
-  .ok{color:var(--ok)}
-  .warn{color:var(--warn)}
-  .ctl.warn{border-color:var(--warn)}
-  [hidden]{display:none !important}
-
-  /* 표준 라디오/체크 그룹 */
-  .radio-group, .check-group{display:flex; flex-wrap:wrap; gap:12px}
-  .radio-group label, .check-group label{
-    display:inline-flex; align-items:center; gap:8px;
-    padding:6px 10px; border:1px solid var(--border); border-radius:999px;
-    background:transparent; line-height:1.2;
-  }
-  .radio-group input[type="radio"], .check-group input[type="checkbox"]{
-    width:18px; height:18px; accent-color:var(--primary);
-  }
-
-  /* 주소찾기 레이어 */
-  #postcodeLayer{display:none; position:fixed; inset:0; background:rgba(0,0,0,.25); z-index:9999}
-  #postcodeWrap{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:min(100vw - 24px,520px); height:70vh; background:#fff; border:1px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:0 20px 40px rgba(0,0,0,.2)}
-  #postcodeClose{position:absolute; right:10px; top:10px; z-index:1}
-  #postcodeContainer{width:100%; height:100%}
-</style>
-<script src="https://cdn.jsdelivr.net/npm/exifr@7/dist/full.umd.js"></script>
-<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+  <jsp:include page="/WEB-INF/views/fragments/_head.jspf"/>
+  <title>출차 처리</title>
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/pages/offparking.css"/>
 </head>
 <body>
-  <div class="wrap">
+  <jsp:include page="/WEB-INF/views/fragments/_header.jspf"/>
+  <main class="main container">
+    <div class="card">
+      <div class="wrap">
     <header class="card head">
       <div class="title" id="v_name">노상주차장 상세</div>
       <span class="badge">노상</span>
@@ -537,5 +478,8 @@ function doSave(){
 $('#btnSave').addEventListener('click', doSave);
 $('#btnSaveTop').addEventListener('click', doSave);
 </script>
+    </div>
+  </main>
+  <jsp:include page="/WEB-INF/views/fragments/_footer.jspf"/>
 </body>
 </html>

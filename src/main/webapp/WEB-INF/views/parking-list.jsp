@@ -1,138 +1,17 @@
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>주차장 실태 관리 목록</title>
-<style>
-  :root{
-    --bg:#f6f7fb; --card:#fff; --text:#1f2937; --muted:#6b7280;
-    --primary:#2563eb; --primary-2:#1d4ed8; --ring:rgba(37,99,235,.35);
-    --border:#e5e7eb; --badge:#eef2ff; --ok:#16a34a; --warn:#f59e0b; --err:#dc2626;
-  }
-  @media (prefers-color-scheme: dark){
-    :root{
-      --bg:#0b1220; --card:#0f172a; --text:#e5e7eb; --muted:#94a3b8;
-      --primary:#3b82f6; --primary-2:#2563eb; --ring:rgba(59,130,246,.35);
-      --border:#20304f; --badge:#0b1220;
-    }
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans KR",sans-serif;
-    background: var(--bg); color:var(--text);
-    display:flex; flex-direction:column; gap:16px; padding:16px;
-  }
-  .wrap{max-width:1220px; margin:0 auto; width:100%}
-  .title{font-size:1.25rem; font-weight:700; margin:4px 0 0}
-  .sub{color:var(--muted); margin:0 0 10px}
-
-  .panel{
-    background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px;
-  }
-  .filters{
-    display:grid; gap:10px;
-    grid-template-columns: 1fr 1fr;
-  }
-  @media (min-width: 900px){
-    .filters{ grid-template-columns: repeat(4, 1fr); }
-  }
-  label{font-size:.88rem; color:var(--muted)}
-  .control{
-    display:flex; align-items:center; gap:8px;
-    border:1px solid var(--border); border-radius:12px; padding:10px 12px; background:transparent;
-  }
-  .control:focus-within{ outline:3px solid var(--ring); outline-offset:1px }
-  select,input[type="text"]{
-    width:100%; border:0; outline:0; background:transparent; color:var(--text); font-size:1rem;
-  }
-
-  .actions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px }
-  .btn{
-    border:0; border-radius:12px; padding:10px 14px; cursor:pointer; font-weight:600;
-    background:linear-gradient(180deg,var(--primary),var(--primary-2)); color:#fff;
-  }
-  .btn.sec{ background:#eef2ff; color:#1e40af; border:1px solid var(--border) }
-  .btn.ghost{ background:transparent; color:var(--primary); border:1px solid var(--border) }
-  .btn:active{ transform:translateY(1px) }
-
-  .result-panel{ display:grid; gap:8px }
-  .summary{ color:var(--muted); font-size:.9rem }
-
-  /* ====== 탭 ====== */
-  .tabs{ display:flex; gap:6px; border-bottom:1px solid var(--border); margin-top:8px }
-  .tab-btn{
-    appearance:none; background:transparent; border:1px solid transparent; border-bottom:0;
-    padding:10px 14px; border-radius:12px 12px 0 0; cursor:pointer; font-weight:700; color:var(--muted);
-  }
-  .tab-btn.active{
-    color:var(--text); background:var(--card); border-color:var(--border) var(--border) transparent var(--border);
-  }
-  .tab-panels{ border:1px solid var(--border); border-radius:0 14px 14px 14px; overflow:hidden; background:var(--card) }
-
-  .tab-panel{ padding:10px }
-  .tab-panel[hidden]{ display:none }
-
-  /* ====== 리스트 뷰: 카드/테이블 ====== */
-  .table-wrap{ display:none }
-  .cards{ display:grid }
-
-  @media (min-width: 1100px) and (hover:hover) and (pointer:fine){
-    .table-wrap{ display:block }
-    .cards{ display:none }
-  }
-
-  /* 테이블 */
-  .table-wrap{ background:var(--card); border-top:1px solid var(--border) }
-  table{ width:100%; border-collapse:collapse; font-size:.95rem }
-  thead th{
-    text-align:left; background:#f3f4f6; padding:12px; position:sticky; top:0; z-index:1; border-bottom:1px solid var(--border);
-  }
-  tbody td{ padding:12px; border-top:1px solid var(--border) }
-  tbody tr:hover{ background: rgba(37,99,235,.04); cursor:pointer }
-  .addr{ color:var(--muted) }
-  .num, .check { text-align:center }
-  .check input{ width:18px; height:18px }
-
-  /* 카드(모바일/아이패드) */
-  .cards{ gap:10px; }
-  .card{
-    background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px;
-    display:grid; gap:6px; cursor:pointer;
-  }
-  .card .name{ font-weight:700 }
-  .badge{
-    display:inline-block; font-size:.78rem; padding:4px 8px; border-radius:999px; background:var(--badge); border:1px solid var(--border)
-  }
-  .status.appr{ color:var(--ok) } .status.pend{ color:var(--warn) } .status.reject{ color:var(--err) }
-  /* 모바일 카드용 체크박스 라인 */
-  .card-head{ display:flex; align-items:center; gap:10px }
-  .card-check{ width:18px; height:18px }
-
-  .pager{ display:flex; justify-content:center; gap:6px; flex-wrap:wrap; margin:10px 0 }
-  .page-btn{ padding:8px 12px; border-radius:10px; border:1px solid var(--border); background:transparent; cursor:pointer }
-  .page-btn.active{ background:linear-gradient(180deg,var(--primary),var(--primary-2)); color:#fff; border-color:transparent }
-  .page-btn:disabled{ opacity:.5; cursor:not-allowed }
-  .right{ margin-left:auto }
-
-  .muted{ color:var(--muted) }
-
-  /* 상세(iframe) */
-  .detail-wrap{ background:var(--card) }
-  #detailFrame{ width:100%; height:70vh; border:0; display:block }
-
-  /* 토스트 */
-  .toast{
-    position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
-    background:#111827; color:#fff; padding:10px 14px; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,.25);
-    font-size:.95rem; z-index:1000; display:none;
-  }
-  .toast.show{ display:block; }
-</style>
+  <jsp:include page="/WEB-INF/views/fragments/_head.jspf"/>
+  <title>주차장 목록</title>
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/pages/parking-list.css"/>
 </head>
 <body>
-  <div class="wrap">
+  <jsp:include page="/WEB-INF/views/fragments/_header.jspf"/>
+  <main class="main container">
+    <div class="card">
+      <div class="wrap">
     <h1 class="title">주차장 실태 관리 목록</h1>
     <p class="sub">모바일/아이패드: 카드 전용 · 데스크톱: 테이블/카드 자동 전환 · 탭(목록/상세)</p>
 
@@ -670,5 +549,8 @@ init();
  *   응답: 200 OK (JSON) { ok: true, count: n }
  */
 </script>
+    </div>
+  </main>
+  <jsp:include page="/WEB-INF/views/fragments/_footer.jspf"/>
 </body>
 </html>
