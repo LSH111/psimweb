@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.psim.web.prk.mapper.PrkDefPlceInfoMapper">
+
+    <select id="selectAllPrkDefPlceInfos" resultType="com.psim.web.prk.vo.PrkDefPlceInfoVO">
+        SELECT * FROM tb_prk_def_plce_info
+    </select>
+
+    <select id="selectPrkDefPlceInfoById" parameterType="int" resultType="com.psim.web.prk.vo.PrkDefPlceInfoVO">
+        SELECT * FROM tb_prk_def_plce_info WHERE prk_plce_info_sn = #{prkPlceInfoSn}
+    </select>
+
+    <insert id="insertPrkDefPlceInfo" parameterType="com.psim.web.prk.vo.PrkDefPlceInfoVO">
+        INSERT INTO tb_prk_def_plce_info (
+            prk_plce_info_sn, prk_plce_nm, prk_plce_manage_no, prk_plce_type, road_addr, jibun_addr,
+            lat, lon, tel_no, oper_info, owner, agency, rmrk, reg_dt, rgst_id,
+            rgst_ip_addr, updt_dt, updusr_id, updusr_ip_addr
+        ) VALUES (
+            #{prkPlceInfoSn}, #{prkPlceNm}, #{prkPlceManageNo}, #{prkPlceType}, #{roadAddr}, #{jibunAddr},
+            #{lat}, #{lon}, #{telNo}, #{operInfo}, #{owner}, #{agency}, #{rmrk}, #{regDt}, #{rgstId},
+            #{rgstIpAddr}, #{updtDt}, #{updusrId}, #{updusrIpAddr}
+        )
+    </insert>
+
+    <update id="updatePrkDefPlceInfo" parameterType="com.psim.web.prk.vo.PrkDefPlceInfoVO">
+        UPDATE tb_prk_def_plce_info
+        <set>
+            <if test="prkPlceNm != null">prk_plce_nm = #{prkPlceNm},</if>
+            <if test="prkPlceManageNo != null">prk_plce_manage_no = #{prkPlceManageNo},</if>
+            <if test="prkPlceType != null">prk_plce_type = #{prkPlceType},</if>
+            <if test="roadAddr != null">road_addr = #{roadAddr},</if>
+            <if test="jibunAddr != null">jibun_addr = #{jibunAddr},</if>
+            <if test="lat != null">lat = #{lat},</if>
+            <if test="lon != null">lon = #{lon},</if>
+            <if test="telNo != null">tel_no = #{telNo},</if>
+            <if test="operInfo != null">oper_info = #{operInfo},</if>
+            <if test="owner != null">owner = #{owner},</if>
+            <if test="agency != null">agency = #{agency},</if>
+            <if test="rmrk != null">rmrk = #{rmrk},</if>
+            <if test="regDt != null">reg_dt = #{regDt},</if>
+            <if test="rgstId != null">rgst_id = #{rgstId},</if>
+            <if test="rgstIpAddr != null">rgst_ip_addr = #{rgstIpAddr},</if>
+            <if test="updtDt != null">updt_dt = #{updtDt},</if>
+            <if test="updusrId != null">updusr_id = #{updusrId},</if>
+            <if test="updusrIpAddr != null">updusr_ip_addr = #{updusrIpAddr},</if>
+        </set>
+        WHERE prk_plce_info_sn = #{prkPlceInfoSn}
+    </update>
+
+    <delete id="deletePrkDefPlceInfo" parameterType="int">
+        DELETE FROM tb_prk_def_plce_info WHERE prk_plce_info_sn = #{prkPlceInfoSn}
+    </delete>
+</mapper>

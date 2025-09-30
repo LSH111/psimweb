@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.psim.web.prk.mapper.AtchPrklotInfoMapper">
+
+    <select id="selectAllAtchPrklotInfos" resultType="com.psim.web.prk.vo.AtchPrklotInfoVO">
+        SELECT * FROM tb_atch_prklot_info
+    </select>
+
+    <select id="selectAtchPrklotInfoById" parameterType="int" resultType="com.psim.web.prk.vo.AtchPrklotInfoVO">
+        SELECT * FROM tb_atch_prklot_info WHERE prk_plce_info_sn = #{prkPlceInfoSn}
+    </select>
+
+    <insert id="insertAtchPrklotInfo" parameterType="com.psim.web.prk.vo.AtchPrklotInfoVO">
+        INSERT INTO tb_atch_prklot_info (
+            prk_plce_info_sn, prk_plce_manage_no, prk_type, tot_prk_cnt, disab_prk_cnt,
+            compact_prk_cnt, eco_prk_cnt, pregnant_prk_cnt, prk_oper_mthd_cd, oper_mby_cd,
+            mgr_org, mgr_org_tel_no, grad_area, subordn_opertn_cd, reg_dt, rgst_id,
+            rgst_ip_addr, updt_dt, updusr_id, updusr_ip_addr
+        ) VALUES (
+            #{prkPlceInfoSn}, #{prkPlceManageNo}, #{prkType}, #{totPrkCnt}, #{disabPrkCnt},
+            #{compactPrkCnt}, #{ecoPrkCnt}, #{pregnantPrkCnt}, #{prkOperMthdCd}, #{operMbyCd},
+            #{mgrOrg}, #{mgrOrgTelNo}, #{gradArea}, #{subordnOpertnCd}, #{regDt}, #{rgstId},
+            #{rgstIpAddr}, #{updtDt}, #{updusrId}, #{updusrIpAddr}
+        )
+    </insert>
+
+    <update id="updateAtchPrklotInfo" parameterType="com.psim.web.prk.vo.AtchPrklotInfoVO">
+        UPDATE tb_atch_prklot_info
+        <set>
+            <if test="prkPlceManageNo != null">prk_plce_manage_no = #{prkPlceManageNo},</if>
+            <if test="prkType != null">prk_type = #{prkType},</if>
+            <if test="totPrkCnt != null">tot_prk_cnt = #{totPrkCnt},</if>
+            <if test="disabPrkCnt != null">disab_prk_cnt = #{disabPrkCnt},</if>
+            <if test="compactPrkCnt != null">compact_prk_cnt = #{compactPrkCnt},</if>
+            <if test="ecoPrkCnt != null">eco_prk_cnt = #{ecoPrkCnt},</if>
+            <if test="pregnantPrkCnt != null">pregnant_prk_cnt = #{pregnantPrkCnt},</if>
+            <if test="prkOperMthdCd != null">prk_oper_mthd_cd = #{prkOperMthdCd},</if>
+            <if test="operMbyCd != null">oper_mby_cd = #{operMbyCd},</if>
+            <if test="mgrOrg != null">mgr_org = #{mgrOrg},</if>
+            <if test="mgrOrgTelNo != null">mgr_org_tel_no = #{mgrOrgTelNo},</if>
+            <if test="gradArea != null">grad_area = #{gradArea},</if>
+            <if test="subordnOpertnCd != null">subordn_opertn_cd = #{subordnOpertnCd},</if>
+            <if test="regDt != null">reg_dt = #{regDt},</if>
+            <if test="rgstId != null">rgst_id = #{rgstId},</if>
+            <if test="rgstIpAddr != null">rgst_ip_addr = #{rgstIpAddr},</if>
+            <if test="updtDt != null">updt_dt = #{updtDt},</if>
+            <if test="updusrId != null">updusr_id = #{updusrId},</if>
+            <if test="updusrIpAddr != null">updusr_ip_addr = #{updusrIpAddr},</if>
+        </set>
+        WHERE prk_plce_info_sn = #{prkPlceInfoSn}
+    </update>
+
+    <delete id="deleteAtchPrklotInfo" parameterType="int">
+        DELETE FROM tb_atch_prklot_info WHERE prk_plce_info_sn = #{prkPlceInfoSn}
+    </delete>
+</mapper>

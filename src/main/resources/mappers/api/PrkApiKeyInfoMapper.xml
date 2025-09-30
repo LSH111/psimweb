@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.psim.web.api.mapper.PrkApiKeyInfoMapper">
+
+    <select id="selectAllPrkApiKeyInfos" resultType="com.psim.web.api.vo.PrkApiKeyInfoVO">
+        SELECT * FROM tb_prk_api_key_info
+    </select>
+
+    <select id="selectPrkApiKeyInfoById" parameterType="int" resultType="com.psim.web.api.vo.PrkApiKeyInfoVO">
+        SELECT * FROM tb_prk_api_key_info WHERE api_key_sn = #{apiKeySn}
+    </select>
+
+    <insert id="insertPrkApiKeyInfo" parameterType="com.psim.web.api.vo.PrkApiKeyInfoVO">
+        INSERT INTO tb_prk_api_key_info (
+            api_key_sn, api_key, api_desc, use_yn, reg_dt, rgst_id,
+            rgst_ip_addr, updt_dt, updusr_id, updusr_ip_addr
+        ) VALUES (
+            #{apiKeySn}, #{apiKey}, #{apiDesc}, #{useYn}, #{regDt}, #{rgstId},
+            #{rgstIpAddr}, #{updtDt}, #{updusrId}, #{updusrIpAddr}
+        )
+    </insert>
+
+    <update id="updatePrkApiKeyInfo" parameterType="com.psim.web.api.vo.PrkApiKeyInfoVO">
+        UPDATE tb_prk_api_key_info
+        <set>
+            <if test="apiKey != null">api_key = #{apiKey},</if>
+            <if test="apiDesc != null">api_desc = #{apiDesc},</if>
+            <if test="useYn != null">use_yn = #{useYn},</if>
+            <if test="regDt != null">reg_dt = #{regDt},</if>
+            <if test="rgstId != null">rgst_id = #{rgstId},</if>
+            <if test="rgstIpAddr != null">rgst_ip_addr = #{rgstIpAddr},</if>
+            <if test="updtDt != null">updt_dt = #{updtDt},</if>
+            <if test="updusrId != null">updusr_id = #{updusrId},</if>
+            <if test="updusrIpAddr != null">updusr_ip_addr = #{updusrIpAddr},</if>
+        </set>
+        WHERE api_key_sn = #{apiKeySn}
+    </update>
+
+    <delete id="deletePrkApiKeyInfo" parameterType="int">
+        DELETE FROM tb_prk_api_key_info WHERE api_key_sn = #{apiKeySn}
+    </delete>
+</mapper>

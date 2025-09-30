@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.psim.web.cmm.mapper.CoAuthMapper">
+    <select id="selectAllCoAuths" resultType="com.psim.web.cmm.vo.CoAuthVO">
+        SELECT * FROM tb_co_auth
+    </select>
+
+    <select id="selectCoAuthById" parameterType="string" resultType="com.psim.web.cmm.vo.CoAuthVO">
+        SELECT * FROM tb_co_auth WHERE auth_cd = #{authCd}
+    </select>
+
+    <insert id="insertCoAuth" parameterType="com.psim.web.cmm.vo.CoAuthVO">
+        INSERT INTO tb_co_auth (
+            auth_cd, auth_nm, auth_desc, rgst_id, reg_dt, rgst_ip_addr, updusr_id, updt_dt, updusr_ip_addr
+        ) VALUES (
+            #{authCd}, #{authNm}, #{authDesc}, #{rgstId}, #{regDt}, #{rgstIpAddr}, #{updusrId}, #{updtDt}, #{updusrIpAddr}
+        )
+    </insert>
+
+    <update id="updateCoAuth" parameterType="com.psim.web.cmm.vo.CoAuthVO">
+        UPDATE tb_co_auth
+        <set>
+            <if test="authNm != null">auth_nm = #{authNm},</if>
+            <if test="authDesc != null">auth_desc = #{authDesc},</if>
+            <if test="rgstId != null">rgst_id = #{rgstId},</if>
+            <if test="regDt != null">reg_dt = #{regDt},</if>
+            <if test="rgstIpAddr != null">rgst_ip_addr = #{rgstIpAddr},</if>
+            <if test="updusrId != null">updusr_id = #{updusrId},</if>
+            <if test="updtDt != null">updt_dt = #{updtDt},</if>
+            <if test="updusrIpAddr != null">updusr_ip_addr = #{updusrIpAddr},</if>
+        </set>
+        WHERE auth_cd = #{authCd}
+    </update>
+
+    <delete id="deleteCoAuth" parameterType="string">
+        DELETE FROM tb_co_auth WHERE auth_cd = #{authCd}
+    </delete>
+</mapper>

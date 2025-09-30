@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.psim.web.cmm.mapper.CoUserMapper">
+
+    <select id="selectAllUsers" resultType="com.psim.web.cmm.vo.CoUserVO">
+        SELECT * FROM tb_co_user
+    </select>
+
+    <select id="selectUserById" parameterType="string" resultType="com.psim.web.cmm.vo.CoUserVO">
+        SELECT * FROM tb_co_user WHERE user_id = #{userId}
+    </select>
+
+    <insert id="insertUser" parameterType="com.psim.web.cmm.vo.CoUserVO">
+        INSERT INTO tb_co_user (
+            user_id, user_cd, user_nm, user_ty_code, ency_de, retire_de, user_sttus_code,
+            photo_unified_id, sign_unified_id, dept_cd, pstn_cd, clss_cd, rsp_cd, user_pw,
+            email, mbtlnum, ownhom_telno, cmpny_telno, rgsde, updde, user_order, duty,
+            pstn_detail, sigungu_cd, area_cd, road_yn, offstreet_yn, attached_yn, rgst_id,
+            reg_dt, rgst_ip_addr, updusr_id, updt_dt, updusr_ip_addr, pwd_change_dd,
+            change_yn, cfrm_yn
+        ) VALUES (
+                     #{userId}, #{userCd}, #{userNm}, #{userTyCode}, #{encyDe}, #{retireDe}, #{userSttusCode},
+                     #{photoUnifiedId}, #{signUnifiedId}, #{deptCd}, #{pstnCd}, #{clssCd}, #{rspCd}, #{userPw},
+                     #{email}, #{mbtlnum}, #{ownhomTelno}, #{cmpnyTelno}, #{rgsde}, #{updde}, #{userOrder}, #{duty},
+                     #{pstnDetail}, #{sigunguCd}, #{areaCd}, #{roadYn}, #{offstreetYn}, #{attachedYn}, #{rgstId},
+                     #{regDt}, #{rgstIpAddr}, #{updusrId}, #{updtDt}, #{updusrIpAddr}, #{pwdChangeDd},
+                     #{changeYn}, #{cfrmYn}
+                 )
+    </insert>
+
+    <update id="updateUser" parameterType="com.psim.web.cmm.vo.CoUserVO">
+        UPDATE tb_co_user
+        <set>
+            <if test="userCd != null">user_cd = #{userCd},</if>
+            <if test="userNm != null">user_nm = #{userNm},</if>
+            <if test="userTyCode != null">user_ty_code = #{userTyCode},</if>
+            <if test="encyDe != null">ency_de = #{encyDe},</if>
+            <if test="retireDe != null">retire_de = #{retireDe},</if>
+            <if test="userSttusCode != null">user_sttus_code = #{userSttusCode},</if>
+            <if test="photoUnifiedId != null">photo_unified_id = #{photoUnifiedId},</if>
+            <if test="signUnifiedId != null">sign_unified_id = #{signUnifiedId},</if>
+            <if test="deptCd != null">dept_cd = #{deptCd},</if>
+            <if test="pstnCd != null">pstn_cd = #{pstnCd},</if>
+            <if test="clssCd != null">clss_cd = #{clssCd},</if>
+            <if test="rspCd != null">rsp_cd = #{rspCd},</if>
+            <if test="userPw != null">user_pw = #{userPw},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="mbtlnum != null">mbtlnum = #{mbtlnum},</if>
+            <if test="ownhomTelno != null">ownhom_telno = #{ownhomTelno},</if>
+            <if test="cmpnyTelno != null">cmpny_telno = #{cmpnyTelno},</if>
+            <if test="rgsde != null">rgsde = #{rgsde},</if>
+            <if test="updde != null">updde = #{updde},</if>
+            <if test="userOrder != null">user_order = #{userOrder},</if>
+            <if test="duty != null">duty = #{duty},</if>
+            <if test="pstnDetail != null">pstn_detail = #{pstnDetail},</if>
+            <if test="sigunguCd != null">sigungu_cd = #{sigunguCd},</if>
+            <if test="areaCd != null">area_cd = #{areaCd},</if>
+            <if test="roadYn != null">road_yn = #{roadYn},</if>
+            <if test="offstreetYn != null">offstreet_yn = #{offstreetYn},</if>
+            <if test="attachedYn != null">attached_yn = #{attachedYn},</if>
+            <if test="rgstId != null">rgst_id = #{rgstId},</if>
+            <if test="regDt != null">reg_dt = #{regDt},</if>
+            <if test="rgstIpAddr != null">rgst_ip_addr = #{rgstIpAddr},</if>
+            <if test="updusrId != null">updusr_id = #{updusrId},</if>
+            <if test="updtDt != null">updt_dt = #{updtDt},</if>
+            <if test="updusrIpAddr != null">updusr_ip_addr = #{updusrIpAddr},</if>
+            <if test="pwdChangeDd != null">pwd_change_dd = #{pwdChangeDd},</if>
+            <if test="changeYn != null">change_yn = #{changeYn},</if>
+            <if test="cfrmYn != null">cfrm_yn = #{cfrmYn},</if>
+        </set>
+        WHERE user_id = #{userId}
+    </update>
+
+    <delete id="deleteUser" parameterType="string">
+        DELETE FROM tb_co_user WHERE user_id = #{userId}
+    </delete>
+</mapper>

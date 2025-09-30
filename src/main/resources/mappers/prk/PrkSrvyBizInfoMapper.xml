@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.psim.web.prk.mapper.PrkSrvyBizInfoMapper">
+
+    <select id="selectAllPrkSrvyBizInfos" resultType="com.psim.web.prk.vo.PrkSrvyBizInfoVO">
+        SELECT * FROM tb_prk_srvy_biz_info
+    </select>
+
+    <select id="selectPrkSrvyBizInfoById" parameterType="int" resultType="com.psim.web.prk.vo.PrkSrvyBizInfoVO">
+        SELECT * FROM tb_prk_srvy_biz_info WHERE biz_survey_sn = #{bizSurveySn}
+    </select>
+
+    <insert id="insertPrkSrvyBizInfo" parameterType="com.psim.web.prk.vo.PrkSrvyBizInfoVO">
+        INSERT INTO tb_prk_srvy_biz_info (
+            biz_survey_sn, biz_nm, biz_content, biz_start_date, biz_end_date, biz_budget,
+            biz_status, reg_dt, rgst_id, rgst_ip_addr, updt_dt, updusr_id, updusr_ip_addr
+        ) VALUES (
+            #{bizSurveySn}, #{bizNm}, #{bizContent}, #{bizStartDate}, #{bizEndDate}, #{bizBudget},
+            #{bizStatus}, #{regDt}, #{rgstId}, #{rgstIpAddr}, #{updtDt}, #{updusrId}, #{updusrIpAddr}
+        )
+    </insert>
+
+    <update id="updatePrkSrvyBizInfo" parameterType="com.psim.web.prk.vo.PrkSrvyBizInfoVO">
+        UPDATE tb_prk_srvy_biz_info
+        <set>
+            <if test="bizNm != null">biz_nm = #{bizNm},</if>
+            <if test="bizContent != null">biz_content = #{bizContent},</if>
+            <if test="bizStartDate != null">biz_start_date = #{bizStartDate},</if>
+            <if test="bizEndDate != null">biz_end_date = #{bizEndDate},</if>
+            <if test="bizBudget != null">biz_budget = #{bizBudget},</if>
+            <if test="bizStatus != null">biz_status = #{bizStatus},</if>
+            <if test="regDt != null">reg_dt = #{regDt},</if>
+            <if test="rgstId != null">rgst_id = #{rgstId},</if>
+            <if test="rgstIpAddr != null">rgst_ip_addr = #{rgstIpAddr},</if>
+            <if test="updtDt != null">updt_dt = #{updtDt},</if>
+            <if test="updusrId != null">updusr_id = #{updusrId},</if>
+            <if test="updusrIpAddr != null">updusr_ip_addr = #{updusrIpAddr},</if>
+        </set>
+        WHERE biz_survey_sn = #{bizSurveySn}
+    </update>
+
+    <delete id="deletePrkSrvyBizInfo" parameterType="int">
+        DELETE FROM tb_prk_srvy_biz_info WHERE biz_survey_sn = #{bizSurveySn}
+    </delete>
+</mapper>

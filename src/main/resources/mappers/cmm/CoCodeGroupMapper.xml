@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.psim.web.cmm.mapper.CoCodeGroupMapper">
+
+    <select id="selectAllCoCodeGroups" resultType="com.psim.web.cmm.vo.CoCodeGroupVO">
+        SELECT * FROM tb_co_code_group
+    </select>
+
+    <select id="selectCoCodeGroupById" parameterType="string" resultType="com.psim.web.cmm.vo.CoCodeGroupVO">
+        SELECT * FROM tb_co_code_group WHERE group_cd = #{groupCd}
+    </select>
+
+    <insert id="insertCoCodeGroup" parameterType="com.psim.web.cmm.vo.CoCodeGroupVO">
+        INSERT INTO tb_co_code_group (
+            group_cd, group_nm, rgst_id, reg_dt, rgst_ip_addr, updusr_id, updt_dt, updusr_ip_addr, use_yn
+        ) VALUES (
+            #{groupCd}, #{groupNm}, #{rgstId}, #{regDt}, #{rgstIpAddr}, #{updusrId}, #{updtDt}, #{updusrIpAddr}, #{useYn}
+        )
+    </insert>
+
+    <update id="updateCoCodeGroup" parameterType="com.psim.web.cmm.vo.CoCodeGroupVO">
+        UPDATE tb_co_code_group
+        <set>
+            <if test="groupNm != null">group_nm = #{groupNm},</if>
+            <if test="rgstId != null">rgst_id = #{rgstId},</if>
+            <if test="regDt != null">reg_dt = #{regDt},</if>
+            <if test="rgstIpAddr != null">rgst_ip_addr = #{rgstIpAddr},</if>
+            <if test="updusrId != null">updusr_id = #{updusrId},</if>
+            <if test="updtDt != null">updt_dt = #{updtDt},</if>
+            <if test="updusrIpAddr != null">updusr_ip_addr = #{updusrIpAddr},</if>
+            <if test="useYn != null">use_yn = #{useYn},</if>
+        </set>
+        WHERE group_cd = #{groupCd}
+    </update>
+
+    <delete id="deleteCoCodeGroup" parameterType="string">
+        DELETE FROM tb_co_code_group WHERE group_cd = #{groupCd}
+    </delete>
+</mapper>
