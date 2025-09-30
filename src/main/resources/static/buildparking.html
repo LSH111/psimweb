@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>부설주차장 상세</title>
+<style>
+  :root{ --bg:#f6f7fb; --card:#fff; --text:#1f2937; --muted:#6b7280; --primary:#2563eb; --primary-2:#1d4ed8; --border:#e5e7eb; }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0b1220; --card:#0f172a; --text:#e5e7eb; --muted:#94a3b8; --primary:#3b82f6; --primary-2:#2563eb; --border:#20304f; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans KR",sans-serif; background:var(--bg); color:var(--text); padding:12px}
+  .wrap{max-width:1100px; margin:0 auto; display:grid; gap:12px}
+  .head{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  .title{font-weight:800; font-size:1.2rem}
+  .muted{color:var(--muted)}
+  .badge{display:inline-block; padding:4px 8px; border:1px solid var(--border); border-radius:999px; font-size:.8rem; background:#eef2ff}
+  .row{display:grid; gap:10px; grid-template-columns:1fr}
+  @media(min-width:900px){ .row{ grid-template-columns:1fr 1fr } }
+  .card{background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px}
+  h2{font-size:1rem; margin:.2rem 0 .6rem}
+  .grid{display:grid; grid-template-columns:1fr; gap:8px}
+  @media(min-width:700px){ .grid{grid-template-columns: 1fr 1fr} }
+  label{display:block; font-size:.85rem; color:var(--muted); margin-bottom:4px}
+  .ctl{display:flex; gap:8px; border:1px solid var(--border); border-radius:10px; padding:10px 12px; background:transparent; align-items:center; flex-wrap:wrap}
+  input,textarea{border:0; outline:0; width:100%; background:transparent; color:var(--text)}
+  textarea{min-height:80px; resize:vertical}
+  .actions{display:flex; gap:8px; flex-wrap:wrap}
+  .btn{border:0; border-radius:10px; padding:10px 14px; cursor:pointer; font-weight:700; color:#fff; background:linear-gradient(180deg,var(--primary),var(--primary-2))}
+  .btn.ghost{background:transparent; color:var(--primary); border:1px solid var(--border)}
+  .btn.light{background:#eef2ff; color:#1e40af; border:1px solid var(--border)}
+  .thumb{width:100%; max-height:260px; object-fit:contain; border:1px solid var(--border); border-radius:10px; background:#fff}
+  .mono{font-variant-numeric: tabular-nums}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/exifr@7/dist/full.umd.js"></script>
+</head>
+<body>
+  <div class="wrap">
+    <header class="card head">
+      <div class="title" id="v_name">부설주차장 상세</div>
+      <span class="badge">부설</span>
+      <span class="muted mono" id="v_id">관리번호</span>
+      <span class="muted" id="v_addr"></span>
+      <span class="actions" style="margin-left:auto">
+        <button class="btn" onclick="window.print()">인쇄</button>
+      </span>
+    </header>
+
+    <section class="row">
+      <div class="card">
+        <h2>기본정보</h2>
+        <div class="grid">
+          <div><label for="f_id">주차장관리번호</label><div class="ctl"><input id="f_id" class="mono" type="text" readonly /></div></div>
+          <div><label for="f_name">주차장명</label><div class="ctl"><input id="f_name" type="text" placeholder="예) 상암DMC 복합" /></div></div>
+          <div><label for="f_status">진행상태</label><div class="ctl"><input id="f_status" type="text" placeholder="예) TEMP/APPROVED" /></div></div>
+          <div><label for="f_type">주차장구분</label><div class="ctl"><input id="f_type" type="text" value="부설" readonly /></div></div>
+          <div><label for="f_sido">시도</label><div class="ctl"><input id="f_sido" /></div></div>
+          <div><label for="f_sigungu">시군구</label><div class="ctl"><input id="f_sigungu" /></div></div>
+          <div><label for="f_emd">읍면동</label><div class="ctl"><input id="f_emd" /></div></div>
+
+          <!-- 지번/도로명 분리 -->
+          <div style="grid-column:1/-1"><label for="f_addr_jibun">지번 주소</label><div class="ctl"><input id="f_addr_jibun" placeholder="예) 마포구 상암동 123-45" /></div></div>
+          <div style="grid-column:1/-1"><label for="f_addr_road">도로명 주소</label><div class="ctl"><input id="f_addr_road" placeholder="예) 마포구 월드컵북로 400" /></div></div>
+
+          <h2 style="grid-column:1/-1; margin-top:12px">시설정보(부설)</h2>
+          <div><label>시설(건물)명</label><div class="ctl"><input id="f_bld" placeholder="예) ○○타워" /></div></div>
+          <div><label>용도</label><div class="ctl"><input id="f_usage" placeholder="예) 업무/상업" /></div></div>
+          <div><label>연면적</label><div class="ctl"><input id="f_area" placeholder="예) 35,000㎡" /></div></div>
+          <div><label>주차대수(총/지상/지하)</label><div class="ctl"><input id="f_lots" placeholder="예) 300/50/250" /></div></div>
+          <div><label>입차제한</label><div class="ctl"><input id="f_limit" placeholder="예) 2.1m, 2.3t" /></div></div>
+          <div><label>비고</label><div class="ctl"><textarea id="f_note" placeholder="특이사항"></textarea></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>현장 사진 & 좌표</h2>
+        <div class="grid">
+          <div style="grid-column:1/-1">
+            <label>사진 업로드</label>
+            <div class="ctl">
+              <input id="f_photo_lib" type="file" accept="image/*,image/heic,image/heif" style="display:none" />
+              <input id="f_photo_cam" type="file" accept="image/*" capture="environment" style="display:none" />
+              <button type="button" class="btn light" id="btnPickFromLibrary">사진첩에서 선택</button>
+              <button type="button" class="btn ghost" id="btnTakePhoto">카메라 촬영</button>
+              <button type="button" class="btn" id="btnUseGeolocation">기기 위치로 좌표</button>
+              <button type="button" class="btn ghost" id="btnClearPhoto">초기화</button>
+            </div>
+          </div>
+          <div style="grid-column:1/-1"><img id="preview" class="thumb" alt="사진 미리보기" /></div>
+          <div><label for="f_lat">위도</label><div class="ctl"><input id="f_lat" class="mono" /></div></div>
+          <div><label for="f_lng">경도</label><div class="ctl"><input id="f_lng" class="mono" /></div></div>
+
+          <h2 style="grid-column:1/-1; margin-top:12px">운영정보</h2>
+          <div><label>운영 시간</label><div class="ctl"><input id="f_hours" placeholder="예) 07:00~22:00" /></div></div>
+          <div><label>요금(방문객)</label><div class="ctl"><input id="f_fee" placeholder="예) 30분 무료, 이후 10분 500원" /></div></div>
+          <div><label>입주사 할인</label><div class="ctl"><input id="f_disc" placeholder="예) 입주사 50% 할인" /></div></div>
+          <div><label>정기권</label><div class="ctl"><input id="f_pass" placeholder="예) 월 150,000원" /></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="actions">
+        <button class="btn" id="btnSave">저장</button>
+        <span class="muted">샘플 저장입니다. 실제 API로 교체하세요.</span>
+      </div>
+    </section>
+  </div>
+
+<script>
+const $=(s)=>document.querySelector(s);
+function params(){const sp=new URLSearchParams(location.search);return new Proxy({}, {get:(_,k)=> sp.get(k)||''});}
+const p=params();
+const sample={
+  id:'PRK-0003', name:'상암DMC 복합', status:'TEMP',
+  sido:'서울특별시', sigungu:'마포구', emd:'상암동',
+  addrJ:'마포구 상암동 123-45', addrR:'마포구 월드컵북로 400'
+};
+
+const f_id=$('#f_id'), f_name=$('#f_name'), f_status=$('#f_status'), f_type=$('#f_type');
+const f_sido=$('#f_sido'), f_sigungu=$('#f_sigungu'), f_emd=$('#f_emd');
+const f_addrJ=$('#f_addr_jibun'), f_addrR=$('#f_addr_road');
+const f_lat=$('#f_lat'), f_lng=$('#f_lng');
+const v_addr=$('#v_addr');
+
+$('#v_name').textContent=p.name||sample.name; $('#v_id').textContent=p.id||sample.id;
+f_id.value=p.id||sample.id; f_name.value=p.name||sample.name; f_status.value=p.status||sample.status; f_type.value='부설';
+f_sido.value=p.sido||sample.sido; f_sigungu.value=p.sigungu||sample.sigungu; f_emd.value=p.emd||sample.emd;
+f_addrJ.value=p.jibun||p.addr||sample.addrJ; f_addrR.value=p.road||sample.addrR;
+updateHeaderAddr();
+
+/* 사진 업로드: 사진첩/카메라 분리 */
+const inLib=$('#f_photo_lib'), inCam=$('#f_photo_cam');
+const btnLib=$('#btnPickFromLibrary'), btnCam=$('#btnTakePhoto');
+const preview=$('#preview');
+btnLib.addEventListener('click', ()=> inLib.click());
+btnCam.addEventListener('click', ()=> inCam.click());
+inLib.addEventListener('change', (e)=> handleFiles(e.target.files, 'lib'));
+inCam.addEventListener('change', (e)=> handleFiles(e.target.files, 'cam'));
+
+async function handleFiles(list, mode){
+  const file=list && list[0]; if(!file) return;
+  try{ preview.src=URL.createObjectURL(file); }catch(_){}
+  if(mode==='cam'){
+    const c=await geoFromDeviceSilent();
+    if(c){ f_lat.value=c.lat.toFixed(6); f_lng.value=c.lng.toFixed(6); }
+    return; // 무음
+  }
+  try{
+    let coords=null;
+    if(window.exifr){
+      try{
+        const g=await exifr.gps(file);
+        if(g && typeof g.latitude==='number' && typeof g.longitude==='number')
+          coords={lat:g.latitude,lng:g.longitude};
+      }catch(_){}
+    }
+    if(!coords && (/jpe?g$/i.test(file.name) || file.type==='image/jpeg')){
+      try{ coords=await readJpegGpsSafe(file); }catch(_){}
+    }
+    if(coords){
+      f_lat.value=Number(coords.lat).toFixed(6); f_lng.value=Number(coords.lng).toFixed(6);
+    }else{
+      alert('이 사진에는 위치 정보가 없습니다. 다른 사진을 선택하거나, "기기 위치로 좌표"를 이용하세요.');
+    }
+  }catch(err){ console.error(err); alert('사진 처리 중 오류가 발생했습니다.'); }
+}
+
+/* 기기 위치 버튼(수동) */
+$('#btnUseGeolocation').addEventListener('click', async ()=>{
+  const c=await geoFromDevice(); if(c){ f_lat.value=c.lat.toFixed(6); f_lng.value=c.lng.toFixed(6); }
+});
+$('#btnClearPhoto').addEventListener('click', ()=>{
+  inLib.value=''; inCam.value=''; preview.removeAttribute('src'); f_lat.value=''; f_lng.value='';
+});
+
+/* Silent(촬영용) */
+async function geoFromDeviceSilent(){
+  if(!('geolocation' in navigator) || !isSecureContext) return null;
+  try{
+    const p=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true, timeout:8000, maximumAge:0}));
+    return {lat:p.coords.latitude, lng:p.coords.longitude};
+  }catch(_){
+    try{
+      const p=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:false, timeout:12000, maximumAge:0}));
+      return {lat:p.coords.latitude, lng:p.coords.longitude};
+    }catch(__){ return null; }
+  }
+}
+
+/* Verbose(수동 버튼 용) */
+async function geoFromDevice(){
+  if(!('geolocation' in navigator)) { alert('이 브라우저는 위치 기능을 지원하지 않습니다.'); return null; }
+  if(!isSecureContext) { alert('HTTPS 또는 http://localhost 에서만 위치 사용 가능'); return null; }
+  try{
+    const p=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true, timeout:8000, maximumAge:0}));
+    return {lat:p.coords.latitude, lng:p.coords.longitude};
+  }catch(e1){
+    try{
+      const p=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:false, timeout:12000, maximumAge:0}));
+      return {lat:p.coords.latitude, lng:p.coords.longitude};
+    }catch(e2){ alert('위치 확인 실패'); return null; }
+  }
+}
+
+/* JPEG EXIF 보조 파서 (헬퍼 포함) */
+function u16(v,o,le){ return v.getUint16(o, !!le); }
+function u32(v,o,le){ return v.getUint32(o, !!le); }
+async function readJpegGpsSafe(file){
+  const buf=await file.arrayBuffer(); const v=new DataView(buf);
+  if(v.byteLength<4 || v.getUint16(0)!==0xFFD8) return null;
+  let off=2;
+  while(off+4<=v.byteLength){
+    const marker=v.getUint16(off); off+=2;
+    if((marker&0xFFF0)!==0xFFE0) break;
+    const size=v.getUint16(off); off+=2;
+    const next=off+size-2; if(next>v.byteLength) break;
+    if(marker===0xFFE1){
+      if(off+6<=v.byteLength && v.getUint32(off)===0x45786966){
+        const c=parseExifForGps(v,off+6); if(c) return c;
+      }
+    }
+    off=next;
+  }
+  return null;
+  function parseExifForGps(view,tiff){
+    if(tiff+8>view.byteLength) return null;
+    const endian=view.getUint16(tiff), le=endian===0x4949; if(!le && endian!==0x4D4D) return null;
+    const ifd0=tiff+u32(view,tiff+4,le); if(!rng(ifd0,2)) return null;
+    const n=u16(view,ifd0,le); let gpsPtr=0;
+    for(let i=0;i<n;i++){
+      const e=ifd0+2+i*12; if(!rng(e,12)) return null;
+      const tag=u16(view,e,le);
+      if(tag===0x8825){ gpsPtr=tiff+u32(view,e+8,le); break; }
+    }
+    if(!gpsPtr || !rng(gpsPtr,2)) return null;
+    const m=u16(view,gpsPtr,le); let latRef='N',lonRef='E',lat=null,lon=null;
+    for(let i=0;i<m;i++){
+      const e=gpsPtr+2+i*12; if(!rng(e,12)) break;
+      const tag=u16(view,e,le), type=u16(view,e+2,le), cnt=u32(view,e+4,le);
+      const ofsRel=u32(view,e+8,le); const ptr=(cnt<=4)?(e+8):(tiff+ofsRel);
+      if((tag===0x0001||tag===0x0003)&&type===2&&cnt>=2){
+        if(rng(ptr,1)){
+          const ch=String.fromCharCode(view.getUint8(ptr));
+          if(tag===0x0001)latRef=ch; if(tag===0x0003)lonRef=ch;
+        }
+      }
+      if((tag===0x0002||tag===0x0004)&&type===5&&cnt===3){
+        const p=tiff+ofsRel; if(!rng(p,24)) continue;
+        const d=u32(view,p,le), m2=u32(view,p+8,le), s=u32(view,p+16,le);
+        const dd=(d/(u32(view,p+4,le)||1)), mm=(m2/(u32(view,p+12,le)||1)), ss=(s/(u32(view,p+20,le)||1));
+        const dec=dd + (mm/60) + (ss/3600);
+        if(tag===0x0002) lat=dec; else if(tag===0x0004) lon=dec;
+      }
+    }
+    if(lat!=null&&lon!=null){ if(latRef==='S')lat=-lat; if(lonRef==='W')lon=-lon; return {lat,lng:lon}; }
+    return null;
+  }
+  function rng(s,l){ return s>=0 && (s+(l||0))<=v.byteLength; }
+}
+
+/* 헤더 주소 업데이트 */
+function updateHeaderAddr(){
+  const j=f_addrJ.value?.trim(); const r=f_addrR.value?.trim();
+  v_addr.textContent = (j||r) ? ' · '+[j,r].filter(Boolean).join(' / ') : '';
+}
+[f_addrJ, f_addrR].forEach(el=> el.addEventListener('input', updateHeaderAddr));
+updateHeaderAddr();
+
+/* 저장 */
+function doSave(){
+  const payload={
+    id:f_id.value, name:f_name.value, status:f_status.value, type:'부설',
+    sido:f_sido.value, sigungu:f_sigungu.value, emd:f_emd.value,
+    addrJibun:f_addrJ.value, addrRoad:f_addrR.value,
+    lat:f_lat.value, lng:f_lng.value
+  };
+  console.log('SAVE(attached):', payload);
+  alert('샘플 저장 완료(콘솔 확인). 실제 API로 교체하세요.');
+}
+$('#btnSave').addEventListener('click', doSave);
+$('#btnSaveTop').addEventListener('click', doSave);
+</script>
+</body>
+</html>
