@@ -1,32 +1,12 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<meta charset="utf-8" />
-<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-<meta name="description" content="" />
-<meta name="author" content="" />
-<title>PSIM</title>
-<!-- Bootstrap CSS 추가 -->
-<link href="/webjars/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
-
-<!-- 기존 CSS 링크들 -->
-<link href="/static/css/styles.css" rel="stylesheet" />
-
-<!-- Font Awesome -->
-<script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-
-<!-- jQuery (필요 시) -->
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
-<!-- Bootstrap JS (필요 시) -->
-<script src="/webjars/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<!DOCTYPE html>
+<html lang="ko">
 <head>
-  <jsp:include page="/WEB-INF/views/fragments/_head.jspf"/>
-  <title>주차장 등록</title>
-  <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/pages/buildparking.css"/>
+  <title>부설주차장</title>
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/pages/buildparking.css?v=1"/>
 </head>
 <body>
-  <jsp:include page="/WEB-INF/views/fragments/_header.jspf"/>
   <main class="main container">
     <div class="card">
       <div class="wrap">
@@ -277,6 +257,5 @@ $('#btnSaveTop').addEventListener('click', doSave);
 </script>
     </div>
   </main>
-  <jsp:include page="/WEB-INF/views/fragments/_footer.jspf"/>
 </body>
 </html>

@@ -3,12 +3,10 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <jsp:include page="/WEB-INF/views/fragments/_head.jspf"/>
-  <title>입차 처리</title>
+  <title>노외주차장</title>
   <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/pages/onparking.css"/>
 </head>
 <body>
-  <jsp:include page="/WEB-INF/views/fragments/_header.jspf"/>
   <main class="main container">
     <div class="card">
       <div class="wrap">
@@ -259,6 +257,5 @@ $('#btnSaveTop').addEventListener('click', save);
 </script>
     </div>
   </main>
-  <jsp:include page="/WEB-INF/views/fragments/_footer.jspf"/>
 </body>
 </html>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.psim.web.cmm.mapper.IndexMapper">
+
+    <select id="selectParkingStatus" resultType="java.util.HashMap">
+        SELECT
+            COUNT(*) AS total_count,
+            COUNT(CASE WHEN prgs_sts_cd = '01'   THEN 1 END) AS writing_count,
+            COUNT(CASE WHEN prgs_sts_cd = '02' THEN 1 END) AS completed_count
+        FROM cpk.tb_biz_per_prklot_info
+    </select>
+
+
+
+</mapper>

@@ -27,7 +27,7 @@
     </bean>
 
     <!-- Scan for mappers and let them be autowired -->
-    <mybatis:scan base-package="com.psim.web"/>
+    <mybatis:scan base-package="com.psim.web.cmm.mapper,com.psim.web.api.mapper,com.psim.web.file.mapper,com.psim.web.prk.mapper"/>
 
     <!-- Transaction Manager -->
     <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jboss-deployment-structure>
+    <deployment>
+        <exclusions>
+            <module name="jdk.unsupported"/>
+        </exclusions>
+        <dependencies>
+            <module name="io.undertow.jsp"/>
+        </dependencies>
+    </deployment>
+</jboss-deployment-structure>

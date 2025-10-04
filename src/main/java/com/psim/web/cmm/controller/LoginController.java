@@ -19,6 +19,11 @@ public class LoginController {
 
     private final LoginService loginService;
 
+    @GetMapping("/")
+    public String loginForm() {
+        return "/cmm/ts_login";
+    }
+
     @PostMapping("/login")
     public String login(@RequestParam("userId") String userId,
                         @RequestParam("password") String password,
@@ -37,7 +42,7 @@ public class LoginController {
         session.setAttribute(LOGIN_USER_SESSION_KEY, loginUser);
         session.setMaxInactiveInterval(SESSION_TIMEOUT_SECONDS);
 
-        return "redirect:/prk/parking-list"; // 주차장 목록 페이지로 리다이렉트
+        return "redirect:/index";
     }
 
     @GetMapping("/logout")

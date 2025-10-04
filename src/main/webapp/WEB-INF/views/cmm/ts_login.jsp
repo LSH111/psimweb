@@ -3,271 +3,267 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <jsp:include page="/WEB-INF/views/fragments/_head.jspf"/>
-  <title>로그인</title>
-  <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/pages/ts_login.css"/>
+    <title>로그인</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/pages/ts_login.css"/>
 </head>
 <body>
-  <jsp:include page="/WEB-INF/views/fragments/_header.jspf"/>
-  <main class="main container">
+<main class="main container" role="main" aria-labelledby="title">
     <div class="card">
-      <!-- 실제 배포 시, 서버가 data-phone="01012345678" 같이 '숫자만' 값을 채워 넣어주세요 -->
-  <main id="app" class="card" role="main" aria-labelledby="title" data-phone="01012345678">
-    <div class="header">
-      <div class="logo" aria-hidden="true">TS</div>
-      <div>
-        <h1 id="title">로그인</h1>
-        <p class="sub">1차: 아이디/비밀번호 → 2차: SMS</p>
-      </div>
-    </div>
-
-    <div class="banner">
-      <strong>테스트:</strong> <code>아이디 demo</code>, <code>비번 demo1234</code> → 코드 전송 후 <code>OTP 123456</code>
-    </div>
-
-    <form id="loginForm" novalidate>
-      <!-- 1차: 아이디/비밀번호 -->
-      <div class="field">
-        <label for="loginId">아이디</label>
-        <div class="control">
-          <input id="loginId" class="input" type="text" autocomplete="username"
-                 placeholder="아이디를 입력하세요" minlength="4" maxlength="32"
-                 pattern="[A-Za-z0-9._-]{4,32}" required />
-        </div>
-        <span class="hint">영문/숫자/.-_ 4~32자</span>
-      </div>
-      <div class="field">
-        <label for="password">비밀번호</label>
-        <div class="control">
-          <input id="password" class="input" type="password" autocomplete="current-password"
-                 minlength="8" placeholder="••••••••" required />
-          <button class="link" type="button" id="togglePw" aria-label="비밀번호 표시 전환">표시</button>
-        </div>
-      </div>
-      <div class="row">
-        <label class="hint"><input type="checkbox" id="remember" /> 자동 로그인</label>
-        <a class="link" href="#" onclick="alert('비밀번호 초기화 안내 화면으로 이동');return false;">비밀번호 찾기</a>
-      </div>
-
-      <div id="errorBox" class="error" aria-live="polite"></div>
-      <div id="okBox" class="ok" aria-live="polite"></div>
-
-      <button id="pwVerifyBtn" class="btn" type="button">로그인</button>
-
-      <!-- 2차: SMS 인증 (전화번호는 표시만, 입력 불가) -->
-      <section id="otpSection" class="hide" aria-label="2차 인증(SMS)">
-        <hr style="border:none; border-top:1px solid var(--border); margin:8px 0 12px" />
-        <div class="field">
-          <label>인증 대상 휴대폰</label>
-          <div class="control" aria-describedby="phoneHint">
-            <input id="phoneMasked" class="input mono" type="text" value="" readonly />
-          </div>
-          <div class="row">
-            <span id="phoneHint" class="hint">계정에 등록된 번호로만 발송됩니다.</span>
-            <button id="sendOtpBtn" class="link" type="button">인증코드 전송</button>
-          </div>
-        </div>
-
-        <div id="otpBox" class="field hide" aria-live="polite">
-          <label for="otp">인증코드 (6자리)</label>
-          <div class="otp-grid">
-            <div class="control">
-              <input id="otp" class="input mono" type="text" inputmode="numeric" pattern="\\d{6}" maxlength="6"
-                     placeholder="______" aria-describedby="otpHint"/>
+        <div class="header">
+            <div class="logo" aria-hidden="true">TS</div>
+            <div>
+                <h1 id="title">로그인</h1>
+                <p class="sub">아이디 → 비밀번호 → (SMS)인증 → 로그인</p>
             </div>
-            <button id="resendBtn" class="link" type="button" disabled>재전송(60)</button>
-          </div>
-          <span id="otpHint" class="hint">유효시간 <span id="timer" class="mono">02:00</span></span>
         </div>
+<form id="loginForm" method="POST" action="<c:url value='/login'/>">
+            <!-- 1) 아이디 (오른쪽에 다음 버튼) -->
+            <section id="secId" class="step" aria-labelledby="step1-title">
+                <h2 id="step1-title" class="sr-only">아이디 입력</h2>
+                <div class="field">
+                    <label for="loginId">아이디</label>
+                    <div class="control inline-actions">
+                        <input id="loginId" name="userId" class="input" type="text" autocomplete="username"
+                               placeholder="아이디를 입력하세요" minlength="4" maxlength="32"
+                               pattern="[A-Za-z0-9._\\-]{4,32}" required />
+                        <button id="nextIdBtn" class="btn" type="button">다음</button>
+                    </div>
+                    <span class="hint">영문/숫자/.-_ 4~32자</span>
+                </div>
+                <div id="idErr" class="error hide" aria-live="polite"></div>
+            </section>
 
-        <button id="finalLoginBtn" class="btn" type="button" disabled>인증완료</button>
-      </section>
-    </form>
-  </main>
+            <!-- 2) 비밀번호 (아이디 아래에 펼침, 여기서는 검증하지 않음) -->
+            <section id="secPw" class="step hide" aria-labelledby="step2-title">
+                <h2 id="step2-title" class="sr-only">비밀번호 입력</h2>
+                <div class="field">
+                    <label for="password">비밀번호</label>
+                    <div class="control inline-actions">
+                        <input id="password" name="password" class="input" type="password" autocomplete="current-password"
+                               minlength="8" placeholder="••••••••" required />
+                        <button class="link" type="button" id="togglePw" aria-label="비밀번호 표시 전환">표시</button>
+                        <button id="nextPwBtn" class="btn" type="button">다음</button>
+                    </div>
+                    <span class="hint">최소 8자 이상</span>
+                </div>
+                <div id="pwErr" class="error hide" aria-live="polite"></div>
+            </section>
 
-  <script>
-    // ===== 상수/요소 =====
+            <!-- 3) 휴대폰 & OTP (비밀번호 아래에 펼침, OTP는 반드시 검증) -->
+            <section id="secPhone" class="step hide" aria-labelledby="step3-title">
+                <h2 id="step3-title" class="sr-only">휴대폰 번호 입력</h2>
+
+                <div class="field">
+                    <label for="phone">인증 받을 휴대폰 번호</label>
+                    <div class="control inline-actions">
+                        <input id="phone" class="input mono" type="text" inputmode="numeric" maxlength="11"
+                               placeholder="숫자만 입력 (예: 01012345678)" required />
+                        <button id="sendOtpBtn" class="btn" type="button">인증코드 전송</button>
+                    </div>
+                    <span class="hint">숫자만 입력하세요. (하이픈은 서버 표시용 처리 권장)</span>
+                </div>
+
+                <div id="otpBox" class="field hide" aria-live="polite">
+                    <label for="otp">인증코드 (6자리)</label>
+                    <div class="otp-grid">
+                        <div class="control">
+                            <input id="otp" class="input mono" type="text" inputmode="numeric"
+                                   pattern="\\d{6}" maxlength="6" placeholder="______" aria-describedby="otpHint"/>
+                        </div>
+                        <button id="resendBtn" class="link" type="button" disabled>재전송(60)</button>
+                    </div>
+                    <span id="otpHint" class="hint">유효시간 <span id="timer" class="mono">02:00</span></span>
+                </div>
+
+                <div id="otpErr" class="error hide" aria-live="polite"></div>
+                <div id="otpOk" class="ok hide" aria-live="polite">인증코드 확인 완료.</div>
+            </section>
+
+            <!-- 4) 최종 로그인 (OTP 성공해야 활성화) -->
+            <section id="secFinal" class="step hide" aria-labelledby="step4-title">
+                <h2 id="step4-title" class="sr-only">최종 로그인</h2>
+                <div id="finalErr" class="error hide" aria-live="polite"></div>
+                <div class="row" style="justify-content:flex-end; margin-top:12px;">
+                    <button id="finalLoginBtn" class="btn" type="button" disabled>로그인</button>
+                </div>
+            </section>
+        </form>
+    </div>
+</main>
+
+<jsp:include page="/WEB-INF/views/fragments/footer.jsp"/>
+
+<script>
     const $ = (s)=>document.querySelector(s);
-    const app = $('#app');
+    const delay = (ms)=>new Promise(r=>setTimeout(r,ms));
+
+    // 섹션/요소
+    const secPw = $('#secPw');
+    const secPhone = $('#secPhone');
+    const secFinal = $('#secFinal');
 
     const loginId = $('#loginId');
+    const nextIdBtn = $('#nextIdBtn');
+    const idErr = $('#idErr');
+
     const pw = $('#password');
     const togglePw = $('#togglePw');
-    const remember = $('#remember');
-    const pwVerifyBtn = $('#pwVerifyBtn');
+    const nextPwBtn = $('#nextPwBtn');
+    const pwErr = $('#pwErr');
 
-    const phoneMasked = $('#phoneMasked');
+    const phone = $('#phone');
     const sendOtpBtn = $('#sendOtpBtn');
-    const otpSection = $('#otpSection');
     const otpBox = $('#otpBox');
     const otp = $('#otp');
     const resendBtn = $('#resendBtn');
     const timerEl = $('#timer');
-    const err = $('#errorBox');
-    const ok = $('#okBox');
+    const otpErr = $('#otpErr');
+    const otpOk = $('#otpOk');
+
     const finalLoginBtn = $('#finalLoginBtn');
+    const finalErr = $('#finalErr');
 
-    // 서버가 내려주는 '기입력된 휴대폰 번호' (숫자만). 테스트 기본값: 01012345678
-    const phoneRawFromServer = (app.dataset.phone || '').replace(/\D/g,'') || '01012345678';
+    // 상태
+    let otpSent = false;
+    let otpVerified = false;
+    let lastSendTs = 0;
+    let otpExpireAt = 0;
+    let countdown = null;
 
-    // 테스트 계정
+    // 데모 자격증명
     const TEST_ID = 'demo';
     const TEST_PW = 'demo1234';
     const TEST_OTP = '123456';
 
-    let pwVerified = false;
-    let otpVerified = false;
-    let lastSendTs = 0;
-    let otpExpireAt = null;
-    let countdown = null;
+    // 메세지 유틸
+    function show(el, msg){ if(!el) return; el.textContent = msg ?? el.textContent; el.classList.remove('hide'); }
+    function hide(el){ if(!el) return; el.classList.add('hide'); el.textContent = ''; }
 
-    function showError(m){ err.textContent = m || ''; ok.textContent=''; }
-    function showOk(m){ ok.textContent = m || ''; err.textContent=''; }
-    function clearMsg(){ showError(''); showOk(''); }
-    function delay(ms){ return new Promise(r=>setTimeout(r, ms)); }
-
-    function formatPhoneMask(raw){
-      const d = raw.replace(/\D/g,'');
-      if(d.length < 10) return d; // 최소 10자리 가정
-      // 010-****-끝4자리
-      const head = d.slice(0,3);
-      const tail = d.slice(-4);
-      return `${head}-****-${tail}`;
-    }
-
-    // 초기 마스킹 표시
-    phoneMasked.value = formatPhoneMask(phoneRawFromServer);
-
-    // 비번 표시 토글
-    togglePw.addEventListener('click', ()=>{
-      const isPw = pw.type === 'password';
-      pw.type = isPw ? 'text' : 'password';
-      togglePw.textContent = isPw ? '숨김' : '표시';
-      pw.focus();
+    // 1) 다음(아이디) — 검증 없이 아래 섹션 펼치기
+    nextIdBtn.addEventListener('click', ()=>{
+        hide(idErr);
+        secPw.classList.remove('hide');   // ▼ 비밀번호 영역 펼침
+        pw.focus();
     });
 
-    // 1차 인증
-    pwVerifyBtn.addEventListener('click', async ()=>{
-      clearMsg();
-      if(!loginId.value || !loginId.checkValidity()){
-        return showError('아이디를 확인해주세요. (영문/숫자/.-_ 4~32자)');
-      }
-      if(!pw.value || pw.value.length < 8){
-        return showError('비밀번호는 최소 8자 이상이어야 합니다.');
-      }
+    // 2) 비밀번호 표시 토글
+    togglePw.addEventListener('click', ()=>{
+        const isPw = pw.type === 'password';
+        pw.type = isPw ? 'text' : 'password';
+        togglePw.textContent = isPw ? '숨김' : '표시';
+        pw.focus();
+    });
 
-      pwVerifyBtn.disabled = true; pwVerifyBtn.textContent = '확인 중…';
-      await delay(300);
+    // 3) 다음(비밀번호) — 검증 없이 아래 섹션 펼치기
+    nextPwBtn.addEventListener('click', ()=>{
+        hide(pwErr);
+        secPhone.classList.remove('hide'); // ▼ 휴대폰/OTP 영역 펼침
+        phone.focus();
+    });
 
-      if(loginId.value === TEST_ID && pw.value === TEST_PW){
-        pwVerified = true;
-      } else {
-        // TODO: 실제 서버 1차 인증
-        // const r = await fetch('/api/auth/login', {...})
-        // if(!r.ok) { showError('아이디 또는 비밀번호가 올바르지 않습니다.'); ...; return; }
-        showError('아이디 또는 비밀번호가 올바르지 않습니다. (테스트: demo/demo1234)');
-        pwVerifyBtn.disabled = false; pwVerifyBtn.textContent = '1차 확인';
-        return;
-      }
-
-      showOk('1차 인증 성공. 등록된 번호로 2차 인증을 진행하세요.');
-      otpSection.classList.remove('hide');
-      pwVerifyBtn.disabled = false; pwVerifyBtn.textContent = '1차 확인';
-      // 포커스 이동
-      sendOtpBtn.focus();
+    // 전화번호 숫자만
+    phone.addEventListener('input', ()=>{
+        phone.value = phone.value.replace(/\\D/g,'').slice(0,11);
     });
 
     // 타이머
     function startTimer(sec){
-      otpExpireAt = Date.now() + sec*1000;
-      updateTimer();
-      if(countdown) clearInterval(countdown);
-      countdown = setInterval(updateTimer, 250);
+        otpExpireAt = Date.now() + sec*1000;
+        if(countdown) clearInterval(countdown);
+        updateTimer();
+        countdown = setInterval(updateTimer, 250);
     }
     function updateTimer(){
-      const remain = Math.max(0, Math.floor((otpExpireAt - Date.now())/1000));
-      const mm = String(Math.floor(remain/60)).padStart(2,'0');
-      const ss = String(remain%60).padStart(2,'0');
-      timerEl.textContent = `${mm}:${ss}`;
-      if(remain===0){
-        clearInterval(countdown);
-        resendBtn.disabled = false;
-        showError('인증코드 유효시간이 만료되었습니다. 재전송해주세요.');
-        otpVerified = false;
-        finalLoginBtn.disabled = true;
-      }
+        const remain = Math.max(0, Math.floor((otpExpireAt - Date.now())/1000));
+        const mm = String(Math.floor(remain/60)).padStart(2,'0');
+        const ss = String(remain%60).padStart(2,'0');
+        if(timerEl) timerEl.textContent = mm + ':' + ss;
+        if(remain===0){
+            clearInterval(countdown);
+            resendBtn.disabled = false;
+            otpVerified = false;
+            finalLoginBtn.disabled = true;
+            show(otpErr, '인증코드 유효시간이 만료되었습니다. 재전송하세요.');
+            hide(otpOk);
+        }
     }
 
-    // 인증코드 전송 (등록 번호로만)
+    // OTP 전송 (전화번호는 최소 자리수만 확인)
     sendOtpBtn.addEventListener('click', async ()=>{
-      clearMsg();
-      if(!pwVerified){ return showError('먼저 1차(아이디/비밀번호) 인증을 완료해주세요.'); }
-
-      const now = Date.now();
-      if(now - lastSendTs < 30000){
-        const left = Math.ceil((30000 - (now-lastSendTs))/1000);
-        return showError(`잠시 후 다시 시도하세요. (${left}s)`);
-      }
-
-      // TODO: 실제 환경: 서버가 계정에 등록된 번호로 발송
-      // await fetch('/api/2fa/sms/send', { method:'POST', headers:{'Content-Type':'application/json'},
-      //   body: JSON.stringify({ loginId: loginId.value /* phone은 서버에서 조회 */ }) });
-
-      await delay(300); // demo
-      lastSendTs = now;
-      otpBox.classList.remove('hide');
-      resendBtn.disabled = true;
-      startTimer(120); // 2분
-      otp.value = '';
-      otp.focus();
-      showOk(`인증코드를 ${phoneMasked.value} 로 전송했습니다. (테스트: 123456)`);
-    });
-
-    resendBtn.addEventListener('click', ()=> sendOtpBtn.click());
-
-    // 코드 검증
-    otp.addEventListener('input', async ()=>{
-      clearMsg();
-      otp.value = otp.value.replace(/\D/g,'').slice(0,6);
-      if(otp.value.length === 6){
-        await delay(200);
-
-        if(otp.value === TEST_OTP){
-          otpVerified = true;
-        } else {
-          // TODO: 실제 서버 검증
-          // const r = await fetch('/api/2fa/sms/verify', { ... loginId, code ... })
-          showError('인증코드가 올바르지 않습니다. (테스트: 123456)');
-          otpVerified = false; finalLoginBtn.disabled = true; return;
+        hide(otpErr); hide(otpOk);
+        const now = Date.now();
+        if(!phone.value || phone.value.length < 10){
+            return show(otpErr, '휴대폰 번호(숫자만)를 정확히 입력하세요.');
         }
-
-        showOk('2차 인증 완료. 최종 로그인을 진행하세요.');
-        if(countdown) clearInterval(countdown);
-        finalLoginBtn.disabled = !(pwVerified && otpVerified);
-      } else {
+        if(now - lastSendTs < 30000){
+            const left = Math.ceil((30000 - (now-lastSendTs))/1000);
+            return show(otpErr, `잠시 후 다시 시도하세요. (${left}s)`);
+        }
+        await delay(150); // demo
+        lastSendTs = now;
+        otpSent = true;
         otpVerified = false;
         finalLoginBtn.disabled = true;
-      }
+        otpBox.classList.remove('hide');
+        resendBtn.disabled = true;
+        otp.value = '';
+        startTimer(120);
+        otp.focus();
+        show(otpOk, '인증코드를 전송했습니다. (테스트: 123456)');
     });
 
-    // 최종 로그인
-    finalLoginBtn.addEventListener('click', async ()=>{
-      clearMsg();
-      if(!(pwVerified && otpVerified)){ return showError('1차/2차 인증이 완료되지 않았습니다.'); }
+    // 재전송
+    resendBtn.addEventListener('click', ()=> sendOtpBtn.click());
 
-      finalLoginBtn.disabled = true; finalLoginBtn.textContent = '로그인 중…';
-      await delay(400);
-
-      alert('로그인 성공! (테스트 모드)\n아이디: ' + loginId.value + '\n발송번호: ' + phoneMasked.value);
-      finalLoginBtn.disabled = false; finalLoginBtn.textContent = '최종 로그인';
-
-      // TODO: 실제 환경: /api/2fa/complete 호출 후 리다이렉트
-      // const resp = await fetch('/api/2fa/complete', {...})
-      // location.href = (await resp.json()).redirect || '/';
+    // OTP 입력 & 검증(필수)
+    otp.addEventListener('input', async ()=>{
+        hide(otpErr); hide(otpOk);
+        otp.value = otp.value.replace(/\\D/g,'').slice(0,6);
+        if(otp.value.length === 6){
+            await delay(120);
+            if(otp.value === TEST_OTP){
+                otpVerified = true;
+                if(countdown) clearInterval(countdown);
+                resendBtn.disabled = false;
+                show(otpOk, '인증코드 확인 완료.');
+                secFinal.classList.remove('hide');  // ▼ 최종 로그인 영역 펼침
+                finalLoginBtn.disabled = false;     // OTP 성공 시에만 활성화
+            } else {
+                otpVerified = false;
+                show(otpErr, '인증코드가 올바르지 않습니다. (테스트: 123456)');
+                finalLoginBtn.disabled = true;
+            }
+        } else {
+            otpVerified = false;
+            finalLoginBtn.disabled = true;
+        }
     });
-  </script>
-    </div>
-  </main>
-  <jsp:include page="/WEB-INF/views/fragments/_footer.jspf"/>
+
+    // 최종 로그인: 여기서만 아이디/비밀번호 검증 수행
+    finalLoginBtn.addEventListener('click', ()=>{
+        hide(finalErr); hide(idErr); hide(pwErr);
+
+        // 필수 입력 간단 체크
+        if(!loginId.value){ show(idErr, '아이디를 입력하세요.'); loginId.focus(); return; }
+        if(!pw.value){ show(pwErr, '비밀번호를 입력하세요.'); pw.focus(); return; }
+        if(!otpVerified){ show(finalErr, '인증코드를 먼저 확인하세요.'); return; }
+
+        // 모두 통과 시 폼 전송
+        finalLoginBtn.disabled = true;
+        finalLoginBtn.textContent = '로그인 중…';
+        loginForm.submit();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const finalErrEl = $('#finalErr');
+        // 서버에서 전달된 에러 메시지가 있으면 화면에 표시합니다.
+        if (finalErrEl && finalErrEl.textContent.trim()) {
+            secPw.classList.remove('hide');
+            secPhone.classList.remove('hide');
+            secFinal.classList.remove('hide');
+            finalErrEl.classList.remove('hide');
+        }
+    });
+</script>
 </body>
 </html>

@@ -3,503 +3,427 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <jsp:include page="/WEB-INF/views/fragments/_head.jspf"/>
-  <title>주차장 지도</title>
-  <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/pages/parkingmap.css"/>
+    <jsp:include page="/WEB-INF/views/fragments/header.jsp"/>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/pages/parkingmap.css"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <title>주차장 지도</title>
+
+    <!-- Kakao Maps JS (HTTPS + autoload=false) -->
+    <script
+            src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=a1194f70f6ecf2ece7a703a4a07a0876&libraries=services&autoload=false"
+            defer
+            id="kakao-sdk"
+    ></script>
+
 </head>
 <body>
-  <jsp:include page="/WEB-INF/views/fragments/_header.jspf"/>
-  <main class="main container">
-    <div class="card">
-      <div id="map" aria-label="지도"></div>
 
-<!-- 하단 리스트 패널 -->
+<div id="map" aria-label="지도"></div>
+
 <section class="bottom" id="bottom">
-  <div class="row">
-    <div class="title">더미 주차장 10 <span class="sep">|</span> 반경 <b id="rLbl">1.0</b> km</div>
-    <div class="muted" id="stat" style="margin-left:8px">초기화 중…</div>
-    <button class="btn min minbtn" id="minList"></button>
-  </div>
-
-  <div class="row">
-    <button class="btn" id="locBtn">현재 위치</button>
-    <button class="btn" id="fitBtn">전체 보기</button>
-    <div class="chipbar" id="radiusBar" style="margin-left:auto">
-      <div class="chip" data-r="0.5">0.5km</div>
-      <div class="chip on" data-r="1">1km</div>
-      <div class="chip" data-r="1.5">1.5km</div>
+    <div class="row">
+        <div class="title">더미 주차장 10 <span class="sep">|</span> 반경 <b id="rLbl">1.0</b> km</div>
+        <div class="muted" id="stat" style="margin-left:8px">초기화 중…</div>
+        <button class="btn min minbtn" id="minList"></button>
     </div>
-  </div>
-
-  <div class="list" id="listWrap">
-    <div id="list" class="grid" role="listbox" aria-label="주차장 목록(반경 내)"></div>
-  </div>
-</section>
-
-<!-- 오류 로그(에러만, URL 표시) : bottom 높이에 맞춰 자동 위로 띄움 -->
-<section class="errdock" id="errdock" aria-label="오류 로그">
-  <div class="hdr">
-    <div class="title">오류 로그(에러만)</div>
-    <div class="muted" id="errcount">0건</div>
-    <button class="btnsm" id="copyErr">복사</button>
-    <button class="btnsm" id="clearErr">지우기</button>
-    <button class="btnsm minbtn" id="minErr"></button>
-  </div>
-  <div class="body" id="errbody"></div>
-</section>
-
-<script>
-(function(){
-  /* =========================================================
-   * 기본 설정/유틸
-   * =======================================================*/
-  const VW_KEY = 'CF9A371B-35A6-3822-8315-6592C8342E82';
-  const DOMAIN = 'kingnes11.github.io';
-  const SRS    = 'EPSG:900913';                  // == EPSG:3857
-  const WFS_API= 'https://api.vworld.kr/req/wfs';
-  const WMTS   = `https://api.vworld.kr/req/wmts/1.0.0/${VW_KEY}/Base/{z}/{y}/{x}.png`;
-
-  const $ = (s)=>document.querySelector(s);
-  const stat = $('#stat');
-  const ok = (m)=> stat.innerHTML = `<span style="color:#10b981">✔</span> ${m}`;
-  const warn = (m)=> stat.innerHTML = `<span style="color:#f59e0b">!</span> ${m}`;
-
-  /* =========================================================
-   * 에러로그(에러만 + URL) + 최소화
-   * =======================================================*/
-  const errBody=$('#errbody'), errCnt=$('#errcount'), errDock=$('#errdock');
-  $('#minErr').onclick=()=> errDock.classList.toggle('min');
-  const tstr=()=>new Date().toLocaleTimeString();
-  function logERR(msg, url, detail){
-    const row=document.createElement('div'); row.className='logrow';
-    row.innerHTML=`<span class="time">[${tstr()}]</span><span class="lvl">ERR</span> ${msg}`
-                 +(url?`<div class="url">${url}</div>`:'')
-                 +(detail?`<div class="muted">${detail}</div>`:'');
-    errBody.appendChild(row); errBody.scrollTop=errBody.scrollHeight;
-    errCnt.textContent=`${errBody.querySelectorAll('.logrow').length}건`;
-  }
-  $('#copyErr').onclick=async()=>{
-    const txt=[...errBody.querySelectorAll('.logrow')].map(el=>el.innerText).join('\n');
-    try{ await navigator.clipboard.writeText(txt||'(로그 없음)'); }catch(e){}
-  };
-  $('#clearErr').onclick=()=>{ errBody.innerHTML=''; errCnt.textContent='0건'; };
-  window.addEventListener('error', e=> logERR('window.onerror: '+e.message,'', e.error?.stack||''));
-  window.addEventListener('unhandledrejection', e=> logERR('unhandledrejection','', e.reason?.stack||String(e.reason)));
-
-  /* =========================================================
-   * 지도/배경(WMTS) + 팔로우 상태
-   * =======================================================*/
-  const view = new ol.View({ center: ol.proj.fromLonLat([127.5,36.4]), zoom: 7, maxZoom: 18, minZoom: 4 });
-  const base = new ol.layer.Tile({ source:new ol.source.XYZ({ url:WMTS, crossOrigin:'anonymous' }), zIndex:0 });
-  const map  = new ol.Map({ target:'map', layers:[base], view });
-
-  let followMode = true;       // 사용자가 지도 조작하면 false, "현재 위치" 버튼 클릭 시 true
-  map.on('movestart', ()=>{ followMode=false; });
-  $('#locBtn').onclick=()=>{ followMode=true; recenterToMe(true); };
-
-  /* =========================================================
-   * JSONP 유틸 (VWorld → GeoJSON 추출)
-   * =======================================================*/
-  function buildWFSUrlJSONP(typename, bbox, cbName){
-    const p = new URLSearchParams({
-      SERVICE:'WFS', REQUEST:'GetFeature', VERSION:'1.1.0',
-      TYPENAME: typename,
-      SRSNAME: SRS,
-      BBOX: bbox.join(','),              // xmin,ymin,xmax,ymax
-      MAXFEATURES:'1000',
-      OUTPUT:'text/javascript',          // JSONP
-      EXCEPTIONS:'text/xml',
-      KEY: VW_KEY, DOMAIN: DOMAIN,
-      FORMAT_OPTIONS: `callback:${cbName}`
-    });
-    return `${WFS_API}?${p.toString()}`;
-  }
-
-  function extractGeoJSON(payload){
-    if(!payload) return null;
-    if(payload.type==='FeatureCollection' && Array.isArray(payload.features)) return payload;
-    if(payload.response?.result?.featureCollection){
-      const fc = payload.response.result.featureCollection;
-      if(fc.type==='FeatureCollection' && Array.isArray(fc.features)) return fc;
-    }
-    if(typeof payload==='string'){ try{ return extractGeoJSON(JSON.parse(payload)); }catch(e){} }
-    return null;
-  }
-
-  function loadWFS_JSONP(typename, extent3857, targetSource){
-    return new Promise((resolve,reject)=>{
-      const cb = `vw_cb_${typename.replace(/[^a-z0-9]/gi,'_')}_${Date.now()}_${Math.floor(Math.random()*1000)}`;
-      const url = buildWFSUrlJSONP(typename, extent3857, cb);
-      const s = document.createElement('script');
-      let done=false, timer=setTimeout(()=>{
-        if(done) return; done=true; s.remove(); delete window[cb];
-        logERR(`WFS(JSONP) timeout (${typename})`, url); reject(new Error('jsonp_timeout'));
-      }, 15000);
-
-      window[cb] = function(payload){
-        if(done) return; done=true; clearTimeout(timer); s.remove(); delete window[cb];
-        try{
-          const fc = extractGeoJSON(payload);
-          if(!fc){ logERR(`WFS(JSONP) 파싱 실패 (${typename})`, url); reject(new Error('parse_error')); return; }
-          const fmt = new ol.format.GeoJSON();
-          const feats = fmt.readFeatures(fc, { dataProjection:SRS, featureProjection:'EPSG:3857' });
-          targetSource.clear(true);
-          if(feats?.length) targetSource.addFeatures(feats);
-          resolve(feats?.length||0);
-        }catch(e){
-          logERR(`WFS(JSONP) 예외 (${typename})`, url, e.message||String(e));
-          reject(e);
-        }
-      };
-      s.src = url;
-      s.onerror = ()=>{ if(done) return; done=true; clearTimeout(timer); delete window[cb]; s.remove();
-        logERR(`WFS(JSONP) script_error (${typename})`, url);
-        reject(new Error('script_error'));
-      };
-      document.head.appendChild(s);
-    });
-  }
-
-  /* =========================================================
-   * 행정구역 4종 레이어 (줌별 표시)
-   * =======================================================*/
-  function style(color,width,fillA){
-    return new ol.style.Style({
-      stroke:new ol.style.Stroke({ color, width }),
-      fill:new ol.style.Fill({ color:[color[0],color[1],color[2],fillA] })
-    });
-  }
-  const stSido = style([59,130,246,1], 2, 0.02);
-  const stSigg = style([34,197,94,1], 2, 0.03);
-  const stEmd  = style([234,179,8,1], 1.8, 0.03);
-  const stRi   = style([244,63,94,1], 1.6, 0.03);
-
-  function makeAdminLayer(typename, minZ, maxZ, st){
-    const src=new ol.source.Vector({ wrapX:true });
-    const ly = new ol.layer.Vector({ source:src, style:st, zIndex: 40+minZ, visible:true });
-    ly._meta={ typename, minZ, maxZ, src };
-    return ly;
-  }
-  const lySido = makeAdminLayer('lt_c_adsido_info', 4, 20, stSido);
-  const lySigg = makeAdminLayer('lt_c_adsigg_info', 8, 20, stSigg);
-  const lyEmd  = makeAdminLayer('lt_c_ademd_info', 12, 22, stEmd);
-  const lyRi   = makeAdminLayer('lt_c_adri_info', 14, 24, stRi);
-
-  map.addLayer(lySido); map.addLayer(lySigg); map.addLayer(lyEmd); map.addLayer(lyRi);
-
-  function refreshAdminLayer(ly){
-    const z=view.getZoom();
-    if(z<ly._meta.minZ || z>ly._meta.maxZ){ ly._meta.src.clear(); return; }
-    const ex=view.calculateExtent(map.getSize());
-    const bbox=[ex[0],ex[1],ex[2],ex[3]];
-    loadWFS_JSONP(ly._meta.typename, bbox, ly._meta.src).catch(()=>{});
-  }
-  let mvTimer=null;
-  map.on('moveend', ()=>{
-    clearTimeout(mvTimer);
-    mvTimer=setTimeout(()=> [lySido,lySigg,lyEmd,lyRi].forEach(refreshAdminLayer), 200);
-  });
-  [lySido,lySigg,lyEmd,lyRi].forEach(refreshAdminLayer);
-
-  /* =========================================================
-   * 더미 주차장(10개) + 반경 필터 + 팝업
-   * =======================================================*/
-  const RADIUS_DEFAULT_KM = 1;
-  const radiusState = { rKm: RADIUS_DEFAULT_KM };
-  $('#rLbl').textContent = radiusState.rKm.toFixed(1);
-
-  // 반경 토글 칩
-  $('#radiusBar').addEventListener('click', (e)=>{
-    const chip=e.target.closest('.chip'); if(!chip) return;
-    $('#radiusBar').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
-    chip.classList.add('on');
-    radiusState.rKm = Number(chip.dataset.r);
-    $('#rLbl').textContent = radiusState.rKm.toFixed(1);
-    applyRadiusFilter();       // 보이기/숨기기
-    updateRadiusRing();        // 링 갱신
-    rebuildListFromFeatures(); // 리스트 갱신
-  });
-
-  // 거리 계산 (km)
-  function haversineKm(a,b){
-    const R=6371,toRad=d=>d*Math.PI/180;
-    const dLat=toRad(b.lat-a.lat), dLng=toRad(b.lng-a.lng);
-    const s1=Math.sin(dLat/2), s2=Math.sin(dLng/2);
-    const t=s1*s1+Math.cos(toRad(a.lat))*Math.cos(toRad(b.lat))*s2*s2;
-    return 2*R*Math.asin(Math.sqrt(t));
-  }
-
-  // 주차장 스타일(반경 밖이면 null 반환 → 숨김)
-  const P_SVG = `<svg xmlns='http://www.w3.org/2000/svg' width='34' height='34' viewBox='0 0 36 36'>
-    <circle cx='18' cy='18' r='16' fill='#2563eb'/><text x='18' y='22' font-family='Arial,Helvetica,sans-serif' font-size='16' text-anchor='middle' fill='#fff' font-weight='700'>P</text>
-  </svg>`;
-  const stP = new ol.style.Style({ image:new ol.style.Icon({ src:'data:image/svg+xml;utf8,'+encodeURIComponent(P_SVG), anchor:[0.5,0.5], anchorXUnits:'fraction', anchorYUnits:'fraction' }) });
-
-  const prkSrc=new ol.source.Vector(), prkLy=new ol.layer.Vector({
-    source:prkSrc,
-    zIndex:120,
-    style: (f)=>{
-      const c=f.getGeometry().getCoordinates();
-      const lonlat = ol.proj.toLonLat(c);
-      const meLL = meState.lonlat;
-      if(!meLL) return null;
-      const d = haversineKm({lng:meLL[0],lat:meLL[1]},{lng:lonlat[0],lat:lonlat[1]});
-      f.set('dist', d);
-      return (d <= radiusState.rKm) ? stP : null;
-    }
-  });
-  map.addLayer(prkLy);
-
-  // 더미 데이터(한 번만 생성)
-  let dummyGenerated = false;
-  function genDummy(lng,lat,n=10,rKm=2.5){
-    const types=['노상','노외','부설'];
-    const owners=['공영','민영'];
-    const out=[];
-    for(let i=0;i<n;i++){
-      const ang=Math.random()*Math.PI*2, r=Math.random()*rKm;
-      const dy=(r/111)*Math.sin(ang), dx=(r/(111*Math.cos(lat*Math.PI/180)))*Math.cos(ang);
-      const y=lat+dy, x=lng+dx;
-      const type = types[i%types.length];
-      const owner= owners[i%owners.length];
-      out.push({
-        id:`DM-${i+1}`, nm:`더미 주차장 ${i+1}`, type, owner,
-        cap:{ total: 20+(i*3)%80, disabled:(i*2)%6, compact:(i*3)%10, ev:(i*4)%8, pregnant:(i*5)%5 },
-        hour:'연중무휴 24시간', fee: (i%2?'유료(30분 1000원)':'무료'),
-        lng:x, lat:y
-      });
-    }
-    return out;
-  }
-  function setDummyOnce(lng,lat){
-    if(dummyGenerated) return;
-    dummyGenerated=true;
-    const rows = genDummy(lng,lat,10,2.5);
-    const feats = rows.map(r=>{
-      return new ol.Feature({
-        geometry:new ol.geom.Point(ol.proj.fromLonLat([r.lng,r.lat])),
-        pid:r.id, title:r.nm, nm:r.nm, type:r.type, owner:r.owner,
-        cap:r.cap, hour:r.hour, fee:r.fee, lng:r.lng, lat:r.lat
-      });
-    });
-    prkSrc.addFeatures(feats);
-    rebuildListFromFeatures();
-  }
-
-  // 리스트(반경 내만) 재구성
-  function rebuildListFromFeatures(){
-    const meLL = meState.lonlat; if(!meLL){ $('#list').innerHTML=''; return; }
-    const feats = prkSrc.getFeatures();
-    const items = feats.map(f=>{
-      const p=ol.proj.toLonLat(f.getGeometry().getCoordinates());
-      const d = haversineKm({lng:meLL[0],lat:meLL[1]},{lng:p[0],lat:p[1]});
-      return { id:f.get('pid'), nm:f.get('nm'), d, lat:p[1], lng:p[0],
-               type:f.get('type'), owner:f.get('owner'), cap:f.get('cap'), hour:f.get('hour'), fee:f.get('fee') };
-    }).filter(r=> r.d <= radiusState.rKm).sort((a,b)=> a.d-b.d);
-
-    const grid=$('#list');
-    grid.innerHTML = items.map((r,i)=>`
-      <div class="card" data-id="${r.id}">
-        <div class="nm">${i+1}. ${r.nm}</div>
-        <div class="sub">
-          <span class="badge">${r.type}</span>
-          <span class="badge">${r.owner}</span>
-          <span class="badge">${r.d.toFixed(2)}km</span>
+    <div class="row">
+        <button class="btn" id="locBtn" title="현위치로 이동(1회)">현재 위치</button>
+        <button class="btn" id="fitBtn" title="반경 내 전체 보기">전체 보기</button>
+        <div class="chipbar" id="radiusBar" style="margin-left:auto">
+            <div class="chip" data-r="0.5">0.5km</div>
+            <div class="chip on" data-r="1">1km</div>
+            <div class="chip" data-r="1.5">1.5km</div>
         </div>
-        <div class="sub">총:${r.cap.total} / 장애:${r.cap.disabled} / 경차:${r.cap.compact} / EV:${r.cap.ev} / 임산부:${r.cap.pregnant}</div>
-      </div>`).join('');
-
-    grid.querySelectorAll('.card').forEach(el=>{
-      el.addEventListener('click', ()=>{
-        const id = el.dataset.id;
-        const f = prkSrc.getFeatures().find(x=>x.get('pid')===id);
-        if(!f) return;
-        const c = f.getGeometry().getCoordinates();
-        view.animate({center:c, zoom:16, duration:300});
-        openPopupForFeature(f, c);
-      });
-    });
-
-    adjustListHeight();  // 2행만 보이도록
-  }
-
-  // 팝업
-  const popupEl=document.createElement('div');
-  popupEl.className='ol-popup';
-  popupEl.style.cssText='position:absolute;background:#fff;color:#111827;border-radius:8px;border:1px solid #e5e7eb;min-width:240px;padding:10px 12px;transform:translate(-50%,-110%);box-shadow:0 10px 20px rgba(0,0,0,.25);';
-  popupEl.innerHTML=`<button style="position:absolute;right:6px;top:6px;border:0;background:transparent;color:#6b7280;font-size:18px;cursor:pointer;line-height:1">×</button>
-                     <div class="tit" style="font-weight:800;margin-right:26px"></div>
-                     <div class="sub2" style="color:#374151;font-size:.9rem;line-height:1.35"></div>`;
-  const overlay = new ol.Overlay({ element: popupEl, positioning:'bottom-center', stopEvent:true, offset:[0,-14] });
-  map.addOverlay(overlay);
-  const closePopup = ()=> overlay.setPosition(undefined);
-  popupEl.querySelector('button').addEventListener('click', closePopup);
-
-  function openPopupForFeature(f, coord){
-    const nm=f.get('nm')||'주차장';
-    const type=f.get('type')||'-', owner=f.get('owner')||'-';
-    const cap=f.get('cap')||{total:0,disabled:0,compact:0,ev:0,pregnant:0};
-    const hour=f.get('hour')||'-', fee=f.get('fee')||'-';
-    popupEl.querySelector('.tit').textContent = nm;
-    popupEl.querySelector('.sub2').innerHTML =
-      `형태: ${type} · 구분: ${owner}<br>`+
-      `총면수: ${cap.total} (장애 ${cap.disabled}, 경차 ${cap.compact}, 친환경 ${cap.ev}, 임산부 ${cap.pregnant})<br>`+
-      `운영시간: ${hour}<br>`+
-      `요금: ${fee}`;
-    overlay.setPosition(coord);
-  }
-
-  map.on('singleclick', (evt)=>{
-    let hit=false;
-    map.forEachFeatureAtPixel(evt.pixel, (f,ly)=>{
-      if(ly!==prkLy) return;
-      const c=f.getGeometry().getCoordinates();
-      openPopupForFeature(f, c);
-      hit=true; return true;
-    }, { hitTolerance:6 });
-    if(!hit) closePopup();
-  });
-
-  /* =========================================================
-   * 현재 위치(아이콘/정확도/반경링) + 팔로우 + 리스트/필터
-   * =======================================================*/
-  const meSrc=new ol.source.Vector(), meLy=new ol.layer.Vector({ source:meSrc, zIndex:130 }); map.addLayer(meLy);
-
-  // 현재 위치 포인터
-  const ME_SVG=`<svg xmlns='http://www.w3.org/2000/svg' width='38' height='38' viewBox='0 0 38 38'>
-      <defs><linearGradient id='g' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#0ea5e9'/><stop offset='1' stop-color='#2563eb'/></linearGradient></defs>
-      <path d='M19 0c9 0 16 7 16 16 0 9-8 17-16 22-8-5-16-13-16-22C3 7 10 0 19 0z' fill='url(#g)'/>
-      <circle cx='19' cy='12' r='5' fill='#fff'/>
-      <path d='M10 26c2-5 6-7 9-7s7 2 9 7' stroke='#fff' stroke-width='3' fill='none' stroke-linecap='round'/>
-    </svg>`;
-  const stME=new ol.style.Style({ image:new ol.style.Icon({ src:'data:image/svg+xml;utf8,'+encodeURIComponent(ME_SVG), anchor:[0.5,1], anchorXUnits:'fraction', anchorYUnits:'fraction' }) });
-
-  // 정확도 원
-  const stAcc = new ol.style.Style({ stroke:new ol.style.Stroke({color:[14,165,233,0.8],width:2}), fill:new ol.style.Fill({color:[14,165,233,0.12]}) });
-  const accFeature= new ol.Feature({ geometry:new ol.geom.Circle([0,0], 0) }); accFeature.setStyle(stAcc);
-
-  // 반경 링 (선택 반경)
-  const stRad = new ol.style.Style({ stroke: new ol.style.Stroke({ color:[37,99,235,0.9], width:2, lineDash:[6,6] }), fill: new ol.style.Fill({ color:[37,99,235,0.06] }) });
-  const radFeature = new ol.Feature({ geometry: null }); radFeature.setStyle(stRad);
-
-  // 현재 위치 포인트
-  const meFeature = new ol.Feature({ geometry:new ol.geom.Point([0,0]) }); meFeature.setStyle(stME);
-
-  meSrc.addFeatures([accFeature, radFeature, meFeature]);
-
-  const meState = { lonlat:null, acc:0 };
-  function inKorea(lng, lat){ return lng>124 && lng<132 && lat>32 && lat<39; }
-  function coerceLngLat(rawLng, rawLat){
-    let lng = Number(rawLng), lat = Number(rawLat);
-    const looksSwapped =
-      (Math.abs(lng) <= 90 && Math.abs(lat) > 90) ||
-      (!inKorea(lng, lat) && inKorea(lat, lng));
-    if(looksSwapped){
-      const t = lng; lng = lat; lat = t;
-      logERR('현재위치 좌표 스왑 보정','', `수신(lng,lat)=(${rawLng}, ${rawLat}) → 보정(${lng}, ${lat})`);
-    }
-    return { lng, lat };
-  }
-
-  function updateMe(lng,lat,acc){
-    meState.lonlat=[lng,lat]; meState.acc=acc||0;
-    const c = ol.proj.fromLonLat([lng,lat]);
-    meFeature.getGeometry().setCoordinates(c);
-    accFeature.getGeometry().setCenterAndRadius(c, Math.max(0, acc||0));
-    updateRadiusRing();
-    applyRadiusFilter();
-    rebuildListFromFeatures();
-  }
-
-  function updateRadiusRing(){
-    const center = meFeature.getGeometry()?.getCoordinates();
-    if(!center){ radFeature.setGeometry(null); return; }
-    const radiusMeters = (radiusState.rKm || 0.5) * 1000;
-    radFeature.setGeometry(new ol.geom.Circle(center, radiusMeters));
-  }
-
-  function applyRadiusFilter(){
-    // 벡터 레이어 style 함수에서 반경 내/외를 판단하므로, 다시 그리기만 유도
-    prkSrc.changed();
-  }
-
-  function recenterToMe(animate=true){
-    if(!meState.lonlat) return;
-    const c = ol.proj.fromLonLat(meState.lonlat);
-    const z = view.getZoom();
-    if(animate) view.animate({center:c, zoom: Math.max(14, z||0), duration:300});
-    else view.setCenter(c);
-  }
-
-  // 지오로케이션: watchPosition(팔로우)
-  function locateWatch(){
-    const httpsOk = location.protocol==='https:' || ['localhost','127.0.0.1','::1'].includes(location.hostname);
-    if(!httpsOk || !navigator.geolocation){ warn('위치 권한/환경 문제(HTTPS 필요)'); return; }
-    const opt={ enableHighAccuracy:true, maximumAge:2000, timeout:10000 };
-    navigator.geolocation.watchPosition(
-      p=>{
-        const fixed = coerceLngLat(p.coords.longitude, p.coords.latitude);
-        updateMe(fixed.lng, fixed.lat, p.coords.accuracy||0);
-        setDummyOnce(fixed.lng, fixed.lat); // 최초 1회만 생성
-        if(followMode) recenterToMe(true);
-        ok(`위치 갱신 · ${fixed.lat.toFixed(5)}, ${fixed.lng.toFixed(5)} · acc~${Math.round(p.coords.accuracy||0)}m`);
-      },
-      e=> { logERR('geolocation 실패','', `${e.code} ${e.message}`); warn('위치 실패'); },
-      opt
-    );
-  }
-  locateWatch();
-
-  /* =========================================================
-   * 리스트/오류창 레이아웃 보정(2행 제한 + 겹침 방지) + 최소화
-   * =======================================================*/
-  const bottom = $('#bottom');
-  $('#minList').onclick=()=>{ bottom.classList.toggle('min'); placeErrdock(); };
-
-  function adjustListHeight(){
-    const grid = $('#list');
-    const wrap = $('#listWrap');
-    const first = grid.querySelector('.card');
-    if(!first){ wrap.style.maxHeight = '0px'; placeErrdock(); return; }
-    const cardH = first.getBoundingClientRect().height;
-    const gap = parseFloat(getComputedStyle(grid).gap) || 8;
-    const visibleRows = 2;
-    const padding = 8*2; // .list padding 8px 상하
-    const maxH = cardH * visibleRows + gap * (visibleRows - 1) + padding;
-    wrap.style.maxHeight = Math.ceil(maxH) + 'px';
-    placeErrdock();
-  }
-  function calcBottomPad(){
-    const h = bottom.getBoundingClientRect().height;
-    return Math.ceil(h + 20);
-  }
-  function placeErrdock(){
-    const h = bottom.getBoundingClientRect().height;
-    errDock.style.bottom = (h + 12) + 'px';
-  }
-
-  const ro = new ResizeObserver(()=>{ adjustListHeight(); });
-  ro.observe(bottom);
-  window.addEventListener('resize', adjustListHeight);
-  window.addEventListener('orientationchange', ()=> setTimeout(adjustListHeight, 200));
-
-  // 전체보기: 현재위치 요소(포인트/정확도/반경) + 반경 내 주차장만 포함
-  $('#fitBtn').onclick=()=>{
-    const ex=ol.extent.createEmpty();
-    meSrc.getFeatures().forEach(f=> ol.extent.extend(ex,f.getGeometry().getExtent())); // me/acc/radius 포함
-    prkSrc.getFeatures().forEach(f=>{
-      const st = prkLy.getStyle()(f);
-      if(st!==null) ol.extent.extend(ex,f.getGeometry().getExtent()); // 반경 내 것만
-    });
-    if(!ol.extent.isEmpty(ex)) view.fit(ex,{duration:350, padding:[20,20,calcBottomPad(),20], maxZoom:17});
-  };
-
-  // 부팅 메시지
-  ok('WMTS + 행정경계(WFS JSONP) + 현재위치 팔로우 준비 완료');
-})();
-</script>
     </div>
-  </main>
-  <jsp:include page="/WEB-INF/views/fragments/_footer.jspf"/>
+    <div class="list" id="listWrap">
+        <div id="list" class="grid" role="listbox" aria-label="주차장 목록(반경 내)"></div>
+    </div>
+</section>
+
+<section class="errdock" id="errdock" aria-label="오류 로그">
+    <div class="hdr">
+        <div class="title">오류 로그(에러만)</div>
+        <div class="muted" id="errcount">0건</div>
+        <button class="btnsm" id="copyErr">복사</button>
+        <button class="btnsm" id="clearErr">지우기</button>
+        <button class="btnsm minbtn" id="minErr"></button>
+    </div>
+    <div class="body" id="errbody"></div>
+</section>
+
+<script defer>
+    /* ===== 유틸 & 오류 로그 ===== */
+    const $ = (s)=>document.querySelector(s);
+    const ok   = function(m){ $('#stat').innerHTML = '<span style="color:#10b981">✔</span> ' + m; };
+    const warn = function(m){ $('#stat').innerHTML = '<span style="color:#f59e0b">!</span> ' + m; };
+    const errBody=()=>$('#errbody'), errCnt=()=>$('#errcount'), errDock=()=>$('#errdock');
+    window.addEventListener('error', e=> logERR('window.onerror: '+e.message,'', e.error?.stack||''));
+    window.addEventListener('unhandledrejection', e=> logERR('unhandledrejection','', e.reason?.stack||String(e.reason)));
+    const tstr=()=>new Date().toLocaleTimeString();
+    function logERR(msg, url, detail){
+        const row = document.createElement('div'); row.className = 'logrow';
+        row.innerHTML = '<span class="time">[' + tstr() + ']</span>' +
+                        '<span class="lvl">ERR</span> ' + msg +
+                        (url ? '<div class="url">' + url + '</div>' : '') +
+                        (detail ? '<div class="muted">' + detail + '</div>' : '');
+        errBody().appendChild(row); errBody().scrollTop = errBody().scrollHeight;
+        errCnt().textContent = errBody().querySelectorAll('.logrow').length + '건';
+    }
+    window.addEventListener('DOMContentLoaded', ()=>{
+        $('#copyErr').onclick=async()=>{
+            const txt=[...errBody().querySelectorAll('.logrow')].map(el=>el.innerText).join('\n');
+            try{ await navigator.clipboard.writeText(txt||'(로그 없음)'); }catch(e){}
+        };
+        $('#clearErr').onclick=()=>{ errBody().innerHTML=''; errCnt().textContent='0건'; };
+        $('#minErr').onclick=()=> errDock().classList.toggle('min');
+        $('#minList').onclick=()=> $('#bottom').classList.toggle('min');
+    });
+
+    // Kakao SDK 로드 감시(진단)
+    const sdk = document.getElementById('kakao-sdk');
+    sdk?.addEventListener('error', ()=> logERR('[KAKAO] SDK load failed','https://dapi.kakao.com/v2/maps/sdk.js'));
+    sdk?.addEventListener('load',  ()=> console.log('[KAKAO] SDK loaded'));
+
+    /* ===== Kakao SDK 준비 후 초기화 ===== */
+    window.addEventListener('DOMContentLoaded', function () {
+        function initMapApp(){
+            const mapEl = document.getElementById('map');
+            const map = new kakao.maps.Map(mapEl, { center: new kakao.maps.LatLng(36.4,127.5), level: 12, draggable: true });
+            map.addControl(new kakao.maps.ZoomControl(), kakao.maps.ControlPosition.RIGHT);
+
+            // === 프로그램 이동 가드 ===
+            let programmaticMove = false;
+            function runAsProgrammatic(fn){
+                programmaticMove = true;
+                try { fn(); } finally { setTimeout(()=>{ programmaticMove = false; }, 0); }
+            }
+
+            // ✅ 재중심 예약( idle/panTo 백업 ) 관리 & 취소
+            let centerJob = { idle: null, to: null };
+            function cancelCenterJob(){
+                if (centerJob.idle) {
+                    kakao.maps.event.removeListener(map, 'idle', centerJob.idle);
+                    centerJob.idle = null;
+                }
+                if (centerJob.to) {
+                    clearTimeout(centerJob.to);
+                    centerJob.to = null;
+                }
+            }
+
+            // 사용자 조작 시: 예약만 즉시 취소(자동 복귀 자체가 없음)
+            function userMoved(){
+                if(!programmaticMove){
+                    cancelCenterJob();
+                }
+            }
+            kakao.maps.event.addListener(map, 'drag',           userMoved);
+            kakao.maps.event.addListener(map, 'dragstart',      userMoved);
+            kakao.maps.event.addListener(map, 'dragend',        userMoved);
+            kakao.maps.event.addListener(map, 'zoom_start',     userMoved);
+            kakao.maps.event.addListener(map, 'center_changed', userMoved);
+            kakao.maps.event.addListener(map, 'bounds_changed', userMoved);
+
+            // 버튼: 현재 위치 → 1회만 재중심
+            $('#locBtn').onclick = ()=>{
+                cancelCenterJob();
+                recenterToMe(true); // one-shot
+            };
+            // 버튼: 전체 보기
+            $('#fitBtn').onclick = ()=>{
+                cancelCenterJob();
+                runAsProgrammatic(()=> fitBounds());
+            };
+
+            // === 내 위치 표시 요소 ===
+            const meState = { latlng:null, acc:0 };
+            const ME_SVG = `data:image/svg+xml;utf8,`+encodeURIComponent(
+                `<svg xmlns='http://www.w3.org/2000/svg' width='38' height='38' viewBox='0 0 38 38'>
+          <defs><linearGradient id='g' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#0ea5e9'/><stop offset='1' stop-color='#2563eb'/></linearGradient></defs>
+          <path d='M19 0c9 0 16 7 16 16 0 9-8 17-16 22-8-5-16-13-16-22C3 7 10 0 19 0z' fill='url(#g)'/>
+          <circle cx='19' cy='12' r='5' fill='#fff'/>
+          <path d='M10 26c2-5 6-7 9-7s7 2 9 7' stroke='#fff' stroke-width='3' fill='none' stroke-linecap='round'/>
+        </svg>`
+            );
+            const meMarker = new kakao.maps.Marker({
+                map, position: new kakao.maps.LatLng(36.4,127.5),
+                image: new kakao.maps.MarkerImage(ME_SVG, new kakao.maps.Size(38,38), {offset:new kakao.maps.Point(19,38)})
+            });
+            const accCircle = new kakao.maps.Circle({
+                map, center: new kakao.maps.LatLng(36.4,127.5), radius: 0,
+                strokeWeight: 2, strokeColor: '#0ea5e9', strokeOpacity: 0.8, fillColor: '#0ea5e9', fillOpacity: 0.12
+            });
+            const radCircle = new kakao.maps.Circle({
+                map, center: new kakao.maps.LatLng(36.4,127.5), radius: 1000,
+                strokeWeight: 2, strokeColor: '#2563eb', strokeOpacity: 0.9, strokeStyle: 'dash',
+                fillColor: '#2563eb', fillOpacity: 0.06
+            });
+
+            function updateMe(lat, lng, acc){
+                const ll = new kakao.maps.LatLng(lat, lng);
+                meState.latlng = ll; meState.acc = acc||0;
+                meMarker.setPosition(ll);
+                accCircle.setPosition(ll); accCircle.setRadius(Math.max(0, acc||0));
+                radCircle.setPosition(ll);
+            }
+
+            // 안정화된 재중심(줌→센터→idle 후 panTo + 백업) — 항상 "한 세트만" 예약
+            function recenterToMe(animate = true){
+                if(!meState.latlng) return;
+                cancelCenterJob(); // 새 예약 전 기존 예약 정리
+                runAsProgrammatic(()=>{
+                    if(map.getLevel() > 5) map.setLevel(5);
+                    map.setCenter(meState.latlng);
+                    if (animate) {
+                        centerJob.idle = kakao.maps.event.addListener(map, 'idle', function(){
+                            kakao.maps.event.removeListener(map, 'idle', centerJob.idle);
+                            centerJob.idle = null;
+                            runAsProgrammatic(()=> map.panTo(meState.latlng));
+                        });
+                        centerJob.to = setTimeout(()=>{
+                            centerJob.to = null;
+                            runAsProgrammatic(()=> map.panTo(meState.latlng));
+                        }, 120);
+                    }
+                });
+            }
+
+            // === 반경/목록 ===
+            const radiusState = { rKm: 1 };
+            $('#rLbl').textContent = radiusState.rKm.toFixed(1);
+            $('#radiusBar').addEventListener('click', (e)=>{
+                const chip=e.target.closest('.chip'); if(!chip) return;
+                $('#radiusBar').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+                chip.classList.add('on');
+                radiusState.rKm = Number(chip.dataset.r);
+                $('#rLbl').textContent = radiusState.rKm.toFixed(1);
+                radCircle.setRadius(radiusState.rKm*1000);
+                applyRadiusFilter(); rebuildList();
+            });
+
+            function haversineKm(a,b){
+                const R=6371,toRad=d=>d*Math.PI/180;
+                const dLat=toRad(b.lat-a.lat), dLng=toRad(b.lng-a.lng);
+                const s1=Math.sin(dLat/2), s2=Math.sin(dLng/2);
+                const t=s1*s1+Math.cos(toRad(a.lat))*Math.cos(toRad(b.lat))*s2*s2;
+                return 2*R*Math.asin(Math.sqrt(t));
+            }
+
+            const P_SVG = `data:image/svg+xml;utf8,`+encodeURIComponent(
+                `<svg xmlns='http://www.w3.org/2000/svg' width='34' height='34' viewBox='0 0 36 36'>
+          <circle cx='18' cy='18' r='16' fill='#2563eb'/><text x='18' y='22' font-family='Arial,Helvetica,sans-serif' font-size='16' text-anchor='middle' fill='#fff' font-weight='700'>P</text>
+        </svg>`
+            );
+            const prkImage = new kakao.maps.MarkerImage(P_SVG, new kakao.maps.Size(34,34), {offset:new kakao.maps.Point(17,17)});
+            const prkMarkers = [];
+            const info = new kakao.maps.InfoWindow({ removable:true });
+
+            function openInfo(marker, meta){
+                info.setContent(
+                  '<div style="min-width:240px;padding:8px 10px">' +
+                    '<div style="font-weight:800;margin-bottom:6px">' + (meta.nm || '주차장') + '</div>' +
+                    '<div style="color:#374151;font-size:.9rem;line-height:1.35">' +
+                      '형태: ' + (meta.type || '-') + ' · 구분: ' + (meta.owner || '-') + '<br>' +
+                      '총면수: ' + ((meta.cap && meta.cap.total) ? meta.cap.total : 0) +
+                        ' (장애 ' + ((meta.cap && meta.cap.disabled) ? meta.cap.disabled : 0) +
+                        ', 경차 ' + ((meta.cap && meta.cap.compact) ? meta.cap.compact : 0) +
+                        ', EV ' + ((meta.cap && meta.cap.ev) ? meta.cap.ev : 0) +
+                        ', 임산부 ' + ((meta.cap && meta.cap.pregnant) ? meta.cap.pregnant : 0) + ')<br>' +
+                      '운영시간: ' + (meta.hour || '-') + '<br>' +
+                      '요금: ' + (meta.fee || '-') +
+                    '</div>' +
+                  '</div>'
+                );
+                info.open(map, marker);
+                cancelCenterJob();
+            }
+            kakao.maps.event.addListener(map, 'click', ()=>{ info.close(); });
+
+            function genDummy(lng,lat,n=10,rKm=2.5){
+                const types=['노상','노외','부설']; const owners=['공영','민영']; const out=[];
+                for(let i=0;i<n;i++){
+                    const ang=Math.random()*Math.PI*2, r=Math.random()*rKm;
+                    const dy=(r/111)*Math.sin(ang), dx=(r/(111*Math.cos(lat*Math.PI/180)))*Math.cos(ang);
+                    out.push({
+                        id: 'DM-' + (i+1), nm: '더미 주차장 ' + (i+1),
+                        type: types[i%types.length], owner: owners[i%owners.length],
+                        cap:{ total: 20+(i*3)%80, disabled:(i*2)%6, compact:(i*3)%10, ev:(i*4)%8, pregnant:(i*5)%5 },
+                        hour:'연중무휴 24시간', fee: (i%2?'유료(30분 1000원)':'무료'),
+                        lng: lng+dx, lat: lat+dy
+                    });
+                }
+                return out;
+            }
+
+            function setDummyOnce(lat,lng){
+                if(prkMarkers.length) return;
+                genDummy(lng,lat,10,2.5).forEach(r=>{
+                    const mk = new kakao.maps.Marker({ map, position: new kakao.maps.LatLng(r.lat,r.lng), image: prkImage });
+                    mk._meta = r;
+                    prkMarkers.push({ marker:mk, lat:r.lat, lng:r.lng, meta:r });
+                    kakao.maps.event.addListener(mk, 'click', ()=>{
+                        openInfo(mk, r);
+                        cancelCenterJob();
+                        runAsProgrammatic(()=> map.panTo(new kakao.maps.LatLng(r.lat,r.lng)));
+                    });
+                });
+                applyRadiusFilter(); rebuildList();
+            }
+
+            function applyRadiusFilter(){
+                if(!meState.latlng) return;
+                const me = { lat: meState.latlng.getLat(), lng: meState.latlng.getLng() };
+                prkMarkers.forEach(obj=>{
+                    const d = haversineKm(me, {lat:obj.lat, lng:obj.lng});
+                    obj._dist = d;
+                    obj.marker.setMap(d <= radiusState.rKm ? map : null);
+                });
+            }
+
+            const listEl = $('#list');
+            function rebuildList(){
+                if(!meState.latlng){ listEl.innerHTML=''; adjustListHeight(); return; }
+                const me = { lat: meState.latlng.getLat(), lng: meState.latlng.getLng() };
+                const items = prkMarkers
+                    .map(o=>({ o, d: haversineKm(me, {lat:o.lat,lng:o.lng}) }))
+                    .filter(x=> x.d <= radiusState.rKm)
+                    .sort((a,b)=> a.d - b.d)
+                    .map((x,i)=> ({ i, d:x.d, meta:x.o.meta, marker:x.o.marker }));
+
+                listEl.innerHTML = items.map(function(r){
+                  return (
+                    '<div class="card" data-id="' + r.meta.id + '">' +
+                      '<div class="nm">' + (r.i + 1) + '. ' + r.meta.nm + '</div>' +
+                      '<div class="sub">' +
+                        '<span class="badge">' + r.meta.type + '</span>' +
+                        '<span class="badge">' + r.meta.owner + '</span>' +
+                        '<span class="badge">' + r.d.toFixed(2) + 'km</span>' +
+                      '</div>' +
+                      '<div class="sub">총:' + r.meta.cap.total + ' / 장애:' + r.meta.cap.disabled + ' / 경차:' + r.meta.cap.compact + ' / EV:' + r.meta.cap.ev + ' / 임산부:' + r.meta.cap.pregnant + '</div>' +
+                    '</div>'
+                  );
+                }).join('');
+
+                listEl.querySelectorAll('.card').forEach(el=>{
+                    el.addEventListener('click', ()=>{
+                        const id = el.getAttribute('data-id');
+                        const obj = prkMarkers.find(x=>x.meta.id===id);
+                        if(!obj) return;
+                        openInfo(obj.marker, obj.meta);
+                        cancelCenterJob();
+                        runAsProgrammatic(()=> map.panTo(new kakao.maps.LatLng(obj.lat,obj.lng)));
+                    });
+                });
+                adjustListHeight();
+            }
+
+            function adjustListHeight(){
+                const grid = $('#list'), wrap = $('#listWrap');
+                const first = grid.querySelector('.card');
+                if(!first){ wrap.style.maxHeight = '0px'; return; }
+                const cardH = first.getBoundingClientRect().height;
+                const gap = parseFloat(getComputedStyle(grid).gap) || 8;
+                const visibleRows = 2, padding = 8*2;
+                const maxH = cardH * visibleRows + gap * (visibleRows - 1) + padding;
+                wrap.style.maxHeight = Math.ceil(maxH) + 'px';
+            }
+
+            function fitBounds(){
+                const bounds = new kakao.maps.LatLngBounds();
+                if(meState.latlng) bounds.extend(meState.latlng);
+                prkMarkers.forEach(p=>{
+                    if(!meState.latlng){ bounds.extend(new kakao.maps.LatLng(p.lat,p.lng)); return; }
+                    const d = haversineKm({lat:meState.latlng.getLat(),lng:meState.latlng.getLng()}, {lat:p.lat,lng:p.lng});
+                    if(d <= radiusState.rKm) bounds.extend(new kakao.maps.LatLng(p.lat,p.lng));
+                });
+                if(!bounds.isEmpty()){
+                    const padB = Math.ceil($('#bottom').getBoundingClientRect().height + 20);
+                    runAsProgrammatic(()=> map.setBounds(bounds, 20, 20, padB, 20));
+                }
+            }
+
+            // === 현재 위치: 로드/버튼에서만 1회 이동 ===
+            function inKorea(lng, lat){ return lng>124 && lng<132 && lat>32 && lat<39; }
+            function coerceLngLat(rawLng, rawLat){
+                let lng = Number(rawLng), lat = Number(rawLat);
+                const looksSwapped = (Math.abs(lng) <= 90 && Math.abs(lat) > 90) || (!inKorea(lng,lat) && inKorea(lat,lng));
+                if(looksSwapped){ const t=lng; lng=lat; lat=t; }
+                return { lng, lat };
+            }
+
+            let didCenterOnce = false; // 맵 로드 후 1회만 재중심
+
+            function locateWatch(){
+                const host = location.hostname;
+                const isLocal = host==='localhost'||host==='127.0.0.1'||host==='::1'||/^192\.168\.\d+\.\d+$/.test(host)||/\.local$/.test(host);
+                const httpsOk = location.protocol==='https:' || isLocal;
+                if(!httpsOk){ warn('현재위치는 HTTPS 또는 localhost/내부IP에서만 동작'); return; }
+                if(!('geolocation' in navigator)){ warn('이 브라우저는 Geolocation 미지원'); return; }
+
+                navigator.geolocation.getCurrentPosition(
+                    p=>{
+                        const f = coerceLngLat(p.coords.longitude, p.coords.latitude);
+                        updateMe(f.lat, f.lng, p.coords.accuracy||0);
+                        radCircle.setRadius(radiusState.rKm*1000);
+                        setDummyOnce(f.lat, f.lng);
+
+                        // ✅ 초기 로딩 시 1회만 지도 중심 이동
+                        if(!didCenterOnce){
+                            cancelCenterJob();
+                            recenterToMe(true);
+                            didCenterOnce = true;
+                        }
+
+                        ok('위치 확인 · ' + f.lat.toFixed(5) + ', ' + f.lng.toFixed(5));
+                        startWatch();
+                    },
+                    e=>{
+                        warn('위치 권한 거부/오류: 기본 위치로 표시');
+                        const fb = { lat: 37.5665, lng: 126.9780 };
+                        updateMe(fb.lat, fb.lng, 1000);
+                        radCircle.setRadius(radiusState.rKm*1000);
+                        setDummyOnce(fb.lat, fb.lng);
+                    },
+                    { enableHighAccuracy:true, maximumAge:0, timeout:8000 }
+                );
+            }
+
+            // 위치 변경 모니터링: 지도 중심은 바꾸지 않음(요구사항)
+            function startWatch(){
+                navigator.geolocation.watchPosition(
+                    p=>{
+                        const f = coerceLngLat(p.coords.longitude, p.coords.latitude);
+                        updateMe(f.lat, f.lng, p.coords.accuracy||0);
+                        applyRadiusFilter(); rebuildList(); // 목록/반경만 갱신
+                    },
+                    ()=>{},
+                    { enableHighAccuracy:true, maximumAge:2000, timeout:10000 }
+                );
+            }
+
+            locateWatch();
+            ok('Kakao 지도 준비 완료');
+        }
+
+        // autoload=false → SDK 준비 후 실행
+        function waitAndLoad(){
+            let tried = 0;
+            const t = setInterval(() => {
+                tried++;
+                if (window.kakao && kakao.maps && typeof kakao.maps.load === 'function') {
+                    clearInterval(t);
+                    kakao.maps.load(initMapApp);
+                } else if (tried === 60) {
+                    clearInterval(t);
+                    warn('Kakao SDK 로드 실패: 콘솔 도메인/네트워크 확인');
+                    logERR('[KAKAO] SDK not loaded within timeout','https://dapi.kakao.com/v2/maps/sdk.js');
+                }
+            }, 50);
+        }
+        waitAndLoad();
+    });
+</script>
 </body>
+<jsp:include page="/WEB-INF/views/fragments/footer.jsp"/>
 </html>

@@ -3,12 +3,12 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <jsp:include page="/WEB-INF/views/fragments/_head.jspf"/>
+  <jsp:include page="/WEB-INF/views/fragments/header.jsp"/>
   <title>주차장 목록</title>
   <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/pages/parking-list.css"/>
 </head>
 <body>
-  <jsp:include page="/WEB-INF/views/fragments/_header.jspf"/>
+
   <main class="main container">
     <div class="card">
       <div class="wrap">
@@ -130,7 +130,31 @@
                   <th style="width:18%">주차장명</th>
                 </tr>
               </thead>
-              <tbody id="tbody"></tbody>
+              <tbody id="tbody" <c:if test="${not empty list}">data-ssr="true"</c:if>>
+                <c:if test="${not empty list}">
+                  <c:forEach items="${list}" var="r" varStatus="st">
+                    <tr data-id="${r.manageNo}">
+                      <td class="num">${st.index + 1}</td>
+                      <td class="check"><input type="checkbox" class="row-check" aria-label="선택: ${r.nm}" /></td>
+                      <td><c:out value="${r.type}"/></td>
+                      <td>
+                        <c:choose>
+                          <c:when test="${r.status eq 'APPROVED'}"><span class="badge status appr">승인</span></c:when>
+                          <c:when test="${r.status eq 'PENDING'}"><span class="badge status pend">진행중</span></c:when>
+                          <c:when test="${r.status eq 'REJECTED'}"><span class="badge status reject">반려</span></c:when>
+                          <c:when test="${r.status eq 'TEMP'}"><span class="badge">임시저장</span></c:when>
+                          <c:otherwise><span class="badge"><c:out value="${r.status}"/></span></c:otherwise>
+                        </c:choose>
+                      </td>
+                      <td><c:out value="${r.sido}"/></td>
+                      <td><c:out value="${r.sigungu}"/></td>
+                      <td><c:out value="${r.emd}"/></td>
+                      <td><span class="addr"><c:out value="${r.addr}"/></span></td>
+                      <td><strong><c:out value="${r.nm}"/></strong><div class="muted"><c:out value="${r.manageNo}"/></div></td>
+                    </tr>
+                  </c:forEach>
+                </c:if>
+              </tbody>
             </table>
           </div>
 
@@ -261,7 +285,7 @@ function applyFilter(){
     if(f.nm && !r.nm.includes(f.nm)) return false;
     if(f.type && r.type !== f.type) return false;
     if(f.st && r.status !== f.st) return false;
-    if(f.ad && !(`${r.addr}`.includes(f.ad))) return false;
+    if(f.ad && !(String(r.addr).indexOf(f.ad) !== -1)) return false;
     return true;
   });
 
@@ -274,12 +298,19 @@ function badgeStatus(s){
   if(s==='PENDING')  return '<span class="badge status pend">진행중</span>';
   if(s==='REJECTED') return '<span class="badge status reject">반려</span>';
   if(s==='TEMP')     return '<span class="badge">임시저장</span>';
-  return `<span class="badge">${s}</span>`;
+  return '<span class="badge">' + s + '</span>';
 }
 
 /** ===== 렌더링 (테이블 + 카드 + 페이지) ===== */
 function render(){
-  summary.textContent = `총 ${filtered.length}건`;
+  // If server-side rows are already rendered (no EL functions used), skip client rendering
+  if (tbody && tbody.hasAttribute('data-ssr')) {
+    summary.textContent = '총 ' + tbody.querySelectorAll('tr').length + '건';
+    bindRowChecks();
+    syncHeaderCheck();
+    return;
+  }
+  summary.textContent = '총 ' + filtered.length + '건';
 
   const total = filtered.length;
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -288,39 +319,39 @@ function render(){
   const pageRows = filtered.slice(start, start + PAGE_SIZE);
 
   // 테이블
-  tbody.innerHTML = pageRows.map((r, i)=>{
-    const seq = start + i + 1;
-    const checked = selected.has(r.manageNo) ? 'checked' : '';
-    return `
-      <tr data-id="${r.manageNo}">
-        <td class="num">${seq}</td>
-        <td class="check"><input type="checkbox" class="row-check" ${checked} aria-label="선택: ${r.nm}" /></td>
-        <td>${r.type}</td>
-        <td>${badgeStatus(r.status)}</td>
-        <td>${r.sido}</td>
-        <td>${r.sigungu}</td>
-        <td>${r.emd}</td>
-        <td><span class="addr">${r.addr}</span></td>
-        <td><strong>${r.nm}</strong><div class="muted">${r.manageNo}</div></td>
-      </tr>
-    `;
+  tbody.innerHTML = pageRows.map(function(r, i){
+    var seq = start + i + 1;
+    var checked = selected.has(r.manageNo) ? 'checked' : '';
+    return (
+      '      <tr data-id="' + r.manageNo + '">' +
+      '        <td class="num">' + seq + '</td>' +
+      '        <td class="check"><input type="checkbox" class="row-check" ' + checked + ' aria-label="선택: ' + r.nm + '" /></td>' +
+      '        <td>' + r.type + '</td>' +
+      '        <td>' + badgeStatus(r.status) + '</td>' +
+      '        <td>' + r.sido + '</td>' +
+      '        <td>' + r.sigungu + '</td>' +
+      '        <td>' + r.emd + '</td>' +
+      '        <td><span class="addr">' + r.addr + '</span></td>' +
+      '        <td><strong>' + r.nm + '</strong><div class="muted">' + r.manageNo + '</div></td>' +
+      '      </tr>'
+    );
   }).join('');
 
   // 카드(모바일/아이패드) — 체크박스 추가
-  cards.innerHTML = pageRows.map(r=>{
-    const checked = selected.has(r.manageNo) ? 'checked' : '';
-    return `
-      <article class="card" data-id="${r.manageNo}" aria-label="${r.nm}">
-        <div class="card-head">
-          <input type="checkbox" class="card-check" ${checked} aria-label="선택: ${r.nm}" />
-          <div class="muted">${r.manageNo}</div>
-        </div>
-        <div class="name">${r.nm}</div>
-        <div><span class="badge">${r.type}</span> · ${badgeStatus(r.status)}</div>
-        <div class="muted">${r.sido} ${r.sigungu} ${r.emd}</div>
-        <div class="addr">${r.addr}</div>
-      </article>
-    `;
+  cards.innerHTML = pageRows.map(function(r){
+    var checked = selected.has(r.manageNo) ? 'checked' : '';
+    return (
+      '      <article class="card" data-id="' + r.manageNo + '" aria-label="' + r.nm + '">' +
+      '        <div class="card-head">' +
+      '          <input type="checkbox" class="card-check" ' + checked + ' aria-label="선택: ' + r.nm + '" />' +
+      '          <div class="muted">' + r.manageNo + '</div>' +
+      '        </div>' +
+      '        <div class="name">' + r.nm + '</div>' +
+      '        <div><span class="badge">' + r.type + '</span> · ' + badgeStatus(r.status) + '</div>' +
+      '        <div class="muted">' + r.sido + ' ' + r.sigungu + ' ' + r.emd + '</div>' +
+      '        <div class="addr">' + r.addr + '</div>' +
+      '      </article>'
+    );
   }).join('');
 
   renderPager(pages);
@@ -361,7 +392,7 @@ function bindRowChecks(){
       else selected.delete(id);
       syncHeaderCheck();
       // 카드 뷰의 동일 항목 체크 상태도 동기화
-      const card = cards.querySelector(`.card[data-id="${id}"] .card-check`);
+      const card = cards.querySelector('.card[data-id="' + id + '"] .card-check');
       if(card) card.checked = e.target.checked;
     });
   });
@@ -404,7 +435,7 @@ checkAll?.addEventListener('change', ()=>{
   });
   // 카드 쪽도 동기화
   visible.forEach(id=>{
-    const cardChk = cards.querySelector(`.card[data-id="${id}"] .card-check`);
+    const cardChk = cards.querySelector('.card[data-id="' + id + '"] .card-check');
     if(cardChk) cardChk.checked = selected.has(id);
   });
   syncHeaderCheck();
@@ -454,9 +485,9 @@ async function sendSelected(){
     });
     if(!res.ok){
       const txt = await res.text().catch(()=> '');
-      throw new Error(`HTTP ${res.status} ${res.statusText} ${txt||''}`.trim());
+      throw new Error(('HTTP ' + res.status + ' ' + res.statusText + ' ' + (txt||'')).trim());
     }
-    showToast(`전송 완료 · ${items.length}건`);
+    showToast('전송 완료 · ' + items.length + '건');
   }catch(err){
     console.error(err);
     showToast('전송 실패: ' + (err?.message || err));
@@ -484,7 +515,7 @@ tabDetailBtn.addEventListener('click', ()=> activateTab('detail'));
 
 /** ===== 상세 로딩 ===== */
 function buildDetailUrl(rec){
-  const map = { '노상':'offparking.html', '노외':'onparking.html', '부설':'buildparking.html' };
+  const map = { '노상':'/prk/offparking', '노외':'/prk/onparking', '부설':'/prk/buildparking' };
   const file = map[rec.type] || 'offparking.html';
 
   const sp = new URLSearchParams({
@@ -496,7 +527,7 @@ function buildDetailUrl(rec){
     emd: rec.emd,
     addr: rec.addr
   });
-  return `${file}?${sp.toString()}`;
+  return file + '?' + sp.toString();
 }
 function openDetail(rec){
   const url = buildDetailUrl(rec);
@@ -543,6 +574,14 @@ function init(){
 }
 init();
 
+function resizeDetail(){
+    const top = panelDetail.getBoundingClientRect().top;
+    const vh = Math.max(document.documentElement.clientHeight, window.innerHeight||0);
+    detailFrame.style.height = Math.max(320, vh - top - 16) + 'px';
+}
+tabDetailBtn.addEventListener('click', ()=>{ activateTab('detail'); requestAnimationFrame(resizeDetail); });
+window.addEventListener('resize', resizeDetail);
+
 /** ===== 실제 연동 시 참고 =====
  * - 내부 전송 API 예시: POST /api/internal/parkings/submit
  *   요청: { items: [{manageNo,nm,type,status,sido,sigungu,emd,addr}, ...] }
@@ -551,6 +590,6 @@ init();
 </script>
     </div>
   </main>
-  <jsp:include page="/WEB-INF/views/fragments/_footer.jspf"/>
+  <jsp:include page="/WEB-INF/views/fragments/footer.jsp"/>
 </body>
 </html>

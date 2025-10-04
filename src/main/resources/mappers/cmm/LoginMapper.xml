@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.psim.web.cmm.mapper.LoginMapper">
+    <select id="login" resultType="com.psim.web.cmm.vo.CoUserVO">
+        SELECT  user_id AS userId,
+                user_pw AS userPw,
+                user_nm AS userNm
+        FROM    cpk.tb_co_user
+        WHERE   user_id = #{userId}
+          AND   user_pw = #{password}
+    </select>
+</mapper>
