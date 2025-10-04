@@ -19,6 +19,11 @@ public class LoginController {
 
     private final LoginService loginService;
 
+    @GetMapping("/")
+    public String loginForm() {
+        return "/cmm/ts_login";
+    }
+
     @PostMapping("/login")
     public String login(@RequestParam("userId") String userId,
                         @RequestParam("password") String password,
