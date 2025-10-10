@@ -167,12 +167,15 @@ td.check, th.check{ text-align:center }
 
 /* ========== 상세 영역/iframe 높이 보정 ========== */
 .detail-wrap{ min-height:60vh }
-#detailFrame{
-    width:100%;
-    /* 상단 헤더·탭·여백을 뺀 높이(환경에 맞게 200~260px 조정) */
-    min-height:calc(100vh - 220px);
-    border:0;
-    display:block;
+/* 상세 탭 레이아웃/크기 보강 (다중 iframe) */
+.detail-wrap{ display:flex; flex-direction:column }
+.detail-tabs{ border-bottom:1px solid var(--line); padding:8px 12px; overflow:auto }
+.detail-tabs .tabs-list{ display:flex; gap:8px; flex-wrap:wrap }
+.detail-tabs .tab-btn{ white-space:nowrap }
+.detail-frames{ padding:8px 0 }
+.detail-frames iframe{ width:100%; display:block; border:0; min-height:700px }
+@media (min-width:1024px){
+  .detail-frames iframe{ min-height:calc(100vh - 220px) }
 }
 
 /* ========== 반응형 ========== */
@@ -181,7 +184,4 @@ td.check, th.check{ text-align:center }
 }
 @media (min-width:1100px){
     .cards{ display:none }
-}
-@media (max-width:768px){
-    #detailFrame{ min-height:70vh }
 }
