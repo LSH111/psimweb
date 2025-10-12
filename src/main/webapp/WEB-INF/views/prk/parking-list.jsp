@@ -126,21 +126,22 @@
                     </div>
 
                     <!-- 상세 패널 -->
-                    <div id="panelDetail" class="tab-panel detail-wrap" role="tabpanel" aria-label="상세" style="min-width:0">
+                    <%--<div id="panelDetail" class="tab-panel detail-wrap" role="tabpanel" aria-label="상세" style="min-width:0">
                         <div class="ld-tabs" id="ldTabs" role="tablist" aria-label="목록 및 상세 탭">
                             <div class="ld-tablist" id="ldTablist">
                                 <!-- 고정 목록 탭 -->
-                                <button class="ld-tab list-tab" role="tab" aria-selected="true" aria-controls="ld-panel-list" id="ld-tab-list">📋 목록</button>
+                                <!-- <button class="ld-tab list-tab" role="tab" aria-selected="true" aria-controls="ld-panel-list" id="ld-tab-list">📋 목록</button>-->
+                                <!-- 동적 목록 탭 -->
                             </div>
                             <div class="ld-panels" id="ldPanels">
-                                <section class="ld-panel" id="ld-panel-list" role="tabpanel" aria-labelledby="ld-tab-list" aria-hidden="false">
-                                    <!-- 목록 탭을 누르면 이 패널이 보이지만, 실제 목록은 위쪽 테이블/카드가 원본입니다 -->
+                                <!--<section class="ld-panel" id="ld-panel-list" role="tabpanel" aria-labelledby="ld-tab-list" aria-hidden="false">
+                                     목록 탭을 누르면 이 패널이 보이지만, 실제 목록은 위쪽 테이블/카드가 원본입니다
                                     <p style="margin:0;color:#94a3b8">위의 목록 테이블/카드를 이용하세요.</p>
-                                </section>
+                                </section> -->
                                 <!-- 상세 패널들은 JS로 동적 추가 -->
                             </div>
                         </div>
-                    </div>
+                    </div>--%>
                 </div>
             </section>
         </div>

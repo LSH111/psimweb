@@ -1,17 +1,24 @@
+/* =========================================
+   Parking Detail – Light Theme (Unified CSS)
+   - 라이트 고정 / 목록 화면 톤과 일치
+   - 입력 컨트롤(.ctl) 스타일 공통
+   - 주차면수(총+세부) 입력형 레이아웃 포함
+   ========================================= */
+
 :root{
-    /* 라이트 팔레트 (리스트 화면과 톤 맞춤) */
-    --bg:#ffffff;            /* 전체 배경 */
-    --card:#ffffff;          /* 카드/입력 컨테이너 배경 */
-    --text:#374151;          /* 본문 글자 */
-    --muted:#6b7280;         /* 보조 글자 */
-    --primary:#3b82f6;       /* 버튼/포커스 */
-    --primary-2:#2563eb;     /* 버튼 그라데이션 진톤 */
-    --border:#e5e7eb;        /* 경계선 */
-    --warn:#ef4444;          /* 경고 */
-    --ok:#10b981;            /* 성공 */
+    /* 라이트 팔레트 */
+    --bg:#ffffff;
+    --card:#ffffff;
+    --text:#374151;
+    --muted:#6b7280;
+    --primary:#3b82f6;
+    --primary-2:#2563eb;
+    --border:#e5e7eb;
+    --warn:#ef4444;
+    --ok:#10b981;
 }
 
-/* 다크모드 자동 적용 제거: @media (prefers-color-scheme: dark) 블록 없음 */
+/* 다크모드 자동 적용 제거: @media(prefers-color-scheme) 없음 */
 
 *{ box-sizing:border-box }
 
@@ -34,7 +41,7 @@ body{
 .title{ font-weight:800; font-size:1.2rem }
 .muted{ color:var(--muted) }
 
-/* 배지: 라이트 배경 */
+/* 배지 */
 .badge{
     display:inline-block; padding:4px 8px;
     border:1px solid var(--border); border-radius:999px;
@@ -44,7 +51,7 @@ body{
 .row{ display:grid; gap:10px; grid-template-columns:1fr }
 @media (min-width:900px){ .row{ grid-template-columns:1fr 1fr } }
 
-/* 카드를 흰색으로 통일 */
+/* 카드 */
 .card{
     background:var(--card);
     border:1px solid var(--border);
@@ -60,14 +67,12 @@ h2{ font-size:1rem; margin:.2rem 0 .6rem }
 
 label{ display:block; font-size:.85rem; color:var(--muted); margin-bottom:4px }
 
-/* 컨트롤 박스도 흰 배경으로 */
+/* 입력 컨트롤 공통 */
 .ctl{
     display:flex; gap:8px; align-items:center; flex-wrap:wrap;
     border:1px solid var(--border); border-radius:10px;
-    padding:10px 12px;
-    background:#ffffff;
+    padding:10px 12px; background:#ffffff;
 }
-
 input,textarea,select{
     border:0; outline:0; width:100%;
     background:transparent; color:var(--text); font-size:1rem;
@@ -100,7 +105,7 @@ textarea{ min-height:80px; resize:vertical }
 .ctl.warn{ border-color:var(--warn) }
 [hidden]{ display:none !important }
 
-/* 표준 라디오/체크 그룹 */
+/* 라디오/체크 그룹 */
 .radio-group, .check-group{ display:flex; flex-wrap:wrap; gap:12px }
 .radio-group label, .check-group label{
     display:inline-flex; align-items:center; gap:8px;
@@ -111,7 +116,7 @@ textarea{ min-height:80px; resize:vertical }
     width:18px; height:18px; accent-color:var(--primary);
 }
 
-/* 주소찾기 레이어 (오버레이는 반투명, 팝업은 흰색) */
+/* 주소찾기 레이어 */
 #postcodeLayer{
     display:none; position:fixed; inset:0;
     background:rgba(0,0,0,.25); z-index:9999;
@@ -124,3 +129,38 @@ textarea{ min-height:80px; resize:vertical }
 }
 #postcodeClose{ position:absolute; right:10px; top:10px; z-index:1 }
 #postcodeContainer{ width:100%; height:100% }
+
+/* ===============================
+   주차면수(총+세부) 입력형 레이아웃
+   - JSP의 입력 컨트롤 버전에 맞춤
+   =============================== */
+.stalls-ctl{ display:grid; gap:8px }
+
+/* 한 줄에 4칸(총=2칸, 세부 4칸) */
+.stalls-row{
+    display:grid; gap:10px;
+    grid-template-columns: repeat(4, minmax(0,1fr));
+}
+.item.span-2{ grid-column: span 2; }
+
+@media (max-width: 900px){
+    .stalls-row{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .item.span-2{ grid-column: span 2; }
+}
+
+/* 단위/체크박스 정렬 */
+.ctl.with-suffix{ display:flex; align-items:center; gap:8px; }
+.ctl.with-suffix input[type="number"]{ flex:1 1 auto; }
+.ctl-total .auto{
+    margin-left:auto; display:inline-flex; align-items:center; gap:6px;
+    color:var(--muted); font-size:.9rem;
+}
+
+/* 미리보기 & 메시지 */
+.preview{
+    padding:8px 10px; border:1px dashed var(--border);
+    border-radius:8px; background:#fff; color:var(--text);
+}
+.help.warn{ color:var(--warn) }
+.help.ok{ color:var(--ok) }
+.ctl-total.warn{ border-color:var(--warn) }
