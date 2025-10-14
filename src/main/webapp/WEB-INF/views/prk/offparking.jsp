@@ -85,17 +85,18 @@
             <div style="grid-column:1/-1">
                 <label for="f_totalStalls">총 주차면수</label>
                 <div id="ctl_total" class="ctl">
-                    <input id="f_totalStalls" type="number" min="0" inputmode="numeric" placeholder="예) 120" />
+                    <input id="f_totalStalls" type="number" min="0" inputmode="numeric" style="width:90px; margin-left:6px" placeholder="예) 120" />
                     <span class="suffix">면</span>
                 </div>
 
-                <!-- ✅ 자동합계 체크박스 (JS가 참조) -->
-                <div class="check-group" style="margin:8px 0">
+                <!-- 삭제 : 자동합계 체크박스 -->
+                <!--<div class="check-group" style="margin:8px 0">
                     <label><input type="checkbox" id="autoSum" checked /> <span>세부 합계로 총면수 자동 반영</span></label>
-                </div>
+                </div>-->
 
                 <div id="stallsMsg" class="help" style="margin-top:4px"></div>
                 <div class="check-group" style="margin-top:8px">
+                    <label><span>일반</span><input id="f_st_normal"   type="number" min="0" inputmode="numeric" style="width:90px; margin-left:6px" /><span class="suffix">면</span></label>
                     <label><span>장애인</span><input id="f_st_dis"   type="number" min="0" inputmode="numeric" style="width:90px; margin-left:6px" /><span class="suffix">면</span></label>
                     <label><span>경차</span>  <input id="f_st_small" type="number" min="0" inputmode="numeric" style="width:90px; margin-left:6px" /><span class="suffix">면</span></label>
                     <label><span>친환경</span><input id="f_st_green" type="number" min="0" inputmode="numeric" style="width:90px; margin-left:6px" /><span class="suffix">면</span></label>

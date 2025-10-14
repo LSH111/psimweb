@@ -1,4 +1,4 @@
-/* offparking.js — 노상주차장 상세 페이지 전용 */
+/* offparking.js — 노상주차장 상세 페이지 전용 (항상 자동합계 적용판) */
 
 // ========== 유틸 ==========
 const $  = (s)=>document.querySelector(s);
@@ -184,18 +184,22 @@ function syncDay(){ if(dayDetail) dayDetail.hidden = !chkDay?.checked; }
 chkDay?.addEventListener('change', syncDay);
 syncDay();
 
-// ========== 면수 합계/검증 ==========
+// ========== 면수 합계/검증 (항상 자동합계) ==========
 const totalInput = $('#f_totalStalls');
 const ctlTotal   = $('#ctl_total');
+const normalInput = $('#f_st_normal');
 const disInput   = $('#f_st_dis');
 const smallInput = $('#f_st_small');
 const greenInput = $('#f_st_green');
 const pregInput  = $('#f_st_preg');
-const autoSumEl  = $('#autoSum');
+// const autoSumEl  = $('#autoSum'); // [삭제됨]
 const msgEl      = $('#stallsMsg');
 
+// 총면수는 사람이 수정하지 않도록
+if (totalInput) totalInput.readOnly = true;
+
 function detailSum(){
-    return num(disInput?.value)+num(smallInput?.value)+num(greenInput?.value)+num(pregInput?.value);
+    return num(normalInput?.value)+num(disInput?.value)+num(smallInput?.value)+num(greenInput?.value)+num(pregInput?.value);
 }
 function setWarn(on, text){
     ctlTotal?.classList.toggle('warn', !!on);
@@ -207,24 +211,11 @@ function setWarn(on, text){
 }
 function recompute(){
     const sum = detailSum();
-    if (autoSumEl?.checked){
-        if (totalInput) totalInput.value = sum;
-        setWarn(false, sum ? `세부합 ${sum.toLocaleString()}면 자동반영` : '');
-    }else{
-        const total = num(totalInput?.value);
-        if(total !== sum){
-            const diff = total - sum;
-            setWarn(true, `세부합 ${sum.toLocaleString()}면 ≠ 총 ${total.toLocaleString()}면 (차이 ${diff>0?'+':''}${diff})`);
-        }else if(total || sum){
-            setWarn(false, `세부합과 총면수가 일치합니다 (${sum.toLocaleString()}면)`);
-        }else{
-            setWarn(false, '');
-        }
-    }
+    if (totalInput) totalInput.value = sum;
+    //setWarn(false, sum ? `세부합 ${sum.toLocaleString()}면 → 총면수 자동 반영` : '');
 }
-[disInput, smallInput, greenInput, pregInput].forEach(el=> el?.addEventListener('input', recompute));
-totalInput?.addEventListener('input', recompute);
-autoSumEl?.addEventListener('change', recompute);
+[normalInput, disInput, smallInput, greenInput, pregInput].forEach(el=> el?.addEventListener('input', recompute));
+// totalInput?.addEventListener('input', recompute); // [불필요, 자동합계]
 recompute();
 
 // ========== 헤더 주소 ==========
@@ -271,12 +262,10 @@ opTypeRadios.forEach(r=> r.addEventListener('change', syncFeeSections));
 syncFeeSections();
 
 // ===== 요금 지불방식 처리 =====
-// 요금 지불방식
 const payChecks   = Array.from(document.querySelectorAll('input[name="payMethod"]'));
 const payEtcChk   = document.getElementById('pay_etc_chk');
 const payEtcInput = document.getElementById('pay_etc_input');
 
-// 기타 체크박스 ↔ 입력창 활성/비활성
 if (payEtcChk && payEtcInput) {
     payEtcChk.addEventListener('change', () => {
         const on = payEtcChk.checked;
@@ -301,9 +290,8 @@ function collectPayMethods(){
     const vals = payChecks.filter(c => c.checked).map(c => c.value);
     if (payEtcChk?.checked) {
         const t = (payEtcInput?.value || '').trim();
-        // 텍스트가 있으면 '기타:내용' 형태로 저장
         if (t) vals.push(`기타:${t}`);
-        else if (!vals.includes('기타')) vals.push('기타'); // 내용 없이 기타만
+        else if (!vals.includes('기타')) vals.push('기타');
     }
     return vals;
 }
@@ -312,20 +300,22 @@ function collectPayMethods(){
 function buildPayload(){
     const own = (ownRadios.find(r=>r.checked)||{}).value || '';
     const selectedOp = (opTypeRadios.find(r=>r.checked)?.value) || '';
+    const sumNow = detailSum();
 
     const payload={
         id:f_id?.value, name:f_name?.value, status:f_status?.value, type:'노상',
         sido:f_sido?.value, sigungu:f_sigungu?.value, emd:f_emd?.value,
         addrJibun:f_addrJ?.value, addrRoad:f_addrR?.value, lat:f_lat?.value, lng:f_lng?.value,
 
-        totalStalls: num(totalInput?.value),
+        totalStalls: sumNow, // 항상 세부합 사용
         stalls:{
+            normal:  num(normalInput?.value),   // ← 추가
             disabled:num(disInput?.value),
-            compact:num(smallInput?.value),
-            eco:num(greenInput?.value),
+            compact: num(smallInput?.value),
+            eco:     num(greenInput?.value),
             pregnant:num(pregInput?.value)
         },
-        autoTotalFromDetail: !!(autoSumEl && autoSumEl.checked),
+        autoTotalFromDetail: true, // 항상 자동합계
 
         ownerType: own,
         ownerCompany: (own==='민간위탁') ? ($('#f_own_company')?.value||'') : '',
@@ -339,7 +329,6 @@ function buildPayload(){
             ? { grade: $('#f_day_grade')?.value||'', feeType: $('#f_day_feeType')?.value||'' }
             : null,
 
-        // 운영방식에 따른 요금 포함
         residentFees: (selectedOp.includes('거주자우선주차장')) ? {
             all:   num(f_res_all?.value),
             day:   num(f_res_day?.value),
@@ -356,21 +345,14 @@ function buildPayload(){
             halfyear: num(f_fee_halfyear?.value)
         } : null,
 
-        payMethods: collectPayMethods(),  // 추가
+        payMethods: collectPayMethods(),
     };
 
     return payload;
 }
 
 function doSave(){
-    if (autoSumEl && !autoSumEl.checked){
-        const sum = detailSum();
-        const total = num(totalInput?.value);
-        if(total !== sum){
-            alert('총면수와 세부면수의 합이 일치하지 않습니다. 확인해주세요.');
-            return;
-        }
-    }
+    // 자동합계이므로 총면수-세부면수 일치 검증 불필요
     const payload = buildPayload();
     console.log('SAVE(offstreet):', payload);
     alert('샘플 저장 완료(콘솔 확인). 실제 API로 교체하세요.');
