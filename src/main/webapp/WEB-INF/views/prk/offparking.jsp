@@ -222,9 +222,9 @@
                     </div>
                 </div>
 
-                <!-- (B) 일반노상주차장(승용차·일반) 요금 -->
+                <!-- (B) 일반노상주차장(승용차, 일반인 기준) 요금 -->
                 <div id="normal_fee_wrap">
-                    <h3 class="help" style="margin:.2rem 0">일반노상주차장 요금(승용차·일반)</h3>
+                    <h3 class="help" style="margin:.2rem 0">일반노상주차장 요금(승용차, 일반인 기준)</h3>
                     <div class="fee-group">
                         <!-- 1행 -->
                         <div class="fee-item">
@@ -277,6 +277,19 @@
                     </div>
                 </div>
             </div>
+
+            <!-- 요금정산방식 : 추가 -->
+            <div id="fee_settle_wrap" class="fee-block card" style="grid-column:1/-1">
+                <h2 class="fee-title">요금 정산방식</h2>
+
+                <div class="grid row-1c">
+                    <div class="check-group" aria-label="요금 정산방식" id="settle_group">
+                        <label><input type="checkbox" name="settleMethod" value="자동정산" id="settle_auto" /> <span>자동정산</span></label>
+                        <label><input type="checkbox" name="settleMethod" value="수동정산" id="settle_manual" /> <span>수동정산</span></label>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </section>
 
