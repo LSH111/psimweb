@@ -185,3 +185,20 @@ td.check, th.check{ text-align:center }
 @media (min-width:1100px){
     .cards{ display:none }
 }
+/* ====== one-card 모드: 테이블 숨기고 카드만 1열로 강제 ====== */
+/* JSP에서 <section class="result-panel one-card"> 로 플래그를 주면 동작합니다. */
+.result-panel.one-card .table-wrap {
+    display: none !important;          /* 테이블 완전 숨김 */
+}
+
+.result-panel.one-card .cards {
+    display: grid !important;          /* 데스크톱에서도 카드 보이게 (@media 1100px 규칙 무시) */
+    grid-template-columns: 1fr !important; /* 항상 1개만 */
+    gap: 12px;
+    margin: 12px 0;
+}
+
+/* 페이저 정렬 보강(선택 사항) */
+.result-panel.one-card .pager {
+    justify-content: center;
+}

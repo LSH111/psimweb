@@ -29,9 +29,16 @@ const DATA = [
     { nm:"탄방동 노상",     type:"노상", status:"APPROVED",  sido:"대전광역시", sigungu:"서구",  emd:"탄방동", addr:"문정로 25",     manageNo:"PRK-0010" }
 ];
 
-const PAGE_SIZE = 6;
+//const PAGE_SIZE = 6;
 const INTERNAL_API = '/api/internal/parkings/submit';
 const MAX_DETAIL_TABS = 8;
+
+// 기본 페이지 사이즈(기존 유지)
+const PAGE_SIZE_DEFAULT = 6;
+// 결과 패널에 one-card 플래그가 있으면 1, 아니면 기본값
+function getPageSize(){
+    return PAGE_SIZE_DEFAULT;
+}
 
 /* =========================
    상태/헬퍼
@@ -123,10 +130,11 @@ function render(){
     summary.textContent = '총 ' + filtered.length + '건';
 
     const total = filtered.length;
-    const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    const pageSize = getPageSize(); // ★ one-card면 1, 아니면 기존값
+    const pages = Math.max(1, Math.ceil(total / pageSize));
     if (currentPage > pages) currentPage = pages;
-    const start = (currentPage - 1) * PAGE_SIZE;
-    const pageRows = filtered.slice(start, start + PAGE_SIZE);
+    const start = (currentPage - 1) * pageSize;
+    const pageRows = filtered.slice(start, start + pageSize);
 
     // 테이블
     tbody.innerHTML = pageRows.map((r,i)=>{
