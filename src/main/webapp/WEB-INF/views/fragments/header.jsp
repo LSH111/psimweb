@@ -49,7 +49,7 @@
 </style>
 <header class="site-header">
     <h1>주차장 관리 시스템</h1>
-    <button type="button" class="nav-toggle" aria-controls="main-gnb" aria-expanded="false" aria-label="메뉴 열기">☰</button>
+    <!--<button type="button" class="nav-toggle" aria-controls="main-gnb" aria-expanded="false" aria-label="메뉴 열기">☰</button>-->
     <nav id="main-gnb">
         <ul class="gnb">
             <li class="has-sub">
