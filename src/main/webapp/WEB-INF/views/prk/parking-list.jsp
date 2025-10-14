@@ -91,7 +91,7 @@
             </section>
 
             <!-- 결과/탭 -->
-            <section class="result-panel">
+            <section class="result-panel one-card">
                 <div class="summary" id="summary">총 0건</div>
 
                 <div class="tabs" role="tablist" aria-label="목록">

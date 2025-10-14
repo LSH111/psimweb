@@ -49,4 +49,14 @@
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
+    <!-- 인증 필터: 로그인 없이 접근 불가(화이트리스트 제외) -->
+    <filter>
+        <filter-name>authFilter</filter-name>
+        <filter-class>com.psim.web.cmm.filter.AuthFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>authFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
 </web-app>
