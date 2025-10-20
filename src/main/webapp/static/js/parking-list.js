@@ -1,6 +1,73 @@
+// 공통 코드 관련 함수들
+const CodeUtils = {
+    
+    // 시도 목록 로드
+    async loadSidoList() {
+        try {
+            const response = await fetch('/api/codes/sido');
+            const result = await response.json();
+            
+            if (result.success) {
+                const sidoSelect = document.getElementById('sido');
+                sidoSelect.innerHTML = '<option value="">전체</option>';
+                
+                result.data.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.codeCd;
+                    option.textContent = item.codeNm;
+                    sidoSelect.appendChild(option);
+                });
+            } else {
+                console.error('시도 목록 로드 실패:', result.message);
+            }
+        } catch (error) {
+            console.error('시도 목록 로드 중 오류:', error);
+        }
+    },
+    
+    // 시군구 목록 로드
+    async loadSigunguList(sidoCd) {
+        try {
+            const sigunguSelect = document.getElementById('sigungu');
+            const emdSelect = document.getElementById('emd');
+            
+            // 초기화
+            sigunguSelect.innerHTML = '<option value="">전체</option>';
+            emdSelect.innerHTML = '<option value="">전체</option>';
+            emdSelect.disabled = true;
+            
+            if (!sidoCd) {
+                sigunguSelect.disabled = true;
+                return;
+            }
+            
+            const response = await fetch(`/api/codes/sigungu?sidoCd=${encodeURIComponent(sidoCd)}`);
+            const result = await response.json();
+            
+            if (result.success) {
+                result.data.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.codeCd;
+                    option.textContent = item.codeNm;
+                    sigunguSelect.appendChild(option);
+                });
+                sigunguSelect.disabled = false;
+            } else {
+                console.error('시군구 목록 로드 실패:', result.message);
+                sigunguSelect.disabled = true;
+            }
+        } catch (error) {
+            console.error('시군구 목록 로드 중 오류:', error);
+            document.getElementById('sigungu').disabled = true;
+        }
+    }
+};
+
 /* =========================
-   데모 데이터/행정구역
+   실제 서버 API 연동 버전
    ========================= */
+
+// 행정구역 데이터 - 실제로는 서버에서 가져와야 함
 const ADM = {
     "서울특별시": {
         "종로구": ["사직동","삼청동","평창동","청운효자동"],
@@ -16,25 +83,12 @@ const ADM = {
     }
 };
 
-const DATA = [
-    { nm:"중앙공영주차장", type:"노상", status:"APPROVED",  sido:"서울특별시", sigungu:"종로구", emd:"사직동",  addr:"사직로 1",       manageNo:"PRK-0001" },
-    { nm:"연남로 노상",     type:"노상", status:"PENDING",   sido:"서울특별시", sigungu:"마포구", emd:"연남동",  addr:"연남로 123",     manageNo:"PRK-0002" },
-    { nm:"상암DMC 복합",    type:"부설", status:"TEMP",      sido:"서울특별시", sigungu:"마포구", emd:"상암동",  addr:"월드컵북로 400", manageNo:"PRK-0003" },
-    { nm:"분당구청 노외",   type:"노외", status:"APPROVED",  sido:"경기도",     sigungu:"성남시 분당구", emd:"정자동", addr:"분당로 23", manageNo:"PRK-0004" },
-    { nm:"서현역 노외",     type:"노외", status:"REJECTED",  sido:"경기도",     sigungu:"성남시 분당구", emd:"서현동", addr:"황새울로 333", manageNo:"PRK-0005" },
-    { nm:"수지 성복 부설",   type:"부설", status:"APPROVED",  sido:"경기도",     sigungu:"용인시 수지구", emd:"성복동", addr:"성복로 77",  manageNo:"PRK-0006" },
-    { nm:"DCC 노외",        type:"노외", status:"PENDING",   sido:"대전광역시", sigungu:"서구",  emd:"둔산동",  addr:"엑스포로 1",     manageNo:"PRK-0007" },
-    { nm:"KAIST 부설",      type:"부설", status:"APPROVED",  sido:"대전광역시", sigungu:"유성구", emd:"궁동",   addr:"대학로 291",    manageNo:"PRK-0008" },
-    { nm:"유성 홈플 노상",   type:"노상", status:"TEMP",      sido:"대전광역시", sigungu:"유성구", emd:"봉명동", addr:"온천서로 11",    manageNo:"PRK-0009" },
-    { nm:"탄방동 노상",     type:"노상", status:"APPROVED",  sido:"대전광역시", sigungu:"서구",  emd:"탄방동", addr:"문정로 25",     manageNo:"PRK-0010" }
-];
+// 서버에서 가져온 실제 데이터를 저장할 변수
+let DATA = [];
 
-//const PAGE_SIZE = 6;
-const INTERNAL_API = '/api/internal/parkings/submit';
 const MAX_DETAIL_TABS = 8;
+const PAGE_SIZE_DEFAULT = 20; // 기본 페이지 크기를 20으로 증가
 
-// 기본 페이지 사이즈(기존 유지)
-const PAGE_SIZE_DEFAULT = 6;
 // 결과 패널에 one-card 플래그가 있으면 1, 아니면 기본값
 function getPageSize(){
     return PAGE_SIZE_DEFAULT;
@@ -44,7 +98,7 @@ function getPageSize(){
    상태/헬퍼
    ========================= */
 let currentPage = 1;
-let filtered = [...DATA];
+let filtered = [];
 const selected = new Set();
 
 const $id  = (id) => document.getElementById(id);
@@ -56,87 +110,180 @@ function toast(msg){
     if (!t) return;
     t.textContent = msg;
     t.classList.add('show');
-    setTimeout(()=>t.classList.remove('show'), 2000);
+    setTimeout(()=>t.classList.remove('show'), 3000);
 }
 
 function badgeStatus(s){
-    if (s === 'APPROVED') return '<span class="badge status appr">승인</span>';
-    if (s === 'PENDING')  return '<span class="badge status pend">진행중</span>';
-    if (s === 'REJECTED') return '<span class="badge status reject">반려</span>';
-    if (s === 'TEMP')     return '<span class="badge">임시저장</span>';
+    if (s === 'APPROVED' || s === '승인') return '<span class="badge status appr">승인</span>';
+    if (s === 'PENDING' || s === '진행중')  return '<span class="badge status pend">진행중</span>';
+    if (s === 'REJECTED' || s === '반려') return '<span class="badge status reject">반려</span>';
+    if (s === 'TEMP' || s === '임시저장')     return '<span class="badge">임시저장</span>';
     return '<span class="badge">'+s+'</span>';
 }
 
 /* =========================
-   행정구역 셀렉트
+   서버 데이터 로드
    ========================= */
-function initAdm(){
-    const sidoSel = $id('sido'), sggSel = $id('sigungu'), emdSel = $id('emd');
-    if (!sidoSel || !sggSel || !emdSel) return;
+async function loadDataFromServer() {
+    try {
+        const formData = getSearchParams();
+        const params = new URLSearchParams({
+            ...formData,
+            page: currentPage,
+            size: getPageSize()
+        });
+        
+        const response = await fetch('/prk/parking-data?' + params.toString(), {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success !== false) {
+            // 서버 데이터를 기존 구조에 맞게 변환
+            DATA = (data.list || []).map(item => ({
+                nm: item.prkplceNm || '',
+                type: item.prkPlceType || '',
+                status: item.prgsStsCd || '',
+                sido: item.sidoNm || '',
+                sigungu: item.sigunguNm || '',
+                emd: item.lgalEmdNm || '',
+                addr: item.dtadd || '',
+                manageNo: item.prkPlceManageNo || item.manageNo || '',
+                zip: item.zip || '',
+                userNm: item.userNm || ''
+            }));
+            
+            filtered = [...DATA];
+            
+            // 페이지 정보 업데이트
+            if (data.totalCount !== undefined) {
+                updateSummary(data.totalCount);
+            }
+            
+            render();
+        } else {
+            throw new Error(data.message || '데이터 로드 실패');
+        }
+    } catch (error) {
+        console.error('서버 데이터 로드 실패:', error);
+        toast('데이터를 불러오는데 실패했습니다: ' + error.message);
+        
+        // 실패 시 빈 데이터로 렌더링
+        DATA = [];
+        filtered = [];
+        render();
+    }
+}
 
-    Object.keys(ADM).forEach(s => sidoSel.add(new Option(s, s)));
+// 검색 조건 수집
+function getSearchParams() {
+    const form = $id('searchForm');
+    if (!form) return {};
+    
+    const formData = new FormData(form);
+    const params = {};
+    
+    for (let [key, value] of formData.entries()) {
+        if (value && value.trim()) {
+            params[key] = value.trim();
+        }
+    }
+    
+    return params;
+}
 
-    sidoSel.addEventListener('change', ()=>{
-        sggSel.innerHTML = '<option value="">전체</option>';
-        emdSel.innerHTML = '<option value="">전체</option>';
-        emdSel.disabled = true;
-        const s = sidoSel.value;
-        if(!s){ sggSel.disabled = true; return; }
-        sggSel.disabled = false;
-        Object.keys(ADM[s]).forEach(g => sggSel.add(new Option(g, g)));
-    });
-
-    sggSel.addEventListener('change', ()=>{
-        emdSel.innerHTML = '<option value="">전체</option>';
-        const s = sidoSel.value, g = sggSel.value;
-        if(!g){ emdSel.disabled = true; return; }
-        emdSel.disabled = false;
-        ADM[s][g].forEach(e => emdSel.add(new Option(e, e)));
-    });
+// 요약 정보 업데이트
+function updateSummary(totalCount) {
+    const summary = $id('summary');
+    if (summary) {
+        summary.textContent = `총 ${totalCount.toLocaleString()}건`;
+    }
 }
 
 /* =========================
-   필터/렌더
+   행정구역 셀렉트 (기존 유지)
    ========================= */
-function applyFilter(){
-    const f = {
-        sido: $id('sido')?.value.trim() || '',
-        sgg:  $id('sigungu')?.value.trim() || '',
-        emd:  $id('emd')?.value.trim() || '',
-        nm:   $id('prkNm')?.value.trim() || '',
-        type: $id('prkType')?.value.trim() || '',
-        st:   $id('status')?.value.trim() || '',
-        ad:   $id('addr')?.value.trim() || ''
-    };
-
-    filtered = DATA.filter(r=>{
-        if (f.sido && r.sido !== f.sido) return false;
-        if (f.sgg  && r.sigungu !== f.sgg) return false;
-        if (f.emd  && r.emd !== f.emd) return false;
-        if (f.nm   && r.nm.indexOf(f.nm) === -1) return false;
-        if (f.type && r.type !== f.type) return false;
-        if (f.st   && r.status !== f.st) return false;
-        if (f.ad   && String(r.addr).indexOf(f.ad) === -1) return false;
-        return true;
+// 드롭다운 이벤트 핸들러
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // 시도 목록 초기 로드
+    CodeUtils.loadSidoList();
+    
+    // 시도 변경 시 시군구 로드
+    document.getElementById('sido').addEventListener('change', function() {
+        const sidoCd = this.value;
+        CodeUtils.loadSigunguList(sidoCd);
     });
+    
+    // 시군구 변경 시 읍면동 활성화 (필요시 추가 구현)
+    document.getElementById('sigungu').addEventListener('change', function() {
+        const sigunguCd = this.value;
+        const emdSelect = document.getElementById('emd');
+        
+        if (sigunguCd) {
+            emdSelect.disabled = false;
+            // 읍면동 데이터 로드 로직 추가 가능
+        } else {
+            emdSelect.disabled = true;
+            emdSelect.innerHTML = '<option value="">전체</option>';
+        }
+    });
+    
+    // 검색 폼 제출
+    document.getElementById('searchForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const params = Object.fromEntries(formData);
+        
+        // 주차장 목록 검색 실행
+        if (window.searchParkingList) {
+            window.searchParkingList(params);
+        }
+    });
+    
+    // 초기화 버튼
+    document.getElementById('resetBtn').addEventListener('click', function() {
+        document.getElementById('searchForm').reset();
+        document.getElementById('sigungu').disabled = true;
+        document.getElementById('emd').disabled = true;
+        
+        // 검색 결과 초기화
+        if (window.searchParkingList) {
+            window.searchParkingList({});
+        }
+    });
+});
+
+/* =========================
+   필터/렌더 (서버 연동으로 수정)
+   ========================= */
+async function applyFilter(){
     currentPage = 1;
-    render();
+    await loadDataFromServer();
 }
 
 function render(){
     const tbody = $id('tbody'), cards = $id('cards'), summary = $id('summary');
-    if (!tbody || !cards || !summary) return;
+    if (!tbody || !cards || summary === null) return;
 
-    summary.textContent = '총 ' + filtered.length + '건';
-
+    // 현재 페이지 데이터 계산
     const total = filtered.length;
-    const pageSize = getPageSize(); // ★ one-card면 1, 아니면 기존값
+    const pageSize = getPageSize();
     const pages = Math.max(1, Math.ceil(total / pageSize));
     if (currentPage > pages) currentPage = pages;
     const start = (currentPage - 1) * pageSize;
     const pageRows = filtered.slice(start, start + pageSize);
 
-    // 테이블
+    // 테이블 렌더링
     tbody.innerHTML = pageRows.map((r,i)=>{
         const seq = start + i + 1;
         const checked = selected.has(r.manageNo) ? 'checked' : '';
@@ -154,7 +301,7 @@ function render(){
       </tr>`;
     }).join('');
 
-    // 카드
+    // 카드 렌더링
     cards.innerHTML = pageRows.map(r=>{
         const checked = selected.has(r.manageNo) ? 'checked' : '';
         return `
@@ -177,14 +324,19 @@ function render(){
 }
 
 function renderPager(pages){
-    const pager = $id('pager'); if (!pager) return;
+    const pager = $id('pager'); 
+    if (!pager) return;
+    
     pager.innerHTML = '';
     const makeBtn = (txt, page, disabled, active)=>{
         const b = document.createElement('button');
         b.className = 'page-btn' + (active ? ' active' : '');
         b.textContent = txt;
         b.disabled = !!disabled;
-        b.addEventListener('click', ()=>{ currentPage = page; render(); });
+        b.addEventListener('click', async ()=>{ 
+            currentPage = page; 
+            await loadDataFromServer(); // 서버에서 새로운 페이지 데이터 로드
+        });
         return b;
     };
     pager.appendChild(makeBtn('«', 1, currentPage === 1, false));
@@ -198,7 +350,7 @@ function renderPager(pages){
 }
 
 /* =========================
-   체크박스 동기화
+   체크박스 동기화 (기존 유지)
    ========================= */
 function bindRowChecks(){
     const tbody = $id('tbody'), cards = $id('cards'); if (!tbody || !cards) return;
@@ -212,6 +364,7 @@ function bindRowChecks(){
         });
     });
 }
+
 function bindCardChecks(){
     const tbody = $id('tbody'), cards = $id('cards'); if (!tbody || !cards) return;
     cards.querySelectorAll('.card-check').forEach(chk=>{
@@ -225,6 +378,7 @@ function bindCardChecks(){
         });
     });
 }
+
 function syncHeaderCheck(){
     const tbody = $id('tbody'), checkAll = $id('checkAll'); if (!tbody || !checkAll) return;
     const visible = Array.from(tbody.querySelectorAll('tr')).map(tr=>tr.dataset.id);
@@ -232,6 +386,8 @@ function syncHeaderCheck(){
     checkAll.checked = allChecked;
     checkAll.indeterminate = !allChecked && visible.some(id=>selected.has(id));
 }
+
+// 전체 선택 체크박스 바인딩
 (function(){
     const checkAll = $id('checkAll');
     if (checkAll){
@@ -252,7 +408,7 @@ function syncHeaderCheck(){
 })();
 
 /* =========================
-   CSV/전송 (하이브리드 호환)
+   CSV/전송 (기존 유지)
    ========================= */
 function exportCSV(){
     const header = ['순번','관리번호','주차장구분','진행상태','시도','시군구','읍면동','상세주소','주차장명'];
@@ -284,18 +440,7 @@ function exportCSV(){
         return;
     }
 
-    // Web Share API
-    if (navigator.share && navigator.canShare){
-        try{
-            const file = new File([blob], fileName, { type: blob.type });
-            if (navigator.canShare({ files: [file] })){
-                navigator.share({ files:[file], title:fileName }).catch(()=>{});
-                return;
-            }
-        }catch(_){}
-    }
-
-    // data: URL fallback
+    // 데이터 URL fallback
     try{
         const dataUrl = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv);
         window.location.href = dataUrl;
@@ -311,7 +456,8 @@ async function sendSelected(){
         sido:r.sido, sigungu:r.sigungu, emd:r.emd, addr:r.addr
     }));
     try{
-        const res = await fetch(INTERNAL_API, {
+        // 실제 전송 API 엔드포인트로 수정
+        const res = await fetch('/api/internal/parkings/submit', {
             method:'POST',
             headers:{'Content-Type':'application/json'},
             body:JSON.stringify({items})
@@ -328,12 +474,14 @@ async function sendSelected(){
 }
 
 /* =========================
-   상단 흰색 탭 엔진 (.tabs / .tab-panels)
+   나머지 기존 코드들 (상세 탭 등) 유지
    ========================= */
+
+// 상단 흰색 탭 엔진
 function getTabHost(){
     return {
-        tabBar:     $one('.tabs'),        // 상단 흰색 탭바(이미 JSP에 있음)
-        panelsWrap: $one('.tab-panels')   // 패널 래퍼(이미 JSP에 있음)
+        tabBar:     $one('.tabs'),
+        panelsWrap: $one('.tab-panels')
     };
 }
 
@@ -538,24 +686,20 @@ function initHybridBindings(){
 }
 
 /* =========================
-   초기화
+   초기화 (서버 연동으로 수정)
    ========================= */
-function init(){
-    // 하단 panelDetail은 사용하지 않음(디자인 유지용으로만 존재) → 숨김
+async function init(){
     $id('panelDetail')?.setAttribute('hidden','');
+    
+    // 초기 데이터 로드
+    await loadDataFromServer();
 
-    initAdm();
-    applyFilter();
-
-    // 탭바 동작 바인딩(1회)
     const { tabBar } = getTabHost();
     if (tabBar && !tabBar.__bound){
         tabBar.__bound = true;
 
-        // 목록 탭
         $id('tabList')?.addEventListener('click', ()=> activateTop('tabList'));
 
-        // 탭 클릭/닫기
         tabBar.addEventListener('click', (e)=>{
             const btn = e.target.closest('.tab-btn');
             if (!btn) return;
@@ -563,7 +707,6 @@ function init(){
             activateTop(btn.id);
         });
 
-        // 키보드 네비
         tabBar.addEventListener('keydown', (e)=>{
             if (!['ArrowLeft','ArrowRight','Home','End'].includes(e.key)) return;
             const tabs = $all('.tab-btn', tabBar);
@@ -578,36 +721,31 @@ function init(){
             tabs[next].focus();
         });
 
-        // 상세 내부 "목록 보기"
         document.addEventListener('click', (e)=>{
             const b = e.target.closest('button[data-action="back-to-list"]');
             if (!b) return;
             activateTop('tabList');
         });
 
-        // 초기 활성
         activateTop('tabList');
     }
 
-    // 폼/버튼
-    $id('searchForm')?.addEventListener('submit', (e)=>{ e.preventDefault(); applyFilter(); });
-    $id('resetBtn')?.addEventListener('click', ()=>{
-        const sggSel = $id('sigungu'), emdSel = $id('emd');
-        $id('searchForm')?.reset();
-        if (sggSel){ sggSel.innerHTML = '<option value="">전체</option>'; sggSel.disabled = true; }
-        if (emdSel){ emdSel.innerHTML = '<option value="">전체</option>'; emdSel.disabled = true; }
-        filtered = [...DATA]; currentPage = 1; render();
-        selected.clear(); syncHeaderCheck();
+    // 폼/버튼 이벤트
+    $id('searchForm')?.addEventListener('submit', async (e)=>{ 
+        e.preventDefault(); 
+        await applyFilter();
     });
+    
     $id('exportBtn')?.addEventListener('click', exportCSV);
     $id('sendBtn')?.addEventListener('click', sendSelected);
 
-    // 리사이즈
     window.addEventListener('resize', resizeDetail, { passive:true });
-
-    // 하이브리드 바인딩
     initHybridBindings();
 }
 
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-else init();
+// DOM 준비 시 초기화
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}

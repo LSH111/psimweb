@@ -1,13 +1,18 @@
 package com.psim.web.prk.service;
 
-import com.psim.web.prk.vo.PrkDefPlceInfoVO;
+import com.psim.web.prk.vo.ParkingListVO;
 
 import java.util.List;
+import java.util.Map;
 
 public interface PrkDefPlceInfoService {
-    List<PrkDefPlceInfoVO> getAllPrkDefPlceInfos();
-    PrkDefPlceInfoVO getPrkDefPlceInfoById(Integer prkPlceInfoSn);
-    void addPrkDefPlceInfo(PrkDefPlceInfoVO info);
-    void editPrkDefPlceInfo(PrkDefPlceInfoVO info);
-    void removePrkDefPlceInfo(Integer prkPlceInfoSn);
+    
+    // 조회 기능 (SELECT)
+    List<ParkingListVO> getParkingList(Map<String, Object> params);
+    int getParkingListCount(Map<String, Object> params);
+    ParkingListVO getParkingDetail(String manageNo, Integer infoSn);
+    
+    // 수정 기능 (UPDATE) - 전송 버튼으로 일괄 업데이트
+    void updateParkingStatus(List<String> manageNos, String newStatus);
+    void updateSelectedParkings(List<ParkingListVO> parkingList);
 }

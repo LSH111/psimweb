@@ -1,53 +1,130 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
 <mapper namespace="com.psim.web.prk.mapper.PrkDefPlceInfoMapper">
 
-    <select id="selectAllPrkDefPlceInfos" resultType="com.psim.web.prk.vo.PrkDefPlceInfoVO">
-        SELECT * FROM tb_prk_def_plce_info
+    <select id="selectParkingList" parameterType="map" resultType="com.psim.web.prk.vo.ParkingListVO">
+        SELECT 
+            cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsCd,
+            tcl.sido_cd as sidoCd,
+            tcl.sido_nm as sidoNm,
+            tcl.sigungu_cd as sigunguCd,
+            tcl.sigungu_nm as sigunguNm,
+            tcl.emd_cd as emdCd,
+            tcl.lgal_emd_nm as lgalEmdNm,
+            tpdpi.zip as zip,
+            tpdpi.dtadd as dtadd,
+            tcu.user_nm as userNm,
+            cpk.FN_GET_CODE_NM(tpdpi.prk_plce_type, 'P_PRKPLCE_SE') as prkPlceType,
+            tpdpi.prkplce_nm as prkplceNm,
+            tbppi.biz_per_prk_mng_no as bizPerPrkMngNo,
+            tbppi.prk_biz_mng_no as prkBizMngNo,
+            tbppi.prk_plce_manage_no as prkPlceManageNo,
+            tbppi.prk_plce_info_sn as prkPlceInfoSn
+        FROM cpk.tb_prk_def_plce_info tpdpi
+        LEFT JOIN cpk.tb_co_ldong tcl
+            ON tpdpi.ldong_cd = tcl.ldong_cd
+        LEFT JOIN cpk.tb_biz_per_prklot_info tbppi
+            ON tpdpi.prk_plce_manage_no = tbppi.prk_plce_manage_no
+            AND tpdpi.prk_plce_info_sn = tbppi.prk_plce_info_sn
+        LEFT JOIN cpk.tb_co_user tcu
+            ON tbppi.srvy_id = tcu.user_id
+        WHERE tcl.use_yn = 'Y'
+        <!-- 검색 조건 추가 -->
+        <if test="sido != null and sido != ''">
+            AND tcl.sido_cd = #{sido}
+        </if>
+        <if test="sigungu != null and sigungu != ''">
+            AND tcl.sigungu_cd = #{sigungu}
+        </if>
+        <if test="emd != null and emd != ''">
+            AND tcl.emd_cd = #{emd}
+        </if>
+        <if test="prkNm != null and prkNm != ''">
+            AND tpdpi.prkplce_nm LIKE '%' || #{prkNm} || '%'
+        </if>
+        ORDER BY tpdpi.prkplce_nm ASC
+        <!-- 페이징 제거: LIMIT/OFFSET 구문 삭제 -->
     </select>
 
-    <select id="selectPrkDefPlceInfoById" parameterType="int" resultType="com.psim.web.prk.vo.PrkDefPlceInfoVO">
-        SELECT * FROM tb_prk_def_plce_info WHERE prk_plce_info_sn = #{prkPlceInfoSn}
+    <!-- selectParkingListCount는 더 이상 필요하지 않지만 호환성을 위해 유지 -->
+    <select id="selectParkingListCount" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+        FROM cpk.tb_prk_def_plce_info tpdpi
+        LEFT JOIN cpk.tb_co_ldong tcl
+            ON tpdpi.ldong_cd = tcl.ldong_cd
+        LEFT JOIN cpk.tb_biz_per_prklot_info tbppi
+            ON tpdpi.prk_plce_manage_no = tbppi.prk_plce_manage_no
+            AND tpdpi.prk_plce_info_sn = tbppi.prk_plce_info_sn
+        LEFT JOIN cpk.tb_co_user tcu
+            ON tbppi.srvy_id = tcu.user_id
+        WHERE tcl.use_yn = 'Y'
+        <!-- 검색 조건 추가 -->
+        <if test="sido != null and sido != ''">
+            AND tcl.sido_cd = #{sido}
+        </if>
+        <if test="sigungu != null and sigungu != ''">
+            AND tcl.sigungu_cd = #{sigungu}
+        </if>
+        <if test="emd != null and emd != ''">
+            AND tcl.emd_cd = #{emd}
+        </if>
+        <if test="prkNm != null and prkNm != ''">
+            AND tpdpi.prkplce_nm LIKE '%' || #{prkNm} || '%'
+        </if>
     </select>
 
-    <insert id="insertPrkDefPlceInfo" parameterType="com.psim.web.prk.vo.PrkDefPlceInfoVO">
-        INSERT INTO tb_prk_def_plce_info (
-            prk_plce_info_sn, prk_plce_nm, prk_plce_manage_no, prk_plce_type, road_addr, jibun_addr,
-            lat, lon, tel_no, oper_info, owner, agency, rmrk, reg_dt, rgst_id,
-            rgst_ip_addr, updt_dt, updusr_id, updusr_ip_addr
-        ) VALUES (
-            #{prkPlceInfoSn}, #{prkPlceNm}, #{prkPlceManageNo}, #{prkPlceType}, #{roadAddr}, #{jibunAddr},
-            #{lat}, #{lon}, #{telNo}, #{operInfo}, #{owner}, #{agency}, #{rmrk}, #{regDt}, #{rgstId},
-            #{rgstIpAddr}, #{updtDt}, #{updusrId}, #{updusrIpAddr}
-        )
-    </insert>
+    <select id="selectParkingDetail" parameterType="map" resultType="com.psim.web.prk.vo.ParkingListVO">
+        SELECT 
+            cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsCd,
+            tcl.sido_cd as sidoCd,
+            tcl.sido_nm as sidoNm,
+            tcl.sigungu_cd as sigunguCd,
+            tcl.sigungu_nm as sigunguNm,
+            tcl.emd_cd as emdCd,
+            tcl.lgal_emd_nm as lgalEmdNm,
+            tpdpi.zip as zip,
+            tpdpi.dtadd as dtadd,
+            tcu.user_nm as userNm,
+            cpk.FN_GET_CODE_NM(tpdpi.prk_plce_type, 'P_PRKPLCE_SE') as prkPlceType,
+            tpdpi.prkplce_nm as prkplceNm,
+            tbppi.biz_per_prk_mng_no as bizPerPrkMngNo,
+            tbppi.prk_biz_mng_no as prkBizMngNo,
+            tbppi.prk_plce_manage_no as prkPlceManageNo,
+            tbppi.prk_plce_info_sn as prkPlceInfoSn
+        FROM cpk.tb_prk_def_plce_info tpdpi
+        LEFT JOIN cpk.tb_co_ldong tcl
+            ON tpdpi.ldong_cd = tcl.ldong_cd
+        LEFT JOIN cpk.tb_biz_per_prklot_info tbppi
+            ON tpdpi.prk_plce_manage_no = tbppi.prk_plce_manage_no
+            AND tpdpi.prk_plce_info_sn = tbppi.prk_plce_info_sn
+        LEFT JOIN cpk.tb_co_user tcu
+            ON tbppi.srvy_id = tcu.user_id
+        WHERE tcl.use_yn = 'Y'
+        <if test="prkPlceManageNo != null">
+            AND tbppi.prk_plce_manage_no = #{prkPlceManageNo}
+        </if>
+        <if test="prkPlceInfoSn != null">
+            AND tbppi.prk_plce_info_sn = #{prkPlceInfoSn}
+        </if>
+    </select>
 
-    <update id="updatePrkDefPlceInfo" parameterType="com.psim.web.prk.vo.PrkDefPlceInfoVO">
-        UPDATE tb_prk_def_plce_info
-        <set>
-            <if test="prkPlceNm != null">prk_plce_nm = #{prkPlceNm},</if>
-            <if test="prkPlceManageNo != null">prk_plce_manage_no = #{prkPlceManageNo},</if>
-            <if test="prkPlceType != null">prk_plce_type = #{prkPlceType},</if>
-            <if test="roadAddr != null">road_addr = #{roadAddr},</if>
-            <if test="jibunAddr != null">jibun_addr = #{jibunAddr},</if>
-            <if test="lat != null">lat = #{lat},</if>
-            <if test="lon != null">lon = #{lon},</if>
-            <if test="telNo != null">tel_no = #{telNo},</if>
-            <if test="operInfo != null">oper_info = #{operInfo},</if>
-            <if test="owner != null">owner = #{owner},</if>
-            <if test="agency != null">agency = #{agency},</if>
-            <if test="rmrk != null">rmrk = #{rmrk},</if>
-            <if test="regDt != null">reg_dt = #{regDt},</if>
-            <if test="rgstId != null">rgst_id = #{rgstId},</if>
-            <if test="rgstIpAddr != null">rgst_ip_addr = #{rgstIpAddr},</if>
-            <if test="updtDt != null">updt_dt = #{updtDt},</if>
-            <if test="updusrId != null">updusr_id = #{updusrId},</if>
-            <if test="updusrIpAddr != null">updusr_ip_addr = #{updusrIpAddr},</if>
-        </set>
-        WHERE prk_plce_info_sn = #{prkPlceInfoSn}
+    <update id="updateParkingStatus" parameterType="map">
+        UPDATE cpk.tb_biz_per_prklot_info 
+        SET prgs_sts_cd = #{prgsStsCd}
+        WHERE prk_plce_manage_no = #{prkPlceManageNo}
+        AND prk_plce_info_sn = #{prkPlceInfoSn}
     </update>
 
-    <delete id="deletePrkDefPlceInfo" parameterType="int">
-        DELETE FROM tb_prk_def_plce_info WHERE prk_plce_info_sn = #{prkPlceInfoSn}
-    </delete>
+    <update id="updateSelectedParking" parameterType="map">
+        UPDATE cpk.tb_prk_def_plce_info 
+        SET 
+            prkplce_nm = #{prkplceNm},
+            zip = #{zip},
+            dtadd = #{dtadd}
+        WHERE prk_plce_manage_no = #{prkPlceManageNo}
+        AND prk_plce_info_sn = #{prkPlceInfoSn}
+    </update>
+
 </mapper>

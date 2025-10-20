@@ -65,7 +65,7 @@ label{ display:block; margin:0 0 6px; color:var(--muted); font-size:12px }
 .btn.sec{ background:#eef2ff }
 
 /* ========== 결과/탭/요약 ========== */
-.summary{ margin:18px 0; color:var(--muted) }
+.summary{ margin:18px 0; color:var(--muted); font-size:16px; font-weight:500 }
 
 .tabs{
     display:inline-flex;
@@ -85,120 +85,398 @@ label{ display:block; margin:0 0 6px; color:var(--muted); font-size:12px }
 
 .tab-panels{ margin-top:12px }
 
-/* ========== 테이블 ========== */
-.table-wrap{
-    overflow:auto;
-    border:1px solid var(--line);
-    border-radius:12px;
-    background:#fff;
+/* ========== 테이블 숨김 처리 (카드형만 사용) ========== */
+.table-wrap {
+    display: none !important;
 }
-table{ width:100%; border-collapse:collapse; min-width:1000px }
-thead th{
-    position:sticky; top:0;
-    background:#f9fafb;
-    border-bottom:1px solid var(--line);
-    padding:10px 8px;
-    font-size:12px;
-    color:#475569;
-    text-align:left;
+table { 
+    display: none !important;
 }
-tbody td{
-    border-top:1px solid var(--line);
-    padding:10px 8px;
-    vertical-align:middle;
-}
-td.num, th.num{ width:64px; text-align:center }
-td.check, th.check{ text-align:center }
 
 /* ========== 배지 ========== */
 .badge{
     display:inline-block;
-    padding:4px 8px;
-    border-radius:999px;
-    background:#f8fafc;
+    padding:6px 12px;
+    border-radius:6px;
+    background:#f1f5f9;
     border:1px solid var(--line);
     font-size:12px;
-    color:#334155;
+    font-weight:500;
+    color:var(--text);
 }
 .badge.status.appr{ color:#166534; background:rgba(22,163,74,.08); border-color:rgba(22,163,74,.25) }
 .badge.status.pend{ color:#92400e; background:rgba(245,158,11,.12); border-color:rgba(245,158,11,.25) }
 .badge.status.reject{ color:#991b1b; background:rgba(239,68,68,.10); border-color:rgba(239,68,68,.25) }
 
-.muted{ color:var(--muted) }
+.muted{ color:var(--muted); font-size:14px }
 .addr{
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     max-width:360px; display:inline-block; color:inherit;
 }
 
-/* ========== 카드 (모바일/패드) ========== */
+/* ========== 카드 목록 스타일 (모든 디바이스에서 1열로 표시) ========== */
 .cards{
-    display:grid;
-    grid-template-columns:repeat(1,minmax(0,1fr));
-    gap:12px; margin:12px 0;
+    display: grid;
+    grid-template-columns: 1fr; /* 모든 화면 크기에서 1열로 고정 */
+    gap: 16px;
+    margin: 16px 0;
 }
+
+/* ========== 카드 아이템 스타일 ========== */
+article.card {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 20px;
+    background: #fff;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+article.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(0,0,0,.12);
+    border-color: var(--accent);
+}
+
+/* ========== 카드 헤더 (체크박스 + ID) ========== */
+.card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    min-height: 24px;
+}
+
+.card-check {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    cursor: pointer;
+    accent-color: var(--accent);
+}
+
+.card-head .muted {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    background: #f8fafc;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+}
+
+/* ========== 카드 제목 ========== */
+.name {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.4;
+    margin: 12px 0;
+}
+
+/* ========== 카드 배지 영역 ========== */
+article.card > div:nth-child(3) {
+    margin: 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+article.card .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    background: #f1f5f9;
+    color: var(--text);
+    border: 1px solid #e2e8f0;
+}
+
+/* ========== 주소 정보 ========== */
+article.card > div:nth-child(4) {
+    color: var(--muted);
+    font-size: 14px;
+    margin: 8px 0;
+    font-weight: 500;
+}
+
+/* ========== 상세 주소 ========== */
+.addr {
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+    margin: 8px 0 0 0;
+    padding: 8px 0;
+    border-top: 1px solid #f1f5f9;
+}
+
+/* ========== 기존 카드 아이템 스타일 (호환성) ========== */
 .card-item{
-    border:1px solid var(--line);
-    border-radius:12px;
-    padding:12px;
-    background:#fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 20px;
+    background: #fff;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    width: 100%;
 }
-.card-head{ display:flex; gap:10px; align-items:center; justify-content:space-between }
-.name{ font-weight:700; margin:6px 0 }
 
-/* ========== 페이저 ========== */
-.pager{ display:flex; gap:6px; justify-content:center; margin:14px 0 }
-.page-btn{
-    padding:8px 10px;
-    border-radius:8px;
-    border:1px solid var(--line);
-    background:#f8fafc;
-    color:#111827;
+.card-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(0,0,0,.12);
+    border-color: var(--accent);
 }
-.page-btn.active{ background:var(--accent); color:#fff }
 
-/* ========== 토스트 ========== */
-/* 가독성 위해 다크 톤 유지 (원하면 #334155 등으로 변경 가능) */
-.toast{
-    position:fixed; left:50%; bottom:28px; transform:translateX(-50%);
-    background:#111827; color:#fff; padding:12px 16px;
-    border-radius:999px; opacity:0; pointer-events:none; transition:opacity .2s;
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    gap: 12px;
 }
-.toast.show{ opacity:1 }
+
+.card-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.3;
+    flex: 1;
+}
+
+.badge.type {
+    background: #dbeafe;
+    color: #1e40af;
+    border-color: #bfdbfe;
+}
+
+.badge.status {
+    background: #f0fdf4;
+    color: #166534;
+    border-color: #bbf7d0;
+}
+
+.card-body {
+    margin-bottom: 16px;
+}
+
+.card-body p {
+    margin: 8px 0;
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.card-body p strong {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.card-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 12px 0;
+}
+
+/* 모바일에서는 card-info도 1열로 */
+@media (max-width: 480px) {
+    .card-info {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+    
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .card-item, article.card {
+        padding: 16px;
+    }
+    
+    .name {
+        font-size: 16px;
+    }
+    
+    .card-head .muted {
+        font-size: 11px;
+        padding: 3px 6px;
+    }
+}
+
+.card-info-item {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.card-info-item strong {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.card-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: var(--accent);
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.btn-link:hover {
+    background: var(--accent);
+    color: #fff;
+    text-decoration: none;
+}
+
+.card-meta {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+/* ========== 페이지네이션 숨김 처리 ========== */
+.pager {
+    display: none !important;
+}
+
+/* ========== 기본 숨김 처리 ========== */
+[hidden] {
+    display: none !important;
+}
+
+/* ========== 토스트 메시지 ========== */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 16px 24px;
+    background: #333;
+    color: white;
+    border-radius: 8px;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    font-weight: 500;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast.success {
+    background: var(--ok);
+}
+
+.toast.error {
+    background: var(--bad);
+}
+
+.toast.info {
+    background: var(--accent);
+}
+
+/* ========== 체크박스 정렬 ========== */
+.check {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.num {
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* ========== 링크 스타일 ========== */
+a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* ========== 검색 결과 요약 ========== */
+.summary {
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 20px;
+    font-size: 16px;
+}
+
+/* ========== 탭 스타일 개선 ========== */
+.tabs {
+    border-bottom: 2px solid var(--line);
+    margin-bottom: 24px;
+}
+
+.tab-btn {
+    padding: 12px 24px;
+    border: none;
+    background: none;
+    color: var(--muted);
+    font-weight: 500;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.2s ease;
+}
+
+.tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+}
+
+.tab-btn:hover {
+    color: var(--text);
+}
+
+/* ========== 로딩 스피너 ========== */
+.spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 
 /* ========== 상세 영역/iframe 높이 보정 ========== */
 .detail-wrap{ min-height:60vh }
-/* 상세 탭 레이아웃/크기 보강 (다중 iframe) */
 .detail-wrap{ display:flex; flex-direction:column }
 .detail-tabs{ border-bottom:1px solid var(--line); padding:8px 12px; overflow:auto }
 .detail-tabs .tabs-list{ display:flex; gap:8px; flex-wrap:wrap }
 .detail-tabs .tab-btn{ white-space:nowrap }
 .detail-frames{ padding:8px 0 }
 .detail-frames iframe{ width:100%; display:block; border:0; min-height:700px }
+
 @media (min-width:1024px){
   .detail-frames iframe{ min-height:calc(100vh - 220px) }
-}
-
-/* ========== 반응형 ========== */
-@media (min-width:840px){
-    .cards{ grid-template-columns:repeat(2,minmax(0,1fr)) }
-}
-@media (min-width:1100px){
-    .cards{ display:none }
-}
-/* ====== one-card 모드: 테이블 숨기고 카드만 1열로 강제 ====== */
-/* JSP에서 <section class="result-panel one-card"> 로 플래그를 주면 동작합니다. */
-.result-panel.one-card .table-wrap {
-    display: none !important;          /* 테이블 완전 숨김 */
-}
-
-.result-panel.one-card .cards {
-    display: grid !important;          /* 데스크톱에서도 카드 보이게 (@media 1100px 규칙 무시) */
-    grid-template-columns: 1fr !important; /* 항상 1개만 */
-    gap: 12px;
-    margin: 12px 0;
-}
-
-/* 페이저 정렬 보강(선택 사항) */
-.result-panel.one-card .pager {
-    justify-content: center;
 }

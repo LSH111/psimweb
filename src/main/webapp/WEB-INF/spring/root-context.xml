@@ -2,44 +2,82 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
-       xmlns:tx="http://www.springframework.org/schema/tx"
        xmlns:mybatis="http://mybatis.org/schema/mybatis-spring"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd
-		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
-		http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd">
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context.xsd
+           http://mybatis.org/schema/mybatis-spring
+           http://mybatis.org/schema/mybatis-spring.xsd
+           http://www.springframework.org/schema/tx
+           http://www.springframework.org/schema/tx/spring-tx.xsd">
 
-    <!-- Load database properties -->
-    <context:property-placeholder location="classpath:database.properties"/>
+    <!-- Root Context: defines shared resources visible to all other web components -->
 
-    <!-- DataSource Configuration (HikariCP) -->
-    <bean id="dataSource" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
-        <property name="driverClassName" value="${db.driverClassName}"/>
-        <property name="jdbcUrl" value="${db.url}"/>
-        <property name="username" value="${db.username}"/>
-        <property name="password" value="${db.password}"/>
-    </bean>
-    
-    <!-- SqlSessionFactory Configuration -->
-    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
-        <property name="dataSource" ref="dataSource"/>
-        <property name="mapperLocations" value="classpath:/mappers/**/*.xml"/>
-    </bean>
-
-    <!-- Scan for mappers and let them be autowired -->
-    <mybatis:scan base-package="com.psim.web.cmm.mapper,com.psim.web.api.mapper,com.psim.web.file.mapper,com.psim.web.prk.mapper"/>
-
-    <!-- Transaction Manager -->
-    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
-        <property name="dataSource" ref="dataSource"/>
-    </bean>
-
-    <!-- Enable annotation-driven transaction management -->
-    <tx:annotation-driven transaction-manager="transactionManager"/>
-
-    <!-- Component scan for services, etc. (excluding controllers) -->
+    <!-- Component Scan -->
     <context:component-scan base-package="com.psim.web">
         <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
     </context:component-scan>
+
+    <!-- Property Placeholder -->
+    <context:property-placeholder location="classpath:database.properties" ignore-unresolvable="true"/>
+
+    <!-- PostgreSQL DataSource Configuration -->
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="${db.driverClassName}" />
+        <property name="url" value="${db.url}" />
+        <property name="username" value="${db.username}" />
+        <property name="password" value="${db.password}" />
+    </bean>
+
+    <!-- Connection Pool 사용 시 (권장) -->
+    <!--
+    <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="${db.driverClassName}" />
+        <property name="url" value="${db.url}" />
+        <property name="username" value="${db.username}" />
+        <property name="password" value="${db.password}" />
+        <property name="initialSize" value="${db.initialSize}" />
+        <property name="maxTotal" value="${db.maxActive}" />
+        <property name="maxIdle" value="${db.maxIdle}" />
+        <property name="minIdle" value="${db.minIdle}" />
+        <property name="maxWaitMillis" value="${db.maxWait}" />
+        <property name="validationQuery" value="${db.validationQuery}" />
+        <property name="testWhileIdle" value="${db.testWhileIdle}" />
+        <property name="testOnBorrow" value="${db.testOnBorrow}" />
+        <property name="testOnReturn" value="${db.testOnReturn}" />
+        <property name="timeBetweenEvictionRunsMillis" value="${db.timeBetweenEvictionRunsMillis}" />
+        <property name="minEvictableIdleTimeMillis" value="${db.minEvictableIdleTimeMillis}" />
+    </bean>
+    -->
+
+    <!-- MyBatis Configuration for PostgreSQL -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+        <property name="mapperLocations" value="classpath:mappers/**/*.xml" />
+        <property name="configurationProperties">
+            <props>
+                <prop key="mapUnderscoreToCamelCase">true</prop>
+                <prop key="callSettersOnNulls">true</prop>
+                <prop key="jdbcTypeForNull">NULL</prop>
+                <!-- PostgreSQL 특화 설정 -->
+                <prop key="defaultFetchSize">100</prop>
+                <prop key="defaultStatementTimeout">30</prop>
+            </props>
+        </property>
+    </bean>
+
+    <!-- MyBatis Mapper Scanner -->
+    <mybatis:scan base-package="com.psim.web.**.mapper" />
+
+    <!-- Transaction Manager -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+    <!-- Enable Transaction Annotations -->
+    <tx:annotation-driven transaction-manager="transactionManager" />
 
 </beans>
