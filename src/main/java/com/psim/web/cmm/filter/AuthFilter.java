@@ -14,14 +14,17 @@ public class AuthFilter implements Filter {
             "/login/form",          // 폼 별칭(있는 경우)
             "/index",               // 인덱스(허용 의도 시)
             "/cmm/ts_login", "/cmm/index", // 뷰 직접 접근 유지 시
-            "/error", "/health", "/favicon.ico"
+            "/error", "/health", "/favicon.ico",
+            "/egovCrypto", "/egovCrypto/info",
+            "/.well-known/appspecific/com.chrome.devtools.json" // 브라우저 자동 요청 허용
     ));
 
     // 접두사
     private static final String[] WHITELIST_PREFIX = {
             "/static/", "/resources/", "/webjars/", "/public/", "/assets/",
-            "/prk/",         // 주차장 화면(목록/상세를 공개로 허용 시)
-            "/api/auth/"     // 공개 인증 API가 있다면
+            "/prk/",
+            "/api/auth/",
+            "/.well-known/"   // 크롬/브라우저 자동 호출 경로 허용
     };
 
     @Override
@@ -48,6 +51,12 @@ public class AuthFilter implements Filter {
 
         HttpSession session = request.getSession(false);
         boolean loggedIn = (session != null) && Boolean.TRUE.equals(session.getAttribute("LOGIN"));
+
+        // 디버그용 최소 출력 (서버 콘솔)
+        if (!loggedIn) {
+            System.out.println("[AuthFilter] unauthenticated path=" + path + ", ctx=" + ctx);
+        }
+
         if (loggedIn) {
             chain.doFilter(req, res);
             return;
@@ -58,13 +67,14 @@ public class AuthFilter implements Filter {
             return;
         }
 
-        // 루프 방지: 로그인 뷰로 가는 요청이면 통과
-        if (path.equals("/cmm/ts_login")) {
+        // 루프 방지
+        if (path.equals("/cmm/ts_login") || path.equals("/")) {
             chain.doFilter(req, res);
             return;
         }
 
-        response.sendRedirect(ctx + "/cmm/ts_login");
+        // 인증 안 된 경우는 항상 루트로
+        response.sendRedirect(ctx + "/");
     }
 
     @Override

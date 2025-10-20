@@ -1,6 +1,7 @@
 package com.psim.web.prk.service;
 
 import com.psim.web.prk.vo.OnstrPrklotInfoVO;
+
 import java.util.List;
 
 public interface OnstrPrklotInfoService {

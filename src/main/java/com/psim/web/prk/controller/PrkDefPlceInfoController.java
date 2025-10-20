@@ -1,11 +1,8 @@
 package com.psim.web.prk.controller;
 
-import com.psim.web.prk.service.PrkDefPlceInfoService;
-import com.psim.web.prk.vo.PrkDefPlceInfoVO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
-import java.util.List;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 @RequestMapping("/prk")

@@ -1,37 +1,28 @@
-<!-- language: xml -->
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
-    <Appenders>
-        <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{1.} - %msg%n"/>
-        </Console>
-        <!-- 필요 시 파일 출력도 추가
-        <File name="File" fileName="logs/app.log" append="true">
-          <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5p %c - %m%n"/>
-        </File>
-        -->
-    </Appenders>
-
-    <Loggers>
-        <!-- MyBatis 프레임워크 로그(쿼리 실행문은 DEBUG) -->
-        <Logger name="org.apache.ibatis" level="debug" additivity="false">
-            <AppenderRef ref="Console"/>
-        </Logger>
-
-        <!-- JDBC 단계별 상세(파라미터/결과까지 TRACE) -->
-        <Logger name="org.apache.ibatis.logging.jdbc" level="trace" additivity="false">
-            <AppenderRef ref="Console"/>
-        </Logger>
-
-        <!-- 특정 매퍼 네임스페이스만 보고 싶다면(선택):
-        <Logger name="com.psim.web.api.mapper" level="trace" additivity="false">
-          <AppenderRef ref="Console"/>
-        </Logger>
-        -->
-
-        <Root level="info">
-            <AppenderRef ref="Console"/>
-            <!-- <AppenderRef ref="File"/> -->
-        </Root>
-    </Loggers>
+  <Appenders>
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n"/>
+    </Console>
+  </Appenders>
+  <Loggers>
+    <!-- MyBatis 쿼리 로그 -->
+    <Logger name="com.psim.web.cmm.mapper" level="DEBUG" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    
+    <!-- 또는 패키지 전체 -->
+    <Logger name="com.psim.web" level="DEBUG" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    
+    <!-- Spring/HikariCP -->
+    <Logger name="org.springframework" level="INFO"/>
+    <Logger name="com.zaxxer.hikari" level="DEBUG"/>
+    
+    <!-- Root -->
+    <Root level="INFO">
+      <AppenderRef ref="Console"/>
+    </Root>
+  </Loggers>
 </Configuration>
