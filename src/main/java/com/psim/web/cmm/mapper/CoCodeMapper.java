@@ -2,6 +2,7 @@
 package com.psim.web.cmm.mapper;
 
 import com.psim.web.cmm.vo.CoCodeVO;
+import com.psim.web.cmm.vo.CoLdongVO;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -19,4 +20,9 @@ public interface CoCodeMapper {
      * 상위 코드에 따른 하위 코드 목록 조회 (시도 -> 시군구용)
      */
     List<CoCodeVO> selectSubCodeList(Map<String, Object> params);
+
+    /**
+     * 시군구코드에 따른 읍면동 목록 조회
+     */
+    List<CoLdongVO> selectLdongList(String sigunguCd);
 }

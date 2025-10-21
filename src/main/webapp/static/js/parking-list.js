@@ -1,10 +1,65 @@
 // 공통 코드 관련 함수들
 const CodeUtils = {
-    
+    // 진행상태 목록 로드
+    async loadStatusList() {
+        try {
+            const response = await fetch('/cmm/codes/status');
+            const result = await response.json();
+
+            if (result.success) {
+                const statusSelect = document.getElementById('status');
+                if (statusSelect) {
+                    // 기존 하드코딩된 옵션들을 제거하고 DB 데이터로 교체
+                    statusSelect.innerHTML = '<option value="">전체</option>';
+
+                    result.data.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.codeCd;
+                        option.textContent = item.codeNm;
+                        statusSelect.appendChild(option);
+                    });
+                } else {
+                    console.warn('진행상태 select 엘리먼트(id="status")를 찾을 수 없습니다.');
+                }
+            } else {
+                console.error('진행상태 목록 로드 실패:', result.message);
+            }
+        } catch (error) {
+            console.error('진행상태 목록 로드 중 오류:', error);
+        }
+    },
+    // 주차형태 목록 로드
+    async loadParkingTypeList() {
+        try {
+            const response = await fetch('/cmm/codes/parking-type');
+            const result = await response.json();
+
+            if (result.success) {
+                const prkTypeSelect = document.getElementById('prkType');
+                if (prkTypeSelect) {
+                    // 기존 하드코딩된 옵션들을 제거하고 DB 데이터로 교체
+                    prkTypeSelect.innerHTML = '<option value="">전체</option>';
+
+                    result.data.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.codeCd;
+                        option.textContent = item.codeNm;
+                        prkTypeSelect.appendChild(option);
+                    });
+                } else {
+                    console.warn('주차형태 select 엘리먼트(id="prkType")를 찾을 수 없습니다.');
+                }
+            } else {
+                console.error('주차형태 목록 로드 실패:', result.message);
+            }
+        } catch (error) {
+            console.error('주차형태 목록 로드 중 오류:', error);
+        }
+    },
     // 시도 목록 로드
     async loadSidoList() {
         try {
-            const response = await fetch('/api/codes/sido');
+            const response = await fetch('/cmm/codes/sido');
             const result = await response.json();
             
             if (result.success) {
@@ -41,7 +96,7 @@ const CodeUtils = {
                 return;
             }
             
-            const response = await fetch(`/api/codes/sigungu?sidoCd=${encodeURIComponent(sidoCd)}`);
+            const response = await fetch(`/cmm/codes/sigungu?sidoCd=${encodeURIComponent(sidoCd)}`);
             const result = await response.json();
             
             if (result.success) {
@@ -60,8 +115,80 @@ const CodeUtils = {
             console.error('시군구 목록 로드 중 오류:', error);
             document.getElementById('sigungu').disabled = true;
         }
+    },
+
+    // 읍면동 목록 로드 함수
+    async loadEmdList(sigunguCd) {
+        try {
+            console.log('읍면동 목록 로드 시작, 시군구코드:', sigunguCd);
+            
+            const emdSelect = document.getElementById('emd');
+            if (!emdSelect) {
+                console.error('읍면동 select 엘리먼트를 찾을 수 없습니다.');
+                return;
+            }
+            
+            emdSelect.innerHTML = '<option value="">전체</option>';
+            
+            if (!sigunguCd) {
+                emdSelect.disabled = true;
+                return;
+            }
+            
+            const response = await fetch(`/cmm/codes/emd?sigunguCd=${sigunguCd}`);
+            const result = await response.json();
+            console.log('읍면동 목록 응답:', result);
+
+            if (result.success && result.data) {
+                result.data.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.emdCd;        // emdCd 사용
+                    option.textContent = item.lgalEmdNm;  // lgalEmdNm 사용
+                    emdSelect.appendChild(option);
+                });
+                emdSelect.disabled = false;
+                console.log('읍면동 목록 로드 완료:', result.data.length + '개');
+            } else {
+                console.log('읍면동 데이터가 없거나 로드 실패:', result.message);
+                emdSelect.disabled = true;
+            }
+        } catch (error) {
+            console.error('읍면동 목록 로드 중 오류:', error);
+            const emdSelect = document.getElementById('emd');
+            if (emdSelect) emdSelect.disabled = true;
+        }
     }
 };
+
+// 이벤트 리스너 설정 함수
+function setupAreaSelectors() {
+    console.log('이벤트 리스너 설정 시작');
+    
+    const sidoSelect = document.getElementById('sido');
+    const sigunguSelect = document.getElementById('sigungu');
+    const emdSelect = document.getElementById('emd');
+
+    if (!sidoSelect || !sigunguSelect || !emdSelect) {
+        console.error('필요한 select 엘리먼트를 찾을 수 없습니다.');
+        return;
+    }
+
+    // 시도 선택 시 시군구 목록 로드
+    sidoSelect.addEventListener('change', async (e) => {
+        const sidoCd = e.target.value;
+        console.log('시도 선택됨:', sidoCd);
+        await CodeUtils.loadSigunguList(sidoCd);
+    });
+
+    // 시군구 선택 시 읍면동 목록 로드
+    sigunguSelect.addEventListener('change', async (e) => {
+        const sigunguCd = e.target.value;
+        console.log('시군구 선택됨:', sigunguCd);
+        await CodeUtils.loadEmdList(sigunguCd);
+    });
+    
+    console.log('이벤트 리스너 설정 완료');
+}
 
 /* =========================
    실제 서버 API 연동 버전
@@ -196,7 +323,13 @@ function getSearchParams() {
             params[key] = value.trim();
         }
     }
-    
+
+    // 주차형태도 검색 조건에 포함
+    const parkingType = document.getElementById('parkingType');
+    if (parkingType && parkingType.value) {
+        params.parkingType = parkingType.value;
+    }
+
     return params;
 }
 
@@ -211,68 +344,18 @@ function updateSummary(totalCount) {
 /* =========================
    행정구역 셀렉트 (기존 유지)
    ========================= */
-// 드롭다운 이벤트 핸들러
-document.addEventListener('DOMContentLoaded', function() {
-    
-    // 시도 목록 초기 로드
-    CodeUtils.loadSidoList();
-    
-    // 시도 변경 시 시군구 로드
-    document.getElementById('sido').addEventListener('change', function() {
-        const sidoCd = this.value;
-        CodeUtils.loadSigunguList(sidoCd);
-    });
-    
-    // 시군구 변경 시 읍면동 활성화 (필요시 추가 구현)
-    document.getElementById('sigungu').addEventListener('change', function() {
-        const sigunguCd = this.value;
-        const emdSelect = document.getElementById('emd');
-        
-        if (sigunguCd) {
-            emdSelect.disabled = false;
-            // 읍면동 데이터 로드 로직 추가 가능
-        } else {
-            emdSelect.disabled = true;
-            emdSelect.innerHTML = '<option value="">전체</option>';
-        }
-    });
-    
-    // 검색 폼 제출
-    document.getElementById('searchForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(this);
-        const params = Object.fromEntries(formData);
-        
-        // 주차장 목록 검색 실행
-        if (window.searchParkingList) {
-            window.searchParkingList(params);
-        }
-    });
-    
-    // 초기화 버튼
-    document.getElementById('resetBtn').addEventListener('click', function() {
-        document.getElementById('searchForm').reset();
-        document.getElementById('sigungu').disabled = true;
-        document.getElementById('emd').disabled = true;
-        
-        // 검색 결과 초기화
-        if (window.searchParkingList) {
-            window.searchParkingList({});
-        }
-    });
-});
-
 /* =========================
    필터/렌더 (서버 연동으로 수정)
    ========================= */
-async function applyFilter(){
+async function applyFilter() {
     currentPage = 1;
     await loadDataFromServer();
 }
 
-function render(){
-    const tbody = $id('tbody'), cards = $id('cards'), summary = $id('summary');
+function render() {
+    const tbody = $id('tbody'),
+        cards = $id('cards'),
+        summary = $id('summary');
     if (!tbody || !cards || summary === null) return;
 
     // 현재 페이지 데이터 계산
@@ -284,36 +367,38 @@ function render(){
     const pageRows = filtered.slice(start, start + pageSize);
 
     // 테이블 렌더링
-    tbody.innerHTML = pageRows.map((r,i)=>{
+    tbody.innerHTML = pageRows.map((r, i) => {
         const seq = start + i + 1;
         const checked = selected.has(r.manageNo) ? 'checked' : '';
         return `
-      <tr data-id="${r.manageNo}">
-        <td class="num">${seq}</td>
-        <td class="check"><input type="checkbox" class="row-check" ${checked} aria-label="선택: ${r.nm}" /></td>
-        <td>${r.type}</td>
-        <td>${badgeStatus(r.status)}</td>
-        <td>${r.sido}</td>
-        <td>${r.sigungu}</td>
-        <td>${r.emd}</td>
-        <td><span class="addr">${r.addr}</span></td>
-        <td><strong>${r.nm}</strong><div class="muted">${r.manageNo}</div></td>
+      <tr data-id="${ r.manageNo }">
+        <td class="num">${ seq }</td>
+        <td class="check"><input type="checkbox" class="row-check" ${ checked } aria-label="선택: ${ r.nm }" /></td>
+        <td>${ r.type }</td>
+        <td>${ badgeStatus(r.status) }</td>
+        <td>${ r.sido }</td>
+        <td>${ r.sigungu }</td>
+        <td>${ r.emd }</td>
+        <td><span class="addr">${ r.addr }</span></td>
+        <td><strong>${ r.nm }</strong>
+          <div class="muted">${ r.manageNo }</div>
+        </td>
       </tr>`;
     }).join('');
 
     // 카드 렌더링
-    cards.innerHTML = pageRows.map(r=>{
+    cards.innerHTML = pageRows.map(r => {
         const checked = selected.has(r.manageNo) ? 'checked' : '';
         return `
-      <article class="card" data-id="${r.manageNo}" aria-label="${r.nm}">
+      <article class="card" data-id="${ r.manageNo }" aria-label="${ r.nm }">
         <div class="card-head">
-          <input type="checkbox" class="card-check" ${checked} aria-label="선택: ${r.nm}" />
-          <div class="muted">${r.manageNo}</div>
+          <input type="checkbox" class="card-check" ${ checked } aria-label="선택: ${ r.nm }" />
+          <div class="muted">${ r.manageNo }</div>
         </div>
-        <div class="name">${r.nm}</div>
-        <div><span class="badge">${r.type}</span> · ${badgeStatus(r.status)}</div>
-        <div class="muted">${r.sido} ${r.sigungu} ${r.emd}</div>
-        <div class="addr">${r.addr}</div>
+        <div class="name">${ r.nm }</div>
+        <div><span class="badge">${ r.type }</span> · ${ badgeStatus(r.status) }</div>
+        <div class="muted">${ r.sido } ${ r.sigungu } ${ r.emd }</div>
+        <div class="addr">${ r.addr }</div>
       </article>`;
     }).join('');
 
@@ -323,18 +408,18 @@ function render(){
     bindOpenDetailHandlers(pageRows);
 }
 
-function renderPager(pages){
-    const pager = $id('pager'); 
+function renderPager(pages) {
+    const pager = $id('pager');
     if (!pager) return;
-    
+
     pager.innerHTML = '';
-    const makeBtn = (txt, page, disabled, active)=>{
+    const makeBtn = (txt, page, disabled, active) => {
         const b = document.createElement('button');
         b.className = 'page-btn' + (active ? ' active' : '');
         b.textContent = txt;
         b.disabled = !!disabled;
-        b.addEventListener('click', async ()=>{ 
-            currentPage = page; 
+        b.addEventListener('click', async () => {
+            currentPage = page;
             await loadDataFromServer(); // 서버에서 새로운 페이지 데이터 로드
         });
         return b;
@@ -343,8 +428,8 @@ function renderPager(pages){
     pager.appendChild(makeBtn('‹', Math.max(1, currentPage - 1), currentPage === 1, false));
     const span = 3;
     const from = Math.max(1, currentPage - span);
-    const to   = Math.min(pages, currentPage + span);
-    for (let p = from; p <= to; p++) pager.appendChild(makeBtn(String(p), p, false, p===currentPage));
+    const to = Math.min(pages, currentPage + span);
+    for (let p = from; p <= to; p++) pager.appendChild(makeBtn(String(p), p, false, p === currentPage));
     pager.appendChild(makeBtn('›', Math.min(pages, currentPage + 1), currentPage === pages, false));
     pager.appendChild(makeBtn('»', pages, currentPage === pages, false));
 }
@@ -352,54 +437,68 @@ function renderPager(pages){
 /* =========================
    체크박스 동기화 (기존 유지)
    ========================= */
-function bindRowChecks(){
-    const tbody = $id('tbody'), cards = $id('cards'); if (!tbody || !cards) return;
-    tbody.querySelectorAll('.row-check').forEach(chk=>{
-        chk.addEventListener('change', (e)=>{
-            const tr = e.target.closest('tr'); const id = tr.dataset.id;
-            if (e.target.checked) selected.add(id); else selected.delete(id);
+function bindRowChecks() {
+    const tbody = $id('tbody'),
+        cards = $id('cards');
+    if (!tbody || !cards) return;
+    tbody.querySelectorAll('.row-check').forEach(chk => {
+        chk.addEventListener('change', (e) => {
+            const tr = e.target.closest('tr');
+            const id = tr.dataset.id;
+            if (e.target.checked) selected.add(id);
+            else selected.delete(id);
             syncHeaderCheck();
-            const card = cards.querySelector(`.card[data-id="${id}"] .card-check`);
+            const card = cards.querySelector(`.card[data-id="${ id }"] .card-check`);
             if (card) card.checked = e.target.checked;
         });
     });
 }
 
-function bindCardChecks(){
-    const tbody = $id('tbody'), cards = $id('cards'); if (!tbody || !cards) return;
-    cards.querySelectorAll('.card-check').forEach(chk=>{
-        chk.addEventListener('click', e=>e.stopPropagation());
-        chk.addEventListener('change', (e)=>{
-            const card = e.target.closest('.card'); const id = card.dataset.id;
-            if (e.target.checked) selected.add(id); else selected.delete(id);
-            const row = tbody.querySelector(`tr[data-id="${id}"] .row-check`);
+function bindCardChecks() {
+    const tbody = $id('tbody'),
+        cards = $id('cards');
+    if (!tbody || !cards) return;
+    cards.querySelectorAll('.card-check').forEach(chk => {
+        chk.addEventListener('click', e => e.stopPropagation());
+        chk.addEventListener('change', (e) => {
+            const card = e.target.closest('.card');
+            const id = card.dataset.id;
+            if (e.target.checked) selected.add(id);
+            else selected.delete(id);
+            const row = tbody.querySelector(`tr[data-id="${ id }"] .row-check`);
             if (row) row.checked = e.target.checked;
             syncHeaderCheck();
         });
     });
 }
 
-function syncHeaderCheck(){
-    const tbody = $id('tbody'), checkAll = $id('checkAll'); if (!tbody || !checkAll) return;
-    const visible = Array.from(tbody.querySelectorAll('tr')).map(tr=>tr.dataset.id);
-    const allChecked = visible.length > 0 && visible.every(id=>selected.has(id));
+function syncHeaderCheck() {
+    const tbody = $id('tbody'),
+        checkAll = $id('checkAll');
+    if (!tbody || !checkAll) return;
+    const visible = Array.from(tbody.querySelectorAll('tr')).map(tr => tr.dataset.id);
+    const allChecked = visible.length > 0 && visible.every(id => selected.has(id));
     checkAll.checked = allChecked;
-    checkAll.indeterminate = !allChecked && visible.some(id=>selected.has(id));
+    checkAll.indeterminate = !allChecked && visible.some(id => selected.has(id));
 }
 
 // 전체 선택 체크박스 바인딩
-(function(){
+(function() {
     const checkAll = $id('checkAll');
-    if (checkAll){
-        checkAll.addEventListener('change', ()=>{
-            const tbody = $id('tbody'), cards = $id('cards'); if (!tbody || !cards) return;
-            const visible = Array.from(tbody.querySelectorAll('tr')).map(tr=>tr.dataset.id);
-            if (checkAll.checked) visible.forEach(id=>selected.add(id)); else visible.forEach(id=>selected.delete(id));
-            tbody.querySelectorAll('.row-check').forEach(chk=>{
-                const id = chk.closest('tr').dataset.id; chk.checked = selected.has(id);
+    if (checkAll) {
+        checkAll.addEventListener('change', () => {
+            const tbody = $id('tbody'),
+                cards = $id('cards');
+            if (!tbody || !cards) return;
+            const visible = Array.from(tbody.querySelectorAll('tr')).map(tr => tr.dataset.id);
+            if (checkAll.checked) visible.forEach(id => selected.add(id));
+            else visible.forEach(id => selected.delete(id));
+            tbody.querySelectorAll('.row-check').forEach(chk => {
+                const id = chk.closest('tr').dataset.id;
+                chk.checked = selected.has(id);
             });
-            visible.forEach(id=>{
-                const cardChk = cards.querySelector(`.card[data-id="${id}"] .card-check`);
+            visible.forEach(id => {
+                const cardChk = cards.querySelector(`.card[data-id="${ id }"] .card-check`);
                 if (cardChk) cardChk.checked = selected.has(id);
             });
             syncHeaderCheck();
@@ -408,79 +507,200 @@ function syncHeaderCheck(){
 })();
 
 /* =========================
-   CSV/전송 (기존 유지)
+   CSV 내보내기 (서버 데이터 기반으로 수정)
    ========================= */
-function exportCSV(){
-    const header = ['순번','관리번호','주차장구분','진행상태','시도','시군구','읍면동','상세주소','주차장명'];
-    const rows = filtered.map((r, idx)=>[
-        idx + 1, r.manageNo, r.type,
-        (r.status === 'APPROVED' ? '승인' :
-            r.status === 'PENDING'  ? '진행중' :
-                r.status === 'REJECTED' ? '반려' :
-                    r.status === 'TEMP'     ? '임시저장' : r.status),
-        r.sido, r.sigungu, r.emd, r.addr, r.nm
-    ]);
-    const csv = [header, ...rows].map(cols =>
-        cols.map(v=>{
-            const s = String(v ?? '').replace(/"/g,'""');
-            return /[",\n]/.test(s) ? `"${s}"` : s;
-        }).join(',')
-    ).join('\n');
+async function exportCSV() {
+    try {
+        // 현재 검색 조건으로 전체 데이터 조회
+        const formData = getSearchParams();
+        const params = new URLSearchParams({
+            ...formData,
+            page: 1,
+            size: 9999999 // 전체 데이터 조회를 위한 큰 숫자
+        });
 
-    const blob = new Blob(["\uFEFF"+csv], {type:"text/csv;charset=utf-8;"});
-    const fileName = 'parking_list.csv';
+        // 내보내기 시작 알림
+        toast('CSV 파일을 생성하는 중입니다...');
 
-    // 표준 다운로드
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    if ('download' in a){
+        const response = await fetch('/prk/parking-data?' + params.toString(), {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        if (data.success === false) {
+            throw new Error(data.message || '데이터 조회 실패');
+        }
+
+        const exportData = (data.list || []).map(item => ({
+            prkplceNm: item.prkplceNm || '',
+            prkPlceType: item.prkPlceType || '',
+            prgsStsCd: item.prgsStsCd || '',
+            sidoNm: item.sidoNm || '',
+            sigunguNm: item.sigunguNm || '',
+            lgalEmdNm: item.lgalEmdNm || '',
+            dtadd: item.dtadd || '',
+            prkPlceManageNo: item.prkPlceManageNo || item.manageNo || '',
+            zip: item.zip || '',
+            userNm: item.userNm || ''
+        }));
+
+        if (exportData.length === 0) {
+            toast('내보낼 데이터가 없습니다.');
+            return;
+        }
+
+        // CSV 헤더와 데이터 생성
+        const header = [
+            '순번', '관리번호', '주차장명', '주차장구분', '진행상태',
+            '시도', '시군구', '읍면동', '상세주소', '우편번호', '사용자명'
+        ];
+
+        const rows = exportData.map((item, idx) => [
+            idx + 1,
+            item.prkPlceManageNo,
+            item.prkplceNm,
+            item.prkPlceType,
+            getStatusText(item.prgsStsCd), // 상태코드를 한글로 변환
+            item.sidoNm,
+            item.sigunguNm,
+            item.lgalEmdNm,
+            item.dtadd,
+            item.zip,
+            item.userNm
+        ]);
+
+        // CSV 문자열 생성
+        const csv = [header, ...rows].map(cols =>
+            cols.map(v => {
+                const s = String(v ?? '').replace(/"/g, '""');
+                return /[",\n\r]/.test(s) ? `"${s}"` : s;
+            }).join(',')
+        ).join('\n');
+
+        // 파일 다운로드
+        downloadCSV(csv, `parking_list_${getCurrentDateString()}.csv`);
+
+        toast(`CSV 내보내기 완료 (${exportData.length}건)`);
+
+    } catch (error) {
+        console.error('CSV 내보내기 실패:', error);
+        toast('CSV 내보내기 실패: ' + error.message);
+    }
+}
+
+// 상태코드를 한글 텍스트로 변환
+function getStatusText(statusCode) {
+    // DB에서 가져온 코드에 따라 매핑 (필요시 동적으로 변경 가능)
+    const statusMap = {
+        '01': '승인',
+        '02': '진행중',
+        '03': '반려',
+        '04': '임시저장'
+    };
+
+    return statusMap[statusCode] || statusCode || '-';
+}
+
+// 현재 날짜 문자열 생성 (YYYYMMDD 형식)
+function getCurrentDateString() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}${month}${day}`;
+}
+
+// CSV 파일 다운로드 함수
+function downloadCSV(csvString, fileName) {
+    const blob = new Blob(["\uFEFF" + csvString], {
+        type: "text/csv;charset=utf-8;"
+    });
+
+    // 표준 다운로드 방식
+    if ('download' in document.createElement('a')) {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
         a.download = fileName;
-        document.body.appendChild(a); a.click(); a.remove();
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
         URL.revokeObjectURL(a.href);
         return;
     }
 
+    // IE 지원
+    if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+        window.navigator.msSaveOrOpenBlob(blob, fileName);
+        return;
+    }
+
     // 데이터 URL fallback
-    try{
-        const dataUrl = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv);
-        window.location.href = dataUrl;
-    }catch(e){
-        toast('이 기기에서는 CSV 저장을 지원하지 않습니다.');
+    try {
+        const dataUrl = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csvString);
+        const a = document.createElement('a');
+        a.href = dataUrl;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    } catch (e) {
+        toast('이 브라우저에서는 CSV 다운로드를 지원하지 않습니다.');
     }
 }
 
-async function sendSelected(){
-    if (selected.size === 0){ toast('전송할 항목이 없습니다. (선택 0)'); return; }
-    const items = DATA.filter(r=>selected.has(r.manageNo)).map(r=>({
-        manageNo:r.manageNo, nm:r.nm, type:r.type, status:r.status,
-        sido:r.sido, sigungu:r.sigungu, emd:r.emd, addr:r.addr
+async function sendSelected() {
+    if (selected.size === 0) {
+        toast('전송할 항목이 없습니다. (선택 0)');
+        return;
+    }
+    const items = DATA.filter(r => selected.has(r.manageNo)).map(r => ({
+        manageNo: r.manageNo,
+        nm: r.nm,
+        type: r.type,
+        status: r.status,
+        sido: r.sido,
+        sigungu: r.sigungu,
+        emd: r.emd,
+        addr: r.addr
     }));
-    try{
+    try {
         // 실제 전송 API 엔드포인트로 수정
         const res = await fetch('/api/internal/parkings/submit', {
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({items})
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                items
+            })
         });
-        if (!res.ok){
-            const txt = await res.text().catch(()=> '');
-            throw new Error(('HTTP '+res.status+' '+res.statusText+' '+txt).trim());
+        if (!res.ok) {
+            const txt = await res.text().catch(() => '');
+            throw new Error(('HTTP ' + res.status + ' ' + res.statusText + ' ' + txt).trim());
         }
         toast('전송 완료 · ' + items.length + '건');
-    }catch(err){
+    } catch (err) {
         console.error(err);
         toast('전송 실패: ' + (err?.message || err));
     }
 }
 
 /* =========================
-   나머지 기존 코드들 (상세 탭 등) 유지
+   상단 흰색 탭 엔진
    ========================= */
 
 // 상단 흰색 탭 엔진
-function getTabHost(){
+function getTabHost() {
     return {
-        tabBar:     $one('.tabs'),
+        tabBar: $one('.tabs'),
         panelsWrap: $one('.tab-panels')
     };
 }
@@ -684,13 +904,55 @@ function initHybridBindings(){
         });
     }
 }
+// 검색 조건 초기화 함수
+function resetSearchForm() {
+    const form = $id('searchForm');
+    if (!form) return;
+
+    // 폼의 모든 입력 필드 초기화
+    form.reset();
+
+    // select 요소들을 명시적으로 "전체" 옵션으로 설정
+    const selectElements = [
+        'sido', 'sigungu', 'emd', 'prkType', 'status'
+    ];
+
+    selectElements.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.selectedIndex = 0; // "전체" 옵션 선택
+
+            // 시군구, 읍면동은 비활성화
+            if (id === 'sigungu' || id === 'emd') {
+                element.disabled = true;
+                element.innerHTML = '<option value="">전체</option>';
+            }
+        }
+    });
+
+    // 검색 결과 초기화
+    currentPage = 1;
+    loadDataFromServer();
+
+    console.log('검색 조건이 초기화되었습니다.');
+}
 
 /* =========================
    초기화 (서버 연동으로 수정)
    ========================= */
 async function init(){
     $id('panelDetail')?.setAttribute('hidden','');
-    
+
+    // 공통코드 데이터 로드 (병렬 처리)
+    await Promise.all([
+        CodeUtils.loadSidoList(),
+        CodeUtils.loadParkingTypeList(),
+        CodeUtils.loadStatusList()  // 진행상태 로드 추가
+    ]);
+
+    // 행정구역 셀렉터 이벤트 리스너 설정
+    setupAreaSelectors();
+
     // 초기 데이터 로드
     await loadDataFromServer();
 
@@ -735,7 +997,13 @@ async function init(){
         e.preventDefault(); 
         await applyFilter();
     });
-    
+
+    // 초기화 버튼 이벤트 추가
+    $id('resetBtn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        resetSearchForm();
+    });
+
     $id('exportBtn')?.addEventListener('click', exportCSV);
     $id('sendBtn')?.addEventListener('click', sendSelected);
 

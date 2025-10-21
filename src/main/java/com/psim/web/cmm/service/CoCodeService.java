@@ -1,6 +1,8 @@
 package com.psim.web.cmm.service;
 
 import com.psim.web.cmm.vo.CoCodeVO;
+import com.psim.web.cmm.vo.CoLdongVO;
+
 import java.util.List;
 import java.util.Map;
 
@@ -15,4 +17,9 @@ public interface CoCodeService {
      * 상위 코드에 따른 하위 코드 목록 조회
      */
     List<CoCodeVO> getSubCodeList(Map<String, Object> params);
+
+    /**
+     * 시군구코드에 따른 읍면동 목록 조회
+     */
+    List<CoLdongVO> getLdongList(String sigunguCd);
 }

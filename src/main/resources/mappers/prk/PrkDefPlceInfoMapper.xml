@@ -44,6 +44,12 @@
         <if test="prkNm != null and prkNm != ''">
             AND tpdpi.prkplce_nm LIKE '%' || #{prkNm} || '%'
         </if>
+        <if test="status != null and status != ''">
+            AND tpdpi.prkplce_stat_cd = #{status}
+        </if>
+        <if test="addr != null and addr != ''">
+            AND tpdpi.dtadd LIKE '%' || #{addr} || '%'
+        </if>
         ORDER BY tpdpi.prkplce_nm ASC
         <!-- 페이징 제거: LIMIT/OFFSET 구문 삭제 -->
     </select>

@@ -4,6 +4,7 @@ package com.psim.web.cmm.service.impl;
 import com.psim.web.cmm.mapper.CoCodeMapper;
 import com.psim.web.cmm.service.CoCodeService;
 import com.psim.web.cmm.vo.CoCodeVO;
+import com.psim.web.cmm.vo.CoLdongVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -24,5 +25,10 @@ public class CoCodeServiceImpl implements CoCodeService {
     @Override
     public List<CoCodeVO> getSubCodeList(Map<String, Object> params) {
         return coCodeMapper.selectSubCodeList(params);
+    }
+
+    @Override
+    public List<CoLdongVO> getLdongList(String sigunguCd) {
+        return coCodeMapper.selectLdongList(sigunguCd);
     }
 }

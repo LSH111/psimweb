@@ -14,7 +14,6 @@
     <div class="card">
         <div class="wrap">
             <h1 class="title">주차장 실태 관리 목록</h1>
-            <p class="sub">모바일/아이패드: 카드 전용 · 데스크톱: 테이블/카드 자동 전환 · 탭(목록/상세)</p>
 
             <!-- 검색 패널 -->
             <section class="panel" aria-label="검색 조건">
@@ -55,9 +54,6 @@
                             <div class="control">
                                 <select id="prkType" name="prkType">
                                     <option value="">전체</option>
-                                    <option>노상</option>
-                                    <option>노외</option>
-                                    <option>부설</option>
                                 </select>
                             </div>
                         </div>
@@ -66,10 +62,6 @@
                             <div class="control">
                                 <select id="status" name="status">
                                     <option value="">전체</option>
-                                    <option value="APPROVED">승인</option>
-                                    <option value="PENDING">진행중</option>
-                                    <option value="REJECTED">반려</option>
-                                    <option value="TEMP">임시저장</option>
                                 </select>
                             </div>
                         </div>
@@ -85,7 +77,6 @@
                         <button type="button" id="resetBtn" class="btn ghost">초기화</button>
                         <button type="button" id="exportBtn" class="btn sec">CSV 내보내기</button>
                         <button type="button" id="sendBtn" class="btn">선택 전송</button>
-                        <span class="right muted" id="hint">데모 데이터 기반 클라이언트 필터링</span>
                     </div>
                 </form>
             </section>
