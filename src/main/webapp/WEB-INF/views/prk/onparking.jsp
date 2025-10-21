@@ -44,6 +44,7 @@
         </div>
       </div>
 
+
       <div class="card">
         <h2>현장 사진 & 좌표</h2>
         <div class="grid">

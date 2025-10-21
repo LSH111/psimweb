@@ -8,7 +8,7 @@
     <title>노상주차장 상세</title>
 
     <!-- 페이지 전용 CSS -->
-    <link rel="stylesheet" href="<c:url value='/static/css/pages/offparking.css'/>"/>
+    <link rel="stylesheet" href="<c:url value='/static/css/pages/offparking.css?v=${currentTimeMillis}'/>"/>
 
     <!-- 외부 라이브러리 (EXIF / 다음 우편번호) -->
     <script src="https://cdn.jsdelivr.net/npm/exifr@7/dist/full.umd.js"></script>
@@ -64,10 +64,53 @@
                     <div class="ctl">
                         <input id="f_photo_lib" type="file" accept="image/*,image/heic,image/heif" style="display:none" />
                         <input id="f_photo_cam" type="file" accept="image/*" capture="environment" style="display:none" />
-                        <button type="button" class="btn light" id="btnPickFromLibrary">사진첩에서 선택</button>
-                        <button type="button" class="btn ghost" id="btnTakePhoto">카메라 촬영</button>
-                        <button type="button" class="btn" id="btnUseGeolocation">기기 위치로 좌표</button>
-                        <button type="button" class="btn ghost" id="btnClearPhoto">초기화</button>
+                        <div class="file-upload-buttons">
+                            <button type="button" class="btn light" id="btnPickFromLibrary">사진첩에서 선택</button>
+                            <button type="button" class="btn ghost" id="btnTakePhoto">카메라 촬영</button>
+                            <button type="button" class="btn" id="btnUseGeolocation">기기 위치로 좌표</button>
+                            <button type="button" class="btn ghost" id="btnClearPhoto">초기화</button>
+                        </div>
+
+                        <!-- 파일 업로드 진행률 표시 영역 -->
+                        <div id="upload-progress-area" class="upload-progress-container" style="display: none;">
+                            <div class="upload-header">
+                                <h3 class="upload-title">첨부파일 업로드</h3>
+                            </div>
+
+                            <div class="upload-summary">
+                                <span class="upload-status">0개 / 1개</span>
+                                <span class="upload-size">0MB / 0MB</span>
+                                <span class="upload-percent">0% 남음</span>
+                            </div>
+
+                            <div class="progress-bar-container">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="progress-fill"></div>
+                                </div>
+                                <span class="progress-text" id="progress-text">0%</span>
+                            </div>
+
+                            <div class="file-list">
+                                <div class="file-item" id="upload-file-item" style="display: none;">
+                                    <div class="file-icon">📁</div>
+                                    <div class="file-info">
+                                        <div class="file-name" id="file-name">파일명.jpg</div>
+                                        <div class="file-size-progress">
+                                            <div class="file-progress-bar">
+                                                <div class="file-progress-fill" id="file-progress-fill"></div>
+                                            </div>
+                                            <span class="file-size" id="file-size">0MB / 0MB</span>
+                                        </div>
+                                    </div>
+                                    <div class="file-status" id="file-status">전송중</div>
+                                </div>
+                            </div>
+
+                            <div class="upload-actions">
+                                <button type="button" class="btn-cancel" id="btn-upload-cancel">취소</button>
+                                <button type="button" class="btn-complete" id="btn-upload-complete" style="display: none;">완료</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div style="grid-column:1/-1"><img id="preview" class="thumb" alt="사진 미리보기" /></div>
@@ -162,8 +205,9 @@
                 </div>
             </div>
 
-            <!-- 주간 세부 -->
-            <div id="day_detail_wrap" class="grid row-1c" hidden style="grid-column:1/-1">
+
+            <!-- 주간 세부 - 주간 선택시에만 표시 -->
+            <div id="day_detail_wrap" class="grid row-1c" style="grid-column:1/-1; display:none;">
                 <div>
                     <label for="f_day_grade">주간 급지</label>
                     <div class="ctl">
@@ -177,9 +221,24 @@
                 </div>
             </div>
 
-            <!-- 요금부과여부 : 추가 -->
-            <div id="fee_charge_wrap" class="fee-block card" style="grid-column:1/-1">
-                <h2 class="fee-title">요금 부과여부</h2>
+            <!-- 야간 세부 - 야간 선택시에만 표시 -->
+            <div id="night_detail_wrap" class="grid row-1c" style="grid-column:1/-1; display:none;">
+                <div>
+                    <label for="f_night_grade">야간 급지</label>
+                    <div class="ctl">
+                        <select id="f_night_grade">
+                            <option value="">선택</option>
+                            <option>1급지</option><option>2급지</option><option>3급지</option>
+                            <option>4급지</option><option>5급지</option>
+                            <option>미분류</option><option>기타</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 주간 요금부과여부 - 주간 선택시에만 표시 -->
+            <div id="day_fee_charge_wrap" class="fee-block card" style="grid-column:1/-1; display:none;">
+                <h2 class="fee-title">주간 요금 부과여부</h2>
                 <div class="grid row-1c">
                     <div>
                         <label for="f_day_feeType">주간 요금 부과여부</label>
@@ -195,82 +254,161 @@
                 </div>
             </div>
 
-            <!-- 운영 · 요금 · 주차면수 카드 내부의 grid 영역에서 -->
-            <div id="fee_level_wrap" class="fee-level card" style="grid-column:1/-1">
-                <h2 class="fee-title">요금수준</h2>
-
-                <!-- (A) 거주자우선주차장 요금 -->
-                <div id="res_fee_wrap" class="grid row-1c" hidden>
-                    <h3 class="help" style="margin:.2rem 0">거주자우선주차장 요금(원)</h3>
-                    <div class="fee-group">
-                        <div class="fee-item">
-                            <label for="f_res_all">전일</label>
-                            <div class="ctl"><input id="f_res_all" type="number" min="0" inputmode="numeric" placeholder="예) 5000"/><span class="suffix">원</span></div>
-                        </div>
-                        <div class="fee-item">
-                            <label for="f_res_day">주간</label>
-                            <div class="ctl"><input id="f_res_day" type="number" min="0" inputmode="numeric" placeholder="예) 3000"/><span class="suffix">원</span></div>
-                        </div>
-                        <div class="fee-item">
-                            <label for="f_res_full">상근</label>
-                            <div class="ctl"><input id="f_res_full" type="number" min="0" inputmode="numeric" placeholder="예) 4000"/><span class="suffix">원</span></div>
-                        </div>
-                        <div class="fee-item">
-                            <label for="f_res_night">야간</label>
-                            <div class="ctl"><input id="f_res_night" type="number" min="0" inputmode="numeric" placeholder="예) 2000"/><span class="suffix">원</span></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- (B) 일반노상주차장(승용차, 일반인 기준) 요금 -->
-                <div id="normal_fee_wrap">
-                    <h3 class="help" style="margin:.2rem 0">일반노상주차장 요금(승용차, 일반인 기준)</h3>
-                    <div class="fee-group">
-                        <!-- 1행 -->
-                        <div class="fee-item">
-                            <label for="f_fee_first30">최초 30분</label>
-                            <div class="ctl"><input id="f_fee_first30" type="number" min="0" inputmode="numeric" placeholder="예) 1000"/><span class="suffix">원</span></div>
-                        </div>
-                        <div class="fee-item">
-                            <label for="f_fee_per10">매 10분</label>
-                            <div class="ctl"><input id="f_fee_per10" type="number" min="0" inputmode="numeric" placeholder="예) 300"/><span class="suffix">원</span></div>
-                        </div>
-                        <div class="fee-item">
-                            <label for="f_fee_per60">1시간</label>
-                            <div class="ctl"><input id="f_fee_per60" type="number" min="0" inputmode="numeric" placeholder="예) 2000"/><span class="suffix">원</span></div>
-                        </div>
-                        <!-- 2행 -->
-                        <div class="fee-item">
-                            <label for="f_fee_daily">전일(일)</label>
-                            <div class="ctl"><input id="f_fee_daily" type="number" min="0" inputmode="numeric" placeholder="예) 10000"/><span class="suffix">원</span></div>
-                        </div>
-                        <div class="fee-item">
-                            <label for="f_fee_monthly">월정기권</label>
-                            <div class="ctl"><input id="f_fee_monthly" type="number" min="0" inputmode="numeric" placeholder="예) 120000"/><span class="suffix">원</span></div>
-                        </div>
-                        <div class="fee-item">
-                            <label for="f_fee_halfyear">반기권</label>
-                            <div class="ctl"><input id="f_fee_halfyear" type="number" min="0" inputmode="numeric" placeholder="예) 600000"/><span class="suffix">원</span></div>
+            <!-- 야간 요금부과여부 - 야간 선택시에만 표시 -->
+            <div id="night_fee_charge_wrap" class="fee-block card" style="grid-column:1/-1; display:none;">
+                <h2 class="fee-title">야간 요금 부과여부</h2>
+                <div class="grid row-1c">
+                    <div>
+                        <label for="f_night_feeType">야간 요금 부과여부</label>
+                        <div class="ctl">
+                            <select id="f_night_feeType">
+                                <option value="">선택</option>
+                                <option>유료</option>
+                                <option>무료</option>
+                                <option>유료+무료</option>
+                            </select>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 요금지불방식 : 추가 -->
-            <div id="fee_pay_wrap" class="fee-block card" style="grid-column:1/-1">
-                <h2 class="fee-title">요금 지불방식</h2>
+            <!-- 주간 요금수준 - 주간 선택시에만 표시 -->
+            <div id="day_fee_level_wrap" class="fee-level card" style="grid-column:1/-1; display:none;">
+                <h2 class="fee-title">주간 요금수준</h2>
+
+                <!-- (A) 거주자우선주차장 요금 -->
+                <div id="day_res_fee_wrap" class="grid row-1c" hidden>
+                    <h3 class="help" style="margin:.2rem 0">거주자우선주차장 요금(원) - 주간</h3>
+                    <div class="fee-group">
+                        <div class="fee-item">
+                            <label for="f_day_res_all">전일</label>
+                            <div class="ctl"><input id="f_day_res_all" type="number" min="0" inputmode="numeric" placeholder="예) 5000"/><span class="suffix">원</span></div>
+                        </div>
+                        <div class="fee-item">
+                            <label for="f_day_res_day">주간</label>
+                            <div class="ctl"><input id="f_day_res_day" type="number" min="0" inputmode="numeric" placeholder="예) 3000"/><span class="suffix">원</span></div>
+                        </div>
+                        <div class="fee-item">
+                            <label for="f_day_res_full">상근</label>
+                            <div class="ctl"><input id="f_day_res_full" type="number" min="0" inputmode="numeric" placeholder="예) 4000"/><span class="suffix">원</span></div>
+                        </div>
+                        <div class="fee-item">
+                            <label for="f_day_res_night">야간</label>
+                            <div class="ctl"><input id="f_day_res_night" type="number" min="0" inputmode="numeric" placeholder="예) 2000"/><span class="suffix">원</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- (B) 일반노상주차장(승용차, 일반인 기준) 요금 -->
+                <div id="day_normal_fee_wrap">
+                    <h3 class="help" style="margin:.2rem 0">일반노상주차장 요금(승용차, 일반인 기준) - 주간</h3>
+                    <div class="fee-group">
+                        <!-- 1행 -->
+                        <div class="fee-item">
+                            <label for="f_day_fee_first30">최초 30분</label>
+                            <div class="ctl"><input id="f_day_fee_first30" type="number" min="0" inputmode="numeric" placeholder="예) 1000"/><span class="suffix">원</span></div>
+                        </div>
+                        <div class="fee-item">
+                            <label for="f_day_fee_per10">매 10분</label>
+                            <div class="ctl"><input id="f_day_fee_per10" type="number" min="0" inputmode="numeric" placeholder="예) 300"/><span class="suffix">원</span></div>
+                        </div>
+                        <div class="fee-item">
+                            <label for="f_day_fee_per60">1시간</label>
+                            <div class="ctl"><input id="f_day_fee_per60" type="number" min="0" inputmode="numeric" placeholder="예) 2000"/><span class="suffix">원</span></div>
+                        </div>
+                        <!-- 2행 -->
+                        <div class="fee-item">
+                            <label for="f_day_fee_daily">전일(일)</label>
+                            <div class="ctl"><input id="f_day_fee_daily" type="number" min="0" inputmode="numeric" placeholder="예) 10000"/><span class="suffix">원</span></div>
+                        </div>
+                        <div class="fee-item">
+                            <label for="f_day_fee_monthly">월정기권</label>
+                            <div class="ctl"><input id="f_day_fee_monthly" type="number" min="0" inputmode="numeric" placeholder="예) 120000"/><span class="suffix">원</span></div>
+                        </div>
+                        <div class="fee-item">
+                            <label for="f_day_fee_halfyear">반기권</label>
+                            <div class="ctl"><input id="f_day_fee_halfyear" type="number" min="0" inputmode="numeric" placeholder="예) 600000"/><span class="suffix">원</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 야간 요금수준 - 야간 선택시에만 표시 -->
+            <div id="night_fee_level_wrap" class="fee-level card" style="grid-column:1/-1; display:none;">
+                <h2 class="fee-title">야간 요금수준</h2>
+
+                <!-- (A) 거주자우선주차장 요금 -->
+                <div id="night_res_fee_wrap" class="grid row-1c" hidden>
+                    <h3 class="help" style="margin:.2rem 0">거주자우선주차장 요금(원) - 야간</h3>
+                    <div class="fee-group">
+                        <div class="fee-item">
+                            <label for="f_night_res_all">전일</label>
+                            <div class="ctl"><input id="f_night_res_all" type="number" min="0" inputmode="numeric" placeholder="예) 5000"/><span class="suffix">원</span></div>
+                        </div>
+                        <div class="fee-item">
+                            <label for="f_night_res_day">주간</label>
+                            <div class="ctl"><input id="f_night_res_day" type="number" min="0" inputmode="numeric" placeholder="예) 3000"/><span class="suffix">원</span></div>
+                        </div>
+                        <div class="fee-item">
+                            <label for="f_night_res_full">상근</label>
+                            <div class="ctl"><input id="f_night_res_full" type="number" min="0" inputmode="numeric" placeholder="예) 4000"/><span class="suffix">원</span></div>
+                        </div>
+                        <div class="fee-item">
+                            <label for="f_night_res_night">야간</label>
+                            <div class="ctl"><input id="f_night_res_night" type="number" min="0" inputmode="numeric" placeholder="예) 2000"/><span class="suffix">원</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- (B) 일반노상주차장(승용차, 일반인 기준) 요금 -->
+                <div id="night_normal_fee_wrap">
+                    <h3 class="help" style="margin:.2rem 0">일반노상주차장 요금(승용차, 일반인 기준) - 야간</h3>
+                    <div class="fee-group">
+                        <!-- 1행 -->
+                        <div class="fee-item">
+                            <label for="f_night_fee_first30">최초 30분</label>
+                            <div class="ctl"><input id="f_night_fee_first30" type="number" min="0" inputmode="numeric" placeholder="예) 800"/><span class="suffix">원</span></div>
+                        </div>
+                        <div class="fee-item">
+                            <label for="f_night_fee_per10">매 10분</label>
+                            <div class="ctl"><input id="f_night_fee_per10" type="number" min="0" inputmode="numeric" placeholder="예) 200"/><span class="suffix">원</span></div>
+                        </div>
+                        <div class="fee-item">
+                            <label for="f_night_fee_per60">1시간</label>
+                            <div class="ctl"><input id="f_night_fee_per60" type="number" min="0" inputmode="numeric" placeholder="예) 1500"/><span class="suffix">원</span></div>
+                        </div>
+                        <!-- 2행 -->
+                        <div class="fee-item">
+                            <label for="f_night_fee_daily">전일(일)</label>
+                            <div class="ctl"><input id="f_night_fee_daily" type="number" min="0" inputmode="numeric" placeholder="예) 8000"/><span class="suffix">원</span></div>
+                        </div>
+                        <div class="fee-item">
+                            <label for="f_night_fee_monthly">월정기권</label>
+                            <div class="ctl"><input id="f_night_fee_monthly" type="number" min="0" inputmode="numeric" placeholder="예) 100000"/><span class="suffix">원</span></div>
+                        </div>
+                        <div class="fee-item">
+                            <label for="f_night_fee_halfyear">반기권</label>
+                            <div class="ctl"><input id="f_night_fee_halfyear" type="number" min="0" inputmode="numeric" placeholder="예) 500000"/><span class="suffix">원</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 주간 요금지불방식 - 주간 선택시에만 표시 -->
+            <div id="day_fee_pay_wrap" class="fee-block card" style="grid-column:1/-1; display:none;">
+                <h2 class="fee-title">주간 요금 지불방식</h2>
 
                 <div class="grid row-1c">
-                    <div class="check-group" aria-label="요금 지불방식">
-                        <label><input type="checkbox" name="payMethod" value="현금" /> <span>현금</span></label>
-                        <label><input type="checkbox" name="payMethod" value="신용카드" /> <span>신용카드</span></label>
-                        <label><input type="checkbox" name="payMethod" value="상품권" /> <span>상품권</span></label>
+                    <div class="check-group" aria-label="주간 요금 지불방식">
+                        <label><input type="checkbox" name="dayPayMethod" value="현금" /> <span>현금</span></label>
+                        <label><input type="checkbox" name="dayPayMethod" value="신용카드" /> <span>신용카드</span></label>
+                        <label><input type="checkbox" name="dayPayMethod" value="상품권" /> <span>상품권</span></label>
 
                         <!-- 기타(텍스트 입력) -->
                         <label class="pay-etc" style="display:inline-flex; align-items:center; gap:8px;">
-                            <input type="checkbox" id="pay_etc_chk" value="기타" />
+                            <input type="checkbox" id="day_pay_etc_chk" value="기타" />
                             <span>기타</span>
-                            <input type="text" id="pay_etc_input" class="input"
+                            <input type="text" id="day_pay_etc_input" class="input"
                                    placeholder="기타 지불수단 입력" disabled
                                    style="max-width:280px;" />
                         </label>
@@ -278,25 +416,231 @@
                 </div>
             </div>
 
-            <!-- 요금정산방식 : 추가 -->
-            <div id="fee_settle_wrap" class="fee-block card" style="grid-column:1/-1">
-                <h2 class="fee-title">요금 정산방식</h2>
+            <!-- 야간 요금지불방식 - 야간 선택시에만 표시 -->
+            <div id="night_fee_pay_wrap" class="fee-block card" style="grid-column:1/-1; display:none;">
+                <h2 class="fee-title">야간 요금 지불방식</h2>
 
                 <div class="grid row-1c">
-                    <div class="check-group" aria-label="요금 정산방식" id="settle_group">
-                        <label><input type="checkbox" name="settleMethod" value="자동정산" id="settle_auto" /> <span>자동정산</span></label>
-                        <label><input type="checkbox" name="settleMethod" value="수동정산" id="settle_manual" /> <span>수동정산</span></label>
+                    <div class="check-group" aria-label="야간 요금 지불방식">
+                        <label><input type="checkbox" name="nightPayMethod" value="현금" /> <span>현금</span></label>
+                        <label><input type="checkbox" name="nightPayMethod" value="신용카드" /> <span>신용카드</span></label>
+                        <label><input type="checkbox" name="nightPayMethod" value="상품권" /> <span>상품권</span></label>
+
+                        <!-- 기타(텍스트 입력) -->
+                        <label class="pay-etc" style="display:inline-flex; align-items:center; gap:8px;">
+                            <input type="checkbox" id="night_pay_etc_chk" value="기타" />
+                            <span>기타</span>
+                            <input type="text" id="night_pay_etc_input" class="input"
+                                   placeholder="기타 지불수단 입력" disabled
+                                   style="max-width:280px;" />
+                        </label>
                     </div>
                 </div>
             </div>
 
+            <!-- 주간 요금정산방식 - 주간 선택시에만 표시 -->
+            <div id="day_fee_settle_wrap" class="fee-block card" style="grid-column:1/-1; display:none;">
+                <h2 class="fee-title">주간 요금 정산방식</h2>
+
+                <div class="grid row-1c">
+                    <div class="check-group" aria-label="주간 요금 정산방식" id="day_settle_group">
+                        <label><input type="checkbox" name="daySettleMethod" value="자동정산" id="day_settle_auto" /> <span>자동정산</span></label>
+                        <label><input type="checkbox" name="daySettleMethod" value="수동정산" id="day_settle_manual" /> <span>수동정산</span></label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 야간 요금정산방식 - 야간 선택시에만 표시 -->
+            <div id="night_fee_settle_wrap" class="fee-block card" style="grid-column:1/-1; display:none;">
+                <h2 class="fee-title">야간 요금 정산방식</h2>
+
+                <div class="grid row-1c">
+                    <div class="check-group" aria-label="야간 요금 정산방식" id="night_settle_group">
+                        <label><input type="checkbox" name="nightSettleMethod" value="자동정산" id="night_settle_auto" /> <span>자동정산</span></label>
+                        <label><input type="checkbox" name="nightSettleMethod" value="수동정산" id="night_settle_manual" /> <span>수동정산</span></label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 주간 운영시간 섹션 - 주간 선택시에만 표시 -->
+    <section class="card" id="day_operation_time_section" style="display:none;">
+        <h2>주간 운영시간</h2>
+        <div class="grid">
+            <!-- 평일 -->
+            <div class="operation-day-block" style="grid-column:1/-1">
+                <h3 class="operation-day-title">평일</h3>
+                <div class="radio-group" id="day_weekday_operation_group">
+                    <label><input type="radio" name="dayWeekdayOperation" value="전일운영" checked /> <span>전일운영</span></label>
+                    <label><input type="radio" name="dayWeekdayOperation" value="시간제운영" id="day_weekday_time_op" /> <span>시간제운영</span></label>
+                    <label><input type="radio" name="dayWeekdayOperation" value="운영안함" /> <span>운영안함</span></label>
+                </div>
+                <div class="time-inputs-wrapper weekday-time" id="day_weekday_time_inputs" style="display:none;">
+                    <div class="time-inputs highlight-input-area">
+                        <span class="time-label">주간 평일 운영시간:</span>
+                        <div class="time-input-group">
+                            <input type="number" id="day_weekday_start_hour" min="0" max="23" placeholder="시" class="time-input" />
+                            <span class="time-unit">시</span>
+                            <input type="number" id="day_weekday_start_min" min="0" max="59" placeholder="분" class="time-input" />
+                            <span class="time-unit">분</span>
+                            <span class="time-separator">~</span>
+                            <input type="number" id="day_weekday_end_hour" min="0" max="23" placeholder="시" class="time-input" />
+                            <span class="time-unit">시</span>
+                            <input type="number" id="day_weekday_end_min" min="0" max="59" placeholder="분" class="time-input" />
+                            <span class="time-unit">분</span>
+                        </div>
+                        <div class="input-guide">주간 평일 운영시간을 입력해주세요 (24시간 형식)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 토요일 -->
+            <div class="operation-day-block" style="grid-column:1/-1; margin-top:16px;">
+                <h3 class="operation-day-title">토요일</h3>
+                <div class="radio-group" id="day_saturday_operation_group">
+                    <label><input type="radio" name="daySaturdayOperation" value="전일운영" checked /> <span>전일운영</span></label>
+                    <label><input type="radio" name="daySaturdayOperation" value="시간제운영" id="day_saturday_time_op" /> <span>시간제운영</span></label>
+                    <label><input type="radio" name="daySaturdayOperation" value="운영안함" /> <span>운영안함</span></label>
+                </div>
+                <div class="time-inputs-wrapper saturday-time" id="day_saturday_time_inputs" style="display:none;">
+                    <div class="time-inputs highlight-input-area">
+                        <span class="time-label">주간 토요일 운영시간:</span>
+                        <div class="time-input-group">
+                            <input type="number" id="day_saturday_start_hour" min="0" max="23" placeholder="시" class="time-input" />
+                            <span class="time-unit">시</span>
+                            <input type="number" id="day_saturday_start_min" min="0" max="59" placeholder="분" class="time-input" />
+                            <span class="time-unit">분</span>
+                            <span class="time-separator">~</span>
+                            <input type="number" id="day_saturday_end_hour" min="0" max="23" placeholder="시" class="time-input" />
+                            <span class="time-unit">시</span>
+                            <input type="number" id="day_saturday_end_min" min="0" max="59" placeholder="분" class="time-input" />
+                            <span class="time-unit">분</span>
+                        </div>
+                        <div class="input-guide">주간 토요일 운영시간을 입력해주세요 (24시간 형식)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 공휴일 -->
+            <div class="operation-day-block" style="grid-column:1/-1; margin-top:16px;">
+                <h3 class="operation-day-title">공휴일</h3>
+                <div class="radio-group" id="day_holiday_operation_group">
+                    <label><input type="radio" name="dayHolidayOperation" value="전일운영" checked /> <span>전일운영</span></label>
+                    <label><input type="radio" name="dayHolidayOperation" value="시간제운영" id="day_holiday_time_op" /> <span>시간제운영</span></label>
+                    <label><input type="radio" name="dayHolidayOperation" value="운영안함" /> <span>운영안함</span></label>
+                </div>
+                <div class="time-inputs-wrapper holiday-time" id="day_holiday_time_inputs" style="display:none;">
+                    <div class="time-inputs highlight-input-area">
+                        <span class="time-label">주간 공휴일 운영시간:</span>
+                        <div class="time-input-group">
+                            <input type="number" id="day_holiday_start_hour" min="0" max="23" placeholder="시" class="time-input" />
+                            <span class="time-unit">시</span>
+                            <input type="number" id="day_holiday_start_min" min="0" max="59" placeholder="분" class="time-input" />
+                            <span class="time-unit">분</span>
+                            <span class="time-separator">~</span>
+                            <input type="number" id="day_holiday_end_hour" min="0" max="23" placeholder="시" class="time-input" />
+                            <span class="time-unit">시</span>
+                            <input type="number" id="day_holiday_end_min" min="0" max="59" placeholder="분" class="time-input" />
+                            <span class="time-unit">분</span>
+                        </div>
+                        <div class="input-guide">주간 공휴일 운영시간을 입력해주세요 (24시간 형식)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 야간 운영시간 섹션 - 야간 선택시에만 표시 -->
+    <section class="card" id="night_operation_time_section" style="display:none;">
+        <h2>야간 운영시간</h2>
+        <div class="grid">
+            <!-- 평일 -->
+            <div class="operation-day-block" style="grid-column:1/-1">
+                <h3 class="operation-day-title">평일</h3>
+                <div class="radio-group" id="night_weekday_operation_group">
+                    <label><input type="radio" name="nightWeekdayOperation" value="전일운영" checked /> <span>전일운영</span></label>
+                    <label><input type="radio" name="nightWeekdayOperation" value="시간제운영" id="night_weekday_time_op" /> <span>시간제운영</span></label>
+                    <label><input type="radio" name="nightWeekdayOperation" value="운영안함" /> <span>운영안함</span></label>
+                </div>
+                <div class="time-inputs-wrapper weekday-time" id="night_weekday_time_inputs" style="display:none;">
+                    <div class="time-inputs highlight-input-area">
+                        <span class="time-label">야간 평일 운영시간:</span>
+                        <div class="time-input-group">
+                            <input type="number" id="night_weekday_start_hour" min="0" max="23" placeholder="시" class="time-input" />
+                            <span class="time-unit">시</span>
+                            <input type="number" id="night_weekday_start_min" min="0" max="59" placeholder="분" class="time-input" />
+                            <span class="time-unit">분</span>
+                            <span class="time-separator">~</span>
+                            <input type="number" id="night_weekday_end_hour" min="0" max="23" placeholder="시" class="time-input" />
+                            <span class="time-unit">시</span>
+                            <input type="number" id="night_weekday_end_min" min="0" max="59" placeholder="분" class="time-input" />
+                            <span class="time-unit">분</span>
+                        </div>
+                        <div class="input-guide">야간 평일 운영시간을 입력해주세요 (24시간 형식)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 토요일 -->
+            <div class="operation-day-block" style="grid-column:1/-1; margin-top:16px;">
+                <h3 class="operation-day-title">토요일</h3>
+                <div class="radio-group" id="night_saturday_operation_group">
+                    <label><input type="radio" name="nightSaturdayOperation" value="전일운영" checked /> <span>전일운영</span></label>
+                    <label><input type="radio" name="nightSaturdayOperation" value="시간제운영" id="night_saturday_time_op" /> <span>시간제운영</span></label>
+                    <label><input type="radio" name="nightSaturdayOperation" value="운영안함" /> <span>운영안함</span></label>
+                </div>
+                <div class="time-inputs-wrapper saturday-time" id="night_saturday_time_inputs" style="display:none;">
+                    <div class="time-inputs highlight-input-area">
+                        <span class="time-label">야간 토요일 운영시간:</span>
+                        <div class="time-input-group">
+                            <input type="number" id="night_saturday_start_hour" min="0" max="23" placeholder="시" class="time-input" />
+                            <span class="time-unit">시</span>
+                            <input type="number" id="night_saturday_start_min" min="0" max="59" placeholder="분" class="time-input" />
+                            <span class="time-unit">분</span>
+                            <span class="time-separator">~</span>
+                            <input type="number" id="night_saturday_end_hour" min="0" max="23" placeholder="시" class="time-input" />
+                            <span class="time-unit">시</span>
+                            <input type="number" id="night_saturday_end_min" min="0" max="59" placeholder="분" class="time-input" />
+                            <span class="time-unit">분</span>
+                        </div>
+                        <div class="input-guide">야간 토요일 운영시간을 입력해주세요 (24시간 형식)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 공휴일 -->
+            <div class="operation-day-block" style="grid-column:1/-1; margin-top:16px;">
+                <h3 class="operation-day-title">공휴일</h3>
+                <div class="radio-group" id="night_holiday_operation_group">
+                    <label><input type="radio" name="nightHolidayOperation" value="전일운영" checked /> <span>전일운영</span></label>
+                    <label><input type="radio" name="nightHolidayOperation" value="시간제운영" id="night_holiday_time_op" /> <span>시간제운영</span></label>
+                    <label><input type="radio" name="nightHolidayOperation" value="운영안함" /> <span>운영안함</span></label>
+                </div>
+                <div class="time-inputs-wrapper holiday-time" id="night_holiday_time_inputs" style="display:none;">
+                    <div class="time-inputs highlight-input-area">
+                        <span class="time-label">야간 공휴일 운영시간:</span>
+                        <div class="time-input-group">
+                            <input type="number" id="night_holiday_start_hour" min="0" max="23" placeholder="시" class="time-input" />
+                            <span class="time-unit">시</span>
+                            <input type="number" id="night_holiday_start_min" min="0" max="59" placeholder="분" class="time-input" />
+                            <span class="time-unit">분</span>
+                            <span class="time-separator">~</span>
+                            <input type="number" id="night_holiday_end_hour" min="0" max="23" placeholder="시" class="time-input" />
+                            <span class="time-unit">시</span>
+                            <input type="number" id="night_holiday_end_min" min="0" max="59" placeholder="분" class="time-input" />
+                            <span class="time-unit">분</span>
+                        </div>
+                        <div class="input-guide">야간 공휴일 운영시간을 입력해주세요 (24시간 형식)</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
     <section class="card">
         <div class="actions">
             <button class="btn" id="btnSave">저장</button>
-            <span class="muted">샘플 저장입니다. 실제 API로 교체하세요.</span>
         </div>
     </section>
 </div>
@@ -310,6 +654,6 @@
 </div>
 
 <!-- 페이지 전용 JS -->
-<script src="<c:url value='/static/js/offparking.js'/>"></script>
+<script src="<c:url value='/static/js/offparking.js?v=${currentTimeMillis}'/>"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-/* offparking.js — 노상주차장 상세 페이지 전용 (항상 자동합계 적용판, 정산방식 통합) */
+/* offparking.js — 노상주차장 상세 페이지 전용 (주간/야간 기능 포함) */
 
 // ========== 유틸 ==========
 const $  = (s)=>document.querySelector(s);
@@ -178,12 +178,6 @@ ownRadios.forEach(r=>r.addEventListener('change', ()=>{
     if(!isPrivate && ownCompany) ownCompany.value='';
 }));
 
-// 운영시간(주간) 세부
-const chkDay=$('#chk_day'), dayDetail=$('#day_detail_wrap');
-function syncDay(){ if(dayDetail) dayDetail.hidden = !chkDay?.checked; }
-chkDay?.addEventListener('change', syncDay);
-syncDay();
-
 // ========== 면수 합계/검증 (항상 자동합계) ==========
 const totalInput = $('#f_totalStalls');
 const ctlTotal   = $('#ctl_total');
@@ -223,55 +217,166 @@ function updateHeaderAddr(){
 
 // ========== 운영방식 & 요금 섹션 제어 ==========
 const opTypeRadios = $$('input[name="opType"]');
-const resWrap    = $('#res_fee_wrap');      // 거주자우선 요금 섹션
-const normalWrap = $('#normal_fee_wrap');   // 일반노상(승용차/일반) 요금 섹션
-
-// 일반노상(승용차/일반) 요금 필드
-const f_fee_first30  = $('#f_fee_first30');
-const f_fee_per10    = $('#f_fee_per10');
-const f_fee_per60    = $('#f_fee_per60');
-const f_fee_daily    = $('#f_fee_daily');
-const f_fee_monthly  = $('#f_fee_monthly');
-const f_fee_halfyear = $('#f_fee_halfyear');
-
-// 거주자우선 요금 필드
-const f_res_all   = $('#f_res_all');
-const f_res_day   = $('#f_res_day');
-const f_res_full  = $('#f_res_full');
-const f_res_night = $('#f_res_night');
 
 function syncFeeSections(){
     const v = (opTypeRadios.find(r=>r.checked)?.value) || '';
-    if (resWrap)    resWrap.hidden    = true;
-    if (normalWrap) normalWrap.hidden = true;
 
+    // 주간 섹션들
+    const dayResWrap = $('#day_res_fee_wrap');
+    const dayNormalWrap = $('#day_normal_fee_wrap');
+
+    // 야간 섹션들
+    const nightResWrap = $('#night_res_fee_wrap');
+    const nightNormalWrap = $('#night_normal_fee_wrap');
+
+    // 모든 섹션 일단 숨김
+    [dayResWrap, dayNormalWrap, nightResWrap, nightNormalWrap].forEach(el => {
+        if (el) el.hidden = true;
+    });
+
+    // 운영방식에 따라 섹션 표시
     if (v === '일반노상주차장') {
-        if (normalWrap) normalWrap.hidden = false;
+        if (dayNormalWrap) dayNormalWrap.hidden = false;
+        if (nightNormalWrap) nightNormalWrap.hidden = false;
     } else if (v === '거주자우선주차장') {
-        if (resWrap) resWrap.hidden = false;
+        if (dayResWrap) dayResWrap.hidden = false;
+        if (nightResWrap) nightResWrap.hidden = false;
     } else if (v === '일반노상주차장+거주자우선주차장') {
-        if (resWrap)    resWrap.hidden    = false;
-        if (normalWrap) normalWrap.hidden = false;
+        if (dayResWrap) dayResWrap.hidden = false;
+        if (dayNormalWrap) dayNormalWrap.hidden = false;
+        if (nightResWrap) nightResWrap.hidden = false;
+        if (nightNormalWrap) nightNormalWrap.hidden = false;
     }
 }
 opTypeRadios.forEach(r=> r.addEventListener('change', syncFeeSections));
 syncFeeSections();
 
-// ===== 요금 지불방식 처리 =====
-const payChecks   = Array.from(document.querySelectorAll('input[name="payMethod"]'));
-const payEtcChk   = document.getElementById('pay_etc_chk');
-const payEtcInput = document.getElementById('pay_etc_input');
+// ========== 주간/야간 체크박스 처리 ==========
+function setupDayNightSections() {
+    const chkDay = $('#chk_day');
+    const chkNight = $('#chk_night');
 
-if (payEtcChk && payEtcInput) {
-    payEtcChk.addEventListener('change', () => {
-        const on = payEtcChk.checked;
-        payEtcInput.disabled = !on;
-        if (!on) payEtcInput.value = '';
-        if (on) payEtcInput.focus();
-    });
+    // 주간 관련 섹션들
+    const daySections = [
+        '#day_detail_wrap',
+        '#day_fee_charge_wrap',
+        '#day_fee_level_wrap',
+        '#day_fee_pay_wrap',
+        '#day_fee_settle_wrap',
+        '#day_operation_time_section'
+    ];
+
+    // 야간 관련 섹션들
+    const nightSections = [
+        '#night_detail_wrap',
+        '#night_fee_charge_wrap',
+        '#night_fee_level_wrap',
+        '#night_fee_pay_wrap',
+        '#night_fee_settle_wrap',
+        '#night_operation_time_section'
+    ];
+
+    function toggleSections(sections, isVisible) {
+        sections.forEach(selector => {
+            const element = $(selector);
+            if (element) element.style.display = isVisible ? 'block' : 'none';
+        });
+    }
+
+    // 주간 체크박스 이벤트
+    if (chkDay) {
+        chkDay.addEventListener('change', function() {
+            toggleSections(daySections, this.checked);
+            if (this.checked) syncFeeSections(); // 요금 섹션도 다시 동기화
+        });
+    }
+
+    // 야간 체크박스 이벤트
+    if (chkNight) {
+        chkNight.addEventListener('change', function() {
+            toggleSections(nightSections, this.checked);
+            if (this.checked) syncFeeSections(); // 요금 섹션도 다시 동기화
+        });
+    }
 }
-// 저장용 수집
-function collectPayMethods(){
+
+// ========== 시간제운영 처리 함수 ==========
+function setupTimeOperationEvents(timeType) {
+    // 평일
+    const weekdayGroup = $(`#${timeType}_weekday_operation_group`);
+    const weekdayTimeInputs = $(`#${timeType}_weekday_time_inputs`);
+
+    if (weekdayGroup && weekdayTimeInputs) {
+        weekdayGroup.addEventListener('change', function(e) {
+            if (e.target.name === `${timeType}WeekdayOperation`) {
+                weekdayTimeInputs.style.display =
+                    e.target.value === '시간제운영' ? 'block' : 'none';
+            }
+        });
+    }
+
+    // 토요일
+    const saturdayGroup = $(`#${timeType}_saturday_operation_group`);
+    const saturdayTimeInputs = $(`#${timeType}_saturday_time_inputs`);
+
+    if (saturdayGroup && saturdayTimeInputs) {
+        saturdayGroup.addEventListener('change', function(e) {
+            if (e.target.name === `${timeType}SaturdayOperation`) {
+                saturdayTimeInputs.style.display =
+                    e.target.value === '시간제운영' ? 'block' : 'none';
+            }
+        });
+    }
+
+    // 공휴일
+    const holidayGroup = $(`#${timeType}_holiday_operation_group`);
+    const holidayTimeInputs = $(`#${timeType}_holiday_time_inputs`);
+
+    if (holidayGroup && holidayTimeInputs) {
+        holidayGroup.addEventListener('change', function(e) {
+            if (e.target.name === `${timeType}HolidayOperation`) {
+                holidayTimeInputs.style.display =
+                    e.target.value === '시간제운영' ? 'block' : 'none';
+            }
+        });
+    }
+}
+
+// ========== 요금 지불/정산방식 처리 ==========
+function setupPaymentMethods() {
+    // 주간 요금지불방식
+    const dayPayEtcChk = $('#day_pay_etc_chk');
+    const dayPayEtcInput = $('#day_pay_etc_input');
+
+    if (dayPayEtcChk && dayPayEtcInput) {
+        dayPayEtcChk.addEventListener('change', () => {
+            const on = dayPayEtcChk.checked;
+            dayPayEtcInput.disabled = !on;
+            if (!on) dayPayEtcInput.value = '';
+            if (on) dayPayEtcInput.focus();
+        });
+    }
+
+    // 야간 요금지불방식
+    const nightPayEtcChk = $('#night_pay_etc_chk');
+    const nightPayEtcInput = $('#night_pay_etc_input');
+
+    if (nightPayEtcChk && nightPayEtcInput) {
+        nightPayEtcChk.addEventListener('change', () => {
+            const on = nightPayEtcChk.checked;
+            nightPayEtcInput.disabled = !on;
+            if (!on) nightPayEtcInput.value = '';
+            if (on) nightPayEtcInput.focus();
+        });
+    }
+}
+
+// ========== 데이터 수집 함수들 ==========
+function collectPayMethods(timeType) {
+    const payChecks = Array.from(document.querySelectorAll(`input[name="${timeType}PayMethod"]`));
+    const payEtcChk = $(`#${timeType}_pay_etc_chk`);
+    const payEtcInput = $(`#${timeType}_pay_etc_input`);
+
     const vals = payChecks.filter(c => c.checked).map(c => c.value);
     if (payEtcChk?.checked) {
         const t = (payEtcInput?.value || '').trim();
@@ -281,25 +386,53 @@ function collectPayMethods(){
     return vals;
 }
 
-// ===== 요금 정산방식(자동/수동) 처리 — 통합 추가 =====
-const settleChecks = Array.from(document.querySelectorAll('input[name="settleMethod"]')); // 자동정산/수동정산 체크박스
-const SETTLE_SINGLE_SELECT = false; // true면 체크박스를 라디오처럼 단일선택
-
-if (settleChecks.length && SETTLE_SINGLE_SELECT){
-    settleChecks.forEach(chk=>{
-        chk.addEventListener('change', (e)=>{
-            if (e.target.checked){
-                settleChecks.forEach(other=>{
-                    if (other!==e.target) other.checked = false;
-                });
-            }
-        });
-    });
+function collectSettleMethods(timeType) {
+    const settleChecks = Array.from(document.querySelectorAll(`input[name="${timeType}SettleMethod"]`));
+    return settleChecks.filter(c => c.checked).map(c => c.value);
 }
 
-function collectSettleMethods(){
-    // 예: ["자동정산","수동정산"] 혹은 단일선택 시 ["자동정산"]
-    return settleChecks.filter(c=>c.checked).map(c=>c.value);
+function collectOperatingHours(timeType) {
+    // 평일
+    const weekdayOperation = document.querySelector(`input[name="${timeType}WeekdayOperation"]:checked`)?.value || '전일운영';
+    let weekdayTime = null;
+    if (weekdayOperation === '시간제운영') {
+        weekdayTime = {
+            startHour: num($(`#${timeType}_weekday_start_hour`)?.value),
+            startMin: num($(`#${timeType}_weekday_start_min`)?.value),
+            endHour: num($(`#${timeType}_weekday_end_hour`)?.value),
+            endMin: num($(`#${timeType}_weekday_end_min`)?.value)
+        };
+    }
+
+    // 토요일
+    const saturdayOperation = document.querySelector(`input[name="${timeType}SaturdayOperation"]:checked`)?.value || '전일운영';
+    let saturdayTime = null;
+    if (saturdayOperation === '시간제운영') {
+        saturdayTime = {
+            startHour: num($(`#${timeType}_saturday_start_hour`)?.value),
+            startMin: num($(`#${timeType}_saturday_start_min`)?.value),
+            endHour: num($(`#${timeType}_saturday_end_hour`)?.value),
+            endMin: num($(`#${timeType}_saturday_end_min`)?.value)
+        };
+    }
+
+    // 공휴일
+    const holidayOperation = document.querySelector(`input[name="${timeType}HolidayOperation"]:checked`)?.value || '전일운영';
+    let holidayTime = null;
+    if (holidayOperation === '시간제운영') {
+        holidayTime = {
+            startHour: num($(`#${timeType}_holiday_start_hour`)?.value),
+            startMin: num($(`#${timeType}_holiday_start_min`)?.value),
+            endHour: num($(`#${timeType}_holiday_end_hour`)?.value),
+            endMin: num($(`#${timeType}_holiday_end_min`)?.value)
+        };
+    }
+
+    return {
+        weekday: { type: weekdayOperation, time: weekdayTime },
+        saturday: { type: saturdayOperation, time: saturdayTime },
+        holiday: { type: holidayOperation, time: holidayTime }
+    };
 }
 
 // ========== 저장 ==========
@@ -308,62 +441,366 @@ function buildPayload(){
     const selectedOp = (opTypeRadios.find(r=>r.checked)?.value) || '';
     const sumNow = detailSum();
 
-    const payload={
-        id:f_id?.value, name:f_name?.value, status:f_status?.value, type:'노상',
-        sido:f_sido?.value, sigungu:f_sigungu?.value, emd:f_emd?.value,
-        addrJibun:f_addrJ?.value, addrRoad:f_addrR?.value, lat:f_lat?.value, lng:f_lng?.value,
+    const isDayChecked = $('#chk_day')?.checked || false;
+    const isNightChecked = $('#chk_night')?.checked || false;
 
-        totalStalls: sumNow, // 항상 세부합 사용
-        stalls:{
-            normal:  num(normalInput?.value),   // 정상면 (추가 반영)
-            disabled:num(disInput?.value),
+    const payload={
+        id: f_id?.value,
+        name: f_name?.value,
+        status: f_status?.value,
+        type: '노상',
+        sido: f_sido?.value,
+        sigungu: f_sigungu?.value,
+        emd: f_emd?.value,
+        addrJibun: f_addrJ?.value,
+        addrRoad: f_addrR?.value,
+        lat: f_lat?.value,
+        lng: f_lng?.value,
+
+        totalStalls: sumNow,
+        stalls: {
+            normal: num(normalInput?.value),
+            disabled: num(disInput?.value),
             compact: num(smallInput?.value),
-            eco:     num(greenInput?.value),
-            pregnant:num(pregInput?.value)
+            eco: num(greenInput?.value),
+            pregnant: num(pregInput?.value)
         },
-        autoTotalFromDetail: true, // 항상 자동합계
+        autoTotalFromDetail: true,
 
         ownerType: own,
         ownerCompany: (own==='민간위탁') ? ($('#f_own_company')?.value||'') : '',
-        manager:{ name:$('#f_mgr_name')?.value||'', tel:$('#f_mgr_tel')?.value||'' },
+        manager: {
+            name: $('#f_mgr_name')?.value||'',
+            tel: $('#f_mgr_tel')?.value||''
+        },
 
         oddEven: $('#f_oddEven')?.value||'',
-
         operationType: selectedOp,
-        times:{ day:$('#chk_day')?.checked||false, night:$('#chk_night')?.checked||false },
-        dayDetail: ($('#chk_day')?.checked)
-            ? { grade: $('#f_day_grade')?.value||'', feeType: $('#f_day_feeType')?.value||'' }
-            : null,
-
-        residentFees: (selectedOp.includes('거주자우선주차장')) ? {
-            all:   num(f_res_all?.value),
-            day:   num(f_res_day?.value),
-            full:  num(f_res_full?.value),
-            night: num(f_res_night?.value)
-        } : null,
-
-        normalStreetFees: (selectedOp.includes('일반노상주차장')) ? {
-            first30:  num(f_fee_first30?.value),
-            per10:    num(f_fee_per10?.value),
-            per60:    num(f_fee_per60?.value),
-            daily:    num(f_fee_daily?.value),
-            monthly:  num(f_fee_monthly?.value),
-            halfyear: num(f_fee_halfyear?.value)
-        } : null,
-
-        payMethods: collectPayMethods(),          // 지불방식
-        settleMethods: collectSettleMethods(),    // 정산방식 (★ 통합 추가)
+        times: {
+            day: isDayChecked,
+            night: isNightChecked
+        }
     };
+
+    // 주간 데이터
+    if (isDayChecked) {
+        payload.day = {
+            grade: $('#f_day_grade')?.value || '',
+            feeType: $('#f_day_feeType')?.value || '',
+            payMethods: collectPayMethods('day'),
+            settleMethods: collectSettleMethods('day'),
+            operatingHours: collectOperatingHours('day')
+        };
+
+        // 주간 요금 데이터
+        if (selectedOp.includes('거주자우선주차장')) {
+            payload.day.residentFees = {
+                all: num($('#f_day_res_all')?.value),
+                day: num($('#f_day_res_day')?.value),
+                full: num($('#f_day_res_full')?.value),
+                night: num($('#f_day_res_night')?.value)
+            };
+        }
+
+        if (selectedOp.includes('일반노상주차장')) {
+            payload.day.normalStreetFees = {
+                first30: num($('#f_day_fee_first30')?.value),
+                per10: num($('#f_day_fee_per10')?.value),
+                per60: num($('#f_day_fee_per60')?.value),
+                daily: num($('#f_day_fee_daily')?.value),
+                monthly: num($('#f_day_fee_monthly')?.value),
+                halfyear: num($('#f_day_fee_halfyear')?.value)
+            };
+        }
+    }
+
+    // 야간 데이터
+    if (isNightChecked) {
+        payload.night = {
+            grade: $('#f_night_grade')?.value || '',
+            feeType: $('#f_night_feeType')?.value || '',
+            payMethods: collectPayMethods('night'),
+            settleMethods: collectSettleMethods('night'),
+            operatingHours: collectOperatingHours('night')
+        };
+
+        // 야간 요금 데이터
+        if (selectedOp.includes('거주자우선주차장')) {
+            payload.night.residentFees = {
+                all: num($('#f_night_res_all')?.value),
+                day: num($('#f_night_res_day')?.value),
+                full: num($('#f_night_res_full')?.value),
+                night: num($('#f_night_res_night')?.value)
+            };
+        }
+
+        if (selectedOp.includes('일반노상주차장')) {
+            payload.night.normalStreetFees = {
+                first30: num($('#f_night_fee_first30')?.value),
+                per10: num($('#f_night_fee_per10')?.value),
+                per60: num($('#f_night_fee_per60')?.value),
+                daily: num($('#f_night_fee_daily')?.value),
+                monthly: num($('#f_night_fee_monthly')?.value),
+                halfyear: num($('#f_night_fee_halfyear')?.value)
+            };
+        }
+    }
 
     return payload;
 }
 
 function doSave(){
-    // 자동합계이므로 총면수-세부면수 일치 검증 불필요
     const payload = buildPayload();
     console.log('SAVE(offstreet):', payload);
-    alert('샘플 저장 완료(콘솔 확인). 실제 API로 교체하세요.');
+    alert('주간/야간 데이터 저장 완료(콘솔 확인). 실제 API로 교체하세요.');
 }
 
-$('#btnSave')?.addEventListener('click', doSave);
-$('#btnSaveTop')?.addEventListener('click', doSave);
+// ========== 초기화 ==========
+document.addEventListener('DOMContentLoaded', function() {
+    // 주간/야간 섹션 설정
+    setupDayNightSections();
+
+    // 시간제운영 이벤트 설정
+    setupTimeOperationEvents('day');
+    setupTimeOperationEvents('night');
+
+    // 요금 지불방식 설정
+    setupPaymentMethods();
+
+    // 저장 버튼 이벤트
+    $('#btnSave')?.addEventListener('click', doSave);
+    $('#btnSaveTop')?.addEventListener('click', doSave);
+});
+
+// 파일 업로드 진행률 관리
+class FileUploadProgress {
+    constructor() {
+        this.progressArea = document.getElementById('upload-progress-area');
+        this.progressFill = document.getElementById('progress-fill');
+        this.progressText = document.getElementById('progress-text');
+        this.fileItem = document.getElementById('upload-file-item');
+        this.fileName = document.getElementById('file-name');
+        this.fileSize = document.getElementById('file-size');
+        this.fileStatus = document.getElementById('file-status');
+        this.fileProgressFill = document.getElementById('file-progress-fill');
+        this.uploadSummary = document.querySelector('.upload-summary');
+        this.btnCancel = document.getElementById('btn-upload-cancel');
+        this.btnComplete = document.getElementById('btn-upload-complete');
+
+        this.setupEventListeners();
+    }
+
+    setupEventListeners() {
+        if (this.btnCancel) {
+            this.btnCancel.addEventListener('click', () => {
+                this.cancel();
+            });
+        }
+
+        if (this.btnComplete) {
+            this.btnComplete.addEventListener('click', () => {
+                this.hide();
+            });
+        }
+    }
+
+    show(file) {
+        if (!this.progressArea || !file) return;
+
+        this.currentFile = file;
+        this.progressArea.style.display = 'block';
+        this.fileItem.style.display = 'flex';
+
+        // 파일 정보 설정
+        this.fileName.textContent = file.name;
+        this.fileSize.textContent = `0MB / ${this.formatFileSize(file.size)}`;
+        this.fileStatus.textContent = '전송중';
+        this.fileStatus.className = 'file-status uploading';
+
+        // 요약 정보 업데이트
+        this.updateSummary(0, file.size);
+
+        // 진행률 초기화
+        this.updateProgress(0);
+        this.updateFileProgress(0);
+
+        // 시뮬레이션된 업로드 진행률 시작
+        this.startSimulatedProgress();
+    }
+
+    hide() {
+        if (this.progressArea) {
+            this.progressArea.style.display = 'none';
+        }
+        this.reset();
+    }
+
+    cancel() {
+        this.hide();
+        // 실제로는 업로드 취소 로직 추가
+        console.log('업로드 취소됨');
+    }
+
+    updateProgress(percent) {
+        if (this.progressFill) {
+            this.progressFill.style.width = `${percent}%`;
+        }
+        if (this.progressText) {
+            this.progressText.textContent = `${Math.round(percent)}%`;
+        }
+    }
+
+    updateFileProgress(percent) {
+        if (this.fileProgressFill) {
+            this.fileProgressFill.style.width = `${percent}%`;
+        }
+
+        if (this.currentFile && this.fileSize) {
+            const uploaded = (this.currentFile.size * percent / 100);
+            this.fileSize.textContent =
+                `${this.formatFileSize(uploaded)} / ${this.formatFileSize(this.currentFile.size)}`;
+        }
+    }
+
+    updateSummary(uploadedSize, totalSize) {
+        if (!this.uploadSummary) return;
+
+        const statusEl = this.uploadSummary.querySelector('.upload-status');
+        const sizeEl = this.uploadSummary.querySelector('.upload-size');
+        const percentEl = this.uploadSummary.querySelector('.upload-percent');
+
+        if (statusEl) statusEl.textContent = '0개 / 1개';
+        if (sizeEl) sizeEl.textContent =
+            `${this.formatFileSize(uploadedSize)} / ${this.formatFileSize(totalSize)}`;
+
+        const percent = totalSize > 0 ? Math.round((uploadedSize / totalSize) * 100) : 0;
+        if (percentEl) percentEl.textContent = `${100 - percent}% 남음`;
+    }
+
+    complete() {
+        this.updateProgress(100);
+        this.updateFileProgress(100);
+
+        if (this.fileStatus) {
+            this.fileStatus.textContent = '전송완료';
+            this.fileStatus.className = 'file-status completed';
+        }
+
+        if (this.currentFile) {
+            this.updateSummary(this.currentFile.size, this.currentFile.size);
+        }
+
+        // 완료 버튼 표시
+        if (this.btnComplete) this.btnComplete.style.display = 'inline-block';
+        if (this.btnCancel) this.btnCancel.style.display = 'none';
+
+        // 완료 애니메이션
+        if (this.progressArea) {
+            this.progressArea.classList.add('completed');
+            setTimeout(() => {
+                this.progressArea.classList.remove('completed');
+            }, 500);
+        }
+    }
+
+    error(message) {
+        if (this.fileStatus) {
+            this.fileStatus.textContent = message || '전송실패';
+            this.fileStatus.className = 'file-status error';
+        }
+    }
+
+    startSimulatedProgress() {
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress >= 100) {
+                progress = 100;
+                clearInterval(interval);
+                setTimeout(() => this.complete(), 200);
+            }
+            this.updateProgress(progress);
+            this.updateFileProgress(progress);
+
+            if (this.currentFile) {
+                this.updateSummary(
+                    this.currentFile.size * progress / 100,
+                    this.currentFile.size
+                );
+            }
+        }, 100);
+
+        this.currentInterval = interval;
+    }
+
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + sizes[i];
+    }
+
+    reset() {
+        if (this.currentInterval) {
+            clearInterval(this.currentInterval);
+            this.currentInterval = null;
+        }
+
+        this.currentFile = null;
+        this.updateProgress(0);
+        this.updateFileProgress(0);
+
+        if (this.btnComplete) this.btnComplete.style.display = 'none';
+        if (this.btnCancel) this.btnCancel.style.display = 'inline-block';
+    }
+}
+
+// 파일 업로드 진행률 인스턴스 생성
+const uploadProgress = new FileUploadProgress();
+
+// 기존 handleFiles 함수 수정
+async function handleFiles(list, mode){
+    const file = list && list[0];
+    if (!file) return;
+
+    // 업로드 진행률 표시
+    uploadProgress.show(file);
+
+    try {
+        $('#preview').src = URL.createObjectURL(file);
+    } catch(_) {}
+
+    if (mode === 'cam') {
+        const c = await geoFromDeviceSilent();
+        if (c && f_lat && f_lng) {
+            f_lat.value = c.lat.toFixed(6);
+            f_lng.value = c.lng.toFixed(6);
+        }
+        return;
+    }
+
+    try {
+        let coords = null;
+        if (window.exifr) {
+            try {
+                const g = await exifr.gps(file);
+                if (g && typeof g.latitude === 'number' && typeof g.longitude === 'number') {
+                    coords = {lat: g.latitude, lng: g.longitude};
+                }
+            } catch(_) {}
+        }
+        if (!coords && (/jpe?g$/i.test(file.name) || file.type === 'image/jpeg')) {
+            try {
+                coords = await readJpegGpsSafe(file);
+            } catch(_) {}
+        }
+        if (coords && f_lat && f_lng) {
+            f_lat.value = Number(coords.lat).toFixed(6);
+            f_lng.value = Number(coords.lng).toFixed(6);
+        }
+    } catch(err) {
+        console.error(err);
+        uploadProgress.error('좌표 추출 실패');
+    }
+}

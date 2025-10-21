@@ -131,3 +131,589 @@ textarea{min-height:80px; resize:vertical}
     width: 220px;
     max-width: 60%;
 }
+
+/* 운영시간 스타일 */
+.operation-day-block {
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background-color: #fafafa;
+    margin-bottom: 8px;
+}
+
+.operation-day-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    color: #333;
+}
+
+.operation-day-block .radio-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+.time-inputs-wrapper {
+    display: none;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    border-left: 3px solid #007bff;
+}
+
+.time-inputs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.time-label {
+    font-weight: 500;
+    color: #495057;
+    margin-right: 4px;
+}
+
+.time-inputs input[type="number"] {
+    text-align: center;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 4px 6px;
+    font-size: 13px;
+    width: 50px;
+}
+
+.time-inputs input[type="number"]:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+}
+
+.time-inputs input[type="number"]:disabled {
+    background-color: #e9ecef;
+    color: #6c757d;
+    border-color: #ced4da;
+}
+
+.time-inputs span {
+    color: #6c757d;
+    font-size: 13px;
+    font-weight: normal;
+}
+
+/* 시간 입력 영역 강조 스타일 - 공통 */
+.highlight-input-area {
+    border: 2px dashed;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 12px 0;
+    position: relative;
+    animation: fadeInSlide 0.3s ease-in-out;
+}
+
+.highlight-input-area::before {
+    content: "입력 필요";
+    position: absolute;
+    top: -8px;
+    left: 12px;
+    color: white;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 10px;
+    z-index: 1;
+}
+
+/* 평일 - 파란색 */
+.weekday-time .highlight-input-area {
+    background: linear-gradient(135deg, #f0f9ff 0%, #dbeafe 100%);
+    border-color: #3b82f6;
+}
+
+.weekday-time .highlight-input-area::before {
+    background: #3b82f6;
+}
+
+.weekday-time .time-input {
+    border-color: #3b82f6;
+}
+
+.weekday-time .time-input:focus {
+    border-color: #1d4ed8;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.weekday-time .time-label {
+    color: #1d4ed8;
+}
+
+.weekday-time .input-guide {
+    background: rgba(59, 130, 246, 0.1);
+    border-left-color: #3b82f6;
+}
+
+/* 토요일 - 초록색 */
+.saturday-time .highlight-input-area {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-color: #22c55e;
+}
+
+.saturday-time .highlight-input-area::before {
+    background: #22c55e;
+}
+
+.saturday-time .time-input {
+    border-color: #22c55e;
+}
+
+.saturday-time .time-input:focus {
+    border-color: #16a34a;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+}
+
+.saturday-time .time-label {
+    color: #16a34a;
+}
+
+.saturday-time .input-guide {
+    background: rgba(34, 197, 94, 0.1);
+    border-left-color: #22c55e;
+}
+
+/* 공휴일 - 주황색 (기존 일요일 스타일을 공휴일로 변경) */
+.holiday-time .highlight-input-area {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border-color: #f59e0b;
+}
+
+.holiday-time .highlight-input-area::before {
+    background: #f59e0b;
+}
+
+.holiday-time .time-input {
+    border-color: #f59e0b;
+}
+
+.holiday-time .time-input:focus {
+    border-color: #d97706;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+}
+
+.holiday-time .time-label {
+    color: #d97706;
+}
+
+.holiday-time .input-guide {
+    background: rgba(245, 158, 11, 0.1);
+    border-left-color: #f59e0b;
+}
+
+/* 공통 스타일 */
+.time-input-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+    flex-wrap: wrap;
+}
+
+.time-input {
+    width: 60px !important;
+    height: 36px;
+    text-align: center;
+    border: 2px solid;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: bold;
+    background: white;
+    transition: all 0.2s ease;
+}
+
+.time-input:focus {
+    outline: none;
+}
+
+.time-input::placeholder {
+    color: #999;
+    font-weight: normal;
+}
+
+.time-unit {
+    font-weight: bold;
+    color: #333;
+    font-size: 14px;
+    margin: 0 2px;
+}
+
+.time-separator {
+    font-weight: bold;
+    color: #666;
+    font-size: 16px;
+    margin: 0 4px;
+}
+
+.time-label {
+    font-weight: bold;
+    font-size: 15px;
+    margin-right: 12px;
+}
+
+.input-guide {
+    font-size: 12px;
+    color: #666;
+    font-style: italic;
+    margin-top: 8px;
+    text-align: center;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border-left: 3px solid;
+}
+
+/* 애니메이션 효과 */
+@keyframes fadeInSlide {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.time-inputs-wrapper {
+    transition: all 0.3s ease-in-out;
+}
+
+/* 반응형 대응 */
+@media (max-width: 768px) {
+    .time-input-group {
+        justify-content: center;
+    }
+    
+    .time-input {
+        width: 50px !important;
+    }
+}
+
+/* 접근성을 위한 고대비 모드 지원 */
+@media (prefers-contrast: more) {
+    .highlight-input-area {
+        border: 2px solid #000;
+        background: #fff;
+        box-shadow: 0 0 0 2px #000;
+    }
+
+    .time-input {
+        border: 2px solid #000 !important;
+        background: #fff !important;
+        color: #000;
+    }
+
+    /* 포커스 상태 개선 */
+    .highlight-input-area:focus-within,
+    .time-input:focus {
+        outline: 3px solid #0066cc;
+        outline-offset: 2px;
+        box-shadow: 0 0 0 1px #000, 0 0 0 4px #0066cc;
+    }
+
+    /* 색상별 구분을 위한 패턴 추가 */
+    .weekday-time .highlight-input-area {
+        border-style: solid;
+        background-image: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(0,0,0,0.05) 10px,
+                rgba(0,0,0,0.05) 20px
+        );
+    }
+
+    .saturday-time .highlight-input-area {
+        border-style: dashed;
+    }
+
+    .holiday-time .highlight-input-area {
+        border-style: dotted;
+        border-width: 3px;
+    }
+
+    /* 텍스트 레이블 강화 */
+    .time-label {
+        color: #000 !important;
+        font-weight: 900;
+    }
+
+    /* 상태별 명확한 구분 */
+    .highlight-input-area::before {
+        background: #000 !important;
+        color: #fff !important;
+        border: 2px solid #fff;
+    }
+}
+
+/* 파일 업로드 버튼 그룹 */
+.file-upload-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+/* 파일 업로드 진행률 컨테이너 */
+.upload-progress-container {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.upload-header {
+    margin-bottom: 16px;
+}
+
+.upload-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+}
+
+/* 업로드 요약 정보 */
+.upload-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.upload-status {
+    font-weight: 500;
+    color: #059669;
+}
+
+.upload-size {
+    color: #4b5563;
+}
+
+.upload-percent {
+    color: #f59e0b;
+}
+
+/* 전체 진행률 바 */
+.progress-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 8px;
+    background-color: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+    border-radius: 4px;
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: #059669;
+    min-width: 40px;
+    text-align: right;
+}
+
+/* 파일 목록 */
+.file-list {
+    margin-bottom: 20px;
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+
+.file-icon {
+    font-size: 20px;
+    width: 24px;
+    text-align: center;
+}
+
+.file-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.file-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1f2937;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.file-size-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.file-progress-bar {
+    flex: 1;
+    height: 4px;
+    background-color: #e5e7eb;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.file-progress-fill {
+    height: 100%;
+    background: #10b981;
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.2s ease;
+}
+
+.file-size {
+    font-size: 12px;
+    color: #6b7280;
+    white-space: nowrap;
+}
+
+.file-status {
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.file-status.uploading {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.file-status.completed {
+    background: #dcfce7;
+    color: #059669;
+}
+
+.file-status.error {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+/* 업로드 액션 버튼들 */
+.upload-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.btn-cancel {
+    background: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+    background: #e5e7eb;
+    color: #4b5563;
+}
+
+.btn-complete {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-complete:hover {
+    background: #059669;
+}
+
+/* 반응형 대응 */
+@media (max-width: 768px) {
+    .file-upload-buttons {
+        flex-direction: column;
+    }
+
+    .upload-summary {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .progress-bar-container {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .progress-text {
+        text-align: center;
+    }
+
+    .file-size-progress {
+        flex-direction: column;
+        gap: 4px;
+        align-items: flex-start;
+    }
+
+    .upload-actions {
+        flex-direction: column;
+    }
+}
+
+/* 업로드 완료 애니메이션 */
+@keyframes uploadComplete {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.upload-progress-container.completed {
+    animation: uploadComplete 0.5s ease;
+    border-color: #10b981;
+}
