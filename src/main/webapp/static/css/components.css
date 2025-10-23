@@ -1,9 +1,0 @@
-.btn { display:inline-block; padding:10px 14px; border-radius:10px; border:1px solid #2d333b; }
-.btn-primary { background: var(--brand); color:#fff; }
-.table { width:100%; border-collapse: collapse; }
-.table th, .table td { border-bottom:1px solid #233; padding:10px; text-align:left; }
-.input, select { background:#0b1220; border:1px solid #233; color:#fff; padding:10px; border-radius:8px; width:100%; }
-.form-row { display:grid; gap:var(--gap); grid-template-columns: repeat(12, 1fr); }
-.form-row > * { grid-column: span 6; }
-@media (max-width:768px) { .form-row > * { grid-column: span 12; } }
-.badge { display:inline-block; padding:4px 8px; background:#132; border:1px solid #294; border-radius:999px; color:#9fd; font-size:12px; }

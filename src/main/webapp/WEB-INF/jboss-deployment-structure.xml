@@ -2,10 +2,16 @@
 <jboss-deployment-structure>
     <deployment>
         <exclusions>
-            <module name="jdk.unsupported"/>
+            <!-- Jandex 인덱싱 문제를 방지하기 위해 문제가 되는 모듈 제외 -->
+            <module name="org.jboss.jandex"/>
         </exclusions>
         <dependencies>
-            <module name="io.undertow.jsp"/>
+            <!-- 필요한 모듈 의존성 추가 -->
+            <module name="org.apache.commons.lang"/>
+            <module name="org.apache.commons.collections"/>
         </dependencies>
+        <resources>
+            <!-- 추가 리소스가 필요한 경우 여기에 resource-root 요소 추가 -->
+        </resources>
     </deployment>
 </jboss-deployment-structure>

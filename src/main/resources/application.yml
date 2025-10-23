@@ -1,0 +1,62 @@
+spring:
+  profiles:
+    #active: dev
+  config:
+    activate:
+      on-profile: default
+  datasource:
+    # PostgreSQL을 기본 설정으로 변경
+    driver-class-name: ${DB_DRIVER:org.postgresql.Driver}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/postgres}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:ksi4788500!}
+    hikari:
+      # PostgreSQL 기본 설정
+      maximum-pool-size: ${DB_MAX_POOL_SIZE:10}
+      minimum-idle: ${DB_MIN_IDLE:5}
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+
+      # 연결 검증
+      connection-test-query: "SELECT 1"
+      validation-timeout: 3000
+
+      # PostgreSQL 최적화 설정
+      data-source-properties:
+        stringtype: unspecified
+        ApplicationName: psim-web
+
+# MyBatis 설정
+mybatis:
+  mapper-locations: classpath:mappers/**/*.xml
+  type-aliases-package: com.psim.web.*.vo
+  configuration:
+    map-underscore-to-camel-case: true
+    call-setters-on-nulls: true
+    jdbc-type-for-null: NULL
+    cache-enabled: true
+    lazy-loading-enabled: false
+    aggressive-lazy-loading: false
+    default-statement-timeout: 30
+
+# 로깅 설정
+logging:
+  level:
+    com.psim: DEBUG
+    com.zaxxer.hikari: INFO
+    org.springframework.jdbc: DEBUG
+    org.springframework.transaction: DEBUG
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# 서버 설정
+server:
+  port: ${PORT:8080}
+  servlet:
+    context-path: /
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true

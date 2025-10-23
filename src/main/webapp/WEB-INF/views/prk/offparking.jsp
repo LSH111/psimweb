@@ -27,7 +27,97 @@
       </span>
     </header>
 
-    <section class="row">
+
+    <%--<div class="sections-container">
+        <!-- 기본정보 섹션 -->
+        <section class="section basic-info" aria-labelledby="basic-info-heading">
+            <h2 class="section-title" id="basic-info-heading">기본정보</h2>
+            <div class="grid">
+                <div><label for="f_id">주차장관리번호</label><div class="ctl"><input id="f_id" class="mono" type="text" readonly /></div></div>
+                <div><label for="f_name">주차장명</label><div class="ctl"><input id="f_name" type="text" placeholder="예) 연남로 노상" /></div></div>
+                <div><label for="f_status">진행상태</label><div class="ctl"><input id="f_status" type="text" placeholder="예) PENDING/APPROVED" /></div></div>
+                <div><label for="f_type">주차장구분</label><div class="ctl"><input id="f_type" type="text" value="노상" readonly /></div></div>
+                <div><label for="f_sido">시도</label><div class="ctl"><input id="f_sido" /></div></div>
+                <div><label for="f_sigungu">시군구</label><div class="ctl"><input id="f_sigungu" /></div></div>
+                <div><label for="f_emd">읍면동</label><div class="ctl"><input id="f_emd" /></div></div>
+
+                <!-- 주소: 지번/도로명 + 주소찾기 -->
+                <div style="grid-column:1/-1">
+                    <label for="f_addr_jibun">지번 주소</label>
+                    <div class="ctl"><input id="f_addr_jibun" type="text" placeholder="예) 서울 마포구 연남동 123-45" readonly /></div>
+                </div>
+                <div style="grid-column:1/-1">
+                    <label for="f_addr_road">도로명 주소</label>
+                    <div class="ctl"><input id="f_addr_road" type="text" placeholder="예) 서울 마포구 연남로 123" readonly /></div>
+                </div>
+                <div style="grid-column:1/-1; display:flex; gap:8px">
+                    <button type="button" class="btn light" id="btnFindAddr">주소찾기</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="section photo-location" aria-labelledby="photo-location-title">
+            <h2 class="section-title" id="photo-location-title">
+                현장 사진 & 좌표
+            </h2>
+            <div class="photo-upload-area">
+                <input id="f_photo_lib" type="file" accept="image/*,image/heic,image/heif" style="display:none" />
+                <input id="f_photo_cam" type="file" accept="image/*" capture="environment" style="display:none" />
+                <div class="file-upload-buttons">
+                    <button type="button" class="btn light" id="btnPickFromLibrary">사진첩에서 선택</button>
+                    <button type="button" class="btn ghost" id="btnTakePhoto">카메라 촬영</button>
+                    <button type="button" class="btn" id="btnUseGeolocation">기기 위치로 좌표</button>
+                    <button type="button" class="btn ghost" id="btnClearPhoto">초기화</button>
+                </div>
+
+                <!-- 파일 업로드 진행률 표시 영역 -->
+                <div id="upload-progress-area" class="upload-progress-container" style="display: none;">
+                    <div class="upload-header">
+                        <h3 class="upload-title">첨부파일 업로드</h3>
+                    </div>
+
+                    <div class="upload-summary">
+                        <span class="upload-status">0개 / 1개</span>
+                        <span class="upload-size">0MB / 0MB</span>
+                        <span class="upload-percent">0% 남음</span>
+                    </div>
+
+                    <div class="progress-bar-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                        <span class="progress-text" id="progress-text">0%</span>
+                    </div>
+
+                    <div class="file-list">
+                        <div class="file-item" id="upload-file-item" style="display: none;">
+                            <div class="file-icon">📁</div>
+                            <div class="file-info">
+                                <div class="file-name" id="file-name">파일명.jpg</div>
+                                <div class="file-size-progress">
+                                    <div class="file-progress-bar">
+                                        <div class="file-progress-fill" id="file-progress-fill"></div>
+                                    </div>
+                                    <span class="file-size" id="file-size">0MB / 0MB</span>
+                                </div>
+                            </div>
+                            <div class="file-status" id="file-status">전송중</div>
+                        </div>
+                    </div>
+
+                    <div class="upload-actions">
+                        <button type="button" class="btn-cancel" id="btn-upload-cancel">취소</button>
+                        <button type="button" class="btn-complete" id="btn-upload-complete" style="display: none;">완료</button>
+                    </div>
+                </div>
+            </div>
+            <div class="coordinates-input">
+                <div><label for="f_lat">위도</label><div class="ctl"><input id="f_lat" class="mono" inputmode="decimal" /></div></div>
+                <div><label for="f_lng">경도</label><div class="ctl"><input id="f_lng" class="mono" inputmode="decimal" /></div></div>
+            </div>
+        </section>
+    </div>--%>
+        <section class="row">
         <!-- 기본정보 -->
         <div class="card">
             <h2>기본정보</h2>
@@ -54,7 +144,8 @@
                 </div>
             </div>
         </div>
-
+        </section>
+        <section class="section">
         <!-- 사진 & 좌표 -->
         <div class="card">
             <h2>현장 사진 & 좌표</h2>
