@@ -1,46 +1,94 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.psim.web.cmm.mapper.CoCodeMapper">
 
-    <!-- 그룹코드별 공통코드 목록 조회 -->
-    <select id="selectCodeListByGroup" parameterType="string" resultType="com.psim.web.cmm.vo.CoCodeVO">
+    <!-- ========== ResultMap 정의 ========== -->
+    
+    <!-- 공통코드 ResultMap -->
+    <resultMap id="CoCodeResultMap" type="com.psim.web.cmm.vo.CoCodeVO">
+        <result property="codeCd" column="code_cd"/>
+        <result property="codeNm" column="code_nm"/>
+        <result property="groupCd" column="group_cd"/>
+        <result property="upperCodeCd" column="upper_code_cd"/>
+        <result property="useYn" column="use_yn"/>
+        <result property="sortOrdr" column="sort_ordr"/>
+    </resultMap>
+
+    <!-- 코드그룹 ResultMap -->
+    <resultMap id="CoCodeGroupResultMap" type="com.psim.web.cmm.vo.CoCodeGroupVO">
+        <result property="groupCd" column="group_cd"/>
+        <result property="codeCd" column="code_cd"/>
+        <result property="groupNm" column="code_nm"/>
+        <result property="useYn" column="use_yn"/>
+    </resultMap>
+
+    <!-- 법정동 ResultMap -->
+    <resultMap id="CoLdongResultMap" type="com.psim.web.cmm.vo.CoLdongVO">
+        <result property="emdCd" column="emd_cd"/>
+        <result property="lgalEmdNm" column="lgal_emd_nm"/>
+        <result property="sigunguCd" column="sigungu_cd"/>
+    </resultMap>
+
+    <!-- ========== SELECT 쿼리들 ========== -->
+
+    <!-- 1. 그룹코드별 공통코드 목록 조회 -->
+    <select id="selectCodeListByGroup" parameterType="string" resultMap="CoCodeResultMap">
         SELECT
-            group_cd as groupCd,
-            code_cd as codeCd,
-            code_nm as codeNm,
-            use_yn as useYn
+            code_cd,
+            code_nm,
+            group_cd,
+            use_yn,
+            sort_order
         FROM cpk.tb_co_code
         WHERE group_cd = #{groupCd}
           AND use_yn = 'Y'
-        ORDER BY code_cd ASC
+        ORDER BY sort_order, code_cd
     </select>
 
-    <!-- 상위 코드에 따른 하위 코드 목록 조회 (시도 -> 시군구, 시군구 -> 읍면동) -->
-    <select id="selectSubCodeList" parameterType="map" resultType="com.psim.web.cmm.vo.CoCodeVO">
+    <!-- 2. 상위코드별 하위코드 목록 조회 -->
+    <select id="selectSubCodeList" parameterType="map" resultMap="CoCodeResultMap">
         SELECT
-        group_cd as groupCd,
-        code_cd as codeCd,
-        code_nm as codeNm,
-        use_yn as useYn
+            code_cd,
+            code_nm,
+            group_cd,
+            use_yn,
+            sort_order
         FROM cpk.tb_co_code
         WHERE group_cd = #{groupCd}
-        AND use_yn = 'Y'
-        <if test="upperCodeCd != null and upperCodeCd != ''">
-            AND SUBSTRING(code_cd, 1, LENGTH(#{upperCodeCd})) = #{upperCodeCd}
-        </if>
-        ORDER BY code_cd ASC
+          AND use_yn = 'Y'
+        ORDER BY sort_order, code_cd
     </select>
 
-    <!-- 시군구코드에 따른 읍면동 목록 조회 -->
-    <select id="selectLdongList" parameterType="string" resultType="com.psim.web.cmm.vo.CoLdongVO">
-        SELECT DISTINCT
-            tcl.emd_cd AS emdCd,
-            tcl.lgal_emd_nm AS lgalEmdNm
-        FROM cpk.tb_co_ldong tcl
-        WHERE tcl.sigungu_cd = #{sigunguCd}
-        ORDER BY tcl.emd_cd ASC
+    <!-- 3. 시군구코드별 읍면동 목록 조회 -->
+    <select id="selectLdongList" parameterType="string" resultMap="CoLdongResultMap">
+        SELECT 
+            emd_cd,
+            lgal_emd_nm,
+            sigungu_cd
+        FROM cpk.tb_co_ldong
+        WHERE sigungu_cd = #{sigunguCd}
+        ORDER BY lgal_emd_nm
     </select>
 
+    <!-- 4. 코드 그룹 목록 조회 -->
+    <select id="selectCodeGroupList" resultMap="CoCodeGroupResultMap">
+        SELECT
+            group_cd,
+            code_cd,
+            code_nm,
+            use_yn
+        FROM cpk.tb_co_code
+        WHERE use_yn = 'Y'
+        ORDER BY group_cd, sort_order
+    </select>
+
+    <!-- 5. 코드 그룹 집계 조회 -->
+    <select id="selectCodeGroupsAggregated" resultType="map">
+        SELECT
+            STRING_AGG(group_cd, ',') as groupCd
+        FROM cpk.tb_co_code
+        WHERE use_yn = 'Y'
+    </select>
 </mapper>

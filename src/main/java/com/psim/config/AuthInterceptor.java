@@ -12,34 +12,24 @@ public class AuthInterceptor implements HandlerInterceptor {
     
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        String uri = request.getRequestURI();
         String requestURI = request.getRequestURI();
         String contextPath = request.getContextPath();
 
         // 로그인 관련 경로는 인터셉트하지 않음
-        if (requestURI.equals("/") || requestURI.equals("/login")) {
+        if (requestURI.equals(contextPath + "/") || requestURI.equals(contextPath + "/login")) {
             return true; // 통과
         }
 
-        // 세션 체크
-        HttpSession session = request.getSession();
-        Object user = session.getAttribute("loginUser");
+        // 세션 체크 - AuthFilter와 동일한 키 사용
+        HttpSession session = request.getSession(false);
+        Object loginFlag = (session != null) ? session.getAttribute("LOGIN") : null;
 
-        if (user == null) {
-            response.sendRedirect(contextPath + "/login");
-            return false;
+        if (loginFlag != null && Boolean.TRUE.equals(loginFlag)) {
+            return true;
         }
 
-        return true;
-    }
-
-    private boolean isWhitelisted(String uri, String contextPath) {
-        String path = uri.substring(contextPath.length());
-
-        return path.equals("/login") ||
-               path.startsWith("/static/") ||
-               path.startsWith("/css/") ||
-               path.startsWith("/js/") ||
-               path.startsWith("/img/");
+        // ✅ /login이 아니라 /로 리다이렉트
+        response.sendRedirect(contextPath + "/");
+        return false;
     }
 }

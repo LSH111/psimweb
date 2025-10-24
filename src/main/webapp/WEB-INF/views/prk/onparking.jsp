@@ -183,11 +183,7 @@
                 <label for="f_oddEven">부제 시행 여부</label>
                 <div class="ctl">
                     <select id="f_oddEven">
-                        <option value="미시행">미시행</option>
-                        <option value="2부제">2부제</option>
-                        <option value="5부제">5부제</option>
-                        <option value="10부제">10부제</option>
-                        <option value="승용차요일제">승용차요일제</option>
+                        <!-- JavaScript로 동적 로드 -->
                     </select>
                 </div>
             </div>
@@ -218,10 +214,8 @@
                     <label for="f_day_grade">주간 급지</label>
                     <div class="ctl">
                         <select id="f_day_grade">
-                            <option value="">선택</option>
-                            <option>1급지</option><option>2급지</option><option>3급지</option>
-                            <option>4급지</option><option>5급지</option>
-                            <option>미분류</option><option>기타</option>
+                            <<option value="">선택</option>
+                            <!-- JavaScript로 동적 로드 -->
                         </select>
                     </div>
                 </div>
@@ -234,9 +228,7 @@
                     <div class="ctl">
                         <select id="f_night_grade">
                             <option value="">선택</option>
-                            <option>1급지</option><option>2급지</option><option>3급지</option>
-                            <option>4급지</option><option>5급지</option>
-                            <option>미분류</option><option>기타</option>
+                            <!-- JavaScript로 동적 로드 -->
                         </select>
                     </div>
                 </div>
@@ -251,9 +243,7 @@
                         <div class="ctl">
                             <select id="f_day_feeType">
                                 <option value="">선택</option>
-                                <option>유료</option>
-                                <option>무료</option>
-                                <option>유료+무료</option>
+                                <!-- JavaScript로 동적 로드 -->
                             </select>
                         </div>
                     </div>
@@ -269,9 +259,7 @@
                         <div class="ctl">
                             <select id="f_night_feeType">
                                 <option value="">선택</option>
-                                <option>유료</option>
-                                <option>무료</option>
-                                <option>유료+무료</option>
+                                <!-- JavaScript로 동적 로드 -->
                             </select>
                         </div>
                     </div>
@@ -302,7 +290,7 @@
                 </div>
 
                 <!-- (B) 일반노상주차장(승용차, 일반인 기준) 요금 -->
-                <div id="day_normal_fee_wrap">
+                <div id="day_normal_fee_wrap" hidden>
                     <h3 class="help" style="margin:.2rem 0">일반노상주차장 요금(승용차, 일반인 기준) - 주간</h3>
                     <div class="fee-group">
                         <!-- 1행 -->
@@ -359,7 +347,7 @@
                 </div>
 
                 <!-- (B) 일반노상주차장(승용차, 일반인 기준) 요금 -->
-                <div id="night_normal_fee_wrap">
+                <div id="night_normal_fee_wrap" hidden>
                     <h3 class="help" style="margin:.2rem 0">일반노상주차장 요금(승용차, 일반인 기준) - 야간</h3>
                     <div class="fee-group">
                         <!-- 1행 -->
@@ -397,18 +385,8 @@
                 <h2 class="fee-title">주간 요금 지불방식</h2>
 
                 <div class="grid row-1c">
-                    <div class="check-group" aria-label="주간 요금 지불방식">
-                        <label><input type="checkbox" name="dayPayMethod" value="현금" /> <span>현금</span></label>
-                        <label><input type="checkbox" name="dayPayMethod" value="신용카드" /> <span>신용카드</span></label>
-                        <label><input type="checkbox" name="dayPayMethod" value="상품권" /> <span>상품권</span></label>
-
-                        <!-- 기타(텍스트 입력) -->
-                        <label class="pay-etc">
-                            <input type="checkbox" id="day_pay_etc_chk" name="dayPayMethod" value="기타" />
-                            <span>기타</span>
-                            <input type="text" id="day_pay_etc_input"
-                                   placeholder="기타 지불수단 입력" disabled />
-                        </label>
+                    <div class="check-group" id="day_pay_group" aria-label="주간 요금 지불방식">
+                        <!-- JavaScript로 동적 생성 -->
                     </div>
                 </div>
             </div>
@@ -418,18 +396,8 @@
                 <h2 class="fee-title">야간 요금 지불방식</h2>
 
                 <div class="grid row-1c">
-                    <div class="check-group" aria-label="야간 요금 지불방식">
-                        <label><input type="checkbox" name="nightPayMethod" value="현금" /> <span>현금</span></label>
-                        <label><input type="checkbox" name="nightPayMethod" value="신용카드" /> <span>신용카드</span></label>
-                        <label><input type="checkbox" name="nightPayMethod" value="상품권" /> <span>상품권</span></label>
-
-                        <!-- 기타(텍스트 입력) -->
-                        <label class="pay-etc">
-                            <input type="checkbox" id="night_pay_etc_chk" name="nightPayMethod" value="기타" />
-                            <span>기타</span>
-                            <input type="text" id="night_pay_etc_input"
-                                   placeholder="기타 지불수단 입력" disabled />
-                        </label>
+                    <div class="check-group" id="night_pay_group" aria-label="야간 요금 지불방식">
+                        <!-- JavaScript로 동적 생성 -->
                     </div>
                 </div>
             </div>
@@ -439,9 +407,8 @@
                 <h2 class="fee-title">주간 요금 정산방식</h2>
 
                 <div class="grid row-1c">
-                    <div class="check-group" aria-label="주간 요금 정산방식" id="day_settle_group">
-                        <label><input type="checkbox" name="daySettleMethod" value="자동정산" id="day_settle_auto" /> <span>자동정산</span></label>
-                        <label><input type="checkbox" name="daySettleMethod" value="수동정산" id="day_settle_manual" /> <span>수동정산</span></label>
+                    <div id="day_settle_group" class="check-group">
+                        <!-- 동적으로 생성됨 -->
                     </div>
                 </div>
             </div>
@@ -451,9 +418,8 @@
                 <h2 class="fee-title">야간 요금 정산방식</h2>
 
                 <div class="grid row-1c">
-                    <div class="check-group" aria-label="야간 요금 정산방식" id="night_settle_group">
-                        <label><input type="checkbox" name="nightSettleMethod" value="자동정산" id="night_settle_auto" /> <span>자동정산</span></label>
-                        <label><input type="checkbox" name="nightSettleMethod" value="수동정산" id="night_settle_manual" /> <span>수동정산</span></label>
+                    <div id="night_settle_group" class="check-group">
+                        <!-- 동적으로 생성됨 -->
                     </div>
                 </div>
             </div>
@@ -642,8 +608,8 @@
             <div style="grid-column:1/-1">
                 <label>주차장 표지판</label>
                 <div class="radio-group" id="sign_group">
-                    <label><input type="radio" name="parkingSign" value="있음" id="sign_yes" /> <span>있음</span></label>
-                    <label><input type="radio" name="parkingSign" value="없음" id="sign_no" checked /> <span>없음</span></label>
+                    <label><input type="radio" name="parkingSign" value="Y" id="sign_yes" /> <span>있음</span></label>
+                    <label><input type="radio" name="parkingSign" value="N" id="sign_no" checked /> <span>없음</span></label>
                 </div>
             </div>
 
@@ -668,8 +634,8 @@
             <div style="grid-column:1/-1">
                 <label>경사구간 여부</label>
                 <div class="radio-group" id="slope_group">
-                    <label><input type="radio" name="slopeSection" value="있음" id="slope_yes" /> <span>있음</span></label>
-                    <label><input type="radio" name="slopeSection" value="없음" id="slope_no" checked /> <span>없음</span></label>
+                    <label><input type="radio" name="slopeSection" value="Y" id="slope_yes" /> <span>있음</span></label>
+                    <label><input type="radio" name="slopeSection" value="N" id="slope_no" checked /> <span>없음</span></label>
                 </div>
             </div>
 
@@ -697,6 +663,20 @@
                 <div class="check-group" id="safety_group" aria-label="안전시설 (중복선택 가능)">
                     <label><input type="checkbox" name="safetyFacility" value="미끄럼방지시설" /> <span>미끄럼 방지시설(스토퍼, 고임목 등)</span></label>
                     <label><input type="checkbox" name="safetyFacility" value="미끄럼주의안내표지판" /> <span>미끄럼 주의 안내표지판</span></label>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 비고 섹션 추가 -->
+    <section class="card">
+        <h2>비고</h2>
+        <div class="grid">
+            <div style="grid-column:1/-1">
+                <label for="f_partclr_matter">특이사항</label>
+                <div class="ctl">
+                        <textarea id="f_partclr_matter" rows="8"
+                                  placeholder="주차장 관련 특이사항을 입력하세요"></textarea>
                 </div>
             </div>
         </div>

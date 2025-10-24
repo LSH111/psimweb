@@ -133,4 +133,80 @@
         AND prk_plce_info_sn = #{prkPlceInfoSn}
     </update>
 
+    <!-- 노상주차장 상세 조회 쿼리 -->
+    <select id="selectOnstreetParkingDetail" parameterType="string"
+            resultType="com.psim.web.prk.vo.OnstreetParkingDetailVO">
+        select tpdpi.prk_plce_manage_no as prkPlceManageNo
+             , tpdpi.prkplce_nm as prkplceNm
+             , tpdpi.sido_cd as sidoCd
+             , tpdpi.sigungu_cd as sigunguCd
+             , tpdpi.dtadd as dtadd
+             , tpdpi.prk_plce_lat as prkPlceLat
+             , tpdpi.prk_plce_lon as prkPlceLon
+             , topi.tot_prk_cnt as totPrkCnt
+             , topi.disab_prk_cnt as disabPrkCnt
+             , topi.compact_prk_cnt as compactPrkCnt
+             , topi.eco_prk_cnt as ecoPrkCnt
+             , topi.pregnant_prk_cnt as pregnantPrkCnt
+             , topi.prk_oper_mthd_cd as prkOperMthdCd
+             , topi.oper_mby_cd as operMbyCd
+             , topi.mgr_org as mgrOrg
+             , topi.mgr_org_tel_no as mgrOrgTelNo
+             , topi.subordn_opertn_cd as subordnOpertnCd
+             , topoi.dynt_dv_cd as dyntDvCd
+             , topoi.wk_zon as wkZon
+             , topoi.wk_wkdy_oper_tm_cd as wkWkdyOperTmCd
+             , topoi.wk_wkdy_oper_star_tm as wkWkdyOperStarTm
+             , topoi.wk_wkdy_oper_end_tm as wkWkdyOperEndTm
+             , topoi.wk_sat_oper_tm_cd as wkSatOperTmCd
+             , topoi.wk_sat_oper_star_tm as wkSatOperStarTm
+             , topoi.wk_sat_oper_end_tm as wkSatOperEndTm
+             , topoi.wk_hldy_oper_tm_cd as wkHldyOperTmCd
+             , topoi.wk_hldy_oper_star_tm as wkHldyOperStarTm
+             , topoi.wk_hldy_oper_end_tm as wkHldyOperEndTm
+             , topoi.nt_zon as ntZon
+             , topoi.nt_wkdy_oper_tm_cd as ntWkdyOperTmCd
+             , topoi.nt_wkdy_oper_star_tm as ntWkdyOperStarTm
+             , topoi.nt_wkdy_oper_end_tm as ntWkdyOperEndTm
+             , topoi.nt_sat_oper_tm_cd as ntSatOperTmCd
+             , topoi.nt_sat_oper_star_tm as ntSatOperStarTm
+             , topoi.nt_sat_oper_end_tm as ntSatOperEndTm
+             , topoi.nt_hldy_oper_tm_cd as ntHldyOperTmCd
+             , topoi.nt_hldy_oper_star_tm as ntHldyOperStarTm
+             , topoi.nt_hldy_oper_end_tm as ntHldyOperEndTm
+             , topoi.wk_fee_aply_cd as wkFeeAplyCd
+             , topoi.wk_res_day_fee as wkResDayFee
+             , topoi.wk_res_wk_fee as wkResWkFee
+             , topoi.wk_res_ft_fee as wkResFtFee
+             , topoi.wk_res_nt_fee as wkResNtFee
+             , topoi.wk_gn_frst_30m_fee as wkGnFrst30mFee
+             , topoi.wk_gn_int_10m_fee as wkGnInt10mFee
+             , topoi.wk_gn_1h_fee as wkGn1hFee
+             , topoi.wk_gn_day_fee as wkGnDayFee
+             , topoi.wk_fee_mthd_cd as wkFeeMthdCd
+             , topoi.wk_fee_stlmt_mthd_cd as wkFeeStlmtMthdCd
+             , topoi.nt_fee_aply_cd as ntFeeAplyCd
+             , topoi.nt_res_day_fee as ntResDayFee
+             , topoi.nt_res_wk_fee as ntResWkFee
+             , topoi.nt_res_ft_fee as ntResFtFee
+             , topoi.nt_res_nt_fee as ntResNtFee
+             , topoi.nt_gn_frst_30m_fee as ntGnFrst30mFee
+             , topoi.nt_gn_int_10m_fee as ntGnInt10mFee
+             , topoi.nt_gn_1h_fee as ntGn1hFee
+             , topoi.nt_gn_day_fee as ntGnDayFee
+             , topoi.nt_fee_mthd_cd as ntFeeMthdCd
+             , topoi.prklot_sign_yn as prklotSignYn
+             , topoi.slp_sec_yn as slpSecYn
+             , topoi.sixgt_cnt as sixgtCnt
+             , topoi.antislp_fclty_yn as antislpFcltyYn
+             , topoi.slp_ctn_guid_sign_yn as slpCtnGuidSignYn
+             , topoi.partclr_matter as partclrMatter
+        from cpk.tb_prk_def_plce_info tpdpi
+                 left join cpk.tb_onstr_prklot_info topi
+                           on tpdpi.prk_plce_manage_no = topi.prk_plce_manage_no
+                 left join cpk.tb_onstr_prklot_oper_info topoi
+                           on topi.prk_plce_manage_no = topoi.prk_plce_manage_no
+        WHERE tpdpi.prk_plce_manage_no = #{prkPlceManageNo}
+    </select>
+
 </mapper>

@@ -1,5 +1,6 @@
 package com.psim.web.prk.controller;
 
+import com.psim.web.prk.vo.OnstreetParkingDetailVO;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -8,9 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -18,7 +16,6 @@ import com.psim.web.prk.service.PrkDefPlceInfoService;
 import com.psim.web.prk.vo.ParkingListVO;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 @Controller
 @RequestMapping("/prk")
@@ -60,6 +57,34 @@ public class PrkDefPlceInfoController {
             result.put("totalCount", 0);
         }
         
+        return result;
+    }
+
+    // 🔥 노상주차장 상세 조회 API 추가
+    @GetMapping("/onparking-detail")
+    @ResponseBody
+    public Map<String, Object> getOnstreetParkingDetail(@RequestParam String prkPlceManageNo) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            System.out.println("=== 노상주차장 상세 조회 요청: " + prkPlceManageNo + " ===");
+
+            OnstreetParkingDetailVO detail = prkDefPlceInfoService.getOnstreetParkingDetail(prkPlceManageNo);
+
+            if (detail != null) {
+                result.put("success", true);
+                result.put("data", detail);
+                System.out.println("✅ 노상주차장 상세 조회 성공");
+            } else {
+                result.put("success", false);
+                result.put("message", "주차장 정보를 찾을 수 없습니다.");
+                System.out.println("⚠️ 데이터 없음");
+            }
+        } catch (Exception e) {
+            System.err.println("❌ 노상주차장 상세 조회 실패: " + e.getMessage());
+            e.printStackTrace();
+            result.put("success", false);
+            result.put("message", "조회 중 오류가 발생했습니다: " + e.getMessage());
+        }
         return result;
     }
 

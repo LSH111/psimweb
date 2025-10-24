@@ -2,6 +2,7 @@ package com.psim.web.prk.service.impl;
 
 import com.psim.web.prk.mapper.PrkDefPlceInfoMapper;
 import com.psim.web.prk.service.PrkDefPlceInfoService;
+import com.psim.web.prk.vo.OnstreetParkingDetailVO;
 import com.psim.web.prk.vo.ParkingListVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -58,6 +59,25 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
             return prkDefPlceInfoMapper.selectParkingDetail(params);
         } catch (Exception e) {
             log.error("주차장 상세 조회 실패 - manageNo: {}, infoSn: {}", manageNo, infoSn, e);
+            return null;
+        }
+    }
+
+    @Override
+    public OnstreetParkingDetailVO getOnstreetParkingDetail(String prkPlceManageNo) {
+        try {
+            log.info("노상주차장 상세 조회 - prkPlceManageNo: {}", prkPlceManageNo);
+            OnstreetParkingDetailVO detail = prkDefPlceInfoMapper.selectOnstreetParkingDetail(prkPlceManageNo);
+
+            if (detail == null) {
+                log.warn("노상주차장 상세 정보를 찾을 수 없습니다 - prkPlceManageNo: {}", prkPlceManageNo);
+            } else {
+                log.info("노상주차장 상세 조회 완료 - 주차장명: {}", detail.getPrkplceNm());
+            }
+
+            return detail;
+        } catch (Exception e) {
+            log.error("노상주차장 상세 조회 실패 - prkPlceManageNo: {}", prkPlceManageNo, e);
             return null;
         }
     }

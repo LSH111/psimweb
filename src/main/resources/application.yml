@@ -60,3 +60,9 @@ server:
       charset: UTF-8
       enabled: true
       force: true
+    session:
+      timeout: 30m  # 30분 세션 타임아웃
+      cookie:
+        secure: true  # HTTPS에서만 쿠키 전송
+        http-only: true  # JavaScript 접근 차단
+        same-site: strict  # CSRF 방지

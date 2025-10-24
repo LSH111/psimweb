@@ -2,6 +2,7 @@
 package com.psim.web.cmm.controller;
 
 import com.psim.web.cmm.service.CoCodeService;
+import com.psim.web.cmm.vo.CoCodeGroupVO;
 import com.psim.web.cmm.vo.CoCodeVO;
 import com.psim.web.cmm.vo.CoLdongVO;
 import org.springframework.stereotype.Controller;
@@ -157,6 +158,56 @@ public class CoCodeController {
         } catch (Exception e) {
             result.put("success", false);
             result.put("message", "진행상태 목록 조회 실패: " + e.getMessage());
+        }
+        return result;
+    }
+
+    /**
+     * 동적 코드 그룹 목록 조회 (코드 그룹 테이블 기반)
+     */
+    @GetMapping("/dynamic-groups")
+    @ResponseBody
+    public Map<String, Object> getDynamicCodeGroups() {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            System.out.println("=== 동적 코드 그룹 목록 조회 시작 ===");
+
+            // 1. 코드 그룹 목록 조회
+            List<CoCodeGroupVO> codeGroups = coCodeService.getCodeGroupList();
+
+            if (codeGroups != null && !codeGroups.isEmpty()) {
+                Map<String, Object> groupsData = new HashMap<>();
+
+                // 2. 각 group_cd별로 코드 목록 조회
+                for (CoCodeGroupVO group : codeGroups) {
+                    String groupCd = group.getGroupCd();
+                    String groupNm = group.getGroupNm();
+
+                    System.out.println("코드 그룹 조회: " + groupCd + " (" + groupNm + ")");
+
+                    List<CoCodeVO> codeList = coCodeService.getCodeListByGroup(groupCd);
+
+                    Map<String, Object> groupInfo = new HashMap<>();
+                    groupInfo.put("groupCode", groupCd);
+                    groupInfo.put("groupName", groupNm);
+                    groupInfo.put("codes", codeList);
+
+                    groupsData.put(groupCd, groupInfo);
+                }
+
+                result.put("success", true);
+                result.put("groups", groupsData);
+                System.out.println("=== 동적 코드 그룹 목록 조회 완료, 그룹 수: " + groupsData.size() + " ===");
+            } else {
+                result.put("success", false);
+                result.put("message", "조회된 코드 그룹이 없습니다.");
+            }
+
+        } catch (Exception e) {
+            System.err.println("=== 동적 코드 그룹 목록 조회 중 오류 ===");
+            e.printStackTrace();
+            result.put("success", false);
+            result.put("message", "코드 그룹 목록 조회 실패: " + e.getMessage());
         }
         return result;
     }

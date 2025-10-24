@@ -7,6 +7,8 @@ import java.util.Date;
 @Data
 public class CoCodeGroupVO {
     private String groupCd;
+    private String codeCd;
+    private String codeNm;
     private String groupNm;
     private String rgstId;
     private Date regDt;
