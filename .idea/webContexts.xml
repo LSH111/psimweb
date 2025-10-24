@@ -3,6 +3,7 @@
   <component name="WebContextManager">
     <option name="state">
       <map>
+        <entry key="file://$PROJECT_DIR$/src/main/webapp/WEB-INF/views/prk/onparking.jsp" value="file://$PROJECT_DIR$/src/main/webapp/WEB-INF/views/prk" />
         <entry key="file://$PROJECT_DIR$/src/main/webapp/WEB-INF/views/prk/parking-list.jsp" value="file://$PROJECT_DIR$/src/main/webapp/WEB-INF/views/prk" />
       </map>
     </option>

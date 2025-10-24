@@ -18,8 +18,8 @@ public class IndexServiceImpl implements IndexService {
         return indexMapper.selectParkingStatus();
     }
 
-//    @Override
-//    public Map<String, Object> getUsageStatus() {
-//        return indexMapper.selectUsageStatus();
-//    }
+    @Override
+    public Map<String, Object> getUsageStatus() {
+        return indexMapper.selectUsageStatus();
+    }
 }

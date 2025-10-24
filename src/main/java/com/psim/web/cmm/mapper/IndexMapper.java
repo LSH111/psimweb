@@ -14,8 +14,8 @@ public interface IndexMapper {
     Map<String, Object> selectParkingStatus();
 
     /**
-     * 이용상태 현황 조회
+     * 주차상의용 현황 조회
      * @return Map<String, Object>
      */
-    /*Map<String, Object> selectUsageStatus();*/
+    Map<String, Object> selectUsageStatus();
 }

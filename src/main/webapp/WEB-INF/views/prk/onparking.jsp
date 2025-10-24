@@ -1,262 +1,723 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <title>노외주차장</title>
-  <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/pages/onparking.css"/>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>노상주차장 상세</title>
+
+    <!-- 공통 CSS -->
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/base.css"/>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/layout.css"/>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/components.css"/>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/utilities.css"/>
+
+    <!-- 페이지 전용 CSS -->
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/pages/onparking.css"/>
+
+    <!-- 외부 라이브러리 (EXIF / 다음 우편번호) -->
+    <script src="https://cdn.jsdelivr.net/npm/exifr@7/dist/full.umd.js"></script>
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 </head>
 <body>
-  <main class="main container">
-    <div class="card">
-      <div class="wrap">
+<div class="wrap">
     <header class="card head">
-      <div class="title" id="v_name">노외주차장 상세</div>
-      <span class="badge">노외</span>
-      <span class="muted mono" id="v_id">관리번호</span>
-      <span class="muted" id="v_addr"></span>
-      <span class="actions" style="margin-left:auto">
+        <div class="title" id="v_name">노상주차장 상세</div>
+        <span class="badge">노상</span>
+        <span class="muted mono" id="v_id">관리번호</span>
+        <span class="muted" id="v_addr"></span>
+        <span class="actions" style="margin-left:auto">
         <button class="btn" onclick="window.print()">인쇄</button>
+        <button class="btn" id="btnSaveTop">저장</button>
       </span>
     </header>
-
     <section class="row">
-      <div class="card">
-        <h2>기본정보</h2>
-        <div class="grid">
-          <div><label for="f_id">주차장관리번호</label><div class="ctl"><input id="f_id" class="mono" type="text" readonly /></div></div>
-          <div><label for="f_name">주차장명</label><div class="ctl"><input id="f_name" type="text" placeholder="예) 분당구청 노외" /></div></div>
-          <div><label for="f_status">진행상태</label><div class="ctl"><input id="f_status" type="text" placeholder="예) APPROVED" /></div></div>
-          <div><label for="f_type">주차장구분</label><div class="ctl"><input id="f_type" type="text" value="노외" readonly /></div></div>
-          <div><label for="f_sido">시도</label><div class="ctl"><input id="f_sido" /></div></div>
-          <div><label for="f_sigungu">시군구</label><div class="ctl"><input id="f_sigungu" /></div></div>
-          <div><label for="f_emd">읍면동</label><div class="ctl"><input id="f_emd" /></div></div>
+        <!-- 기본정보 -->
+        <div class="card">
+            <h2>기본정보</h2>
+            <div class="grid">
+                <div><label for="f_id">주차장관리번호</label><div class="ctl"><input id="f_id" class="mono" type="text" readonly /></div></div>
+                <div><label for="f_name">주차장명</label><div class="ctl"><input id="f_name" type="text" placeholder="예) 연남로 노상" /></div></div>
+                <div><label for="f_status">진행상태</label><div class="ctl"><input id="f_status" type="text" placeholder="예) PENDING/APPROVED" /></div></div>
+                <div><label for="f_type">주차장구분</label><div class="ctl"><input id="f_type" type="text" value="노상" readonly /></div></div>
+                <div><label for="f_sido">시도</label><div class="ctl"><input id="f_sido" /></div></div>
+                <div><label for="f_sigungu">시군구</label><div class="ctl"><input id="f_sigungu" /></div></div>
+                <div><label for="f_emd">읍면동</label><div class="ctl"><input id="f_emd" /></div></div>
 
-          <!-- 주소: 지번 아래 도로명 추가 -->
-          <div style="grid-column:1/-1">
-            <label for="f_addr_jibun">지번 주소</label>
-            <div class="ctl"><input id="f_addr_jibun" placeholder="예) 성남시 분당구 정자동 123-45" /></div>
-          </div>
-          <div style="grid-column:1/-1">
-            <label for="f_addr_road">도로명 주소</label>
-            <div class="ctl"><input id="f_addr_road" placeholder="예) 분당로 23" /></div>
-          </div>
-        </div>
-      </div>
-
-
-      <div class="card">
-        <h2>현장 사진 & 좌표</h2>
-        <div class="grid">
-          <div style="grid-column:1/-1">
-            <label>사진 업로드</label>
-            <div class="ctl">
-              <input id="f_photo_lib" type="file" accept="image/*,image/heic,image/heif" style="display:none" />
-              <input id="f_photo_cam" type="file" accept="image/*" capture="environment" style="display:none" />
-              <button type="button" class="btn light" id="btnPickFromLibrary">사진첩에서 선택</button>
-              <button type="button" class="btn ghost" id="btnTakePhoto">카메라 촬영</button>
-              <button type="button" class="btn" id="btnUseGeolocation">기기 위치로 좌표</button>
-              <button type="button" class="btn ghost" id="btnClearPhoto">초기화</button>
+                <!-- 주소: 지번/도로명 + 주소찾기 -->
+                <div style="grid-column:1/-1">
+                    <label for="f_addr_jibun">지번 주소</label>
+                    <div class="ctl"><input id="f_addr_jibun" type="text" placeholder="예) 서울 마포구 연남동 123-45" readonly /></div>
+                </div>
+                <div style="grid-column:1/-1">
+                    <label for="f_addr_road">도로명 주소</label>
+                    <div class="ctl"><input id="f_addr_road" type="text" placeholder="예) 서울 마포구 연남로 123" readonly /></div>
+                </div>
+                <div style="grid-column:1/-1; display:flex; gap:8px">
+                    <button type="button" class="btn light" id="btnFindAddr">주소찾기</button>
+                </div>
             </div>
-          </div>
-          <div style="grid-column:1/-1"><img id="preview" class="thumb" alt="사진 미리보기" /></div>
-          <div><label for="f_lat">위도</label><div class="ctl"><input id="f_lat" class="mono" /></div></div>
-          <div><label for="f_lng">경도</label><div class="ctl"><input id="f_lng" class="mono" /></div></div>
         </div>
-      </div>
+    </section>
+    <section class="section">
+        <!-- 사진 & 좌표 -->
+        <div class="card">
+            <h2>현장 사진 & 좌표</h2>
+            <div class="grid">
+                <div style="grid-column:1/-1">
+                    <label>사진 업로드</label>
+                    <div class="ctl">
+                        <input id="f_photo_lib" type="file" accept="image/*,image/heic,image/heif" style="display:none" />
+                        <input id="f_photo_cam" type="file" accept="image/*" capture="environment" style="display:none" />
+                        <div class="file-upload-buttons">
+                            <button type="button" class="btn light" id="btnPickFromLibrary">사진첩에서 선택</button>
+                            <button type="button" class="btn ghost" id="btnTakePhoto">카메라 촬영</button>
+                            <button type="button" class="btn" id="btnUseGeolocation">기기 위치로 좌표</button>
+                            <button type="button" class="btn ghost" id="btnClearPhoto">초기화</button>
+                        </div>
+
+                        <!-- 파일 업로드 진행률 표시 영역 -->
+                        <div id="upload-progress-area" class="upload-progress-container" style="display: none;">
+                            <div class="upload-header">
+                                <h3 class="upload-title">첨부파일 업로드</h3>
+                            </div>
+
+                            <div class="upload-summary">
+                                <span class="upload-status">0개 / 1개</span>
+                                <span class="upload-size">0MB / 0MB</span>
+                                <span class="upload-percent">0% 남음</span>
+                            </div>
+
+                            <div class="progress-bar-container">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="progress-fill"></div>
+                                </div>
+                                <span class="progress-text" id="progress-text">0%</span>
+                            </div>
+
+                            <div class="file-list">
+                                <div class="file-item" id="upload-file-item" style="display: none;">
+                                    <div class="file-icon">📁</div>
+                                    <div class="file-info">
+                                        <div class="file-name" id="file-name">파일명.jpg</div>
+                                        <div class="file-size-progress">
+                                            <div class="file-progress-bar">
+                                                <div class="file-progress-fill" id="file-progress-fill"></div>
+                                            </div>
+                                            <span class="file-size" id="file-size">0MB / 0MB</span>
+                                        </div>
+                                    </div>
+                                    <div class="file-status" id="file-status">전송중</div>
+                                </div>
+                            </div>
+
+                            <div class="upload-actions">
+                                <button type="button" class="btn-cancel" id="btn-upload-cancel">취소</button>
+                                <button type="button" class="btn-complete" id="btn-upload-complete" style="display: none;">완료</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="grid-column:1/-1"><img id="preview" class="thumb" alt="사진 미리보기" /></div>
+                <div><label for="f_lat">위도</label><div class="ctl"><input id="f_lat" class="mono" inputmode="decimal" /></div></div>
+                <div><label for="f_lng">경도</label><div class="ctl"><input id="f_lng" class="mono" inputmode="decimal" /></div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 운영/요금/면수 -->
+    <section class="card">
+        <h2>운영 · 요금 · 주차면수</h2>
+        <div class="grid">
+            <!-- 총 주차면수 + 세부 -->
+            <div style="grid-column:1/-1">
+                <label for="f_totalStalls">총 주차면수</label>
+                <div id="ctl_total" class="ctl">
+                    <input id="f_totalStalls" type="number" min="0" inputmode="numeric" style="width:90px; margin-left:6px" placeholder="예) 120" />
+                    <span class="suffix">면</span>
+                </div>
+
+                <!-- 삭제 : 자동합계 체크박스 -->
+                <!--<div class="check-group" style="margin:8px 0">
+                    <label><input type="checkbox" id="autoSum" checked /> <span>세부 합계로 총면수 자동 반영</span></label>
+                </div>-->
+
+                <div id="stallsMsg" class="help" style="margin-top:4px"></div>
+                <div class="check-group" style="margin-top:8px">
+                    <label><span>일반</span><input id="f_st_normal"   type="number" min="0" inputmode="numeric" style="width:90px; margin-left:6px" /><span class="suffix">면</span></label>
+                    <label><span>장애인</span><input id="f_st_dis"   type="number" min="0" inputmode="numeric" style="width:90px; margin-left:6px" /><span class="suffix">면</span></label>
+                    <label><span>경차</span>  <input id="f_st_small" type="number" min="0" inputmode="numeric" style="width:90px; margin-left:6px" /><span class="suffix">면</span></label>
+                    <label><span>친환경</span><input id="f_st_green" type="number" min="0" inputmode="numeric" style="width:90px; margin-left:6px" /><span class="suffix">면</span></label>
+                    <label><span>임산부</span><input id="f_st_preg"  type="number" min="0" inputmode="numeric" style="width:90px; margin-left:6px" /><span class="suffix">면</span></label>
+                </div>
+            </div>
+
+            <!-- 운영주체 -->
+            <div style="grid-column:1/-1">
+                <label>운영주체</label>
+                <div class="radio-group" id="own_group">
+                    <label><input type="radio" name="own" value="시운영" checked /> <span>시운영</span></label>
+                    <label><input type="radio" name="own" value="구(군)운영" /> <span>구(군)운영</span></label>
+                    <label><input type="radio" name="own" value="공단위탁" /> <span>공단위탁</span></label>
+                    <label><input type="radio" name="own" value="민간위탁" id="own_private" /> <span>민간위탁</span></label>
+                </div>
+            </div>
+            <div id="own_company_wrap" hidden>
+                <label for="f_own_company">민간위탁 업체명</label>
+                <div class="ctl"><input id="f_own_company" placeholder="예) ㈜○○파킹" /></div>
+            </div>
+
+            <!-- 관리기관 -->
+            <div>
+                <label for="f_mgr_name">관리기관명</label>
+                <div class="ctl"><input id="f_mgr_name" placeholder="예) 마포구청 교통행정과" /></div>
+            </div>
+            <div>
+                <label for="f_mgr_tel">관리기관 전화번호</label>
+                <div class="ctl"><input id="f_mgr_tel" placeholder="예) 02-123-4567" inputmode="tel" /></div>
+            </div>
+
+            <!-- 부제 시행 여부 -->
+            <div>
+                <label for="f_oddEven">부제 시행 여부</label>
+                <div class="ctl">
+                    <select id="f_oddEven">
+                        <option value="미시행">미시행</option>
+                        <option value="2부제">2부제</option>
+                        <option value="5부제">5부제</option>
+                        <option value="10부제">10부제</option>
+                        <option value="승용차요일제">승용차요일제</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 시간대 -->
+            <div style="grid-column:1/-1">
+                <label>운영 시간대</label>
+                <div class="check-group">
+                    <label><input type="checkbox" id="chk_day" /> <span>주간</span></label>
+                    <label><input type="checkbox" id="chk_night" /> <span>야간</span></label>
+                </div>
+            </div>
+
+            <!-- 운영방식 - 초기에는 숨김 -->
+            <div id="op_type_wrap" style="grid-column:1/-1; display:none;">
+                <label>주차장 운영방식</label>
+                <div class="radio-group" id="op_group">
+                    <label><input type="radio" name="opType" value="일반노상주차장" checked /> <span>일반노상주차장</span></label>
+                    <label><input type="radio" name="opType" value="거주자우선주차장" /> <span>거주자우선주차장</span></label>
+                    <label><input type="radio" name="opType" value="일반노상주차장+거주자우선주차장" /> <span>일반노상+거주자우선</span></label>
+                </div>
+            </div>
+
+
+            <!-- 주간 세부 - 주간 선택시에만 표시 -->
+            <div id="day_detail_wrap" class="grid row-1c" style="grid-column:1/-1; display:none;">
+                <div>
+                    <label for="f_day_grade">주간 급지</label>
+                    <div class="ctl">
+                        <select id="f_day_grade">
+                            <option value="">선택</option>
+                            <option>1급지</option><option>2급지</option><option>3급지</option>
+                            <option>4급지</option><option>5급지</option>
+                            <option>미분류</option><option>기타</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 야간 세부 - 야간 선택시에만 표시 -->
+            <div id="night_detail_wrap" class="grid row-1c" style="grid-column:1/-1; display:none;">
+                <div>
+                    <label for="f_night_grade">야간 급지</label>
+                    <div class="ctl">
+                        <select id="f_night_grade">
+                            <option value="">선택</option>
+                            <option>1급지</option><option>2급지</option><option>3급지</option>
+                            <option>4급지</option><option>5급지</option>
+                            <option>미분류</option><option>기타</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 주간 요금부과여부 - 주간 선택시에만 표시 -->
+            <div id="day_fee_charge_wrap" class="fee-block card" style="grid-column:1/-1; display:none;">
+                <h2 class="fee-title">주간 요금 부과여부</h2>
+                <div class="grid row-1c">
+                    <div>
+                        <label for="f_day_feeType">주간 요금 부과여부</label>
+                        <div class="ctl">
+                            <select id="f_day_feeType">
+                                <option value="">선택</option>
+                                <option>유료</option>
+                                <option>무료</option>
+                                <option>유료+무료</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 야간 요금부과여부 - 야간 선택시에만 표시 -->
+            <div id="night_fee_charge_wrap" class="fee-block card" style="grid-column:1/-1; display:none;">
+                <h2 class="fee-title">야간 요금 부과여부</h2>
+                <div class="grid row-1c">
+                    <div>
+                        <label for="f_night_feeType">야간 요금 부과여부</label>
+                        <div class="ctl">
+                            <select id="f_night_feeType">
+                                <option value="">선택</option>
+                                <option>유료</option>
+                                <option>무료</option>
+                                <option>유료+무료</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 주간 요금수준 - 주간 선택시에만 표시 -->
+            <div id="day_fee_level_wrap" class="fee-level card" style="grid-column:1/-1; display:none;">
+                <h2 class="fee-title">주간 요금수준</h2>
+
+                <!-- (A) 거주자우선주차장 요금 -->
+                <div id="day_res_fee_wrap" class="grid row-1c" hidden>
+                    <h3 class="help" style="margin:.2rem 0">거주자우선주차장 요금(원) - 주간</h3>
+                    <div class="fee-group">
+                        <div class="fee-item">
+                            <label for="f_day_res_all">전일</label>
+                            <div class="ctl"><input id="f_day_res_all" type="number" min="0" inputmode="numeric" placeholder="예) 5000"/><span class="suffix">원</span></div>
+                        </div>
+                        <div class="fee-item">
+                            <label for="f_day_res_day">주간</label>
+                            <div class="ctl"><input id="f_day_res_day" type="number" min="0" inputmode="numeric" placeholder="예) 3000"/><span class="suffix">원</span></div>
+                        </div>
+                        <div class="fee-item">
+                            <label for="f_day_res_full">상근</label>
+                            <div class="ctl"><input id="f_day_res_full" type="number" min="0" inputmode="numeric" placeholder="예) 4000"/><span class="suffix">원</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- (B) 일반노상주차장(승용차, 일반인 기준) 요금 -->
+                <div id="day_normal_fee_wrap">
+                    <h3 class="help" style="margin:.2rem 0">일반노상주차장 요금(승용차, 일반인 기준) - 주간</h3>
+                    <div class="fee-group">
+                        <!-- 1행 -->
+                        <div class="fee-item">
+                            <label for="f_day_fee_first30">최초 30분</label>
+                            <div class="ctl"><input id="f_day_fee_first30" type="number" min="0" inputmode="numeric" placeholder="예) 1000"/><span class="suffix">원</span></div>
+                        </div>
+                        <div class="fee-item">
+                            <label for="f_day_fee_per10">매 10분</label>
+                            <div class="ctl"><input id="f_day_fee_per10" type="number" min="0" inputmode="numeric" placeholder="예) 300"/><span class="suffix">원</span></div>
+                        </div>
+                        <div class="fee-item">
+                            <label for="f_day_fee_per60">1시간</label>
+                            <div class="ctl"><input id="f_day_fee_per60" type="number" min="0" inputmode="numeric" placeholder="예) 2000"/><span class="suffix">원</span></div>
+                        </div>
+                        <!-- 2행 -->
+                        <div class="fee-item">
+                            <label for="f_day_fee_daily">전일(일)</label>
+                            <div class="ctl"><input id="f_day_fee_daily" type="number" min="0" inputmode="numeric" placeholder="예) 10000"/><span class="suffix">원</span></div>
+                        </div>
+                        <div class="fee-item">
+                            <label for="f_day_fee_monthly">월정기권</label>
+                            <div class="ctl"><input id="f_day_fee_monthly" type="number" min="0" inputmode="numeric" placeholder="예) 120000"/><span class="suffix">원</span></div>
+                        </div>
+                        <div class="fee-item">
+                            <label for="f_day_fee_halfyear">반기권</label>
+                            <div class="ctl"><input id="f_day_fee_halfyear" type="number" min="0" inputmode="numeric" placeholder="예) 600000"/><span class="suffix">원</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 야간 요금수준 - 야간 선택시에만 표시 -->
+            <div id="night_fee_level_wrap" class="fee-level card" style="grid-column:1/-1; display:none;">
+                <h2 class="fee-title">야간 요금수준</h2>
+
+                <!-- (A) 거주자우선주차장 요금 -->
+                <div id="night_res_fee_wrap" class="grid row-1c" hidden>
+                    <h3 class="help" style="margin:.2rem 0">거주자우선주차장 요금(원) - 야간</h3>
+                    <div class="fee-group">
+                        <div class="fee-item">
+                            <label for="f_night_res_all">전일</label>
+                            <div class="ctl"><input id="f_night_res_all" type="number" min="0" inputmode="numeric" placeholder="예) 5000"/><span class="suffix">원</span></div>
+                        </div>
+                        <div class="fee-item">
+                            <label for="f_night_res_full">상근</label>
+                            <div class="ctl"><input id="f_night_res_full" type="number" min="0" inputmode="numeric" placeholder="예) 4000"/><span class="suffix">원</span></div>
+                        </div>
+                        <div class="fee-item">
+                            <label for="f_night_res_night">야간</label>
+                            <div class="ctl"><input id="f_night_res_night" type="number" min="0" inputmode="numeric" placeholder="예) 2000"/><span class="suffix">원</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- (B) 일반노상주차장(승용차, 일반인 기준) 요금 -->
+                <div id="night_normal_fee_wrap">
+                    <h3 class="help" style="margin:.2rem 0">일반노상주차장 요금(승용차, 일반인 기준) - 야간</h3>
+                    <div class="fee-group">
+                        <!-- 1행 -->
+                        <div class="fee-item">
+                            <label for="f_night_fee_first30">최초 30분</label>
+                            <div class="ctl"><input id="f_night_fee_first30" type="number" min="0" inputmode="numeric" placeholder="예) 800"/><span class="suffix">원</span></div>
+                        </div>
+                        <div class="fee-item">
+                            <label for="f_night_fee_per10">매 10분</label>
+                            <div class="ctl"><input id="f_night_fee_per10" type="number" min="0" inputmode="numeric" placeholder="예) 200"/><span class="suffix">원</span></div>
+                        </div>
+                        <div class="fee-item">
+                            <label for="f_night_fee_per60">1시간</label>
+                            <div class="ctl"><input id="f_night_fee_per60" type="number" min="0" inputmode="numeric" placeholder="예) 1500"/><span class="suffix">원</span></div>
+                        </div>
+                        <!-- 2행 -->
+                        <div class="fee-item">
+                            <label for="f_night_fee_daily">전일(일)</label>
+                            <div class="ctl"><input id="f_night_fee_daily" type="number" min="0" inputmode="numeric" placeholder="예) 8000"/><span class="suffix">원</span></div>
+                        </div>
+                        <div class="fee-item">
+                            <label for="f_night_fee_monthly">월정기권</label>
+                            <div class="ctl"><input id="f_night_fee_monthly" type="number" min="0" inputmode="numeric" placeholder="예) 100000"/><span class="suffix">원</span></div>
+                        </div>
+                        <div class="fee-item">
+                            <label for="f_night_fee_halfyear">반기권</label>
+                            <div class="ctl"><input id="f_night_fee_halfyear" type="number" min="0" inputmode="numeric" placeholder="예) 500000"/><span class="suffix">원</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 주간 요금지불방식 - 주간 선택시에만 표시 -->
+            <div id="day_fee_pay_wrap" class="fee-block card" style="grid-column:1/-1; display:none;">
+                <h2 class="fee-title">주간 요금 지불방식</h2>
+
+                <div class="grid row-1c">
+                    <div class="check-group" aria-label="주간 요금 지불방식">
+                        <label><input type="checkbox" name="dayPayMethod" value="현금" /> <span>현금</span></label>
+                        <label><input type="checkbox" name="dayPayMethod" value="신용카드" /> <span>신용카드</span></label>
+                        <label><input type="checkbox" name="dayPayMethod" value="상품권" /> <span>상품권</span></label>
+
+                        <!-- 기타(텍스트 입력) -->
+                        <label class="pay-etc">
+                            <input type="checkbox" id="day_pay_etc_chk" name="dayPayMethod" value="기타" />
+                            <span>기타</span>
+                            <input type="text" id="day_pay_etc_input"
+                                   placeholder="기타 지불수단 입력" disabled />
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 야간 요금지불방식 - 야간 선택시에만 표시 -->
+            <div id="night_fee_pay_wrap" class="fee-block card" style="grid-column:1/-1; display:none;">
+                <h2 class="fee-title">야간 요금 지불방식</h2>
+
+                <div class="grid row-1c">
+                    <div class="check-group" aria-label="야간 요금 지불방식">
+                        <label><input type="checkbox" name="nightPayMethod" value="현금" /> <span>현금</span></label>
+                        <label><input type="checkbox" name="nightPayMethod" value="신용카드" /> <span>신용카드</span></label>
+                        <label><input type="checkbox" name="nightPayMethod" value="상품권" /> <span>상품권</span></label>
+
+                        <!-- 기타(텍스트 입력) -->
+                        <label class="pay-etc">
+                            <input type="checkbox" id="night_pay_etc_chk" name="nightPayMethod" value="기타" />
+                            <span>기타</span>
+                            <input type="text" id="night_pay_etc_input"
+                                   placeholder="기타 지불수단 입력" disabled />
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 주간 요금정산방식 - 주간 선택시에만 표시 -->
+            <div id="day_fee_settle_wrap" class="fee-block card" style="grid-column:1/-1; display:none;">
+                <h2 class="fee-title">주간 요금 정산방식</h2>
+
+                <div class="grid row-1c">
+                    <div class="check-group" aria-label="주간 요금 정산방식" id="day_settle_group">
+                        <label><input type="checkbox" name="daySettleMethod" value="자동정산" id="day_settle_auto" /> <span>자동정산</span></label>
+                        <label><input type="checkbox" name="daySettleMethod" value="수동정산" id="day_settle_manual" /> <span>수동정산</span></label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 야간 요금정산방식 - 야간 선택시에만 표시 -->
+            <div id="night_fee_settle_wrap" class="fee-block card" style="grid-column:1/-1; display:none;">
+                <h2 class="fee-title">야간 요금 정산방식</h2>
+
+                <div class="grid row-1c">
+                    <div class="check-group" aria-label="야간 요금 정산방식" id="night_settle_group">
+                        <label><input type="checkbox" name="nightSettleMethod" value="자동정산" id="night_settle_auto" /> <span>자동정산</span></label>
+                        <label><input type="checkbox" name="nightSettleMethod" value="수동정산" id="night_settle_manual" /> <span>수동정산</span></label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 주간 운영시간 섹션 - 주간 선택시에만 표시 -->
+    <section class="card" id="day_operation_time_section" style="display:none;">
+        <h2>주간 운영시간</h2>
+        <div class="grid">
+            <!-- 평일 -->
+            <div class="operation-day-block" style="grid-column:1/-1">
+                <h3 class="operation-day-title">평일</h3>
+                <div class="radio-group" id="day_weekday_operation_group">
+                    <label><input type="radio" name="dayWeekdayOperation" value="전일운영" checked /> <span>전일운영</span></label>
+                    <label><input type="radio" name="dayWeekdayOperation" value="시간제운영" id="day_weekday_time_op" /> <span>시간제운영</span></label>
+                    <label><input type="radio" name="dayWeekdayOperation" value="운영안함" /> <span>운영안함</span></label>
+                </div>
+                <div class="time-inputs-wrapper weekday-time" id="day_weekday_time_inputs" style="display:none;">
+                    <div class="time-inputs highlight-input-area">
+                        <span class="time-label">주간 평일 운영시간:</span>
+                        <div class="time-input-group">
+                            <input type="number" id="day_weekday_start_hour" min="0" max="23" placeholder="시" class="time-input" />
+                            <span class="time-unit">시</span>
+                            <input type="number" id="day_weekday_start_min" min="0" max="59" placeholder="분" class="time-input" />
+                            <span class="time-unit">분</span>
+                            <span class="time-separator">~</span>
+                            <input type="number" id="day_weekday_end_hour" min="0" max="23" placeholder="시" class="time-input" />
+                            <span class="time-unit">시</span>
+                            <input type="number" id="day_weekday_end_min" min="0" max="59" placeholder="분" class="time-input" />
+                            <span class="time-unit">분</span>
+                        </div>
+                        <div class="input-guide">주간 평일 운영시간을 입력해주세요 (24시간 형식)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 토요일 -->
+            <div class="operation-day-block" style="grid-column:1/-1; margin-top:16px;">
+                <h3 class="operation-day-title">토요일</h3>
+                <div class="radio-group" id="day_saturday_operation_group">
+                    <label><input type="radio" name="daySaturdayOperation" value="전일운영" checked /> <span>전일운영</span></label>
+                    <label><input type="radio" name="daySaturdayOperation" value="시간제운영" id="day_saturday_time_op" /> <span>시간제운영</span></label>
+                    <label><input type="radio" name="daySaturdayOperation" value="운영안함" /> <span>운영안함</span></label>
+                </div>
+                <div class="time-inputs-wrapper saturday-time" id="day_saturday_time_inputs" style="display:none;">
+                    <div class="time-inputs highlight-input-area">
+                        <span class="time-label">주간 토요일 운영시간:</span>
+                        <div class="time-input-group">
+                            <input type="number" id="day_saturday_start_hour" min="0" max="23" placeholder="시" class="time-input" />
+                            <span class="time-unit">시</span>
+                            <input type="number" id="day_saturday_start_min" min="0" max="59" placeholder="분" class="time-input" />
+                            <span class="time-unit">분</span>
+                            <span class="time-separator">~</span>
+                            <input type="number" id="day_saturday_end_hour" min="0" max="23" placeholder="시" class="time-input" />
+                            <span class="time-unit">시</span>
+                            <input type="number" id="day_saturday_end_min" min="0" max="59" placeholder="분" class="time-input" />
+                            <span class="time-unit">분</span>
+                        </div>
+                        <div class="input-guide">주간 토요일 운영시간을 입력해주세요 (24시간 형식)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 공휴일 -->
+            <div class="operation-day-block" style="grid-column:1/-1; margin-top:16px;">
+                <h3 class="operation-day-title">공휴일</h3>
+                <div class="radio-group" id="day_holiday_operation_group">
+                    <label><input type="radio" name="dayHolidayOperation" value="전일운영" checked /> <span>전일운영</span></label>
+                    <label><input type="radio" name="dayHolidayOperation" value="시간제운영" id="day_holiday_time_op" /> <span>시간제운영</span></label>
+                    <label><input type="radio" name="dayHolidayOperation" value="운영안함" /> <span>운영안함</span></label>
+                </div>
+                <div class="time-inputs-wrapper holiday-time" id="day_holiday_time_inputs" style="display:none;">
+                    <div class="time-inputs highlight-input-area">
+                        <span class="time-label">주간 공휴일 운영시간:</span>
+                        <div class="time-input-group">
+                            <input type="number" id="day_holiday_start_hour" min="0" max="23" placeholder="시" class="time-input" />
+                            <span class="time-unit">시</span>
+                            <input type="number" id="day_holiday_start_min" min="0" max="59" placeholder="분" class="time-input" />
+                            <span class="time-unit">분</span>
+                            <span class="time-separator">~</span>
+                            <input type="number" id="day_holiday_end_hour" min="0" max="23" placeholder="시" class="time-input" />
+                            <span class="time-unit">시</span>
+                            <input type="number" id="day_holiday_end_min" min="0" max="59" placeholder="분" class="time-input" />
+                            <span class="time-unit">분</span>
+                        </div>
+                        <div class="input-guide">주간 공휴일 운영시간을 입력해주세요 (24시간 형식)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 야간 운영시간 섹션 - 야간 선택시에만 표시 -->
+    <section class="card" id="night_operation_time_section" style="display:none;">
+        <h2>야간 운영시간</h2>
+        <div class="grid">
+            <!-- 평일 -->
+            <div class="operation-day-block" style="grid-column:1/-1">
+                <h3 class="operation-day-title">평일</h3>
+                <div class="radio-group" id="night_weekday_operation_group">
+                    <label><input type="radio" name="nightWeekdayOperation" value="전일운영" checked /> <span>전일운영</span></label>
+                    <label><input type="radio" name="nightWeekdayOperation" value="시간제운영" id="night_weekday_time_op" /> <span>시간제운영</span></label>
+                    <label><input type="radio" name="nightWeekdayOperation" value="운영안함" /> <span>운영안함</span></label>
+                </div>
+                <div class="time-inputs-wrapper weekday-time" id="night_weekday_time_inputs" style="display:none;">
+                    <div class="time-inputs highlight-input-area">
+                        <span class="time-label">야간 평일 운영시간:</span>
+                        <div class="time-input-group">
+                            <input type="number" id="night_weekday_start_hour" min="0" max="23" placeholder="시" class="time-input" />
+                            <span class="time-unit">시</span>
+                            <input type="number" id="night_weekday_start_min" min="0" max="59" placeholder="분" class="time-input" />
+                            <span class="time-unit">분</span>
+                            <span class="time-separator">~</span>
+                            <input type="number" id="night_weekday_end_hour" min="0" max="23" placeholder="시" class="time-input" />
+                            <span class="time-unit">시</span>
+                            <input type="number" id="night_weekday_end_min" min="0" max="59" placeholder="분" class="time-input" />
+                            <span class="time-unit">분</span>
+                        </div>
+                        <div class="input-guide">야간 평일 운영시간을 입력해주세요 (24시간 형식)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 토요일 -->
+            <div class="operation-day-block" style="grid-column:1/-1; margin-top:16px;">
+                <h3 class="operation-day-title">토요일</h3>
+                <div class="radio-group" id="night_saturday_operation_group">
+                    <label><input type="radio" name="nightSaturdayOperation" value="전일운영" checked /> <span>전일운영</span></label>
+                    <label><input type="radio" name="nightSaturdayOperation" value="시간제운영" id="night_saturday_time_op" /> <span>시간제운영</span></label>
+                    <label><input type="radio" name="nightSaturdayOperation" value="운영안함" /> <span>운영안함</span></label>
+                </div>
+                <div class="time-inputs-wrapper saturday-time" id="night_saturday_time_inputs" style="display:none;">
+                    <div class="time-inputs highlight-input-area">
+                        <span class="time-label">야간 토요일 운영시간:</span>
+                        <div class="time-input-group">
+                            <input type="number" id="night_saturday_start_hour" min="0" max="23" placeholder="시" class="time-input" />
+                            <span class="time-unit">시</span>
+                            <input type="number" id="night_saturday_start_min" min="0" max="59" placeholder="분" class="time-input" />
+                            <span class="time-unit">분</span>
+                            <span class="time-separator">~</span>
+                            <input type="number" id="night_saturday_end_hour" min="0" max="23" placeholder="시" class="time-input" />
+                            <span class="time-unit">시</span>
+                            <input type="number" id="night_saturday_end_min" min="0" max="59" placeholder="분" class="time-input" />
+                            <span class="time-unit">분</span>
+                        </div>
+                        <div class="input-guide">야간 토요일 운영시간을 입력해주세요 (24시간 형식)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 공휴일 -->
+            <div class="operation-day-block" style="grid-column:1/-1; margin-top:16px;">
+                <h3 class="operation-day-title">공휴일</h3>
+                <div class="radio-group" id="night_holiday_operation_group">
+                    <label><input type="radio" name="nightHolidayOperation" value="전일운영" checked /> <span>전일운영</span></label>
+                    <label><input type="radio" name="nightHolidayOperation" value="시간제운영" id="night_holiday_time_op" /> <span>시간제운영</span></label>
+                    <label><input type="radio" name="nightHolidayOperation" value="운영안함" /> <span>운영안함</span></label>
+                </div>
+                <div class="time-inputs-wrapper holiday-time" id="night_holiday_time_inputs" style="display:none;">
+                    <div class="time-inputs highlight-input-area">
+                        <span class="time-label">야간 공휴일 운영시간:</span>
+                        <div class="time-input-group">
+                            <input type="number" id="night_holiday_start_hour" min="0" max="23" placeholder="시" class="time-input" />
+                            <span class="time-unit">시</span>
+                            <input type="number" id="night_holiday_start_min" min="0" max="59" placeholder="분" class="time-input" />
+                            <span class="time-unit">분</span>
+                            <span class="time-separator">~</span>
+                            <input type="number" id="night_holiday_end_hour" min="0" max="23" placeholder="시" class="time-input" />
+                            <span class="time-unit">시</span>
+                            <input type="number" id="night_holiday_end_min" min="0" max="59" placeholder="분" class="time-input" />
+                            <span class="time-unit">분</span>
+                        </div>
+                        <div class="input-guide">야간 공휴일 운영시간을 입력해주세요 (24시간 형식)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 주차장 표지판 및 기타 정보 섹션 -->
+    <section class="card">
+        <h2>주차장 표지판 및 기타 정보</h2>
+        <div class="grid">
+            <!-- 주차장 표지판 -->
+            <div style="grid-column:1/-1">
+                <label>주차장 표지판</label>
+                <div class="radio-group" id="sign_group">
+                    <label><input type="radio" name="parkingSign" value="있음" id="sign_yes" /> <span>있음</span></label>
+                    <label><input type="radio" name="parkingSign" value="없음" id="sign_no" checked /> <span>없음</span></label>
+                </div>
+            </div>
+
+            <!-- 표지판 사진 업로드 영역 - 기본적으로 숨겨진 상태 -->
+            <div id="sign_photo_wrap" style="grid-column:1/-1; display:none;">
+                <label>표지판 사진</label>
+                <div class="ctl">
+                    <input id="f_sign_photo_lib" type="file" accept="image/*,image/heic,image/heif" style="display:none" />
+                    <input id="f_sign_photo_cam" type="file" accept="image/*" capture="environment" style="display:none" />
+                    <div class="file-upload-buttons">
+                        <button type="button" class="btn light" id="btnSignPhotoLibrary">사진첩에서 선택</button>
+                        <button type="button" class="btn ghost" id="btnSignPhotoCamera">카메라 촬영</button>
+                        <button type="button" class="btn ghost" id="btnClearSignPhoto">초기화</button>
+                    </div>
+                    <div style="grid-column:1/-1; margin-top:8px;">
+                        <img id="sign_preview" class="thumb" alt="표지판 사진 미리보기" style="display:none;" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- 경사구간 여부 -->
+            <div style="grid-column:1/-1">
+                <label>경사구간 여부</label>
+                <div class="radio-group" id="slope_group">
+                    <label><input type="radio" name="slopeSection" value="있음" id="slope_yes" /> <span>있음</span></label>
+                    <label><input type="radio" name="slopeSection" value="없음" id="slope_no" checked /> <span>없음</span></label>
+                </div>
+            </div>
+
+            <!-- 경사도 입력 영역 - 기본적으로 숨겨진 상태 -->
+            <div id="slope_input_wrap" style="grid-column:1/-1; display:none;">
+                <label>(4% 초과 6% 이하)</label>
+                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                    <div class="ctl" style="flex:0 0 auto; width:120px;">
+                        <input id="f_slope_start" type="number" min="4.1" max="6.0" step="0.1"
+                               placeholder="4.1" inputmode="decimal" />
+                        <span class="suffix">%</span>
+                    </div>
+                    <span style="color:var(--muted);">~</span>
+                    <div class="ctl" style="flex:0 0 auto; width:120px;">
+                        <input id="f_slope_end" type="number" min="4.1" max="6.0" step="0.1"
+                               placeholder="6.0" inputmode="decimal" />
+                        <span class="suffix">%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 안전시설 -->
+            <div style="grid-column:1/-1">
+                <label>안전시설</label>
+                <div class="check-group" id="safety_group" aria-label="안전시설 (중복선택 가능)">
+                    <label><input type="checkbox" name="safetyFacility" value="미끄럼방지시설" /> <span>미끄럼 방지시설(스토퍼, 고임목 등)</span></label>
+                    <label><input type="checkbox" name="safetyFacility" value="미끄럼주의안내표지판" /> <span>미끄럼 주의 안내표지판</span></label>
+                </div>
+            </div>
+        </div>
     </section>
 
     <section class="card">
-      <div class="actions">
-        <!-- 하단도 저장만 유지 -->
-        <button class="btn" id="btnSave">저장</button>
-        <span class="muted">샘플 저장입니다. 실제 API로 교체하세요.</span>
-      </div>
+        <div class="actions">
+            <button class="btn" id="btnSave">저장</button>
+        </div>
     </section>
-  </div>
+</div>
 
-<script>
-const $=(s)=>document.querySelector(s);
-function params(){const sp=new URLSearchParams(location.search);return new Proxy({}, {get:(_,k)=> sp.get(k)||''});}
-const p=params();
-const sample={ id:'PRK-0004', name:'분당구청 노외', status:'APPROVED', sido:'경기도', sigungu:'성남시 분당구', emd:'정자동', addr:'분당로 23' };
-
-/* 필드 */
-const f_id=$('#f_id'), f_name=$('#f_name'), f_status=$('#f_status'), f_type=$('#f_type');
-const f_sido=$('#f_sido'), f_sigungu=$('#f_sigungu'), f_emd=$('#f_emd');
-const f_addrJ=$('#f_addr_jibun'), f_addrR=$('#f_addr_road');
-const f_lat=$('#f_lat'), f_lng=$('#f_lng');
-const v_addr=$('#v_addr');
-
-/* 헤더 주입 */
-$('#v_name').textContent=p.name||sample.name;
-$('#v_id').textContent=p.id||sample.id;
-
-/* 값 주입 */
-f_id.value=p.id||sample.id;
-f_name.value=p.name||sample.name;
-f_status.value=p.status||sample.status;
-f_type.value='노외';
-f_sido.value=p.sido||sample.sido;
-f_sigungu.value=p.sigungu||sample.sigungu;
-f_emd.value=p.emd||sample.emd;
-/* 주소: 지번/도로명 개별 보관. 기존 addr 파라미터는 도로명으로 간주 */
-f_addrJ.value=''; // 필요시 서버 데이터로 채움
-f_addrR.value=p.addr||sample.addr;
-
-function updateHeaderAddr(){
-  const j=f_addrJ.value?.trim(); const r=f_addrR.value?.trim();
-  v_addr.textContent = (j||r) ? ' · '+[j,r].filter(Boolean).join(' / ') : '';
-}
-updateHeaderAddr();
-[f_addrJ, f_addrR].forEach(el=> el.addEventListener('input', updateHeaderAddr));
-
-/* 사진 업로드: 사진첩/카메라 분리 */
-const inLib=$('#f_photo_lib'), inCam=$('#f_photo_cam');
-const btnLib=$('#btnPickFromLibrary'), btnCam=$('#btnTakePhoto');
-const preview=$('#preview');
-btnLib.addEventListener('click', ()=> inLib.click());
-btnCam.addEventListener('click', ()=> inCam.click());
-inLib.addEventListener('change', (e)=> handleFiles(e.target.files, 'lib'));
-inCam.addEventListener('change', (e)=> handleFiles(e.target.files, 'cam'));
-
-async function handleFiles(list, mode){
-  const file=list && list[0]; if(!file) return;
-  try{ preview.src=URL.createObjectURL(file); }catch(_){}
-  if(mode==='cam'){
-    // 촬영 시: 안내 없이 기기 좌표 사용 (실패해도 무음)
-    const c=await geoFromDeviceSilent();
-    if(c){ f_lat.value=c.lat.toFixed(6); f_lng.value=c.lng.toFixed(6); }
-    return;
-  }
-  // 사진첩: EXIF 우선, 실패 시 1회 안내
-  try{
-    let coords=null;
-    if(window.exifr){
-      try{
-        const g=await exifr.gps(file);
-        if(g && typeof g.latitude==='number' && typeof g.longitude==='number')
-          coords={lat:g.latitude,lng:g.longitude};
-      }catch(_){}
-    }
-    if(!coords && (/jpe?g$/i.test(file.name) || file.type==='image/jpeg')){
-      try{ coords=await readJpegGpsSafe(file); }catch(_){}
-    }
-    if(coords){
-      f_lat.value=Number(coords.lat).toFixed(6);
-      f_lng.value=Number(coords.lng).toFixed(6);
-    }else{
-      alert('이 사진에는 위치 정보가 없습니다. 다른 사진을 선택하거나, "기기 위치로 좌표"를 이용하세요.');
-    }
-  }catch(err){ console.error(err); alert('사진 처리 중 오류가 발생했습니다.'); }
-}
-
-/* 기기 위치 버튼(수동) – 기존 동작 유지 */
-$('#btnUseGeolocation').addEventListener('click', async ()=>{
-  const c=await geoFromDevice();
-  if(c){ f_lat.value=c.lat.toFixed(6); f_lng.value=c.lng.toFixed(6); }
-});
-$('#btnClearPhoto').addEventListener('click', ()=>{
-  inLib.value=''; inCam.value=''; preview.removeAttribute('src'); f_lat.value=''; f_lng.value='';
-});
-
-/* Silent(촬영용) */
-async function geoFromDeviceSilent(){
-  if(!('geolocation' in navigator) || !isSecureContext) return null;
-  try{
-    const p=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true, timeout:8000, maximumAge:0}));
-    return {lat:p.coords.latitude, lng:p.coords.longitude};
-  }catch(_){
-    try{
-      const p=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:false, timeout:12000, maximumAge:0}));
-      return {lat:p.coords.latitude, lng:p.coords.longitude};
-    }catch(__){ return null; }
-  }
-}
-
-/* Verbose(수동 버튼 용) */
-async function geoFromDevice(){
-  if(!('geolocation' in navigator)) { alert('이 브라우저는 위치 기능을 지원하지 않습니다.'); return null; }
-  if(!isSecureContext) { alert('HTTPS 또는 http://localhost 에서만 위치 사용 가능'); return null; }
-  try{
-    const p=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true, timeout:8000, maximumAge:0}));
-    return {lat:p.coords.latitude, lng:p.coords.longitude};
-  }catch(e1){
-    try{
-      const p=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:false, timeout:12000, maximumAge:0}));
-      return {lat:p.coords.latitude, lng:p.coords.longitude};
-    }catch(e2){ alert('위치 확인 실패'); return null; }
-  }
-}
-
-/* JPEG EXIF 보조 파서 */
-async function readJpegGpsSafe(file){
-  const buf=await file.arrayBuffer(); const v=new DataView(buf);
-  if(v.byteLength<4 || v.getUint16(0)!==0xFFD8) return null;
-  let off=2;
-  while(off+4<=v.byteLength){
-    const marker=v.getUint16(off); off+=2;
-    if((marker&0xFFF0)!==0xFFE0) break;
-    const size=v.getUint16(off); off+=2;
-    const next=off+size-2; if(next>v.byteLength) break;
-    if(marker===0xFFE1){
-      if(off+6<=v.byteLength && v.getUint32(off)===0x45786966){
-        const c=parseExifForGps(v,off+6); if(c) return c;
-      }
-    }
-    off=next;
-  }
-  return null;
-  function parseExifForGps(view,tiff){
-    if(tiff+8>view.byteLength) return null;
-    const endian=view.getUint16(tiff), le=endian===0x4949; if(!le && endian!==0x4D4D) return null;
-    const ifd0=tiff+getU32(view,tiff+4,le); if(!rng(ifd0,2)) return null;
-    const n=getU16(view,ifd0,le); let gpsPtr=0;
-    for(let i=0;i<n;i++){
-      const e=ifd0+2+i*12; if(!rng(e,12)) return null; const tag=getU16(view,e,le);
-      if(tag===0x8825){ gpsPtr=tiff+getU32(view,e+8,le); break; }
-    }
-    if(!gpsPtr || !rng(gpsPtr,2)) return null;
-    const m=getU16(view,gpsPtr,le); let latRef='N',lonRef='E',lat=null,lon=null;
-    for(let i=0;i<m;i++){
-      const e=gpsPtr+2+i*12; if(!rng(e,12)) break;
-      const tag=getU16(view,e,le), type=getU16(view,e+2,le), cnt=getU32(view,e+4,le);
-      const ofsRel=getU32(view,e+8,le); const ptr=(cnt<=4)?(e+8):(tiff+ofsRel);
-      if((tag===0x0001||tag===0x0003)&&type===2&&cnt>=2){
-        if(rng(ptr,1)){ const ch=String.fromCharCode(view.getUint8(ptr)); if(tag===0x0001)latRef=ch; if(tag===0x0003)lonRef=ch; }
-      }
-      if((tag===0x0002||tag===0x0004)&&type===5&&cnt===3){
-        const p=tiff+ofsRel; if(!rng(p,24)) continue;
-        const d=getU32(view,p,le), m2=getU32(view,p+8,le), s=getU32(view,p+16,le);
-        const dec=(d/(getU32(view,p+4,le)||1)) + (m2/(getU32(view,p+12,le)||1))/60 + (s/(getU32(view,p+20,le)||1))/3600;
-        if(tag===0x0002) lat=dec; else if(tag===0x0004) lon=dec;
-      }
-    }
-    if(lat!=null&&lon!=null){ if(latRef==='S')lat=-lat; if(lonRef==='W')lon=-lon; return {lat,lng:lon}; }
-    return null;
-  }
-  function rng(s,l){ return s>=0 && (s+(l||0))<=v.byteLength; }
-}
-
-/* 저장 로직 (상단/하단 공용) */
-function buildPayload(){
-  const addr = f_addrR.value?.trim() || f_addrJ.value?.trim() || '';
-  return {
-    id:f_id.value, name:f_name.value, status:f_status.value, type:'노외',
-    sido:f_sido.value, sigungu:f_sigungu.value, emd:f_emd.value,
-    addr_jibun:f_addrJ.value, addr_road:f_addrR.value, addr, // 호환 필드
-    lat:f_lat.value, lng:f_lng.value
-  };
-}
-function save(){
-  const payload=buildPayload();
-  console.log('SAVE(off-lot):', payload);
-  alert('샘플 저장 완료(콘솔 확인). 실제 API로 교체하세요.');
-}
-$('#btnSave').addEventListener('click', save);
-$('#btnSaveTop').addEventListener('click', save);
-</script>
+<!-- 주소찾기 레이어 -->
+<div id="postcodeLayer" role="dialog" aria-modal="true" aria-label="주소 검색">
+    <div id="postcodeWrap">
+        <button id="postcodeClose" class="btn light" type="button">닫기</button>
+        <div id="postcodeContainer"></div>
     </div>
-  </main>
+</div>
+
+<!-- 페이지 전용 JS -->
+<script src="${pageContext.request.contextPath}/static/js/onparking.js"></script>
 </body>
 </html>

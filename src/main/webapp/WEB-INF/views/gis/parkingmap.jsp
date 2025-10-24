@@ -15,32 +15,36 @@
             defer
             id="kakao-sdk"
     ></script>
-
 </head>
-<body>
+<body class="dark-theme">
 
-<div id="map" aria-label="지도"></div>
-
-<section class="bottom" id="bottom">
-    <div class="row">
-        <div class="title">더미 주차장 10 <span class="sep">|</span> 반경 <b id="rLbl">1.0</b> km</div>
-        <div class="muted" id="stat" style="margin-left:8px">초기화 중…</div>
-        <button class="btn min minbtn" id="minList"></button>
-    </div>
-    <div class="row">
-        <button class="btn" id="locBtn" title="현위치로 이동(1회)">현재 위치</button>
-        <button class="btn" id="fitBtn" title="반경 내 전체 보기">전체 보기</button>
-        <div class="chipbar" id="radiusBar" style="margin-left:auto">
-            <div class="chip" data-r="0.5">0.5km</div>
-            <div class="chip on" data-r="1">1km</div>
-            <div class="chip" data-r="1.5">1.5km</div>
+<!-- 지도 영역 -->
+<main class="map-container" id="mapContainer">
+    <div id="map" aria-label="지도"></div>
+    
+    <!-- 지도 컨트롤 오버레이 -->
+    <section class="map-controls bottom" id="bottom">
+        <div class="control-row row">
+            <div class="title">더미 주차장 10 <span class="sep">|</span> 반경 <b id="rLbl">1.0</b> km</div>
+            <div class="muted" id="stat" style="margin-left:8px">초기화 중…</div>
+            <button class="btn min minbtn" id="minList"></button>
         </div>
-    </div>
-    <div class="list" id="listWrap">
-        <div id="list" class="grid" role="listbox" aria-label="주차장 목록(반경 내)"></div>
-    </div>
-</section>
+        <div class="control-row row">
+            <button class="btn" id="locBtn" title="현위치로 이동(1회)">현재 위치</button>
+            <button class="btn" id="fitBtn" title="반경 내 전체 보기">전체 보기</button>
+            <div class="chipbar" id="radiusBar" style="margin-left:auto">
+                <div class="chip" data-r="0.5">0.5km</div>
+                <div class="chip on" data-r="1">1km</div>
+                <div class="chip" data-r="1.5">1.5km</div>
+            </div>
+        </div>
+        <div class="list" id="listWrap">
+            <div id="list" class="grid" role="listbox" aria-label="주차장 목록(반경 내)"></div>
+        </div>
+    </section>
+</main>
 
+<!-- 오류 로그 섹션 -->
 <section class="errdock" id="errdock" aria-label="오류 로그">
     <div class="hdr">
         <div class="title">오류 로그(에러만)</div>
@@ -216,7 +220,7 @@
         </svg>`
             );
             const prkImage = new kakao.maps.MarkerImage(P_SVG, new kakao.maps.Size(34,34), {offset:new kakao.maps.Point(17,17)});
-            const prkMarkers = [];
+            const prkMarkers = []
             const info = new kakao.maps.InfoWindow({ removable:true });
 
             function openInfo(marker, meta){

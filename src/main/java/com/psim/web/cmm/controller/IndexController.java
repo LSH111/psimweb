@@ -21,8 +21,8 @@ public class IndexController {
         model.addAttribute("parkingStatus", parkingStatus);
 
         // 이용상태 현황 데이터 조회
-        /*Map<String, Object> usageStatus = indexService.getUsageStatus();
-        model.addAttribute("usageStatus", usageStatus);*/
+        Map<String, Object> usageStatus = indexService.getUsageStatus();
+        model.addAttribute("usageStatus", usageStatus);
 
         return "/cmm/index";
     }

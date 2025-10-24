@@ -2,14 +2,28 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.psim.web.cmm.mapper.IndexMapper">
 
-    <select id="selectParkingStatus" resultType="java.util.HashMap">
-        SELECT
-            COUNT(*) AS total_count,
-            COUNT(CASE WHEN prgs_sts_cd = '01'   THEN 1 END) AS writing_count,
-            COUNT(CASE WHEN prgs_sts_cd = '02' THEN 1 END) AS completed_count
-        FROM cpk.tb_biz_per_prklot_info
+    <select id="selectParkingStatus" resultType="map">
+        SELECT 
+            COUNT(*) as total_count,
+            SUM(CASE WHEN tcl.sido_nm = '서울특별시' THEN 1 ELSE 0 END) as seoul_count,
+            SUM(CASE WHEN tcl.sido_nm = '강원도' THEN 1 ELSE 0 END) as gangwon_count
+        FROM cpk.tb_prk_def_plce_info tpdpi
+        LEFT JOIN cpk.tb_co_ldong tcl ON tpdpi.ldong_cd = tcl.ldong_cd
+        WHERE tcl.use_yn = 'Y'
     </select>
 
-
+    <!-- 주차상의용현황 조회 -->
+    <select id="selectUsageStatus" resultType="map">
+        SELECT 
+            SUM(CASE WHEN tbppi.prgs_sts_cd = 'PRK_013001' THEN 1 ELSE 0 END) as illegal_count,
+            SUM(CASE WHEN tbppi.prgs_sts_cd = 'PRK_013002' THEN 1 ELSE 0 END) as legal_count,
+            COUNT(*) as total_usage_count
+        FROM cpk.tb_biz_per_prklot_info tbppi
+        LEFT JOIN cpk.tb_prk_def_plce_info tpdpi 
+            ON tbppi.prk_plce_manage_no = tpdpi.prk_plce_manage_no
+            AND tbppi.prk_plce_info_sn = tpdpi.prk_plce_info_sn
+        LEFT JOIN cpk.tb_co_ldong tcl ON tpdpi.ldong_cd = tcl.ldong_cd
+        WHERE tcl.use_yn = 'Y'
+    </select>
 
 </mapper>
