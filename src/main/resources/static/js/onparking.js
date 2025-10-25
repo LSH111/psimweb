@@ -167,6 +167,22 @@ const CodeLoader = {
             }, 100);
         }
 
+        // 🔥 PRK_004: 운영시간코드 (라디오 버튼 동적 생성)
+        if (groups['PRK_004']) {
+            window.OPERATION_TIME_CODES = groups['PRK_004'].codes;
+            console.log('✅ PRK_004 운영시간 코드 로드:', window.OPERATION_TIME_CODES);
+
+            // 주간 운영시간 라디오 버튼 생성
+            this.populateOperationTimeRadios('day', 'weekday', groups['PRK_004'].codes);
+            this.populateOperationTimeRadios('day', 'saturday', groups['PRK_004'].codes);
+            this.populateOperationTimeRadios('day', 'holiday', groups['PRK_004'].codes);
+
+            // 야간 운영시간 라디오 버튼 생성
+            this.populateOperationTimeRadios('night', 'weekday', groups['PRK_004'].codes);
+            this.populateOperationTimeRadios('night', 'saturday', groups['PRK_004'].codes);
+            this.populateOperationTimeRadios('night', 'holiday', groups['PRK_004'].codes);
+        }
+
         // PRK_006: 요금지불방식
         if (groups['PRK_006']) {
             // ✅ "기타"를 제외한 코드만 필터링
@@ -199,6 +215,46 @@ const CodeLoader = {
         }
 
         console.log('✅ 모든 동적 코드 적용 완료');
+    },
+
+    // 🔥 운영시간 라디오 버튼 생성 함수
+    populateOperationTimeRadios(timeType, dayType, codes) {
+        const capitalizedDayType = dayType.charAt(0).toUpperCase() + dayType.slice(1);
+        const containerId = `#${timeType}_${dayType}_operation_group`;
+        const radioName = `${timeType}${capitalizedDayType}Operation`;
+
+        const container = $(containerId);
+        if (!container) {
+            console.warn(`⚠️ ${containerId} 요소를 찾을 수 없습니다.`);
+            return;
+        }
+
+        container.innerHTML = '';
+
+        if (codes && codes.length > 0) {
+            codes.forEach((code, index) => {
+                const label = document.createElement('label');
+                const input = document.createElement('input');
+                const span = document.createElement('span');
+
+                input.type = 'radio';
+                input.name = radioName;
+                input.value = code.codeCd; // ✅ codeCd를 value로 사용 ("01", "02", "03")
+                input.dataset.codeName = code.codeNm; // codeNm을 data 속성에 저장
+
+                // 첫 번째 항목을 기본 선택
+                if (index === 0) input.checked = true;
+
+                span.textContent = code.codeNm;
+
+                label.appendChild(input);
+                label.appendChild(document.createTextNode(' '));
+                label.appendChild(span);
+                container.appendChild(label);
+            });
+
+            console.log(`✅ ${containerId} 라디오 버튼 ${codes.length}개 생성`);
+        }
     },
 
     // "기타" 체크박스 + 입력 필드 추가
@@ -432,8 +488,10 @@ function syncFeeSections(){
     const nightNormalWrap = $('#night_normal_fee_wrap');
 
     const currentOpTypeRadios = $$('input[name="opType"]');
-    const v = (currentOpTypeRadios.find(r=>r.checked)?.value) || '';
+    const selectedRadio = currentOpTypeRadios.find(r => r.checked);
+    const v = selectedRadio?.value || '';
 
+    // 먼저 모든 섹션 숨김
     [dayResWrap, dayNormalWrap, nightResWrap, nightNormalWrap].forEach(el => {
         if (el) el.hidden = true;
     });
@@ -442,30 +500,18 @@ function syncFeeSections(){
     const isDayChecked = $('#chk_day')?.checked || false;
     const isNightChecked = $('#chk_night')?.checked || false;
 
-    // ⚠️ 선택된 라디오의 텍스트도 함께 확인 (codeCd 또는 codeNm 둘 다 지원)
-    const selectedRadio = currentOpTypeRadios.find(r => r.checked);
-    const opText = selectedRadio?.nextElementSibling?.textContent?.trim() || '';
+    console.log('🔄 syncFeeSections - 코드값:', v, '주간:', isDayChecked, '야간:', isNightChecked);
 
-    console.log('🔄 syncFeeSections:', {
-        value: v,
-        text: opText,
-        isDayChecked,
-        isNightChecked
-    });
+    // ✅ 코드 값으로만 판별
+    const isBoth = (v === '03');
+    const isResident = (v === '02');
+    const isNormalStreet = (v === '01');
 
-    // codeCd 또는 codeNm으로 판별
-    const isNormalStreet = v === '01' || opText.includes('일반노상');
-    const isResident = v === '02' || opText.includes('거주자우선');
-    const isBoth = v === '03' || opText.includes('일반노상+거주자우선') || opText.includes('일반+거주자');
+    console.log('📋 운영방식 판별:', { isBoth, isResident, isNormalStreet });
 
     // 운영방식에 따라 표시
-    if (isNormalStreet) {
-        if (isDayChecked && dayNormalWrap) dayNormalWrap.hidden = false;
-        if (isNightChecked && nightNormalWrap) nightNormalWrap.hidden = false;
-    } else if (isResident) {
-        if (isDayChecked && dayResWrap) dayResWrap.hidden = false;
-        if (isNightChecked && nightResWrap) nightResWrap.hidden = false;
-    } else if (isBoth) {
+    if (isBoth) {
+        console.log('✅ 복합 모드 (03)');
         if (isDayChecked) {
             if (dayResWrap) dayResWrap.hidden = false;
             if (dayNormalWrap) dayNormalWrap.hidden = false;
@@ -474,13 +520,21 @@ function syncFeeSections(){
             if (nightResWrap) nightResWrap.hidden = false;
             if (nightNormalWrap) nightNormalWrap.hidden = false;
         }
+    } else if (isResident) {
+        console.log('✅ 거주자우선 모드 (02)');
+        if (isDayChecked && dayResWrap) dayResWrap.hidden = false;
+        if (isNightChecked && nightResWrap) nightResWrap.hidden = false;
+    } else if (isNormalStreet) {
+        console.log('✅ 일반노상 모드 (01)');
+        if (isDayChecked && dayNormalWrap) dayNormalWrap.hidden = false;
+        if (isNightChecked && nightNormalWrap) nightNormalWrap.hidden = false;
     }
 
-    console.log('📊 섹션 표시 상태:', {
-        dayResHidden: dayResWrap?.hidden,
-        dayNormalHidden: dayNormalWrap?.hidden,
-        nightResHidden: nightResWrap?.hidden,
-        nightNormalHidden: nightNormalWrap?.hidden
+    console.log('📊 최종:', {
+        dayRes: !dayResWrap?.hidden,
+        dayNormal: !dayNormalWrap?.hidden,
+        nightRes: !nightResWrap?.hidden,
+        nightNormal: !nightNormalWrap?.hidden
     });
 }
 
@@ -556,8 +610,9 @@ function setupTimeOperationEvents(timeType) {
     if (weekdayGroup && weekdayTimeInputs) {
         weekdayGroup.addEventListener('change', function(e) {
             if (e.target.name === `${timeType}WeekdayOperation`) {
+                // ✅ codeCd 값으로 비교: '02' = 시간제운영
                 weekdayTimeInputs.style.display =
-                    e.target.value === '시간제운영' ? 'block' : 'none';
+                    e.target.value === '02' ? 'block' : 'none';
             }
         });
     }
@@ -569,7 +624,7 @@ function setupTimeOperationEvents(timeType) {
         saturdayGroup.addEventListener('change', function(e) {
             if (e.target.name === `${timeType}SaturdayOperation`) {
                 saturdayTimeInputs.style.display =
-                    e.target.value === '시간제운영' ? 'block' : 'none';
+                    e.target.value === '02' ? 'block' : 'none';
             }
         });
     }
@@ -581,7 +636,7 @@ function setupTimeOperationEvents(timeType) {
         holidayGroup.addEventListener('change', function(e) {
             if (e.target.name === `${timeType}HolidayOperation`) {
                 holidayTimeInputs.style.display =
-                    e.target.value === '시간제운영' ? 'block' : 'none';
+                    e.target.value === '02' ? 'block' : 'none';
             }
         });
     }
@@ -608,44 +663,110 @@ function collectSettleMethods(timeType) {
 }
 
 function collectOperatingHours(timeType) {
-    const weekdayOperation = document.querySelector(`input[name="${timeType}WeekdayOperation"]:checked`)?.value || '전일운영';
-    let weekdayTime = null;
-    if (weekdayOperation === '시간제운영') {
-        weekdayTime = {
-            startHour: num($(`#${timeType}_weekday_start_hour`)?.value),
-            startMin: num($(`#${timeType}_weekday_start_min`)?.value),
-            endHour: num($(`#${timeType}_weekday_end_hour`)?.value),
-            endMin: num($(`#${timeType}_weekday_end_min`)?.value)
-        };
-    }
+    const result = {};
 
-    const saturdayOperation = document.querySelector(`input[name="${timeType}SaturdayOperation"]:checked`)?.value || '전일운영';
-    let saturdayTime = null;
-    if (saturdayOperation === '시간제운영') {
-        saturdayTime = {
-            startHour: num($(`#${timeType}_saturday_start_hour`)?.value),
-            startMin: num($(`#${timeType}_saturday_start_min`)?.value),
-            endHour: num($(`#${timeType}_saturday_end_hour`)?.value),
-            endMin: num($(`#${timeType}_saturday_end_min`)?.value)
-        };
-    }
+    // 평일
+    const weekdayRadio = document.querySelector(`input[name="${timeType}WeekdayOperation"]:checked`);
+    const weekdayCode = weekdayRadio?.value || '01'; // codeCd 직접 사용
+    const weekdayName = weekdayRadio?.dataset.codeName || '전일운영';
 
-    const holidayOperation = document.querySelector(`input[name="${timeType}HolidayOperation"]:checked`)?.value || '전일운영';
-    let holidayTime = null;
-    if (holidayOperation === '시간제운영') {
-        holidayTime = {
-            startHour: num($(`#${timeType}_holiday_start_hour`)?.value),
-            startMin: num($(`#${timeType}_holiday_start_min`)?.value),
-            endHour: num($(`#${timeType}_holiday_end_hour`)?.value),
-            endMin: num($(`#${timeType}_holiday_end_min`)?.value)
-        };
-    }
-
-    return {
-        weekday: { type: weekdayOperation, time: weekdayTime },
-        saturday: { type: saturdayOperation, time: saturdayTime },
-        holiday: { type: holidayOperation, time: holidayTime }
+    result.weekday = {
+        type: weekdayName,
+        code: weekdayCode,
+        time: null
     };
+
+    if (weekdayCode === '02') { // 시간제운영
+        const startHour = num($(`#${timeType}_weekday_start_hour`)?.value);
+        const startMin = num($(`#${timeType}_weekday_start_min`)?.value);
+        const endHour = num($(`#${timeType}_weekday_end_hour`)?.value);
+        const endMin = num($(`#${timeType}_weekday_end_min`)?.value);
+
+        result.weekday.time = {
+            startHour, startMin, endHour, endMin,
+            startTime: formatTime(startHour, startMin),
+            endTime: formatTime(endHour, endMin)
+        };
+    }
+
+    // 토요일
+    const saturdayRadio = document.querySelector(`input[name="${timeType}SaturdayOperation"]:checked`);
+    const saturdayCode = saturdayRadio?.value || '01';
+    const saturdayName = saturdayRadio?.dataset.codeName || '전일운영';
+
+    result.saturday = {
+        type: saturdayName,
+        code: saturdayCode,
+        time: null
+    };
+
+    if (saturdayCode === '02') {
+        const startHour = num($(`#${timeType}_saturday_start_hour`)?.value);
+        const startMin = num($(`#${timeType}_saturday_start_min`)?.value);
+        const endHour = num($(`#${timeType}_saturday_end_hour`)?.value);
+        const endMin = num($(`#${timeType}_saturday_end_min`)?.value);
+
+        result.saturday.time = {
+            startHour, startMin, endHour, endMin,
+            startTime: formatTime(startHour, startMin),
+            endTime: formatTime(endHour, endMin)
+        };
+    }
+
+    // 공휴일
+    const holidayRadio = document.querySelector(`input[name="${timeType}HolidayOperation"]:checked`);
+    const holidayCode = holidayRadio?.value || '01';
+    const holidayName = holidayRadio?.dataset.codeName || '전일운영';
+
+    result.holiday = {
+        type: holidayName,
+        code: holidayCode,
+        time: null
+    };
+
+    if (holidayCode === '02') {
+        const startHour = num($(`#${timeType}_holiday_start_hour`)?.value);
+        const startMin = num($(`#${timeType}_holiday_start_min`)?.value);
+        const endHour = num($(`#${timeType}_holiday_end_hour`)?.value);
+        const endMin = num($(`#${timeType}_holiday_end_min`)?.value);
+
+        result.holiday.time = {
+            startHour, startMin, endHour, endMin,
+            startTime: formatTime(startHour, startMin),
+            endTime: formatTime(endHour, endMin)
+        };
+    }
+
+    return result;
+}
+
+// 🔥 시간을 HHMM 형식으로 변환
+function formatTime(hour, minute) {
+    const h = String(hour || 0).padStart(2, '0');
+    const m = String(minute || 0).padStart(2, '0');
+    return h + m;
+}
+// 🔥 운영 타입을 PRK_004 코드로 변환 (Fallback용)
+function operationTypeToCode(operationType) {
+    // 🔥 PRK_004 코드가 로드된 경우 사용
+    if (window.OPERATION_TIME_CODES) {
+        const codeInfo = window.OPERATION_TIME_CODES.find(c => c.codeNm === operationType);
+        if (codeInfo) {
+            return codeInfo.codeCd;
+        }
+    }
+
+    // 🔥 Fallback: 하드코딩 매핑
+    switch (operationType) {
+        case '전일운영':
+            return '01';
+        case '시간제운영':
+            return '02';
+        case '운영안함':
+            return '03';
+        default:
+            return '01';
+    }
 }
 
 // ========== 저장 ==========
@@ -880,6 +1001,53 @@ async function loadParkingDetailFromServer(prkPlceManageNo) {
     }
 }
 
+// ========== 🔥 숫자를 한국 통화 형식으로 포맷팅 ==========
+function formatCurrency(value) {
+    // 🔥 문자열 → 숫자 변환 추가
+    const numValue = Number(value);
+    // 🔥 유효성 검사 강화
+    if (!numValue || isNaN(numValue) || numValue <= 0) {
+        return '';
+    }
+    return numValue.toLocaleString('ko-KR');
+}
+
+// ========== 🔥 쉼표로 구분된 코드를 체크박스에 바인딩 ==========
+function bindCheckboxes(name, codeString) {
+    if (!codeString) return;
+
+    const codes = codeString.split(',').map(c => c.trim()).filter(c => c);
+    console.log(`✅ 체크박스 바인딩: ${name} =`, codes);
+
+    codes.forEach(code => {
+        // 🔥 "04" 또는 "기타" 코드 처리
+        if (code === '04' || code === '기타') {
+            const etcCheckbox = document.getElementById(`${name.replace('Method', '')}_etc_chk`);
+            if (etcCheckbox) {
+                etcCheckbox.checked = true;
+                console.log(`  ✓ ${name} 기타 체크박스 활성화`);
+
+                // 기타 입력 필드도 활성화
+                const etcInput = document.getElementById(`${name.replace('Method', '')}_etc_input`);
+                if (etcInput) {
+                    etcInput.disabled = false;
+                }
+            } else {
+                console.warn(`  ⚠️ 기타 체크박스를 찾을 수 없음: ${name}`);
+            }
+            return;
+        }
+
+        const checkbox = document.querySelector(`input[name="${name}"][value="${code}"]`);
+        if (checkbox) {
+            checkbox.checked = true;
+            console.log(`  ✓ ${name} 체크: ${code}`);
+        } else {
+            console.warn(`  ⚠️ 체크박스를 찾을 수 없음: ${name} = ${code}`);
+        }
+    });
+}
+
 // ========== 🔥 폼에 데이터 바인딩 ==========
 function bindDataToForm(data) {
     console.log('📝 폼 데이터 바인딩 시작', data);
@@ -924,40 +1092,30 @@ function bindDataToForm(data) {
         normalInput.value = Math.max(0, normal);
     }
 
-    // 주차장 운영방식 (prkOperMthdCd)
+    // 주차장운영방식 값 설정 (코드 값으로 직접 비교)
     if (data.prkOperMthdCd) {
+        console.log('🔍 서버에서 받은 운영방식 코드:', data.prkOperMthdCd);
+
         const opTypeRadios = document.getElementsByName('opType');
-        // 코드 값에 따라 라디오 버튼 선택
-        // 01: 일반노상주차장, 02: 거주자우선주차장, 03: 일반노상+거주자우선
-        const opTypeMap = {
-            '01': '일반노상주차장',
-            '02': '거주자우선주차장',
-            '03': '일반노상주차장+거주자우선주차장'
-        };
-        const opTypeValue = opTypeMap[data.prkOperMthdCd];
-        if (opTypeValue) {
-            opTypeRadios.forEach(radio => {
-                if (radio.value === opTypeValue) radio.checked = true;
-            });
-        }
+        opTypeRadios.forEach(radio => {
+            if (radio.value === data.prkOperMthdCd) {
+                radio.checked = true;
+                console.log('✅ 주차장운영방식 선택:', radio.value);
+            }
+        });
     }
 
     // 운영주체 (operMbyCd)
     if (data.operMbyCd) {
+        console.log('🔍 서버에서 받은 운영주체 코드:', data.operMbyCd);
+
         const ownRadios = document.getElementsByName('own');
-        // 01: 시운영, 02: 구(군)운영, 03: 공단위탁, 04: 민간위탁
-        const ownMap = {
-            '01': '시운영',
-            '02': '구(군)운영',
-            '03': '공단위탁',
-            '04': '민간위탁'
-        };
-        const ownValue = ownMap[data.operMbyCd];
-        if (ownValue) {
-            ownRadios.forEach(radio => {
-                if (radio.value === ownValue) radio.checked = true;
-            });
-        }
+        ownRadios.forEach(radio => {
+            if (radio.value === data.operMbyCd) {
+                radio.checked = true;
+                console.log('✅ 운영주체 선택:', radio.value);
+            }
+        });
     }
 
     // 관리기관
@@ -977,12 +1135,51 @@ function bindDataToForm(data) {
     const chkNight = document.getElementById('chk_night');
 
     if (data.dyntDvCd && chkDay && chkNight) {
-        // 01: 주간, 02: 야간, 03: 주간+야간
         if (data.dyntDvCd === '01' || data.dyntDvCd === '03') {
             chkDay.checked = true;
         }
         if (data.dyntDvCd === '02' || data.dyntDvCd === '03') {
             chkNight.checked = true;
+        }
+
+        const opTypeWrap = document.getElementById('op_type_wrap');
+        if (opTypeWrap && (chkDay.checked || chkNight.checked)) {
+            opTypeWrap.style.display = 'block';
+            console.log('✅ 주차장운영방식 영역 표시');
+        }
+
+        const daySections = [
+            'day_detail_wrap',
+            'day_fee_charge_wrap',
+            'day_fee_level_wrap',
+            'day_fee_pay_wrap',
+            'day_fee_settle_wrap',
+            'day_operation_time_section'
+        ];
+
+        const nightSections = [
+            'night_detail_wrap',
+            'night_fee_charge_wrap',
+            'night_fee_level_wrap',
+            'night_fee_pay_wrap',
+            'night_fee_settle_wrap',
+            'night_operation_time_section'
+        ];
+
+        if (chkDay.checked) {
+            daySections.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'block';
+            });
+            console.log('✅ 주간 섹션들 표시');
+        }
+
+        if (chkNight.checked) {
+            nightSections.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'block';
+            });
+            console.log('✅ 야간 섹션들 표시');
         }
     }
 
@@ -1003,25 +1200,29 @@ function bindDataToForm(data) {
         f_day_feeType.value = data.wkFeeAplyCd;
     }
 
-    // 거주자우선 요금 (주간)
+    // 🔥 거주자우선 요금 (주간) - 통화 포맷팅
     const f_day_res_all = document.getElementById('f_day_res_all');
     const f_day_res_day = document.getElementById('f_day_res_day');
     const f_day_res_full = document.getElementById('f_day_res_full');
 
-    if (f_day_res_all && data.wkResDayFee) f_day_res_all.value = data.wkResDayFee;
-    if (f_day_res_day && data.wkResWkFee) f_day_res_day.value = data.wkResWkFee;
-    if (f_day_res_full && data.wkResFtFee) f_day_res_full.value = data.wkResFtFee;
+    if (f_day_res_all && data.wkResDayFee) f_day_res_all.value = formatCurrency(data.wkResDayFee);
+    if (f_day_res_day && data.wkResWkFee) f_day_res_day.value = formatCurrency(data.wkResWkFee);
+    if (f_day_res_full && data.wkResFtFee) f_day_res_full.value = formatCurrency(data.wkResFtFee);
 
-    // 일반노상 요금 (주간)
+    // 🔥 일반노상 요금 (주간) - 통화 포맷팅
     const f_day_fee_first30 = document.getElementById('f_day_fee_first30');
     const f_day_fee_per10 = document.getElementById('f_day_fee_per10');
     const f_day_fee_per60 = document.getElementById('f_day_fee_per60');
     const f_day_fee_daily = document.getElementById('f_day_fee_daily');
+    const f_day_fee_monthly = document.getElementById('f_day_fee_monthly');
+    const f_day_fee_halfyear = document.getElementById('f_day_fee_halfyear');
 
-    if (f_day_fee_first30 && data.wkGnFrst30mFee) f_day_fee_first30.value = data.wkGnFrst30mFee;
-    if (f_day_fee_per10 && data.wkGnInt10mFee) f_day_fee_per10.value = data.wkGnInt10mFee;
-    if (f_day_fee_per60 && data.wkGn1hFee) f_day_fee_per60.value = data.wkGn1hFee;
-    if (f_day_fee_daily && data.wkGnDayFee) f_day_fee_daily.value = data.wkGnDayFee;
+    if (f_day_fee_first30 && data.wkGnFrst30mFee) f_day_fee_first30.value = formatCurrency(data.wkGnFrst30mFee);
+    if (f_day_fee_per10 && data.wkGnInt10mFee) f_day_fee_per10.value = formatCurrency(data.wkGnInt10mFee);
+    if (f_day_fee_per60 && data.wkGn1hFee) f_day_fee_per60.value = formatCurrency(data.wkGn1hFee);
+    if (f_day_fee_daily && data.wkGnDayFee) f_day_fee_daily.value = formatCurrency(data.wkGnDayFee);
+    if (f_day_fee_monthly && data.wkFeeMnthPassPrc) f_day_fee_monthly.value = formatCurrency(data.wkFeeMnthPassPrc);
+    if (f_day_fee_halfyear && data.wkFeeHfyrPassPrc) f_day_fee_halfyear.value = formatCurrency(data.wkFeeHfyrPassPrc);
 
     // 야간 요금 정보
     const f_night_feeType = document.getElementById('f_night_feeType');
@@ -1029,25 +1230,92 @@ function bindDataToForm(data) {
         f_night_feeType.value = data.ntFeeAplyCd;
     }
 
-    // 거주자우선 요금 (야간)
+    // 🔥 거주자우선 요금 (야간) - 통화 포맷팅
     const f_night_res_all = document.getElementById('f_night_res_all');
     const f_night_res_full = document.getElementById('f_night_res_full');
     const f_night_res_night = document.getElementById('f_night_res_night');
 
-    if (f_night_res_all && data.ntResDayFee) f_night_res_all.value = data.ntResDayFee;
-    if (f_night_res_full && data.ntResFtFee) f_night_res_full.value = data.ntResFtFee;
-    if (f_night_res_night && data.ntResNtFee) f_night_res_night.value = data.ntResNtFee;
+    if (f_night_res_all && data.ntResDayFee) f_night_res_all.value = formatCurrency(data.ntResDayFee);
+    if (f_night_res_full && data.ntResFtFee) f_night_res_full.value = formatCurrency(data.ntResFtFee);
+    if (f_night_res_night && data.ntResNtFee) f_night_res_night.value = formatCurrency(data.ntResNtFee);
 
-    // 일반노상 요금 (야간)
+    // 🔥 일반노상 요금 (야간) - DB 값 그대로 표시
     const f_night_fee_first30 = document.getElementById('f_night_fee_first30');
     const f_night_fee_per10 = document.getElementById('f_night_fee_per10');
     const f_night_fee_per60 = document.getElementById('f_night_fee_per60');
     const f_night_fee_daily = document.getElementById('f_night_fee_daily');
+    const f_night_fee_monthly = document.getElementById('f_night_fee_monthly');
+    const f_night_fee_halfyear = document.getElementById('f_night_fee_halfyear');
 
-    if (f_night_fee_first30 && data.ntGnFrst30mFee) f_night_fee_first30.value = data.ntGnFrst30mFee;
-    if (f_night_fee_per10 && data.ntGnInt10mFee) f_night_fee_per10.value = data.ntGnInt10mFee;
-    if (f_night_fee_per60 && data.ntGn1hFee) f_night_fee_per60.value = data.ntGn1hFee;
-    if (f_night_fee_daily && data.ntGnDayFee) f_night_fee_daily.value = data.ntGnDayFee;
+    if (f_night_fee_first30 && data.ntGnFrst30mFee) f_night_fee_first30.value = formatCurrency(data.ntGnFrst30mFee);
+    if (f_night_fee_per10 && data.ntGnInt10mFee) f_night_fee_per10.value = formatCurrency(data.ntGnInt10mFee);
+    if (f_night_fee_per60 && data.ntGn1hFee) f_night_fee_per60.value = formatCurrency(data.ntGn1hFee);
+    if (f_night_fee_daily && data.ntGnDayFee) f_night_fee_daily.value = formatCurrency(data.ntGnDayFee);
+    if (f_night_fee_monthly && data.ntFeeMnthPassPrc) f_night_fee_monthly.value = formatCurrency(data.ntFeeMnthPassPrc);
+    if (f_night_fee_halfyear && data.ntFeeHfyrPassPrc) f_night_fee_halfyear.value = formatCurrency(data.ntFeeHfyrPassPrc);
+
+    // 🔥 요금지불방식 (쉼표로 구분된 코드)
+    if (data.wkFeeMthdCd) {
+        console.log('💳 주간 요금지불방식 코드:', data.wkFeeMthdCd);
+        bindCheckboxes('dayPayMethod', data.wkFeeMthdCd);
+
+        // 🔥 "04" 코드가 있고 기타 텍스트가 있으면 입력 필드에 설정
+        if (data.wkFeeMthdCd.includes('04') && data.wkFeePayMthdOthr) {
+            const dayPayEtcInput = document.getElementById('day_pay_etc_input');
+            if (dayPayEtcInput) {
+                dayPayEtcInput.value = data.wkFeePayMthdOthr;
+                console.log('  ✅ 주간 기타 지불방식:', data.wkFeePayMthdOthr);
+            }
+        }
+    }
+
+    if (data.ntFeeMthdCd) {
+        console.log('💳 야간 요금지불방식 코드:', data.ntFeeMthdCd);
+        bindCheckboxes('nightPayMethod', data.ntFeeMthdCd);
+
+        // 🔥 "04" 코드가 있고 기타 텍스트가 있으면 입력 필드에 설정
+        if (data.ntFeeMthdCd.includes('04') && data.ntFeePayMthdOthr) {
+            const nightPayEtcInput = document.getElementById('night_pay_etc_input');
+            if (nightPayEtcInput) {
+                nightPayEtcInput.value = data.ntFeePayMthdOthr;
+                console.log('  ✅ 야간 기타 지불방식:', data.ntFeePayMthdOthr);
+            }
+        }
+    }
+
+    // 🔥 요금정산방식 (쉼표로 구분된 코드)
+    if (data.wkFeeStlmtMthdCd) {
+        console.log('🧾 주간 요금정산방식 코드:', data.wkFeeStlmtMthdCd);
+        bindCheckboxes('daySettleMethod', data.wkFeeStlmtMthdCd);
+    }
+
+    if (data.ntFeeStlmtMthdCd) {
+        console.log('🧾 야간 요금정산방식 코드:', data.ntFeeStlmtMthdCd);
+        bindCheckboxes('nightSettleMethod', data.ntFeeStlmtMthdCd);
+    }
+
+    // 🔥 요금지불방식 기타 필드 바인딩
+    if (data.wkFeePayMthdOthr) {
+        const dayPayEtcInput = document.getElementById('day_pay_etc_input');
+        const dayPayEtcChk = document.getElementById('day_pay_etc_chk');
+        if (dayPayEtcInput && dayPayEtcChk) {
+            dayPayEtcChk.checked = true;
+            dayPayEtcInput.disabled = false;
+            dayPayEtcInput.value = data.wkFeePayMthdOthr;
+            console.log('✅ 주간 요금지불방식 기타:', data.wkFeePayMthdOthr);
+        }
+    }
+
+    if (data.ntFeePayMthdOthr) {
+        const nightPayEtcInput = document.getElementById('night_pay_etc_input');
+        const nightPayEtcChk = document.getElementById('night_pay_etc_chk');
+        if (nightPayEtcInput && nightPayEtcChk) {
+            nightPayEtcChk.checked = true;
+            nightPayEtcInput.disabled = false;
+            nightPayEtcInput.value = data.ntFeePayMthdOthr;
+            console.log('✅ 야간 요금지불방식 기타:', data.ntFeePayMthdOthr);
+        }
+    }
 
     // 기타 정보
     const sign_yes = document.getElementById('sign_yes');
@@ -1077,12 +1345,93 @@ function bindDataToForm(data) {
         console.log('✅ 특이사항 바인딩 완료');
     }
 
-    // 동적 UI 업데이트 함수 호출 (주간/야간 섹션 표시 등)
-    if (typeof syncFeeSections === 'function') {
-        syncFeeSections();
+    // 🔥 주간 운영시간 바인딩
+    if (data.wkWkdyOperTmCd) {
+        bindOperationTime('day', 'weekday', data.wkWkdyOperTmCd, data.wkWkdyOperStarTm, data.wkWkdyOperEndTm);
+    }
+    if (data.wkSatOperTmCd) {
+        bindOperationTime('day', 'saturday', data.wkSatOperTmCd, data.wkSatOperStarTm, data.wkSatOperEndTm);
+    }
+    if (data.wkHldyOperTmCd) {
+        bindOperationTime('day', 'holiday', data.wkHldyOperTmCd, data.wkHldyOperStarTm, data.wkHldyOperEndTm);
     }
 
+    // 🔥 야간 운영시간 바인딩
+    if (data.ntWkdyOperTmCd) {
+        bindOperationTime('night', 'weekday', data.ntWkdyOperTmCd, data.ntWkdyOperStarTm, data.ntWkdyOperEndTm);
+    }
+    if (data.ntSatOperTmCd) {
+        bindOperationTime('night', 'saturday', data.ntSatOperTmCd, data.ntSatOperStarTm, data.ntSatOperEndTm);
+    }
+    if (data.ntHldyOperTmCd) {
+        bindOperationTime('night', 'holiday', data.ntHldyOperTmCd, data.ntHldyOperStarTm, data.ntHldyOperEndTm);
+    }
+
+    // ✅ 동적 UI 업데이트
+    setTimeout(() => {
+        console.log('🔄 UI 업데이트 시작');
+
+        const chkDay = document.getElementById('chk_day');
+        const chkNight = document.getElementById('chk_night');
+
+        if (chkDay && chkDay.checked) {
+            chkDay.dispatchEvent(new Event('change'));
+        }
+        if (chkNight && chkNight.checked) {
+            chkNight.dispatchEvent(new Event('change'));
+        }
+
+        if (typeof syncFeeSections === 'function') {
+            syncFeeSections();
+        }
+
+        console.log('✅ UI 업데이트 완료');
+    }, 200);
+
     console.log('✅ 폼 데이터 바인딩 완료');
+}
+
+// 🔥 운영시간 바인딩 함수 (PRK_004 코드 기반)
+function bindOperationTime(timeType, dayType, operTmCd, startTime, endTime) {
+    console.log(`🕐 운영시간 바인딩: ${timeType} ${dayType}`, { operTmCd, startTime, endTime });
+
+    const capitalizedDayType = dayType.charAt(0).toUpperCase() + dayType.slice(1);
+    const radioName = `${timeType}${capitalizedDayType}Operation`;
+
+    // ✅ codeCd 값으로 직접 라디오 버튼 선택
+    const radioButton = document.querySelector(`input[name="${radioName}"][value="${operTmCd}"]`);
+    if (radioButton) {
+        radioButton.checked = true;
+        console.log(`✅ ${radioName} = ${operTmCd} (${radioButton.dataset.codeName})`);
+
+        // change 이벤트 트리거하여 시간 입력 필드 표시/숨김
+        radioButton.dispatchEvent(new Event('change', { bubbles: true }));
+    } else {
+        console.warn(`⚠️ 라디오 버튼을 찾을 수 없음: ${radioName} = ${operTmCd}`);
+    }
+
+    // 시간제운영인 경우 시간 입력
+    if (operTmCd === '02' && startTime && endTime) {
+        // HHMM 형식 파싱 (예: '0900' -> 시간: 09, 분: 00)
+        const startHour = startTime.substring(0, 2);
+        const startMin = startTime.substring(2, 4);
+        const endHour = endTime.substring(0, 2);
+        const endMin = endTime.substring(2, 4);
+
+        // 시작 시간 입력
+        const startHourInput = document.getElementById(`${timeType}_${dayType}_start_hour`);
+        const startMinInput = document.getElementById(`${timeType}_${dayType}_start_min`);
+        if (startHourInput) startHourInput.value = parseInt(startHour, 10);
+        if (startMinInput) startMinInput.value = parseInt(startMin, 10);
+
+        // 종료 시간 입력
+        const endHourInput = document.getElementById(`${timeType}_${dayType}_end_hour`);
+        const endMinInput = document.getElementById(`${timeType}_${dayType}_end_min`);
+        if (endHourInput) endHourInput.value = parseInt(endHour, 10);
+        if (endMinInput) endMinInput.value = parseInt(endMin, 10);
+
+        console.log(`✅ 시간제운영 시간 설정: ${startHour}:${startMin} ~ ${endHour}:${endMin}`);
+    }
 }
 
 // ========== 헬퍼 함수들 ==========
@@ -1115,30 +1464,27 @@ document.addEventListener('DOMContentLoaded', async function(){
     // 🔥 최우선: 동적 코드 로드
     await CodeLoader.applyAllDynamicCodes();
 
-    // 🔥 URL에서 prkPlceManageNo가 있으면 서버에서 데이터 로드
-    const urlParams = new URLSearchParams(window.location.search);
-    const manageNo = urlParams.get('id') || urlParams.get('prkPlceManageNo');
-
-    if (manageNo) {
-        await loadParkingDetailFromServer(manageNo);
-    }
-
-    // 주간/야간 섹션 설정
+    // ✅ 이벤트 리스너를 먼저 등록
     setupDayNightSections();
-
-    // 시간제운영 이벤트 설정
     setupTimeOperationEvents('day');
     setupTimeOperationEvents('night');
-
-    // ========== 주차장 표지판 있음/없음 처리 ==========
     setupSignToggle();
-
-    // ========== 경사구간 있음/없음 처리 ==========
     setupSlopeToggle();
 
     // 저장 버튼 이벤트
     $('#btnSave')?.addEventListener('click', doSave);
     $('#btnSaveTop')?.addEventListener('click', doSave);
+
+    // 🔥 이벤트 리스너 등록 후 데이터 로드
+    const urlParams = new URLSearchParams(window.location.search);
+    const manageNo = urlParams.get('id') || urlParams.get('prkPlceManageNo');
+
+    if (manageNo) {
+        // 약간의 딜레이를 두고 데이터 로드
+        setTimeout(async () => {
+            await loadParkingDetailFromServer(manageNo);
+        }, 100);
+    }
 
     console.log('✅ 페이지 초기화 완료');
 });

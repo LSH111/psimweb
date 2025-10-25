@@ -276,15 +276,15 @@
                     <div class="fee-group">
                         <div class="fee-item">
                             <label for="f_day_res_all">전일</label>
-                            <div class="ctl"><input id="f_day_res_all" type="number" min="0" inputmode="numeric" placeholder="예) 5000"/><span class="suffix">원</span></div>
+                            <div class="ctl"><input id="f_day_res_all" type="text" inputmode="numeric" placeholder="예) 5000"/><span class="suffix">원</span></div>
                         </div>
                         <div class="fee-item">
                             <label for="f_day_res_day">주간</label>
-                            <div class="ctl"><input id="f_day_res_day" type="number" min="0" inputmode="numeric" placeholder="예) 3000"/><span class="suffix">원</span></div>
+                            <div class="ctl"><input id="f_day_res_day" type="text" inputmode="numeric" placeholder="예) 3000"/><span class="suffix">원</span></div>
                         </div>
                         <div class="fee-item">
                             <label for="f_day_res_full">상근</label>
-                            <div class="ctl"><input id="f_day_res_full" type="number" min="0" inputmode="numeric" placeholder="예) 4000"/><span class="suffix">원</span></div>
+                            <div class="ctl"><input id="f_day_res_full" type="text" inputmode="numeric" placeholder="예) 4000"/><span class="suffix">원</span></div>
                         </div>
                     </div>
                 </div>
@@ -296,28 +296,28 @@
                         <!-- 1행 -->
                         <div class="fee-item">
                             <label for="f_day_fee_first30">최초 30분</label>
-                            <div class="ctl"><input id="f_day_fee_first30" type="number" min="0" inputmode="numeric" placeholder="예) 1000"/><span class="suffix">원</span></div>
+                            <div class="ctl"><input id="f_day_fee_first30" type="text" inputmode="numeric" placeholder="예) 1000"/><span class="suffix">원</span></div>
                         </div>
                         <div class="fee-item">
                             <label for="f_day_fee_per10">매 10분</label>
-                            <div class="ctl"><input id="f_day_fee_per10" type="number" min="0" inputmode="numeric" placeholder="예) 300"/><span class="suffix">원</span></div>
+                            <div class="ctl"><input id="f_day_fee_per10" type="text" inputmode="numeric" placeholder="예) 300"/><span class="suffix">원</span></div>
                         </div>
                         <div class="fee-item">
                             <label for="f_day_fee_per60">1시간</label>
-                            <div class="ctl"><input id="f_day_fee_per60" type="number" min="0" inputmode="numeric" placeholder="예) 2000"/><span class="suffix">원</span></div>
+                            <div class="ctl"><input id="f_day_fee_per60" type="text" inputmode="numeric" placeholder="예) 2000"/><span class="suffix">원</span></div>
                         </div>
                         <!-- 2행 -->
                         <div class="fee-item">
                             <label for="f_day_fee_daily">전일(일)</label>
-                            <div class="ctl"><input id="f_day_fee_daily" type="number" min="0" inputmode="numeric" placeholder="예) 10000"/><span class="suffix">원</span></div>
+                            <div class="ctl"><input id="f_day_fee_daily" type="text" inputmode="numeric" placeholder="예) 10000"/><span class="suffix">원</span></div>
                         </div>
                         <div class="fee-item">
                             <label for="f_day_fee_monthly">월정기권</label>
-                            <div class="ctl"><input id="f_day_fee_monthly" type="number" min="0" inputmode="numeric" placeholder="예) 120000"/><span class="suffix">원</span></div>
+                            <div class="ctl"><input id="f_day_fee_monthly" type="text" inputmode="numeric" placeholder="예) 120000"/><span class="suffix">원</span></div>
                         </div>
                         <div class="fee-item">
                             <label for="f_day_fee_halfyear">반기권</label>
-                            <div class="ctl"><input id="f_day_fee_halfyear" type="number" min="0" inputmode="numeric" placeholder="예) 600000"/><span class="suffix">원</span></div>
+                            <div class="ctl"><input id="f_day_fee_halfyear" type="text" inputmode="numeric" placeholder="예) 600000"/><span class="suffix">원</span></div>
                         </div>
                     </div>
                 </div>
@@ -333,15 +333,15 @@
                     <div class="fee-group">
                         <div class="fee-item">
                             <label for="f_night_res_all">전일</label>
-                            <div class="ctl"><input id="f_night_res_all" type="number" min="0" inputmode="numeric" placeholder="예) 5000"/><span class="suffix">원</span></div>
+                            <div class="ctl"><input id="f_night_res_all" type="text" inputmode="numeric" placeholder="예) 5000"/><span class="suffix">원</span></div>
                         </div>
                         <div class="fee-item">
                             <label for="f_night_res_full">상근</label>
-                            <div class="ctl"><input id="f_night_res_full" type="number" min="0" inputmode="numeric" placeholder="예) 4000"/><span class="suffix">원</span></div>
+                            <div class="ctl"><input id="f_night_res_full" type="text" inputmode="numeric" placeholder="예) 4000"/><span class="suffix">원</span></div>
                         </div>
                         <div class="fee-item">
                             <label for="f_night_res_night">야간</label>
-                            <div class="ctl"><input id="f_night_res_night" type="number" min="0" inputmode="numeric" placeholder="예) 2000"/><span class="suffix">원</span></div>
+                            <div class="ctl"><input id="f_night_res_night" type="text" inputmode="numeric" placeholder="예) 2000"/><span class="suffix">원</span></div>
                         </div>
                     </div>
                 </div>
@@ -353,28 +353,28 @@
                         <!-- 1행 -->
                         <div class="fee-item">
                             <label for="f_night_fee_first30">최초 30분</label>
-                            <div class="ctl"><input id="f_night_fee_first30" type="number" min="0" inputmode="numeric" placeholder="예) 800"/><span class="suffix">원</span></div>
+                            <div class="ctl"><input id="f_night_fee_first30" type="text" inputmode="numeric" placeholder="예) 800"/><span class="suffix">원</span></div>
                         </div>
                         <div class="fee-item">
                             <label for="f_night_fee_per10">매 10분</label>
-                            <div class="ctl"><input id="f_night_fee_per10" type="number" min="0" inputmode="numeric" placeholder="예) 200"/><span class="suffix">원</span></div>
+                            <div class="ctl"><input id="f_night_fee_per10" type="text" inputmode="numeric" placeholder="예) 200"/><span class="suffix">원</span></div>
                         </div>
                         <div class="fee-item">
                             <label for="f_night_fee_per60">1시간</label>
-                            <div class="ctl"><input id="f_night_fee_per60" type="number" min="0" inputmode="numeric" placeholder="예) 1500"/><span class="suffix">원</span></div>
+                            <div class="ctl"><input id="f_night_fee_per60" type="text" inputmode="numeric" placeholder="예) 1500"/><span class="suffix">원</span></div>
                         </div>
                         <!-- 2행 -->
                         <div class="fee-item">
                             <label for="f_night_fee_daily">전일(일)</label>
-                            <div class="ctl"><input id="f_night_fee_daily" type="number" min="0" inputmode="numeric" placeholder="예) 8000"/><span class="suffix">원</span></div>
+                            <div class="ctl"><input id="f_night_fee_daily" type="text" inputmode="numeric" placeholder="예) 8000"/><span class="suffix">원</span></div>
                         </div>
                         <div class="fee-item">
                             <label for="f_night_fee_monthly">월정기권</label>
-                            <div class="ctl"><input id="f_night_fee_monthly" type="number" min="0" inputmode="numeric" placeholder="예) 100000"/><span class="suffix">원</span></div>
+                            <div class="ctl"><input id="f_night_fee_monthly" type="text" inputmode="numeric" placeholder="예) 100000"/><span class="suffix">원</span></div>
                         </div>
                         <div class="fee-item">
                             <label for="f_night_fee_halfyear">반기권</label>
-                            <div class="ctl"><input id="f_night_fee_halfyear" type="number" min="0" inputmode="numeric" placeholder="예) 500000"/><span class="suffix">원</span></div>
+                            <div class="ctl"><input id="f_night_fee_halfyear" type="text" inputmode="numeric" placeholder="예) 500000"/><span class="suffix">원</span></div>
                         </div>
                     </div>
                 </div>
@@ -434,9 +434,7 @@
             <div class="operation-day-block" style="grid-column:1/-1">
                 <h3 class="operation-day-title">평일</h3>
                 <div class="radio-group" id="day_weekday_operation_group">
-                    <label><input type="radio" name="dayWeekdayOperation" value="전일운영" checked /> <span>전일운영</span></label>
-                    <label><input type="radio" name="dayWeekdayOperation" value="시간제운영" id="day_weekday_time_op" /> <span>시간제운영</span></label>
-                    <label><input type="radio" name="dayWeekdayOperation" value="운영안함" /> <span>운영안함</span></label>
+                    <!-- JavaScript로 동적 생성 -->
                 </div>
                 <div class="time-inputs-wrapper weekday-time" id="day_weekday_time_inputs" style="display:none;">
                     <div class="time-inputs highlight-input-area">
@@ -461,9 +459,7 @@
             <div class="operation-day-block" style="grid-column:1/-1; margin-top:16px;">
                 <h3 class="operation-day-title">토요일</h3>
                 <div class="radio-group" id="day_saturday_operation_group">
-                    <label><input type="radio" name="daySaturdayOperation" value="전일운영" checked /> <span>전일운영</span></label>
-                    <label><input type="radio" name="daySaturdayOperation" value="시간제운영" id="day_saturday_time_op" /> <span>시간제운영</span></label>
-                    <label><input type="radio" name="daySaturdayOperation" value="운영안함" /> <span>운영안함</span></label>
+                    <!-- JavaScript로 동적 생성 -->
                 </div>
                 <div class="time-inputs-wrapper saturday-time" id="day_saturday_time_inputs" style="display:none;">
                     <div class="time-inputs highlight-input-area">
@@ -488,9 +484,7 @@
             <div class="operation-day-block" style="grid-column:1/-1; margin-top:16px;">
                 <h3 class="operation-day-title">공휴일</h3>
                 <div class="radio-group" id="day_holiday_operation_group">
-                    <label><input type="radio" name="dayHolidayOperation" value="전일운영" checked /> <span>전일운영</span></label>
-                    <label><input type="radio" name="dayHolidayOperation" value="시간제운영" id="day_holiday_time_op" /> <span>시간제운영</span></label>
-                    <label><input type="radio" name="dayHolidayOperation" value="운영안함" /> <span>운영안함</span></label>
+                    <!-- JavaScript로 동적 생성 -->
                 </div>
                 <div class="time-inputs-wrapper holiday-time" id="day_holiday_time_inputs" style="display:none;">
                     <div class="time-inputs highlight-input-area">
@@ -521,9 +515,7 @@
             <div class="operation-day-block" style="grid-column:1/-1">
                 <h3 class="operation-day-title">평일</h3>
                 <div class="radio-group" id="night_weekday_operation_group">
-                    <label><input type="radio" name="nightWeekdayOperation" value="전일운영" checked /> <span>전일운영</span></label>
-                    <label><input type="radio" name="nightWeekdayOperation" value="시간제운영" id="night_weekday_time_op" /> <span>시간제운영</span></label>
-                    <label><input type="radio" name="nightWeekdayOperation" value="운영안함" /> <span>운영안함</span></label>
+                    <!-- JavaScript로 동적 생성 -->
                 </div>
                 <div class="time-inputs-wrapper weekday-time" id="night_weekday_time_inputs" style="display:none;">
                     <div class="time-inputs highlight-input-area">
@@ -548,9 +540,7 @@
             <div class="operation-day-block" style="grid-column:1/-1; margin-top:16px;">
                 <h3 class="operation-day-title">토요일</h3>
                 <div class="radio-group" id="night_saturday_operation_group">
-                    <label><input type="radio" name="nightSaturdayOperation" value="전일운영" checked /> <span>전일운영</span></label>
-                    <label><input type="radio" name="nightSaturdayOperation" value="시간제운영" id="night_saturday_time_op" /> <span>시간제운영</span></label>
-                    <label><input type="radio" name="nightSaturdayOperation" value="운영안함" /> <span>운영안함</span></label>
+                    <!-- JavaScript로 동적 생성 -->
                 </div>
                 <div class="time-inputs-wrapper saturday-time" id="night_saturday_time_inputs" style="display:none;">
                     <div class="time-inputs highlight-input-area">
@@ -575,9 +565,7 @@
             <div class="operation-day-block" style="grid-column:1/-1; margin-top:16px;">
                 <h3 class="operation-day-title">공휴일</h3>
                 <div class="radio-group" id="night_holiday_operation_group">
-                    <label><input type="radio" name="nightHolidayOperation" value="전일운영" checked /> <span>전일운영</span></label>
-                    <label><input type="radio" name="nightHolidayOperation" value="시간제운영" id="night_holiday_time_op" /> <span>시간제운영</span></label>
-                    <label><input type="radio" name="nightHolidayOperation" value="운영안함" /> <span>운영안함</span></label>
+                    <!-- JavaScript로 동적 생성 -->
                 </div>
                 <div class="time-inputs-wrapper holiday-time" id="night_holiday_time_inputs" style="display:none;">
                     <div class="time-inputs highlight-input-area">

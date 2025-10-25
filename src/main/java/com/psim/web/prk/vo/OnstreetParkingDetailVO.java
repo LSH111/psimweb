@@ -64,8 +64,11 @@ public class OnstreetParkingDetailVO {
     private Integer wkGnInt10mFee;
     private Integer wkGn1hFee;
     private Integer wkGnDayFee;
+    private Integer wkFeeMnthPassPrc;     // 🔥 주간 월정기권 가격
+    private Integer wkFeeHfyrPassPrc;     // 🔥 주간 반기권 가격
     private String wkFeeMthdCd;
     private String wkFeeStlmtMthdCd;
+    private String wkFeePayMthdOthr;      // 🔥 주간 요금지불방식 기타
 
     // 야간 요금 정보
     private String ntFeeAplyCd;
@@ -77,9 +80,13 @@ public class OnstreetParkingDetailVO {
     private Integer ntGnInt10mFee;
     private Integer ntGn1hFee;
     private Integer ntGnDayFee;
+    private Integer ntFeeMnthPassPrc;     // 🔥 야간 월정기권 가격
+    private Integer ntFeeHfyrPassPrc;     // 🔥 야간 반기권 가격
     private String ntFeeMthdCd;
+    private String ntFeeStlmtMthdCd;
+    private String ntFeePayMthdOthr;      // 🔥 야간 요금지불방식 기타
 
-    // 기타 정보
+        // 기타 정보
     private String prklotSignYn;
     private String slpSecYn;
     private String sixgtCnt;
