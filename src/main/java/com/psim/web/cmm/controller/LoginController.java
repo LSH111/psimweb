@@ -67,6 +67,7 @@ public class LoginController {
         // 세션 설정 검증 로그 추가
         System.out.println("🔍 세션 설정 확인 - sessionId: " + session.getId()
                 + ", LOGIN: " + session.getAttribute(SESSION_ATTR_LOGIN_FLAG)
+                + ", userId: " + session.getAttribute("userId")
                 + ", loginUser: " + session.getAttribute(SESSION_ATTR_AUTHENTICATED_USER));
 
         // 이전 페이지가 있으면 그곳으로, 없으면 index로
@@ -80,21 +81,6 @@ public class LoginController {
         return "redirect:/index";
     }
 
-    /*@GetMapping("/index")
-    public String index(HttpSession session, Model model) {
-        // AuthFilter를 통과했으므로 로그인 상태 보장됨
-        CoUserVO loginUser = (CoUserVO) session.getAttribute(SESSION_ATTR_AUTHENTICATED_USER);
-
-        if (loginUser == null) {
-            System.out.println("⚠️ 세션에 사용자 정보 없음, 로그인 페이지로 이동");
-            return "redirect:/";
-        }
-
-        model.addAttribute("loginUser", loginUser);
-        System.out.println("✅ Index 페이지 접근: " + loginUser.getUserId());
-        return "/cmm/index";
-    }*/
-
     @GetMapping("/logout")
     public String logout(HttpSession session) {
         System.out.println("🚪 로그아웃");
@@ -104,10 +90,17 @@ public class LoginController {
 
     private void establishAuthenticatedSession(HttpSession session, CoUserVO loginUser) {
         session.setAttribute(SESSION_ATTR_AUTHENTICATED_USER, loginUser);
-        session.setAttribute(SESSION_ATTR_LOGIN_FLAG, Boolean.TRUE);  // ✅ "LOGIN" 키로 저장
+        session.setAttribute(SESSION_ATTR_LOGIN_FLAG, Boolean.TRUE);
+
+        // 🔥 userId를 별도로 세션에 저장 (PrkDefPlceInfoController에서 사용)
+        session.setAttribute("userId", loginUser.getUserId());
+
         session.setMaxInactiveInterval(DEFAULT_SESSION_TIMEOUT_SECONDS);
 
         // 디버깅: 세션 저장 직후 확인
-        System.out.println("✅ 세션 저장 완료: " + SESSION_ATTR_LOGIN_FLAG + " = " + session.getAttribute(SESSION_ATTR_LOGIN_FLAG));
+        System.out.println("✅ 세션 저장 완료:");
+        System.out.println("  - " + SESSION_ATTR_LOGIN_FLAG + " = " + session.getAttribute(SESSION_ATTR_LOGIN_FLAG));
+        System.out.println("  - userId = " + session.getAttribute("userId"));
+        System.out.println("  - loginUser = " + loginUser.getUserId());
     }
 }

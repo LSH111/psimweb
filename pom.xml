@@ -21,7 +21,14 @@
 
     <properties>
         <java.version>1.8</java.version>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <egovframe.rte.version>4.3.0</egovframe.rte.version>
+
+        <!-- 🔥 빌드 최적화: 불필요한 재빌드 방지 -->
+        <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss</maven.build.timestamp.format>
     </properties>
 
     <repositories>
@@ -34,7 +41,7 @@
     </repositories>
 
     <dependencies>
-        <!-- ✅ Spring Boot Core (웹 없음) -->
+        <!-- ✅ Spring Boot Core -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
@@ -45,12 +52,13 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-        <!-- ✅ Spring Boot Web (Tomcat은 provided로 설정) -->
+        <!-- ✅ Spring Boot Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -62,20 +70,20 @@
             </exclusions>
         </dependency>
 
-        <!-- ✅ Tomcat을 provided로 설정 (WildFly에서 제공) -->
+        <!-- ✅ Tomcat (provided) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-tomcat</artifactId>
             <scope>provided</scope>
         </dependency>
 
-        <!-- ✅ Jackson (JSON 처리) -->
+        <!-- ✅ Jackson -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
-        <!-- ✅ 간단한 로깅: SLF4J + Logback -->
+        <!-- ✅ Logback (SLF4J) -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -89,7 +97,7 @@
             <artifactId>jcl-over-slf4j</artifactId>
         </dependency>
 
-        <!-- ✅ Servlet API (WildFly 제공) -->
+        <!-- ✅ Servlet API -->
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
@@ -225,11 +233,14 @@
         </dependency>
 
         <!-- ✅ Reactive Streams API (WildFly 배포용) -->
+        <!-- 🔥 이 의존성을 제거하거나 주석 처리 -->
+        <!--
         <dependency>
             <groupId>org.reactivestreams</groupId>
             <artifactId>reactive-streams</artifactId>
             <version>1.0.4</version>
         </dependency>
+        -->
     </dependencies>
 
     <dependencyManagement>

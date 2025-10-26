@@ -649,8 +649,8 @@
             <div style="grid-column:1/-1">
                 <label>안전시설</label>
                 <div class="check-group" id="safety_group" aria-label="안전시설 (중복선택 가능)">
-                    <label><input type="checkbox" name="safetyFacility" value="미끄럼방지시설" /> <span>미끄럼 방지시설(스토퍼, 고임목 등)</span></label>
-                    <label><input type="checkbox" name="safetyFacility" value="미끄럼주의안내표지판" /> <span>미끄럼 주의 안내표지판</span></label>
+                    <label><input type="checkbox" name="safetyFacility" value="Y" id="antislp_facility_chk" /> <span>미끄럼 방지시설(스토퍼, 고임목 등)</span></label>
+                    <label><input type="checkbox" name="safetyFacility" value="Y" id="slp_guide_sign_chk" /> <span>미끄럼 주의 안내표지판</span></label>
                 </div>
             </div>
         </div>

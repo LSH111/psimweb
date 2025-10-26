@@ -15,8 +15,13 @@ public interface PrkDefPlceInfoMapper {
     int selectParkingListCount(Map<String, Object> params);
     ParkingListVO selectParkingDetail(Map<String, Object> params);
 
-    // 🔥 노상주차장 상세 조회 추가
+    // 노상주차장 상세 조회 추가
     OnstreetParkingDetailVO selectOnstreetParkingDetail(String prkPlceManageNo);
+
+    // 노상주차장 업데이트 메서드 추가
+    void updatePrkDefPlceInfo(OnstreetParkingDetailVO parkingData);
+    void updateOnstrPrklotInfo(OnstreetParkingDetailVO parkingData);
+    void updateOnstrPrklotOperInfo(OnstreetParkingDetailVO parkingData);
 
     // 수정 기능 (UPDATE)
     void updateParkingStatus(Map<String, Object> params);

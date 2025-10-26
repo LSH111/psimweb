@@ -5,13 +5,22 @@ import lombok.Data;
 @Data
 public class OnstreetParkingDetailVO {
     // 기본 정보 (tb_prk_def_plce_info)
+    private String prgsStsCd;
     private String prkPlceManageNo;
     private String prkplceNm;
     private String sidoCd;
+    private String sidoNm;
     private String sigunguCd;
+    private String sigunguNm;
+    private String emdCd;
+    private String lgalEmdNm;
     private String dtadd;
     private String prkPlceLat;
     private String prkPlceLon;
+
+    // 업데이트 정보 추가
+    private String updusrId;        // 수정자 ID
+    private String updusrIpAddr;    // 수정자 IP 주소
 
     // 주차면수 정보 (tb_onstr_prklot_info)
     private Integer totPrkCnt;
@@ -89,6 +98,7 @@ public class OnstreetParkingDetailVO {
         // 기타 정보
     private String prklotSignYn;
     private String slpSecYn;
+    private String sixleCnt;
     private String sixgtCnt;
     private String antislpFcltyYn;
     private String slpCtnGuidSignYn;

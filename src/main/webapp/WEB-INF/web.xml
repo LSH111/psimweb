@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app version="3.1">
     <display-name>PSIM Web Application</display-name>
+
+    <!-- 🔥 기본 페이지 설정 추가 -->
+    <welcome-file-list>
+        <welcome-file>index.jsp</welcome-file>
+        <welcome-file>index.html</welcome-file>
+    </welcome-file-list>
+
     <filter>
         <filter-name>authFilter</filter-name>
         <filter-class>com.psim.web.cmm.filter.AuthFilter</filter-class>
@@ -9,7 +16,7 @@
         <filter-name>authFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
-    <!-- 
+    <!--
     Spring Boot를 사용하면 거의 비워둬도 됩니다.
     Spring Boot가 모든 설정을 자동으로 처리하기 때문입니다.
     -->

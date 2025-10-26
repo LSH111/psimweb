@@ -84,6 +84,31 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
 
     @Override
     @Transactional
+    public void updateOnstreetParking(OnstreetParkingDetailVO parkingData) {
+        try {
+            log.info("노상주차장 정보 업데이트 시작 - prkPlceManageNo: {}", parkingData.getPrkPlceManageNo());
+
+            // 1. 기본 정보 업데이트 (tb_prk_def_plce_info)
+            prkDefPlceInfoMapper.updatePrkDefPlceInfo(parkingData);
+            log.info("✅ 기본 정보 업데이트 완료");
+
+            // 2. 노상주차장 정보 업데이트 (tb_onstr_prklot_info)
+            prkDefPlceInfoMapper.updateOnstrPrklotInfo(parkingData);
+            log.info("✅ 노상주차장 정보 업데이트 완료");
+
+            // 3. 운영 정보 업데이트 (tb_onstr_prklot_oper_info)
+            prkDefPlceInfoMapper.updateOnstrPrklotOperInfo(parkingData);
+            log.info("✅ 운영 정보 업데이트 완료");
+
+            log.info("노상주차장 정보 업데이트 완료 - prkPlceManageNo: {}", parkingData.getPrkPlceManageNo());
+        } catch (Exception e) {
+            log.error("노상주차장 정보 업데이트 실패 - prkPlceManageNo: {}", parkingData.getPrkPlceManageNo(), e);
+            throw new RuntimeException("주차장 정보 업데이트 중 오류가 발생했습니다.", e);
+        }
+    }
+
+    @Override
+    @Transactional
     public void updateParkingStatus(List<String> manageNos, String newStatus) {
         try {
             log.info("주차장 상태 일괄 업데이트 시작 - 대상: {}건, 상태: {}", manageNos.size(), newStatus);

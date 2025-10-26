@@ -136,10 +136,15 @@
     <!-- 노상주차장 상세 조회 쿼리 -->
     <select id="selectOnstreetParkingDetail" parameterType="string"
             resultType="com.psim.web.prk.vo.OnstreetParkingDetailVO">
-        select tpdpi.prk_plce_manage_no as prkPlceManageNo
+        select cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsCd
+             , tpdpi.prk_plce_manage_no as prkPlceManageNo
              , tpdpi.prkplce_nm as prkplceNm
-             , tpdpi.sido_cd as sidoCd
-             , tpdpi.sigungu_cd as sigunguCd
+             , tcl.sido_cd as sidoCd
+             , tcl.sido_nm as sidoNm
+             , tcl.sigungu_cd as sigunguCd
+             , tcl.sigungu_nm as sigunguNm
+             , tcl.emd_cd as emdCd
+             , tcl.lgal_emd_nm as lgalEmdNm
              , tpdpi.dtadd as dtadd
              , tpdpi.prk_plce_lat as prkPlceLat
              , tpdpi.prk_plce_lon as prkPlceLon
@@ -185,6 +190,7 @@
              , topoi.wk_gn_day_fee as wkGnDayFee
              , topoi.wk_fee_mthd_cd as wkFeeMthdCd
              , topoi.wk_fee_stlmt_mthd_cd as wkFeeStlmtMthdCd
+             , topoi.nt_fee_stlmt_mthd_cd as ntFeeStlmtMthdCd
              , topoi.nt_fee_aply_cd as ntFeeAplyCd
              , topoi.nt_res_day_fee as ntResDayFee
              , topoi.nt_res_wk_fee as ntResWkFee
@@ -197,22 +203,125 @@
              , topoi.nt_fee_mthd_cd as ntFeeMthdCd
              , topoi.prklot_sign_yn as prklotSignYn
              , topoi.slp_sec_yn as slpSecYn
+             , topoi.sixle_cnt as sixleCnt
              , topoi.sixgt_cnt as sixgtCnt
              , topoi.antislp_fclty_yn as antislpFcltyYn
              , topoi.slp_ctn_guid_sign_yn as slpCtnGuidSignYn
              , topoi.partclr_matter as partclrMatter
-        , topoi.wk_fee_mnth_pass_prc as wkFeeMnthPassPrc -- 주간월정기권가격
-        , topoi.nt_fee_mnth_pass_prc as ntFeeMnthPassPrc -- 야간월정기권가격
-        , topoi.wk_fee_hfyr_pass_prc as wkFeeHfyrPassPrc -- 주간반기권가격
-        , topoi.nt_fee_hfyr_pass_prc as ntFeeHfyrPassPrc -- 야간반기권가격
-        , topoi.wk_fee_pay_mthd_othr as wkFeePayMthdOthr -- 주간요금지불방식기타
-        , topoi.nt_fee_pay_mthd_othr as ntFeePayMthdOthr -- 야간요금지불방식기타
-        from cpk.tb_prk_def_plce_info tpdpi
-                 left join cpk.tb_onstr_prklot_info topi
-                           on tpdpi.prk_plce_manage_no = topi.prk_plce_manage_no
-                 left join cpk.tb_onstr_prklot_oper_info topoi
-                           on topi.prk_plce_manage_no = topoi.prk_plce_manage_no
+             , topoi.wk_fee_mnth_pass_prc as wkFeeMnthPassPrc -- 주간월정기권가격
+             , topoi.nt_fee_mnth_pass_prc as ntFeeMnthPassPrc -- 야간월정기권가격
+             , topoi.wk_fee_hfyr_pass_prc as wkFeeHfyrPassPrc -- 주간반기권가격
+             , topoi.nt_fee_hfyr_pass_prc as ntFeeHfyrPassPrc -- 야간반기권가격
+             , topoi.wk_fee_pay_mthd_othr as wkFeePayMthdOthr -- 주간요금지불방식기타
+             , topoi.nt_fee_pay_mthd_othr as ntFeePayMthdOthr -- 야간요금지불방식기타
+        FROM cpk.tb_prk_def_plce_info tpdpi
+                 LEFT JOIN cpk.tb_onstr_prklot_info topi
+                           ON tpdpi.prk_plce_manage_no = topi.prk_plce_manage_no
+                 LEFT JOIN cpk.tb_onstr_prklot_oper_info topoi
+                           ON topi.prk_plce_manage_no = topoi.prk_plce_manage_no
+                 LEFT JOIN cpk.tb_co_ldong tcl
+                           ON tpdpi.ldong_cd = tcl.ldong_cd
+                 LEFT JOIN cpk.tb_biz_per_prklot_info tbppi
+                           ON tpdpi.prk_plce_manage_no = tbppi.prk_plce_manage_no
+                               AND tpdpi.prk_plce_info_sn = tbppi.prk_plce_info_sn
         WHERE tpdpi.prk_plce_manage_no = #{prkPlceManageNo}
     </select>
+
+    <!-- 🔥 기본 정보 업데이트 (tb_prk_def_plce_info) -->
+    <update id="updatePrkDefPlceInfo" parameterType="com.psim.web.prk.vo.OnstreetParkingDetailVO">
+        UPDATE cpk.tb_prk_def_plce_info
+        SET prkplce_nm = #{prkplceNm}
+          , dtadd = #{dtadd}
+          , prk_plce_lat = #{prkPlceLat}
+          , prk_plce_lon = #{prkPlceLon}
+          , updt_dt = NOW()
+          , updusr_id = #{updusrId}
+          , updusr_ip_addr = #{updusrIpAddr}
+        WHERE prk_plce_manage_no = #{prkPlceManageNo}
+    </update>
+
+    <!-- 🔥 노상주차장 정보 업데이트 (tb_onstr_prklot_info) -->
+    <update id="updateOnstrPrklotInfo" parameterType="com.psim.web.prk.vo.OnstreetParkingDetailVO">
+        UPDATE cpk.tb_onstr_prklot_info
+        SET tot_prk_cnt = #{totPrkCnt}
+          , disab_prk_cnt = #{disabPrkCnt}
+          , compact_prk_cnt = #{compactPrkCnt}
+          , eco_prk_cnt = #{ecoPrkCnt}
+          , pregnant_prk_cnt = #{pregnantPrkCnt}
+          , prk_oper_mthd_cd = #{prkOperMthdCd}
+          , oper_mby_cd = #{operMbyCd}
+          , mgr_org = #{mgrOrg}
+          , mgr_org_tel_no = #{mgrOrgTelNo}
+          , subordn_opertn_cd = #{subordnOpertnCd}
+          , updt_dt = NOW()
+          , updusr_id = #{updusrId}
+          , updusr_ip_addr = #{updusrIpAddr}
+        WHERE prk_plce_manage_no = #{prkPlceManageNo}
+    </update>
+
+    <!-- 🔥 운영 정보 업데이트 (tb_onstr_prklot_oper_info) -->
+    <update id="updateOnstrPrklotOperInfo" parameterType="com.psim.web.prk.vo.OnstreetParkingDetailVO">
+        UPDATE cpk.tb_onstr_prklot_oper_info
+        SET dynt_dv_cd = #{dyntDvCd}
+          , wk_zon = #{wkZon}
+          , wk_wkdy_oper_tm_cd = #{wkWkdyOperTmCd}
+          , wk_wkdy_oper_star_tm = #{wkWkdyOperStarTm}
+          , wk_wkdy_oper_end_tm = #{wkWkdyOperEndTm}
+          , wk_sat_oper_tm_cd = #{wkSatOperTmCd}
+          , wk_sat_oper_star_tm = #{wkSatOperStarTm}
+          , wk_sat_oper_end_tm = #{wkSatOperEndTm}
+          , wk_hldy_oper_tm_cd = #{wkHldyOperTmCd}
+          , wk_hldy_oper_star_tm = #{wkHldyOperStarTm}
+          , wk_hldy_oper_end_tm = #{wkHldyOperEndTm}
+          , nt_zon = #{ntZon}
+          , nt_wkdy_oper_tm_cd = #{ntWkdyOperTmCd}
+          , nt_wkdy_oper_star_tm = #{ntWkdyOperStarTm}
+          , nt_wkdy_oper_end_tm = #{ntWkdyOperEndTm}
+          , nt_sat_oper_tm_cd = #{ntSatOperTmCd}
+          , nt_sat_oper_star_tm = #{ntSatOperStarTm}
+          , nt_sat_oper_end_tm = #{ntSatOperEndTm}
+          , nt_hldy_oper_tm_cd = #{ntHldyOperTmCd}
+          , nt_hldy_oper_star_tm = #{ntHldyOperStarTm}
+          , nt_hldy_oper_end_tm = #{ntHldyOperEndTm}
+          , wk_fee_aply_cd = #{wkFeeAplyCd}
+          , wk_res_day_fee = #{wkResDayFee}
+          , wk_res_wk_fee = #{wkResWkFee}
+          , wk_res_ft_fee = #{wkResFtFee}
+          , wk_res_nt_fee = #{wkResNtFee}
+          , wk_gn_frst_30m_fee = #{wkGnFrst30mFee}
+          , wk_gn_int_10m_fee = #{wkGnInt10mFee}
+          , wk_gn_1h_fee = #{wkGn1hFee}
+          , wk_gn_day_fee = #{wkGnDayFee}
+          , wk_fee_mnth_pass_prc = #{wkFeeMnthPassPrc}
+          , wk_fee_hfyr_pass_prc = #{wkFeeHfyrPassPrc}
+          , wk_fee_mthd_cd = #{wkFeeMthdCd}
+          , wk_fee_stlmt_mthd_cd = #{wkFeeStlmtMthdCd}
+          , wk_fee_pay_mthd_othr = #{wkFeePayMthdOthr}
+          , nt_fee_aply_cd = #{ntFeeAplyCd}
+          , nt_res_day_fee = #{ntResDayFee}
+          , nt_res_wk_fee = #{ntResWkFee}
+          , nt_res_ft_fee = #{ntResFtFee}
+          , nt_res_nt_fee = #{ntResNtFee}
+          , nt_gn_frst_30m_fee = #{ntGnFrst30mFee}
+          , nt_gn_int_10m_fee = #{ntGnInt10mFee}
+          , nt_gn_1h_fee = #{ntGn1hFee}
+          , nt_gn_day_fee = #{ntGnDayFee}
+          , nt_fee_mnth_pass_prc = #{ntFeeMnthPassPrc}
+          , nt_fee_hfyr_pass_prc = #{ntFeeHfyrPassPrc}
+          , nt_fee_mthd_cd = #{ntFeeMthdCd}
+          , nt_fee_stlmt_mthd_cd = #{ntFeeStlmtMthdCd}
+          , nt_fee_pay_mthd_othr = #{ntFeePayMthdOthr}
+          , prklot_sign_yn = #{prklotSignYn}
+          , slp_sec_yn = #{slpSecYn}
+          , sixle_cnt = #{sixleCnt}
+          , sixgt_cnt = #{sixgtCnt}
+          , antislp_fclty_yn = #{antislpFcltyYn}
+          , slp_ctn_guid_sign_yn = #{slpCtnGuidSignYn}
+          , partclr_matter = #{partclrMatter}
+          , updt_dt = NOW()
+          , updusr_id = #{updusrId}
+          , updusr_ip_addr = #{updusrIpAddr}
+        WHERE prk_plce_manage_no = #{prkPlceManageNo}
+    </update>
 
 </mapper>

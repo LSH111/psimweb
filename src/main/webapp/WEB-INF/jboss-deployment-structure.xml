@@ -1,17 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jboss-deployment-structure>
     <deployment>
-        <exclusions>
-            <!-- Jandex 인덱싱 문제를 방지하기 위해 문제가 되는 모듈 제외 -->
-            <module name="org.jboss.jandex"/>
-        </exclusions>
-        <dependencies>
-            <!-- 필요한 모듈 의존성 추가 -->
-            <module name="org.apache.commons.lang"/>
-            <module name="org.apache.commons.collections"/>
-        </dependencies>
-        <resources>
-            <!-- 추가 리소스가 필요한 경우 여기에 resource-root 요소 추가 -->
-        </resources>
+        <!-- 🔥 Weld(CDI) 서브시스템 완전히 비활성화 -->
+        <exclude-subsystems>
+            <subsystem name="weld" />
+        </exclude-subsystems>
     </deployment>
 </jboss-deployment-structure>

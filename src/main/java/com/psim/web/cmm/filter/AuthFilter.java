@@ -18,6 +18,7 @@ public class AuthFilter implements Filter {
 
             // 시스템
             "/error", "/health", "/favicon.ico",
+            "/api/health",  // 추가
             "/egovCrypto", "/egovCrypto/info",
             "/.well-known/appspecific/com.chrome.devtools.json"
     ));
@@ -26,7 +27,7 @@ public class AuthFilter implements Filter {
     private static final String[] WHITELIST_PREFIX = {
             "/static/", "/resources/", "/webjars/", "/public/", "/assets/",
             "/cmm/codes/",  // 공통코드 조회는 허용
-            "/api/auth/",   // 인증 관련 API
+            "/api/",   // 전체 API 허용 (또는 /api/health/ 만)
             "/.well-known/"
     };
 

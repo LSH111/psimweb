@@ -40,16 +40,27 @@ mybatis:
     lazy-loading-enabled: false
     aggressive-lazy-loading: false
     default-statement-timeout: 30
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl  # 🔥 SQL 로깅 활성화
 
 # 로깅 설정
 logging:
   level:
+    root: INFO
     com.psim: DEBUG
+    com.psim.web: DEBUG
+    com.psim.web.prk.mapper: TRACE     # 🔥 주차장 Mapper SQL 로깅
+    com.psim.web.cmm.mapper: TRACE     # 🔥 공통 Mapper SQL 로깅
     com.zaxxer.hikari: INFO
     org.springframework.jdbc: DEBUG
     org.springframework.transaction: DEBUG
+    org.mybatis: DEBUG                 # 🔥 MyBatis 프레임워크 로깅
   pattern:
-    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(%logger{40}) - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{40} - %msg%n"
+  file:
+    name: logs/psim-web.log           # 🔥 로그 파일 저장
+    max-size: 10MB
+    max-history: 30
 
 # 서버 설정
 server:
@@ -63,6 +74,16 @@ server:
     session:
       timeout: 30m  # 30분 세션 타임아웃
       cookie:
-        secure: true  # HTTPS에서만 쿠키 전송
+        secure: false  # 🔥 개발 환경에서는 false (HTTP 허용)
         http-only: true  # JavaScript 접근 차단
-        same-site: strict  # CSRF 방지
+        same-site: lax  # 🔥 strict → lax로 변경 (로컬 개발 편의성)
+
+management:
+  endpoints:
+    web:
+      base-path: /api  # 이 설정이 있으면 /api/health로 매핑됨
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: when-authorized
