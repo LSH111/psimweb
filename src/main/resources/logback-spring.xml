@@ -1,18 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <!-- 콘솔 출력 -->
+    <!-- 콘솔 출력 - 보기 좋은 포맷 -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(%logger{36}) - %msg%n</pattern>
+            <pattern>
+                ┌─────────────────────────────────────────────────────────────────────────────
+                │ %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(%logger{36})
+                ├─────────────────────────────────────────────────────────────────────────────
+                │ %msg
+                └─────────────────────────────────────────────────────────────────────────────
+            </pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>
 
-    <!-- 파일 출력 -->
+    <!-- 파일 출력 - 간결한 포맷 -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>logs/psim-web.log</file>
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>
+                %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36}
+                %msg%n
+            </pattern>
             <charset>UTF-8</charset>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -73,30 +82,19 @@
         <appender-ref ref="FILE"/>
     </logger>
 
-    <!-- 🔥 MyBatis 로깅 -->
-    <logger name="org.mybatis" level="DEBUG" additivity="false">
-        <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="FILE"/>
-    </logger>
-
-    <!-- 애플리케이션 로깅 -->
-    <logger name="com.psim.web" level="DEBUG" additivity="false">
-        <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="FILE"/>
-    </logger>
-
-    <!-- Spring Framework 로깅 -->
+    <!-- 🔥 Spring Framework 로깅 -->
     <logger name="org.springframework" level="INFO" additivity="false">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="FILE"/>
     </logger>
 
-    <logger name="org.springframework.web" level="DEBUG" additivity="false">
+    <!-- 🔥 애플리케이션 로깅 -->
+    <logger name="com.psim.web" level="DEBUG" additivity="false">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="FILE"/>
     </logger>
 
-    <!-- Root Logger -->
+    <!-- 🔥 Root Logger -->
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="FILE"/>

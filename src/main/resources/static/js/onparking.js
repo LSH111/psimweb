@@ -832,21 +832,28 @@ function buildPayload(){
             night: isNightChecked
         },
 
-        // 🔥 경사구간 정보 추가
+        // 🔥 경사구간 정보 수정
         slope: {
             slpSecYn: $('#slope_yes')?.checked ? 'Y' : 'N',
-            sixleCnt: $('#slope_yes')?.checked ? num($('#f_sixle_cnt')?.value) : null,
-            sixgtCnt: $('#slope_yes')?.checked ? num($('#f_sixgt_cnt')?.value) : null,
-            slopeStart: $('#slope_yes')?.checked ? $('#f_slope_start')?.value : null,
-            slopeEnd: $('#slope_yes')?.checked ? $('#f_slope_end')?.value : null
+            sixleCnt: $('#slope_yes')?.checked ? num($('#f_slope_start')?.value) : null,
+            sixgtCnt: $('#slope_yes')?.checked ? num($('#f_slope_end')?.value) : null
         },
 
         // 🔥 안전시설 정보 추가
         safety: {
             antislpFcltyYn: $('#antislp_facility_chk')?.checked ? 'Y' : 'N',
             slpCtnGuidSignYn: $('#slp_guide_sign_chk')?.checked ? 'Y' : 'N'
-        }
+        },
+
+        // 🔥 비고 정보 추가
+        partclrMatter: $('#f_partclr_matter')?.value || ''
     };
+
+    // 경사구간 필드 값 확인
+    console.log('f_slope_start:', $('#f_slope_start')?.value);
+    console.log('f_slope_end:', $('#f_slope_end')?.value);
+    console.log('slope_yes checked:', $('#slope_yes')?.checked);
+
 
     if (isDayChecked) {
         payload.day = {
@@ -1686,6 +1693,13 @@ function setCheckboxValue(name, value, checked) {
 // ========== 저장 함수 수정 ==========
 async function doSave() {
     try {
+
+        // 🔥 1. 필수 입력 검증 (기본정보 제외)
+        const validationErrors = validateRequiredFields();
+        if (validationErrors.length > 0) {
+            alert('다음 항목을 입력해주세요:\n\n' + validationErrors.join('\n'));
+            return;
+        }
         const payload = buildPayload();
 
         // 🔥 prkPlceManageNo 추가 (필수!)
@@ -1714,11 +1728,13 @@ async function doSave() {
         const result = await response.json();
 
         if (result.success) {
-            // ✅ 저장 성공 메시지 표시
+            // ✅ 모바일/하이브리드 환경 대응: alert 후 충분한 대기 시간 제공
             alert('저장되었습니다.');
 
-            // 🔥 목록 페이지로 이동
-            window.location.href = '/prk/parkinglist';
+            // 🔥 alert가 완전히 표시된 후 페이지 이동 (1.5초 대기)
+            setTimeout(() => {
+                window.location.href = '/prk/parkinglist';
+            }, 1500);
         } else {
             alert('❌ 저장 실패: ' + (result.message || '알 수 없는 오류'));
         }
@@ -1916,6 +1932,9 @@ function mapPayloadToServerFormat(payload) {
         data.slpCtnGuidSignYn = payload.safety.slpCtnGuidSignYn;
     }
 
+    // 🔥 비고 추가
+    data.partclrMatter = payload.partclrMatter || null;
+
     // 🔥 전송 전 데이터 검증 로그
     console.log('💰 최종 전송 데이터:', data);
 
@@ -1949,6 +1968,207 @@ function getDayNightCode(isDay, isNight) {
 function joinCodes(arr) {
     if (!arr || arr.length === 0) return null;
     return arr.join(',');
+}
+
+// ========== 🔥 필수 입력 검증 함수 (기본정보 제외) ==========
+function validateRequiredFields() {
+    const errors = [];
+
+    // 주간/야간 선택 여부 확인
+    const isDayChecked = $('#chk_day')?.checked || false;
+    const isNightChecked = $('#chk_night')?.checked || false;
+
+    if (!isDayChecked && !isNightChecked) {
+        errors.push('• 운영 시간대 (주간/야간)를 선택해주세요.');
+        return errors; // 선택되지 않으면 추가 검증 불필요
+    }
+
+    // 주차장 운영방식
+    const opTypeSelected = $$('input[name="opType"]:checked').length > 0;
+    if (!opTypeSelected) {
+        errors.push('• 주차장 운영방식을 선택해주세요.');
+    }
+
+    // 운영주체
+    const ownSelected = $$('input[name="own"]:checked').length > 0;
+    if (!ownSelected) {
+        errors.push('• 운영주체를 선택해주세요.');
+    }
+
+    // 민간위탁인 경우 업체명 확인
+    const ownRadios = $$('input[name="own"]');
+    const selectedOwn = ownRadios.find(r => r.checked);
+    if (selectedOwn && selectedOwn.value.includes('민간')) {
+        const companyName = $('#f_own_company')?.value?.trim();
+        if (!companyName) {
+            errors.push('• 민간위탁 업체명을 입력해주세요.');
+        }
+    }
+
+    // 관리기관명
+    const mgrName = $('#f_mgr_name')?.value?.trim();
+    if (!mgrName) {
+        errors.push('• 관리기관명을 입력해주세요.');
+    }
+
+    // 관리기관 전화번호
+    const mgrTel = $('#f_mgr_tel')?.value?.trim();
+    if (!mgrTel) {
+        errors.push('• 관리기관 전화번호를 입력해주세요.');
+    }
+
+    // 부제 시행 여부
+    const oddEven = $('#f_oddEven')?.value;
+    if (!oddEven) {
+        errors.push('• 부제 시행 여부를 선택해주세요.');
+    }
+
+    // 주간 관련 검증
+    if (isDayChecked) {
+        // 주간 급지
+        const dayGrade = $('#f_day_grade')?.value;
+        if (!dayGrade) {
+            errors.push('• [주간] 급지를 선택해주세요.');
+        }
+
+        // 주간 요금부과여부
+        const dayFeeType = $('#f_day_feeType')?.value;
+        if (!dayFeeType) {
+            errors.push('• [주간] 요금 부과여부를 선택해주세요.');
+        }
+
+        // 주간 요금지불방식
+        const dayPayMethods = $$('input[name="dayPayMethod"]:checked');
+        if (dayPayMethods.length === 0) {
+            errors.push('• [주간] 요금 지불방식을 선택해주세요.');
+        }
+
+        // 주간 요금정산방식
+        const daySettleMethods = $$('input[name="daySettleMethod"]:checked');
+        if (daySettleMethods.length === 0) {
+            errors.push('• [주간] 요금 정산방식을 선택해주세요.');
+        }
+
+        // 주간 운영시간 - 평일
+        const dayWeekdayOper = $('input[name="dayWeekdayOperation"]:checked');
+        if (!dayWeekdayOper) {
+            errors.push('• [주간] 평일 운영시간을 선택해주세요.');
+        } else if (dayWeekdayOper.value === '02') {
+            // 시간제운영인 경우 시간 입력 확인
+            const startHour = $('#day_weekday_start_hour')?.value;
+            const startMin = $('#day_weekday_start_min')?.value;
+            const endHour = $('#day_weekday_end_hour')?.value;
+            const endMin = $('#day_weekday_end_min')?.value;
+            if (!startHour || !startMin || !endHour || !endMin) {
+                errors.push('• [주간 평일] 시간제운영 시간을 입력해주세요.');
+            }
+        }
+
+        // 주간 토요일
+        const daySaturdayOper = $('input[name="daySaturdayOperation"]:checked');
+        if (!daySaturdayOper) {
+            errors.push('• [주간] 토요일 운영시간을 선택해주세요.');
+        } else if (daySaturdayOper.value === '02') {
+            const startHour = $('#day_saturday_start_hour')?.value;
+            const startMin = $('#day_saturday_start_min')?.value;
+            const endHour = $('#day_saturday_end_hour')?.value;
+            const endMin = $('#day_saturday_end_min')?.value;
+            if (!startHour || !startMin || !endHour || !endMin) {
+                errors.push('• [주간 토요일] 시간제운영 시간을 입력해주세요.');
+            }
+        }
+
+        // 주간 공휴일
+        const dayHolidayOper = $('input[name="dayHolidayOperation"]:checked');
+        if (!dayHolidayOper) {
+            errors.push('• [주간] 공휴일 운영시간을 선택해주세요.');
+        } else if (dayHolidayOper.value === '02') {
+            const startHour = $('#day_holiday_start_hour')?.value;
+            const startMin = $('#day_holiday_start_min')?.value;
+            const endHour = $('#day_holiday_end_hour')?.value;
+            const endMin = $('#day_holiday_end_min')?.value;
+            if (!startHour || !startMin || !endHour || !endMin) {
+                errors.push('• [주간 공휴일] 시간제운영 시간을 입력해주세요.');
+            }
+        }
+    }
+
+    // 야간 관련 검증
+    if (isNightChecked) {
+        // 야간 급지
+        const nightGrade = $('#f_night_grade')?.value;
+        if (!nightGrade) {
+            errors.push('• [야간] 급지를 선택해주세요.');
+        }
+
+        // 야간 요금부과여부
+        const nightFeeType = $('#f_night_feeType')?.value;
+        if (!nightFeeType) {
+            errors.push('• [야간] 요금 부과여부를 선택해주세요.');
+        }
+
+        // 야간 요금지불방식
+        const nightPayMethods = $$('input[name="nightPayMethod"]:checked');
+        if (nightPayMethods.length === 0) {
+            errors.push('• [야간] 요금 지불방식을 선택해주세요.');
+        }
+
+        // 야간 요금정산방식
+        const nightSettleMethods = $$('input[name="nightSettleMethod"]:checked');
+        if (nightSettleMethods.length === 0) {
+            errors.push('• [야간] 요금 정산방식을 선택해주세요.');
+        }
+
+        // 야간 운영시간 - 평일
+        const nightWeekdayOper = $('input[name="nightWeekdayOperation"]:checked');
+        if (!nightWeekdayOper) {
+            errors.push('• [야간] 평일 운영시간을 선택해주세요.');
+        } else if (nightWeekdayOper.value === '02') {
+            const startHour = $('#night_weekday_start_hour')?.value;
+            const startMin = $('#night_weekday_start_min')?.value;
+            const endHour = $('#night_weekday_end_hour')?.value;
+            const endMin = $('#night_weekday_end_min')?.value;
+            if (!startHour || !startMin || !endHour || !endMin) {
+                errors.push('• [야간 평일] 시간제운영 시간을 입력해주세요.');
+            }
+        }
+
+        // 야간 토요일
+        const nightSaturdayOper = $('input[name="nightSaturdayOperation"]:checked');
+        if (!nightSaturdayOper) {
+            errors.push('• [야간] 토요일 운영시간을 선택해주세요.');
+        } else if (nightSaturdayOper.value === '02') {
+            const startHour = $('#night_saturday_start_hour')?.value;
+            const startMin = $('#night_saturday_start_min')?.value;
+            const endHour = $('#night_saturday_end_hour')?.value;
+            const endMin = $('#night_saturday_end_min')?.value;
+            if (!startHour || !startMin || !endHour || !endMin) {
+                errors.push('• [야간 토요일] 시간제운영 시간을 입력해주세요.');
+            }
+        }
+
+        // 야간 공휴일
+        const nightHolidayOper = $('input[name="nightHolidayOperation"]:checked');
+        if (!nightHolidayOper) {
+            errors.push('• [야간] 공휴일 운영시간을 선택해주세요.');
+        } else if (nightHolidayOper.value === '02') {
+            const startHour = $('#night_holiday_start_hour')?.value;
+            const startMin = $('#night_holiday_start_min')?.value;
+            const endHour = $('#night_holiday_end_hour')?.value;
+            const endMin = $('#night_holiday_end_min')?.value;
+            if (!startHour || !startMin || !endHour || !endMin) {
+                errors.push('• [야간 공휴일] 시간제운영 시간을 입력해주세요.');
+            }
+        }
+    }
+
+    // 주차면수 확인
+    const totalStalls = num($('#f_totalStalls')?.value);
+    if (totalStalls === 0) {
+        errors.push('• 총 주차면수를 입력해주세요 (세부 주차면수 입력 시 자동 계산됩니다)');
+    }
+
+    return errors;
 }
 
 // ========== 초기화 ==========

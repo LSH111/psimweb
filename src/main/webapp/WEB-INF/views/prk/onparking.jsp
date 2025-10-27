@@ -632,14 +632,14 @@
                 <label>(4% 초과 6% 이하)</label>
                 <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                     <div class="ctl" style="flex:0 0 auto; width:120px;">
-                        <input id="f_slope_start" type="number" min="4.1" max="6.0" step="0.1"
-                               placeholder="4.1" inputmode="decimal" />
+                        <input id="f_slope_start" type="number" min="5" max="6" step="1"
+                               placeholder="5" inputmode="numeric" />
                         <span class="suffix">%</span>
                     </div>
                     <span style="color:var(--muted);">~</span>
                     <div class="ctl" style="flex:0 0 auto; width:120px;">
-                        <input id="f_slope_end" type="number" min="4.1" max="6.0" step="0.1"
-                               placeholder="6.0" inputmode="decimal" />
+                        <input id="f_slope_end" type="number" min="5" max="6" step="1"
+                               placeholder="6" inputmode="numeric" />
                         <span class="suffix">%</span>
                     </div>
                 </div>

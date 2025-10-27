@@ -61,8 +61,14 @@ logging:
     java.sql.PreparedStatement: DEBUG   # 🔥 추가
     java.sql.ResultSet: TRACE           # 🔥 추가
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(%logger{40}) - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{40} - %msg%n"
+    console: |
+
+      %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(%logger{40})
+      %msg%n
+    file: |
+
+      %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{40}
+      %msg%n
   file:
     name: logs/psim-web.log           # 🔥 로그 파일 저장
     max-size: 10MB
