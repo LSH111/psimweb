@@ -9,17 +9,6 @@
 </head>
 <body>
 
-<!-- 🔥 Header 영역 -->
-<header class="app-header">
-    <div class="header-content">
-        <h1 class="app-title">주차장 실태 관리 시스템</h1>
-        <nav class="app-nav">
-            <a href="${pageContext.request.contextPath}/prk/parkinglist" class="nav-link active">목록</a>
-            <a href="${pageContext.request.contextPath}/gis/parkingmap" class="nav-link">지도</a>
-        </nav>
-    </div>
-</header>
-
 <!-- 🔥 Content 영역 -->
 <main class="app-content">
     <div class="container">
