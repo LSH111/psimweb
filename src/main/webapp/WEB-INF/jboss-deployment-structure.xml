@@ -1,6 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jboss-deployment-structure>
     <deployment>
+        <!-- 🔥 WildFly의 로깅 모듈 제외 - 애플리케이션 자체 Logback 사용 -->
+        <exclusions>
+            <module name="org.jboss.logging"/>
+            <module name="org.jboss.logging.jul-to-slf4j-stub"/>
+            <module name="org.jboss.logmanager"/>
+            <module name="org.jboss.logmanager.log4j"/>
+            <module name="org.slf4j"/>
+            <module name="org.slf4j.impl"/>
+            <module name="org.apache.commons.logging"/>
+        </exclusions>
+
+        <!-- 🔥 필요한 의존성만 명시 -->
+        <dependencies>
+            <!-- PostgreSQL 드라이버가 필요한 경우 -->
+            <!-- <module name="org.postgresql" slot="main"/> -->
+        </dependencies>
         <!-- 🔥 Weld(CDI) 서브시스템 완전히 비활성화 -->
         <exclude-subsystems>
             <subsystem name="weld" />

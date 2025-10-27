@@ -22,7 +22,7 @@ public interface PrkDefPlceInfoMapper {
     void updatePrkDefPlceInfo(OnstreetParkingDetailVO parkingData);
     void updateOnstrPrklotInfo(OnstreetParkingDetailVO parkingData);
     void updateOnstrPrklotOperInfo(OnstreetParkingDetailVO parkingData);
-
+    void updateBizPerPrklotPrgsSts(OnstreetParkingDetailVO parkingData);
     // 수정 기능 (UPDATE)
     void updateParkingStatus(Map<String, Object> params);
     void updateSelectedParking(Map<String, Object> params);

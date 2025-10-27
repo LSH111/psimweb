@@ -4,6 +4,13 @@ import lombok.Data;
 
 @Data
 public class OnstreetParkingDetailVO {
+    // 사업정보 (tb_prk_srvy_biz_info)
+    private String prkBizMngNo;
+    private String bizNm;
+    private String bizYy;
+    private String bizExcStDt;
+    private String bizExcEdDt;
+
     // 기본 정보 (tb_prk_def_plce_info)
     private String prgsStsCd;
     private String prkPlceManageNo;

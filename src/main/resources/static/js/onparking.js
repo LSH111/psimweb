@@ -1158,9 +1158,18 @@ function formatPhoneNumber(phoneNumber) {
     }
 }
 
+// ========== 🔥 전역 변수로 사업관리번호 저장 ==========
+let loadedBizMngNo = null; // 🔥 서버에서 로드한 사업관리번호 저장
+
 // ========== 🔥 폼에 데이터 바인딩 ==========
 function bindDataToForm(data) {
     console.log('📝 폼 데이터 바인딩 시작', data);
+
+    // 🔥 사업관리번호 저장 (UPDATE 시 필수)
+    if (data.prkBizMngNo) {
+        loadedBizMngNo = data.prkBizMngNo;
+        console.log('✅ 사업관리번호 저장:', loadedBizMngNo);
+    }
 
     // 🔥 1. 기본 필드 매핑
     if (f_id) f_id.value = data.prkPlceManageNo || '';
@@ -1705,21 +1714,36 @@ async function doSave() {
         const result = await response.json();
 
         if (result.success) {
-            alert('✅ ' + (result.message || '저장되었습니다.'));
-            // 필요시 새로고침
-            // await loadParkingDetail(payload.id);
+            // ✅ 저장 성공 메시지 표시
+            alert('저장되었습니다.');
+
+            // 🔥 목록 페이지로 이동
+            window.location.href = '/prk/parkinglist';
         } else {
             alert('❌ 저장 실패: ' + (result.message || '알 수 없는 오류'));
         }
     } catch (error) {
-        console.error('저장 중 오류:', error);
+        console.error('❌ 저장 중 오류:', error);
         alert('저장 중 오류가 발생했습니다: ' + error.message);
     }
 }
 
+// 🔥 쉼표 제거 및 숫자 변환 함수 추가
+function parseCurrency(value) {
+    if (!value) return null;
+    // 문자열에서 쉼표 제거 후 숫자로 변환
+    const cleaned = value.toString().replace(/,/g, '').trim();
+    const parsed = parseInt(cleaned, 10);
+    return (isNaN(parsed) || parsed <= 0) ? null : parsed;
+}
+
+// 🔥 프론트엔드 payload를 서버 VO 형식으로 변환
 // 🔥 프론트엔드 payload를 서버 VO 형식으로 변환
 function mapPayloadToServerFormat(payload) {
     const data = {
+        // 사업관리번호
+        prkBizMngNo: loadedBizMngNo,
+
         // 🔥 필수: 주차장 관리번호
         prkPlceManageNo: payload.id,
 
@@ -1746,6 +1770,20 @@ function mapPayloadToServerFormat(payload) {
         // 주야간 구분
         dyntDvCd: getDayNightCode(payload.times.day, payload.times.night)
     };
+
+    // 🔥 운영방식 코드 확인
+    const operationTypeCode = mapOperationType(payload.operationType);
+    const isNormalStreet = (operationTypeCode === '01'); // 일반노상주차장
+    const isResident = (operationTypeCode === '02');     // 거주자우선주차장
+    const isBoth = (operationTypeCode === '03');         // 복합
+
+    console.log('🔍 운영방식 확인:', {
+        원본: payload.operationType,
+        변환코드: operationTypeCode,
+        일반노상: isNormalStreet,
+        거주자우선: isResident,
+        복합: isBoth
+    });
 
     // 주간 데이터
     if (payload.times.day && payload.day) {
@@ -1776,22 +1814,23 @@ function mapPayloadToServerFormat(payload) {
             }
         }
 
-        // 주간 거주자 요금
-        if (payload.day.residentFees) {
-            data.wkResDayFee = payload.day.residentFees.day;
-            data.wkResWkFee = payload.day.residentFees.all;
-            data.wkResFtFee = payload.day.residentFees.full;
-            data.wkResNtFee = payload.day.residentFees.night;
+        // 🔥 주간 거주자 요금 - 거주자우선 또는 복합일 때만
+        if (isResident || isBoth) {
+            data.wkResDayFee = parseCurrency($('#f_day_res_day')?.value);
+            data.wkResWkFee = parseCurrency($('#f_day_res_all')?.value);
+            data.wkResFtFee = parseCurrency($('#f_day_res_full')?.value);
+            console.log('💳 주간 거주자 요금 추가');
         }
 
-        // 주간 일반 요금
-        if (payload.day.normalStreetFees) {
-            data.wkGnFrst30mFee = payload.day.normalStreetFees.first30;
-            data.wkGnInt10mFee = payload.day.normalStreetFees.per10;
-            data.wkGn1hFee = payload.day.normalStreetFees.per60;
-            data.wkGnDayFee = payload.day.normalStreetFees.daily;
-            data.wkFeeMnthPassPrc = payload.day.normalStreetFees.monthly;
-            data.wkFeeHfyrPassPrc = payload.day.normalStreetFees.halfyear;
+        // 🔥 주간 일반 요금 - 일반노상 또는 복합일 때만
+        if (isNormalStreet || isBoth) {
+            data.wkGnFrst30mFee = parseCurrency($('#f_day_fee_first30')?.value);
+            data.wkGnInt10mFee = parseCurrency($('#f_day_fee_per10')?.value);
+            data.wkGn1hFee = parseCurrency($('#f_day_fee_per60')?.value);
+            data.wkGnDayFee = parseCurrency($('#f_day_fee_daily')?.value);
+            data.wkFeeMnthPassPrc = parseCurrency($('#f_day_fee_monthly')?.value);
+            data.wkFeeHfyrPassPrc = parseCurrency($('#f_day_fee_halfyear')?.value);
+            console.log('💳 주간 일반노상 요금 추가');
         }
 
         // 주간 지불/정산방식
@@ -1834,22 +1873,23 @@ function mapPayloadToServerFormat(payload) {
             }
         }
 
-        // 야간 거주자 요금
-        if (payload.night.residentFees) {
-            data.ntResDayFee = payload.night.residentFees.day;
-            data.ntResWkFee = payload.night.residentFees.all;
-            data.ntResFtFee = payload.night.residentFees.full;
-            data.ntResNtFee = payload.night.residentFees.night;
+        // 🔥 야간 거주자 요금 - 거주자우선 또는 복합일 때만
+        if (isResident || isBoth) {
+            data.ntResDayFee = parseCurrency($('#f_night_res_all')?.value);
+            data.ntResFtFee = parseCurrency($('#f_night_res_full')?.value);
+            data.ntResNtFee = parseCurrency($('#f_night_res_night')?.value);
+            console.log('💳 야간 거주자 요금 추가');
         }
 
-        // 야간 일반 요금
-        if (payload.night.normalStreetFees) {
-            data.ntGnFrst30mFee = payload.night.normalStreetFees.first30;
-            data.ntGnInt10mFee = payload.night.normalStreetFees.per10;
-            data.ntGn1hFee = payload.night.normalStreetFees.per60;
-            data.ntGnDayFee = payload.night.normalStreetFees.daily;
-            data.ntFeeMnthPassPrc = payload.night.normalStreetFees.monthly;
-            data.ntFeeHfyrPassPrc = payload.night.normalStreetFees.halfyear;
+        // 🔥 야간 일반 요금 - 일반노상 또는 복합일 때만
+        if (isNormalStreet || isBoth) {
+            data.ntGnFrst30mFee = parseCurrency($('#f_night_fee_first30')?.value);
+            data.ntGnInt10mFee = parseCurrency($('#f_night_fee_per10')?.value);
+            data.ntGn1hFee = parseCurrency($('#f_night_fee_per60')?.value);
+            data.ntGnDayFee = parseCurrency($('#f_night_fee_daily')?.value);
+            data.ntFeeMnthPassPrc = parseCurrency($('#f_night_fee_monthly')?.value);
+            data.ntFeeHfyrPassPrc = parseCurrency($('#f_night_fee_halfyear')?.value);
+            console.log('💳 야간 일반노상 요금 추가');
         }
 
         // 야간 지불/정산방식
@@ -1875,6 +1915,9 @@ function mapPayloadToServerFormat(payload) {
         data.antislpFcltyYn = payload.safety.antislpFcltyYn;
         data.slpCtnGuidSignYn = payload.safety.slpCtnGuidSignYn;
     }
+
+    // 🔥 전송 전 데이터 검증 로그
+    console.log('💰 최종 전송 데이터:', data);
 
     return data;
 }

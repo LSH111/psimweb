@@ -18,7 +18,6 @@ public interface PrkDefPlceInfoService {
 
     // 노상주차장 업데이트 추가
     void updateOnstreetParking(OnstreetParkingDetailVO parkingData);
-
     // 수정 기능 (UPDATE) - 전송 버튼으로 일괄 업데이트
     void updateParkingStatus(List<String> manageNos, String newStatus);
     void updateSelectedParkings(List<ParkingListVO> parkingList);

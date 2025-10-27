@@ -100,6 +100,10 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
             prkDefPlceInfoMapper.updateOnstrPrklotOperInfo(parkingData);
             log.info("✅ 운영 정보 업데이트 완료");
 
+            // 4. 🔥 진행상태 업데이트 (prgs_sts_cd = '10')
+            prkDefPlceInfoMapper.updateBizPerPrklotPrgsSts(parkingData);
+            log.info("✅ 진행상태 업데이트 완료");
+
             log.info("노상주차장 정보 업데이트 완료 - prkPlceManageNo: {}", parkingData.getPrkPlceManageNo());
         } catch (Exception e) {
             log.error("노상주차장 정보 업데이트 실패 - prkPlceManageNo: {}", parkingData.getPrkPlceManageNo(), e);

@@ -53,7 +53,13 @@ logging:
     com.zaxxer.hikari: INFO
     org.springframework.jdbc: DEBUG
     org.springframework.transaction: DEBUG
-    org.mybatis: DEBUG                 # 🔥 MyBatis 프레임워크 로깅
+    org.mybatis: DEBUG
+    org.apache.ibatis: TRACE            # 🔥 추가
+    java.sql: TRACE                     # 🔥 추가
+    java.sql.Connection: DEBUG          # 🔥 추가
+    java.sql.Statement: DEBUG           # 🔥 추가
+    java.sql.PreparedStatement: DEBUG   # 🔥 추가
+    java.sql.ResultSet: TRACE           # 🔥 추가
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(%logger{40}) - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{40} - %msg%n"
