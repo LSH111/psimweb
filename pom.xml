@@ -232,6 +232,10 @@
             </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
         <!-- ✅ Reactive Streams API (WildFly 배포용) -->
         <!-- 🔥 이 의존성을 제거하거나 주석 처리 -->
         <!--

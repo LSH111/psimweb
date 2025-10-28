@@ -663,9 +663,8 @@
             <!-- 차량인식종류 (차단기 '있음'인 경우만 표시) -->
             <div id="vehicle_recognition_wrap" style="grid-column:1/-1; display:none;">
                 <label>차량인식종류</label>
-                <div class="radio-group" id="vehicle_recognition_group">
-                    <label><input type="radio" name="vehicleRecognition" value="RFID" /> <span>RFID</span></label>
-                    <label><input type="radio" name="vehicleRecognition" value="기타" id="vehicle_other" /> <span>기타</span></label>
+                <div class="radio-group" id="vehicle_recognition_group" style="margin-bottom: 16px;">
+                    <!-- JavaScript로 동적 로드 (PRK_008) -->
                 </div>
             </div>
 

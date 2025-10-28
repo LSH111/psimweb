@@ -2,10 +2,12 @@ package com.psim.web.prk.service.impl;
 
 import com.psim.web.prk.mapper.PrkDefPlceInfoMapper;
 import com.psim.web.prk.service.PrkDefPlceInfoService;
-import com.psim.web.prk.vo.OnstreetParkingDetailVO;
+import com.psim.web.prk.vo.ParkingDetailVO;
 import com.psim.web.prk.vo.ParkingListVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 
 import java.util.List;
 import java.util.Map;
@@ -64,10 +66,11 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
     }
 
     @Override
-    public OnstreetParkingDetailVO getOnstreetParkingDetail(String prkPlceManageNo) {
+    @Cacheable(value = "parkingDetail", key = "#prkPlceManageNo", unless = "#result == null")
+    public ParkingDetailVO getOnstreetParkingDetail(String prkPlceManageNo) {
         try {
             log.info("노상주차장 상세 조회 - prkPlceManageNo: {}", prkPlceManageNo);
-            OnstreetParkingDetailVO detail = prkDefPlceInfoMapper.selectOnstreetParkingDetail(prkPlceManageNo);
+            ParkingDetailVO detail = prkDefPlceInfoMapper.selectOnstreetParkingDetail(prkPlceManageNo);
 
             if (detail == null) {
                 log.warn("노상주차장 상세 정보를 찾을 수 없습니다 - prkPlceManageNo: {}", prkPlceManageNo);
@@ -84,7 +87,8 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
 
     @Override
     @Transactional
-    public void updateOnstreetParking(OnstreetParkingDetailVO parkingData) {
+    @CacheEvict(value = "parkingDetail", key = "#parkingData.prkPlceManageNo")
+    public void updateOnstreetParking(ParkingDetailVO parkingData) {
         try {
             log.info("노상주차장 정보 업데이트 시작 - prkPlceManageNo: {}", parkingData.getPrkPlceManageNo());
 
@@ -107,6 +111,58 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
             log.info("노상주차장 정보 업데이트 완료 - prkPlceManageNo: {}", parkingData.getPrkPlceManageNo());
         } catch (Exception e) {
             log.error("노상주차장 정보 업데이트 실패 - prkPlceManageNo: {}", parkingData.getPrkPlceManageNo(), e);
+            throw new RuntimeException("주차장 정보 업데이트 중 오류가 발생했습니다.", e);
+        }
+    }
+
+    // 🔥 노외주차장 상세 조회
+    @Override
+    @Cacheable(value = "parkingDetail", key = "#prkPlceManageNo", unless = "#result == null")
+    public ParkingDetailVO getOffstreetParkingDetail(String prkPlceManageNo) {
+        try {
+            log.info("노외주차장 상세 조회 - prkPlceManageNo: {}", prkPlceManageNo);
+            ParkingDetailVO detail = prkDefPlceInfoMapper.selectOffstreetParkingDetail(prkPlceManageNo);
+
+            if (detail == null) {
+                log.warn("노외주차장 상세 정보를 찾을 수 없습니다 - prkPlceManageNo: {}", prkPlceManageNo);
+            } else {
+                log.info("노외주차장 상세 조회 완료 - 주차장명: {}", detail.getPrkplceNm());
+            }
+
+            return detail;
+        } catch (Exception e) {
+            log.error("노외주차장 상세 조회 실패 - prkPlceManageNo: {}", prkPlceManageNo, e);
+            return null;
+        }
+    }
+
+    // 🔥 노외주차장 업데이트
+    @Override
+    @Transactional
+    @CacheEvict(value = "parkingDetail", key = "#parkingData.prkPlceManageNo")
+    public void updateOffstreetParking(ParkingDetailVO parkingData) {
+        try {
+            log.info("노외주차장 정보 업데이트 시작 - prkPlceManageNo: {}", parkingData.getPrkPlceManageNo());
+
+            // 1. 기본 정보 업데이트 (tb_prk_def_plce_info)
+            prkDefPlceInfoMapper.updatePrkDefPlceInfo(parkingData);
+            log.info("✅ 기본 정보 업데이트 완료");
+
+            // 2. 노외주차장 정보 업데이트 (tb_offstr_prklot_info)
+            prkDefPlceInfoMapper.updateOffstrPrklotInfo(parkingData);
+            log.info("✅ 노외주차장 정보 업데이트 완료");
+
+            // 3. 운영 정보 업데이트 (tb_offstr_prklot_oper_info)
+            prkDefPlceInfoMapper.updateOffstrPrklotOperInfo(parkingData);
+            log.info("✅ 운영 정보 업데이트 완료");
+
+            // 4. 진행상태 업데이트 (prgs_sts_cd = '10')
+            prkDefPlceInfoMapper.updateBizPerPrklotPrgsSts(parkingData);
+            log.info("✅ 진행상태 업데이트 완료");
+
+            log.info("노외주차장 정보 업데이트 완료 - prkPlceManageNo: {}", parkingData.getPrkPlceManageNo());
+        } catch (Exception e) {
+            log.error("노외주차장 정보 업데이트 실패 - prkPlceManageNo: {}", parkingData.getPrkPlceManageNo(), e);
             throw new RuntimeException("주차장 정보 업데이트 중 오류가 발생했습니다.", e);
         }
     }

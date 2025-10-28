@@ -1051,12 +1051,42 @@ function toggleSlopeInput(isVisible) {
     console.log('📐 경사구간 입력:', { visible: isVisible });
 }
 
+// ========== 🔥 로딩 인디케이터 ==========
+const LoadingIndicator = {
+    show(message = '데이터를 불러오는 중...') {
+        let loader = document.getElementById('global-loader');
+        if (!loader) {
+            loader = document.createElement('div');
+            loader.id = 'global-loader';
+            loader.innerHTML = `
+                <div class="loader-backdrop">
+                    <div class="loader-content">
+                        <div class="loader-spinner"></div>
+                        <div class="loader-message">${message}</div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(loader);
+        }
+        loader.style.display = 'block';
+    },
+
+    hide() {
+        const loader = document.getElementById('global-loader');
+        if (loader) {
+            loader.style.display = 'none';
+        }
+    }
+};
+
 // ========== 🔥 서버에서 상세 데이터 로드 ==========
 async function loadParkingDetail(prkPlceManageNo) {
     if (!prkPlceManageNo) {
         console.warn('⚠️ 주차장 관리번호가 없습니다.');
         return;
     }
+
+    LoadingIndicator.show('주차장 정보를 불러오는 중...');
 
     try {
         console.log('🔍 서버에서 상세 데이터 로드 시작:', prkPlceManageNo);
@@ -1079,6 +1109,9 @@ async function loadParkingDetail(prkPlceManageNo) {
     } catch (error) {
         console.error('❌ 데이터 로드 중 오류:', error);
         alert('데이터를 불러오는데 실패했습니다: ' + error.message);
+    } finally {
+        LoadingIndicator.hide();
+        console.log('✅ 로딩 인디케이터 숨김');
     }
 }
 
