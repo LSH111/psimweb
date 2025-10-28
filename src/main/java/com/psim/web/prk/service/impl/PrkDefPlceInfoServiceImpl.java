@@ -146,19 +146,15 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
 
             // 1. 기본 정보 업데이트 (tb_prk_def_plce_info)
             prkDefPlceInfoMapper.updatePrkDefPlceInfo(parkingData);
-            log.info("✅ 기본 정보 업데이트 완료");
 
             // 2. 노외주차장 정보 업데이트 (tb_offstr_prklot_info)
             prkDefPlceInfoMapper.updateOffstrPrklotInfo(parkingData);
-            log.info("✅ 노외주차장 정보 업데이트 완료");
 
-            // 3. 운영 정보 업데이트 (tb_offstr_prklot_oper_info)
+            // 3. 운영 정보 업데이트 (tb_offstr_prklot_oper_info) ✅ 노외 전용 필드 포함
             prkDefPlceInfoMapper.updateOffstrPrklotOperInfo(parkingData);
-            log.info("✅ 운영 정보 업데이트 완료");
 
             // 4. 진행상태 업데이트 (prgs_sts_cd = '10')
             prkDefPlceInfoMapper.updateBizPerPrklotPrgsSts(parkingData);
-            log.info("✅ 진행상태 업데이트 완료");
 
             log.info("노외주차장 정보 업데이트 완료 - prkPlceManageNo: {}", parkingData.getPrkPlceManageNo());
         } catch (Exception e) {

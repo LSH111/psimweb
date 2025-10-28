@@ -42,9 +42,9 @@
                 <div><label for="f_name">주차장명</label><div class="ctl"><input id="f_name" type="text" placeholder="예) 분당구청 노외" /></div></div>
                 <div><label for="f_status">진행상태</label><div class="ctl"><input id="f_status" type="text" placeholder="예) APPROVED" /></div></div>
                 <div><label for="f_type">주차장구분</label><div class="ctl"><input id="f_type" type="text" value="노외" readonly /></div></div>
-                <div><label for="f_sido">시도</label><div class="ctl"><input id="f_sido" /></div></div>
-                <div><label for="f_sigungu">시군구</label><div class="ctl"><input id="f_sigungu" /></div></div>
-                <div><label for="f_emd">읍면동</label><div class="ctl"><input id="f_emd" /></div></div>
+                <div><label for="f_sido">시도</label><div class="ctl"><input id="f_sido" type="text" /></div></div>
+                <div><label for="f_sigungu">시군구</label><div class="ctl"><input id="f_sigungu" type="text" /></div></div>
+                <div><label for="f_emd">읍면동</label><div class="ctl"><input id="f_emd" type="text" /></div></div>
 
                 <!-- 주소: 지번/도로명 + 주소찾기 -->
                 <div style="grid-column:1/-1">
@@ -167,17 +167,17 @@
             </div>
             <div id="own_company_wrap" hidden>
                 <label for="f_own_company">민간위탁 업체명</label>
-                <div class="ctl"><input id="f_own_company" placeholder="예) ㈜○○파킹" /></div>
+                <div class="ctl"><input id="f_own_company" type="text" placeholder="예) ㈜○○파킹" /></div>
             </div>
 
             <!-- 관리기관 -->
             <div>
                 <label for="f_mgr_name">관리기관명</label>
-                <div class="ctl"><input id="f_mgr_name" placeholder="예) 성남시 주차관리사업소" /></div>
+                <div class="ctl"><input id="f_mgr_name" type="text" placeholder="예) 성남시 주차관리사업소" /></div>
             </div>
             <div>
                 <label for="f_mgr_tel">관리기관 전화번호</label>
-                <div class="ctl"><input id="f_mgr_tel" placeholder="예) 031-123-4567" inputmode="tel" /></div>
+                <div class="ctl"><input id="f_mgr_tel" type="text" placeholder="예) 031-123-4567" inputmode="tel" /></div>
             </div>
 
             <!-- 부제 시행 여부 -->
@@ -668,7 +668,7 @@
                 </div>
             </div>
 
-            <!-- 4) 출차알람 유무 -->
+            <!-- 출차알람 유무 -->
             <div style="grid-column:1/-1">
                 <label>출차알람 유무</label>
                 <div class="radio-group" id="exit_alarm_group">
@@ -822,17 +822,16 @@
                 </div>
             </div>
 
-            <!-- 4) 안전관리실 설치 여부 -->
+            <!-- 안전시설 -->
             <div style="grid-column:1/-1">
-                <label>4) 안전관리실 설치 여부</label>
-                <div class="radio-group" id="safety_room_group">
-                    <label><input type="radio" name="safetyRoom" value="자동서비스관리인" /> <span>자동서비스관리인</span></label>
-                    <label><input type="radio" name="safetyRoom" value="RFID" /> <span>RFID</span></label>
-                    <label><input type="radio" name="safetyRoom" value="기타" /> <span>기타</span></label>
+                <label>안전시설</label>
+                <div class="check-group" id="safety_group" aria-label="안전시설 (중복선택 가능)">
+                    <label><input type="checkbox" name="safetyFacility" value="Y" id="antislp_facility_chk" /> <span>미끄럼 방지시설(스토퍼, 고임목 등)</span></label>
+                    <label><input type="checkbox" name="safetyFacility" value="Y" id="slp_guide_sign_chk" /> <span>미끄럼 주의 안내표지판</span></label>
                 </div>
             </div>
 
-            <!-- 5) 보행안전시설 (총 주차면수 400면 이상인 경우만 활성화) -->
+            <!-- 보행안전시설 (총 주차면수 400면 이상인 경우만 활성화) -->
             <div id="pedestrian_safety_wrap" style="grid-column:1/-1; opacity: 0.5; pointer-events: none;">
                 <label>보행안전시설</label>
                 <div class="help" style="margin-bottom:8px; color:var(--muted);">※ 총 주차면수 400면 이상인 경우만 입력 가능</div>
@@ -859,16 +858,15 @@
         </div>
     </section>
 
-    <!-- 인전관리실 설치조사 섹션 -->
+    <!-- 비고 섹션 추가 -->
     <section class="card">
-        <h2>인전관리실 설치조사</h2>
+        <h2>비고</h2>
         <div class="grid">
             <div style="grid-column:1/-1">
-                <label>안전관리실 설치조사</label>
-                <div class="check-group" id="safety_management_group" aria-label="안전관리실 설치조사 (중복선택 가능)">
-                    <label><input type="checkbox" name="safetyManagement" value="주차장 총면수" /> <span>주차장 총면수</span></label>
-                    <label><input type="checkbox" name="safetyManagement" value="미끄럼 방지시설(스토퍼 함) 주차막" /> <span>미끄럼 방지시설(스토퍼 함) 주차막</span></label>
-                    <label><input type="checkbox" name="safetyManagement" value="차량통행 주의 안내표지판" /> <span>차량통행 주의 안내표지판</span></label>
+                <label for="f_partclr_matter">특이사항</label>
+                <div class="ctl">
+                        <textarea id="f_partclr_matter" rows="8"
+                                  placeholder="주차장 관련 특이사항을 입력하세요"></textarea>
                 </div>
             </div>
         </div>

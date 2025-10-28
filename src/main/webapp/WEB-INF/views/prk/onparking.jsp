@@ -41,9 +41,9 @@
                 <div><label for="f_name">주차장명</label><div class="ctl"><input id="f_name" type="text" placeholder="예) 연남로 노상" /></div></div>
                 <div><label for="f_status">진행상태</label><div class="ctl"><input id="f_status" type="text" placeholder="예) PENDING/APPROVED" /></div></div>
                 <div><label for="f_type">주차장구분</label><div class="ctl"><input id="f_type" type="text" value="노상" readonly /></div></div>
-                <div><label for="f_sido">시도</label><div class="ctl"><input id="f_sido" /></div></div>
-                <div><label for="f_sigungu">시군구</label><div class="ctl"><input id="f_sigungu" /></div></div>
-                <div><label for="f_emd">읍면동</label><div class="ctl"><input id="f_emd" /></div></div>
+                <div><label for="f_sido">시도</label><div class="ctl"><input id="f_sido" type="text" /></div></div>
+                <div><label for="f_sigungu">시군구</label><div class="ctl"><input id="f_sigungu" type="text" /></div></div>
+                <div><label for="f_emd">읍면동</label><div class="ctl"><input id="f_emd" type="text" /></div></div>
 
                 <!-- 주소: 지번/도로명 + 주소찾기 -->
                 <div style="grid-column:1/-1">
@@ -165,17 +165,17 @@
             </div>
             <div id="own_company_wrap" hidden>
                 <label for="f_own_company">민간위탁 업체명</label>
-                <div class="ctl"><input id="f_own_company" placeholder="예) ㈜○○파킹" /></div>
+                <div class="ctl"><input id="f_own_company" type="text" placeholder="예) ㈜○○파킹" /></div>
             </div>
 
             <!-- 관리기관 -->
             <div>
                 <label for="f_mgr_name">관리기관명</label>
-                <div class="ctl"><input id="f_mgr_name" placeholder="예) 마포구청 교통행정과" /></div>
+                <div class="ctl"><input id="f_mgr_name" type="text" placeholder="예) 마포구청 교통행정과" /></div>
             </div>
             <div>
                 <label for="f_mgr_tel">관리기관 전화번호</label>
-                <div class="ctl"><input id="f_mgr_tel" placeholder="예) 02-123-4567" inputmode="tel" /></div>
+                <div class="ctl"><input id="f_mgr_tel" type="text" placeholder="예) 02-123-4567" inputmode="tel" /></div>
             </div>
 
             <!-- 부제 시행 여부 -->

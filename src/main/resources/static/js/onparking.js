@@ -1613,23 +1613,24 @@ function bindDataToForm(data) {
     console.log('✅ 폼 데이터 바인딩 완료');
 }
 
-// 🔥 3. 모든 필드를 ReadOnly로 설정하는 함수
+// ========== 🔥 모든 필드를 ReadOnly로 설정하는 함수 ==========
 function setAllFieldsReadOnly(isReadOnly) {
     // 텍스트/숫자 입력 필드
     const inputs = $$('input[type="text"], input[type="number"], input[type="tel"], textarea');
     inputs.forEach(input => {
-        if (input.id === 'f_id') return; // 관리번호는 항상 readOnly
-
+        // 🔥 승인 상태면 모든 필드 readOnly 처리
         if (isReadOnly) {
             input.readOnly = true;
             input.style.backgroundColor = '#f3f4f6';
             input.style.cursor = 'not-allowed';
         } else {
-            // 총 주차면수는 항상 readOnly
-            if (input.id === 'f_totalStalls') {
+            // 편집 가능 상태에서만 특정 필드 제외
+            if (input.id === 'f_id' || input.id === 'f_totalStalls') {
+                // 관리번호, 총 주차면수는 항상 readOnly
                 input.readOnly = true;
             } else if (input.id === 'f_addr_jibun' || input.id === 'f_addr_road') {
-                input.readOnly = true; // 주소는 항상 readOnly (주소찾기 사용)
+                // 주소는 항상 readOnly (주소찾기 사용)
+                input.readOnly = true;
             } else {
                 input.readOnly = false;
                 input.style.backgroundColor = '';
@@ -1652,8 +1653,9 @@ function setAllFieldsReadOnly(isReadOnly) {
 
     // 파일 업로드 버튼
     const fileButtons = [
-        '#btnPickFromLibrary', '#btnTakePhoto', '#btnUseGeolocation',
-        '#btnFindAddr', '#btnSignPhotoLibrary', '#btnSignPhotoCamera'
+        '#btnPickFromLibrary', '#btnTakePhoto', '#btnUseGeolocation', '#btnClearPhoto',
+        '#btnFindAddr',
+        '#btnSignPhotoLibrary', '#btnSignPhotoCamera', '#btnClearSignPhoto'
     ];
     fileButtons.forEach(selector => {
         const btn = $(selector);
