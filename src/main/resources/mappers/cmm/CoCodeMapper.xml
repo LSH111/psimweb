@@ -13,7 +13,7 @@
         <result property="groupCd" column="group_cd"/>
         <result property="upperCodeCd" column="upper_code_cd"/>
         <result property="useYn" column="use_yn"/>
-        <result property="sortOrdr" column="sort_ordr"/>
+        <result property="sortOrdr" column="sort_order"/>
     </resultMap>
 
     <!-- 코드그룹 ResultMap -->
@@ -57,7 +57,9 @@
             sort_order
         FROM cpk.tb_co_code
         WHERE group_cd = #{groupCd}
+          AND code_cd LIKE #{upperCodeCd} || '%'
           AND use_yn = 'Y'
+          AND LENGTH(code_cd) <![CDATA[>]]> LENGTH(#{upperCodeCd})
         ORDER BY sort_order, code_cd
     </select>
 

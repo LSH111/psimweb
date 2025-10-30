@@ -859,18 +859,7 @@
     </section>
 
     <!-- 비고 섹션 추가 -->
-    <section class="card">
-        <h2>비고</h2>
-        <div class="grid">
-            <div style="grid-column:1/-1">
-                <label for="f_partclr_matter">특이사항</label>
-                <div class="ctl">
-                        <textarea id="f_partclr_matter" rows="8"
-                                  placeholder="주차장 관련 특이사항을 입력하세요"></textarea>
-                </div>
-            </div>
-        </div>
-    </section>
+    <section class="card"> </section>
 
     <!-- 저장 버튼 -->
     <section class="card">

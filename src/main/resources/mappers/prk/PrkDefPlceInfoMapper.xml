@@ -45,7 +45,10 @@
             AND tpdpi.prkplce_nm LIKE '%' || #{prkNm} || '%'
         </if>
         <if test="status != null and status != ''">
-            AND tpdpi.prkplce_stat_cd = #{status}
+            AND tbppi.prgs_sts_cd = #{status}
+        </if>
+        <if test="prkType != null and prkType != ''">
+            AND tpdpi.prk_plce_type = #{prkType}
         </if>
         <if test="addr != null and addr != ''">
             AND tpdpi.dtadd LIKE '%' || #{addr} || '%'
@@ -554,5 +557,199 @@
           , updusr_id            = #{updusrId}
           , updusr_ip_addr       = #{updusrIpAddr}
         WHERE prk_plce_manage_no = #{prkPlceManageNo}
+    </update>
+
+    <!-- 🔥 부설주차장 상세 조회 쿼리 -->
+    <select id="selectBuildParkingDetail" parameterType="string" resultType="com.psim.web.prk.vo.ParkingDetailVO">
+        SELECT cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsCd
+             , tbppi.prgs_sts_cd as prgsStsRawCd
+             , tbppi.biz_per_prk_mng_no as bizPerPrkMngNo
+             , tpsbi.prk_biz_mng_no as prkBizMngNo
+             , tpsbi.biz_nm as bizNm
+             , tpsbi.biz_yy as bizYy
+             , tpsbi.biz_exc_st_dt as bizExcStDt
+             , tpsbi.biz_exc_ed_dt as bizExcEdDt
+             , tpdpi.prk_plce_info_sn as prkPlceInfoSn
+             , tpdpi.prk_plce_manage_no as prkPlceManageNo
+             , tpdpi.prk_plce_type as prkPlceType
+             , tpdpi.prkplce_nm as prkplceNm
+             , tcl.sido_cd as sidoCd
+             , tcl.sido_nm as sidoNm
+             , tcl.sigungu_cd as sigunguCd
+             , tcl.sigungu_nm as sigunguNm
+             , tcl.emd_cd as emdCd
+             , tcl.lgal_emd_nm as lgalEmdNm
+             , tpdpi.dtadd as dtadd
+             , tpdpi.bdnbr as bdnbr
+             , tpdpi.zip as zip
+             , tpdpi.prk_plce_lat as prkPlceLat
+             , tpdpi.prk_plce_lon as prkPlceLon
+             , tpdpi.closed_yn as closedYn
+             -- 부설주차장 기본 정보
+             , cpk.FN_GET_CODE_NM(tapi.prkplce_se, 'PRK_001') as prkplceSe
+             , tapi.tot_prk_cnt as totPrkCnt
+             , tapi.disab_prk_cnt as disabPrkCnt
+             , tapi.compact_prk_cnt as compactPrkCnt
+             , tapi.eco_prk_cnt as ecoPrkCnt
+             , tapi.pregnant_prk_cnt as pregnantPrkCnt
+             , tapi.oper_mby_cd as operMbyCd
+             , tapi.mgr_org as mgrOrg
+             , tapi.mgr_org_tel_no as mgrOrgTelNo
+             , tapi.subordn_opertn_cd as subordnOpertnCd
+             , tapi.trut_comp_nm as trutCompNm
+             , tapi.dirt_comp_nm as dirtCompNm
+             -- 부설주차장 운영 정보
+             , tapoi.prmisn_dt as prmisnDt
+             , tapoi.use_insp_dt as useInspDt
+             , tapoi.plot_ar as plotAr
+             , tapoi.myeon_ar as myeonAr
+             , tapoi.mech_prklot_tp_cd as mechPrklotTpCd
+             , tapoi.mech_prklot_oper_yn as mechPrklotOperYn
+             , tapoi.mech_prk_inop_cnt as mechPrkInopCnt
+             , tapoi.prk_fclty_tp_tot_flr_capa as prkFcltyTpTotFlrCapa
+             , tapoi.prk_fclty_tp_tot_deck_capa as prkFcltyTpTotDeckCapa
+             -- 실내 자주식
+             , tapoi.indr_self_tot_space_cnt as indrSelfTotSpaceCnt
+             , tapoi.indr_self_flr_cnt as indrSelfFlrCnt
+             , tapoi.indr_self_deck_cnt as indrSelfDeckCnt
+             -- 실내 기계식
+             , tapoi.indr_mech_tot_space_cnt as indrMechTotSpaceCnt
+             , tapoi.indr_mech_flr_cnt as indrMechFlrCnt
+             , tapoi.indr_mech_deck_cnt as indrMechDeckCnt
+             -- 실외 자주식
+             , tapoi.outdr_self_tot_space_cnt as outdrSelfTotSpaceCnt
+             , tapoi.outdr_self_flr_cnt as outdrSelfFlrCnt
+             , tapoi.outdr_self_check_cnt as outdrSelfCheckCnt
+             -- 실외 기계식
+             , tapoi.outdr_mech_tot_space_cnt as outdrMechTotSpaceCnt
+             , tapoi.outdr_mech_flr_cnt as outdrMechFlrCnt
+             , tapoi.outdr_mech_deck_cnt as outdrMechDeckCnt
+             -- 운영시간
+             , tapoi.wkdy_oper_tm_cd as wkdyOperTmCd
+             , tapoi.wkdy_tmbas_oper_str_tm as wkdyTmbasOperStrTm
+             , tapoi.wkdy_tmbas_oper_end_tm as wkdyTmbasOperEndTm
+             , tapoi.sat_oper_tm_cd as satOperTmCd
+             , tapoi.sat_tmbas_oper_str_tm as satTmbasOperStrTm
+             , tapoi.sat_tmbas_oper_end_tm as satTmbasOperEndTm
+             , tapoi.hldy_oper_tm_cd as hldyOperTmCd
+             , tapoi.hldy_tmbas_oper_str_tm as hldyTmbasOperStrTm
+             , tapoi.hldy_tmbas_oper_end_tm as hldyTmbasOperEndTm
+             -- 요금 정보
+             , tapoi.fee_imps_cd as feeImpsCd
+             , tapoi.fee_frst_30min_prc as feeFrst30minPrc
+             , tapoi.fee_10min_prc as fee10minPrc
+             , tapoi.fee_1hr_prc as fee1hrPrc
+             , tapoi.fee_day_prc as feeDayPrc
+             , tapoi.fee_mnth_pass_prc as feeMnthPassPrc
+             , tapoi.fee_hfyr_pass_prc as feeHfyrPassPrc
+             , tapoi.fee_pay_mthd_cd as feePayMthdCd
+             , tapoi.fee_pay_mthd_othr as feePayMthdOthr
+             , tapoi.fee_setl_mthd_cd as feeSetlMthdCd
+             -- 시설 정보
+             , tapoi.prklot_sign_cd as prklotSignCd
+             , tapoi.tckt_mchn_yn as tcktMchnYn
+             , tapoi.barr_gte_yn as barrGteYn
+             , tapoi.exit_alrm_yn as exitAlrmYn
+             , tapoi.veh_rcgn_tp_cd as vehRcgnTpCd
+             -- 주차 현황
+             , tapoi.wk_peak_str_tm as wkPeakStrTm
+             , tapoi.wk_peak_end_tm as wkPeakEndTm
+             , tapoi.wk_prk_veh_cnt as wkPrkVehCnt
+             , tapoi.nt_peak_str_tm as ntPeakStrTm
+             , tapoi.nt_peak_end_tm as ntPeakEndTm
+             , tapoi.nt_prk_veh_cnt as ntPrkVehCnt
+             , tapoi.prklot_entr_lat as prklotEntrLat
+             , tapoi.prklot_entr_lon as prklotEntrLon
+             -- 🔥 급지 정보 추가
+             , tapoi.chrg_grd_cd as chrgGrdCd
+             -- 기타 정보
+             , tapoi.pbl_open_yn as pblOpenYn
+             , tapoi.prklot_info_prvsn_cnst_yn as prklotInfoPrvsnCnstYn
+             , tapoi.bldg_2f_prklot_cd as bldg2fPrklotCd
+             , tapoi.fall_prev_fclty_yn as fallPrevFcltyYn
+             , tapoi.slp_yn as slpYn
+             , tapoi.antislp_fclty_yn as antislpFcltyYn
+             , tapoi.slp_ctn_guid_sign_yn as slpCtnGuidSignYn
+             , tapoi.spd_bump_qty as spdBumpQty
+             , tapoi.stop_line_qty as stopLineQty
+             , tapoi.crswlk_qty as crswlkQty
+             , tapoi.guid_doc_yn as guidDocYn
+             , tapoi.safe_insp_yn as safeInspYn
+             , tapoi.mgr_yn as mgrYn
+             , tapoi.adm_yn as admYn
+             , tapoi.partclr_matter as partclrMatter
+             -- 등록/수정 정보
+             , tpdpi.reg_dt as regDt
+             , tpdpi.rgst_id as rgstId
+             , tpdpi.updt_dt as updtDt
+             , tpdpi.updusr_id as updusrId
+        FROM cpk.tb_prk_def_plce_info tpdpi
+                 INNER JOIN cpk.tb_atch_prklot_info tapi
+                            ON tpdpi.prk_plce_manage_no = tapi.prk_plce_manage_no
+                                AND tpdpi.prk_plce_info_sn = tapi.prk_plce_info_sn
+                 INNER JOIN cpk.tb_atch_prklot_oper_info tapoi
+                            ON tapi.prk_plce_manage_no = tapoi.prk_plce_manage_no
+                                AND tapi.prk_plce_info_sn = tapoi.prk_plce_info_sn
+                 LEFT JOIN cpk.tb_co_ldong tcl
+                           ON tpdpi.ldong_cd = tcl.ldong_cd
+                 INNER JOIN cpk.tb_biz_per_prklot_info tbppi
+                            ON tpdpi.prk_plce_manage_no = tbppi.prk_plce_manage_no
+                                AND tpdpi.prk_plce_info_sn = tbppi.prk_plce_info_sn
+                 INNER JOIN cpk.tb_prk_srvy_biz_info tpsbi
+                            ON tbppi.prk_biz_mng_no = tpsbi.prk_biz_mng_no
+                                AND tpsbi.use_yn = 'Y'
+        WHERE tpdpi.prk_plce_manage_no = #{prkPlceManageNo}
+    </select>
+
+    <!-- 🔥 부설주차장 정보 업데이트 (tb_atch_prklot_info) -->
+    <update id="updateAtchPrklotInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
+        UPDATE cpk.tb_atch_prklot_info
+        SET tot_prk_cnt       = #{totPrkCnt}
+          , disab_prk_cnt     = #{disabPrkCnt}
+          , compact_prk_cnt   = #{compactPrkCnt}
+          , eco_prk_cnt       = #{ecoPrkCnt}
+          , pregnant_prk_cnt  = #{pregnantPrkCnt}
+          , oper_mby_cd       = #{operMbyCd}
+          , mgr_org           = #{mgrOrg}
+          , mgr_org_tel_no    = #{mgrOrgTelNo}
+          , subordn_opertn_cd = #{subordnOpertnCd}
+          , updt_dt           = NOW()
+          , updusr_id         = #{updusrId}
+          , updusr_ip_addr    = #{updusrIpAddr}
+        WHERE prk_plce_manage_no = #{prkPlceManageNo}
+          AND prk_plce_info_sn = #{prkPlceInfoSn}
+    </update>
+
+    <!-- 🔥 부설주차장 운영 정보 업데이트 (tb_atch_prklot_oper_info) -->
+    <update id="updateAtchPrklotOperInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
+        UPDATE cpk.tb_atch_prklot_oper_info
+        SET prklot_sign_yn       = #{prklotSignYn}
+          , tckt_mchn_yn         = #{tcktMchnYn}
+          , barr_gte_yn          = #{barrGteYn}
+          , exit_alrm_yn         = #{exitAlrmYn}
+          , veh_rcgn_tp_cd       = #{vehRcgnTpCd}
+          , wk_peak_str_tm       = #{wkPeakStrTm}
+          , wk_peak_end_tm       = #{wkPeakEndTm}
+          , wk_prk_veh_cnt       = #{wkPrkVehCnt}
+          , nt_peak_str_tm       = #{ntPeakStrTm}
+          , nt_peak_end_tm       = #{ntPeakEndTm}
+          , nt_prk_veh_cnt       = #{ntPrkVehCnt}
+          , prklot_entr_lat      = #{prklotEntrLat}
+          , prklot_entr_lon      = #{prklotEntrLon}
+          , bldg_2f_prklot_cd    = #{bldg2fPrklotCd}
+          , fall_prev_fclty_yn   = #{fallPrevFcltyYn}
+          , slp_yn               = #{slpYn}
+          , antislp_fclty_yn     = #{antislpFcltyYn}
+          , slp_ctn_guid_sign_yn = #{slpCtnGuidSignYn}
+          , spd_bump_qty         = #{spdBumpQty}
+          , stop_line_qty        = #{stopLineQty}
+          , crswlk_qty           = #{crswlkQty}
+          , chrg_grd_cd          = #{chrgGrdCd}
+          , partclr_matter       = #{partclrMatter}
+          , updt_dt              = NOW()
+          , updusr_id            = #{updusrId}
+          , updusr_ip_addr       = #{updusrIpAddr}
+        WHERE prk_plce_manage_no = #{prkPlceManageNo}
+          AND prk_plce_info_sn = #{prkPlceInfoSn}
     </update>
 </mapper>

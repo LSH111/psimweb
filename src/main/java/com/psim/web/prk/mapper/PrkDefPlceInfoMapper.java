@@ -31,6 +31,12 @@ public interface PrkDefPlceInfoMapper {
     void updateOffstrPrklotInfo(ParkingDetailVO parkingData);
     void updateOffstrPrklotOperInfo(ParkingDetailVO parkingData);
 
+    // 🔥 부설주차장 상세 조회 추가
+    ParkingDetailVO selectBuildParkingDetail(String prkPlceManageNo);
+
+    // 🔥 부설주차장 업데이트 메서드 추가
+    void updateAtchPrklotInfo(ParkingDetailVO parkingData);
+    void updateAtchPrklotOperInfo(ParkingDetailVO parkingData);
 
     // 수정 기능 (UPDATE)
     void updateParkingStatus(Map<String, Object> params);

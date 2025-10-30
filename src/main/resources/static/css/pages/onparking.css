@@ -1,14 +1,17 @@
+
 /* ===== 라이트(하얀) 고정 팔레트 ===== */
 :root{
-    --bg:#ffffff;        /* 전체 배경 */
-    --card:#ffffff;      /* 카드/패널 배경 */
-    --text:#1f2937;      /* 본문 텍스트 */
-    --muted:#6b7280;     /* 보조 텍스트 */
-    --primary:#2563eb;   /* 메인색 */
-    --primary-2:#1d4ed8; /* 메인색 딥 */
-    --border:#e5e7eb;    /* 경계선 */
+    --bg:#ffffff;
+    --card:#ffffff;
+    --text:#1f2937;
+    --muted:#6b7280;
+    --primary:#2563eb;
+    --primary-2:#1d4ed8;
+    --border:#e5e7eb;
     --warn:#dc2626;
     --ok:#16a34a;
+    --line:#e5e7eb;
+    --accent:#2563eb;
 }
 
 /* ===== 공통 레이아웃/컴포넌트 ===== */
@@ -29,7 +32,6 @@ body{
     border-radius:999px; font-size:.8rem; background:#eef2ff
 }
 
-/* ===== Row 클래스 수정 (세로 배치) ===== */
 .row{
     display:flex;
     flex-direction:column;
@@ -43,17 +45,15 @@ body{
     }
 }
 
-/* ===== Section 구조적 구분만 추가 ===== */
 .section{
     width:100%;
 }
 
 .card{
-    background:var(--card);          /* 항상 흰색 */
+    background:var(--card);
     border:1px solid var(--border);
     border-radius:14px;
     padding:12px;
-    /* 혹시 기존에 다크 테마에서 별도 배경을 줬다면 모두 제거/무효화 */
 }
 h2{font-size:1rem; margin:.2rem 0 .6rem}
 .grid{display:grid; grid-template-columns:1fr; gap:8px}
@@ -91,10 +91,19 @@ textarea{min-height:80px; resize:vertical}
 .radio-group label, .check-group label{
     display:inline-flex; align-items:center; gap:8px;
     padding:6px 10px; border:1px solid var(--border); border-radius:999px;
-    background:transparent; line-height:1.2;
+    background:transparent; line-height:1.2; cursor:pointer; transition: all 0.2s ease;
+}
+.radio-group label:hover, .check-group label:hover{
+    background:#f0f9ff; border-color:var(--primary);
 }
 .radio-group input[type="radio"], .check-group input[type="checkbox"]{
-    width:18px; height:18px; accent-color:var(--primary);
+    width:18px; height:18px; accent-color:var(--primary); cursor:pointer;
+}
+.radio-group label:has(input:checked), .check-group label:has(input:checked){
+    background:#eef2ff; border-color:var(--primary);
+}
+.radio-group label:has(input:checked) span, .check-group label:has(input:checked) span{
+    color:var(--primary); font-weight:600;
 }
 
 /* 주소찾기 레이어 */
@@ -107,12 +116,134 @@ textarea{min-height:80px; resize:vertical}
 #postcodeClose{position:absolute; right:10px; top:10px; z-index:1}
 #postcodeContainer{width:100%; height:100%}
 
+/* ===== Section 카드 스타일 ===== */
+.section-card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:20px;
+    margin-bottom:16px;
+}
+
+.section-header{
+    font-size:1.1rem;
+    font-weight:700;
+    color:var(--text);
+    margin:0 0 16px 0;
+    padding-bottom:12px;
+    border-bottom:2px solid var(--border);
+}
+
+.subsection{
+    margin-bottom:20px;
+}
+
+.subsection:last-child{
+    margin-bottom:0;
+}
+
+.subsection-title{
+    font-size:0.95rem;
+    font-weight:600;
+    color:var(--text);
+    margin:0 0 12px 0;
+}
+
+/* 총 주차면수 - 한 줄 배치 */
+.subsection:has(#ctl_total){
+    display:flex;
+    align-items:center;
+    gap:16px;
+    flex-wrap:wrap;
+    margin-bottom:16px;
+}
+
+.subsection:has(#ctl_total) > label{
+    margin:0;
+    white-space:nowrap;
+}
+
+.subsection:has(#ctl_total) #ctl_total{
+    margin:0;
+}
+
+.subsection:has(#ctl_total) #stallsMsg{
+    margin:0 !important;
+    flex:1;
+}
+
+/* 주차면수 세부 - 한 줄 배치 */
+.parking-stalls-grid{
+    display:flex;
+    gap:16px;
+    flex-wrap:nowrap;
+    align-items:center;
+    overflow-x:auto;
+    padding:12px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:var(--card);
+}
+
+.stall-item{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    white-space:nowrap;
+    flex-shrink:0;
+}
+
+.stall-item > label{
+    font-weight:500;
+    color:var(--text);
+    min-width:fit-content;
+    margin:0 !important;
+}
+
+.stall-item .ctl{
+    display:flex;
+    align-items:center;
+    gap:4px;
+    min-width:100px;
+}
+
+.stall-item .ctl input{
+    width:60px !important;
+    text-align:center;
+}
+
+.stall-item .ctl .suffix{
+    flex-shrink:0;
+}
+
+/* 반응형 대응 */
+@media (max-width: 768px) {
+    .parking-stalls-grid{
+        gap:12px;
+        padding:10px;
+    }
+
+    .stall-item .ctl input{
+        width:50px !important;
+    }
+}
+
+@media (max-width: 520px) {
+    .parking-stalls-grid{
+        flex-wrap:wrap;
+    }
+
+    .stall-item{
+        min-width:140px;
+    }
+}
+
 /* ===== 요금 그룹 ===== */
 .fee-group{
     display:grid; gap:10px;
     grid-template-columns: repeat(4, minmax(0,1fr));
     padding:12px; border:1px solid var(--border);
-    border-radius:12px; background:var(--card);   /* 흰색 */
+    border-radius:12px; background:var(--card);
 }
 @media (max-width: 900px){ .fee-group{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
 @media (max-width: 520px){ .fee-group{ grid-template-columns: 1fr; } }
@@ -121,24 +252,63 @@ textarea{min-height:80px; resize:vertical}
 .fee-group .ctl input{ width:87% !important; }
 .fee-group .ctl .suffix{ flex:0 0 auto; white-space:nowrap; }
 
-/* 거주자우선 4칸 */
 #res_fee_wrap .fee-group{ grid-template-columns: repeat(4, minmax(0,1fr)); }
 @media (max-width: 900px){ #res_fee_wrap .fee-group{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
 @media (max-width: 520px){ #res_fee_wrap .fee-group{ grid-template-columns: 1fr; } }
 
-/* 일반노상 6칸 → 2줄×3열 */
 #normal_fee_wrap .fee-group{ grid-template-columns: repeat(3, minmax(0,1fr)); }
 @media (max-width: 900px){ #normal_fee_wrap .fee-group{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
 @media (max-width: 520px){ #normal_fee_wrap .fee-group{ grid-template-columns: 1fr; } }
 
-/* 요금수준 카드 */
 .fee-level{ display:grid; gap:12px; background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px; }
 .fee-level .fee-title{ font-size:1rem; margin:.2rem 0 .4rem; }
 
-/* 요금 지불방식 - '기타' 입력칸 너비 조정 */
-#fee_pay_wrap .pay-etc input[type="text"]{
-    width: 220px;
-    max-width: 60%;
+/* 요금 지불방식 - '기타' 입력칸 */
+.pay-etc{
+    display:inline-flex !important;
+    align-items:center;
+    gap:8px;
+    padding:6px 10px !important;
+    border:1px solid var(--border) !important;
+    border-radius:999px !important;
+    background:transparent !important;
+    line-height:1.2;
+}
+
+.pay-etc input[type="text"]{
+    width:200px !important;
+    max-width:none !important;
+    padding:4px 10px !important;
+    border:1px solid var(--border) !important;
+    border-radius:6px !important;
+    background:#ffffff !important;
+    color:var(--text) !important;
+    font-size:0.9rem !important;
+    transition:all 0.2s ease;
+    margin:0 !important;
+}
+
+.pay-etc input[type="text"]:focus{
+    border-color:var(--primary) !important;
+    box-shadow:0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+    outline:none !important;
+}
+
+.pay-etc input[type="text"]:disabled{
+    background-color:#f3f4f6 !important;
+    color:#9ca3af !important;
+    border-color:#e5e7eb !important;
+    cursor:not-allowed;
+}
+
+.pay-etc input[type="text"]::placeholder{
+    color:#9ca3af;
+    font-style:italic;
+}
+
+.pay-etc:has(input[type="checkbox"]:checked) input[type="text"]:not(:disabled){
+    border-color:var(--primary);
+    background:#f0f9ff !important;
 }
 
 /* 운영시간 스타일 */
@@ -157,13 +327,6 @@ textarea{min-height:80px; resize:vertical}
     color: #333;
 }
 
-.operation-day-block .radio-group {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 8px;
-}
-
 .time-inputs-wrapper {
     display: none;
     margin-top: 8px;
@@ -172,6 +335,7 @@ textarea{min-height:80px; resize:vertical}
     border: 1px solid #dee2e6;
     border-radius: 4px;
     border-left: 3px solid #007bff;
+    transition: all 0.3s ease-in-out;
 }
 
 .time-inputs {
@@ -181,40 +345,6 @@ textarea{min-height:80px; resize:vertical}
     flex-wrap: wrap;
 }
 
-.time-label {
-    font-weight: 500;
-    color: #495057;
-    margin-right: 4px;
-}
-
-.time-inputs input[type="number"] {
-    text-align: center;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    padding: 4px 6px;
-    font-size: 13px;
-    width: 50px;
-}
-
-.time-inputs input[type="number"]:focus {
-    outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
-}
-
-.time-inputs input[type="number"]:disabled {
-    background-color: #e9ecef;
-    color: #6c757d;
-    border-color: #ced4da;
-}
-
-.time-inputs span {
-    color: #6c757d;
-    font-size: 13px;
-    font-weight: normal;
-}
-
-/* 시간 입력 영역 강조 스타일 - 공통 */
 .highlight-input-area {
     border: 2px dashed;
     border-radius: 8px;
@@ -237,7 +367,6 @@ textarea{min-height:80px; resize:vertical}
     z-index: 1;
 }
 
-/* 평일 - 파란색 */
 .weekday-time .highlight-input-area {
     background: linear-gradient(135deg, #f0f9ff 0%, #dbeafe 100%);
     border-color: #3b82f6;
@@ -247,25 +376,6 @@ textarea{min-height:80px; resize:vertical}
     background: #3b82f6;
 }
 
-.weekday-time .time-input {
-    border-color: #3b82f6;
-}
-
-.weekday-time .time-input:focus {
-    border-color: #1d4ed8;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-}
-
-.weekday-time .time-label {
-    color: #1d4ed8;
-}
-
-.weekday-time .input-guide {
-    background: rgba(59, 130, 246, 0.1);
-    border-left-color: #3b82f6;
-}
-
-/* 토요일 - 초록색 */
 .saturday-time .highlight-input-area {
     background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
     border-color: #22c55e;
@@ -275,25 +385,6 @@ textarea{min-height:80px; resize:vertical}
     background: #22c55e;
 }
 
-.saturday-time .time-input {
-    border-color: #22c55e;
-}
-
-.saturday-time .time-input:focus {
-    border-color: #16a34a;
-    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
-}
-
-.saturday-time .time-label {
-    color: #16a34a;
-}
-
-.saturday-time .input-guide {
-    background: rgba(34, 197, 94, 0.1);
-    border-left-color: #22c55e;
-}
-
-/* 공휴일 - 주황색 (기존 일요일 스타일을 공휴일로 변경) */
 .holiday-time .highlight-input-area {
     background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
     border-color: #f59e0b;
@@ -303,25 +394,6 @@ textarea{min-height:80px; resize:vertical}
     background: #f59e0b;
 }
 
-.holiday-time .time-input {
-    border-color: #f59e0b;
-}
-
-.holiday-time .time-input:focus {
-    border-color: #d97706;
-    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
-}
-
-.holiday-time .time-label {
-    color: #d97706;
-}
-
-.holiday-time .input-guide {
-    background: rgba(245, 158, 11, 0.1);
-    border-left-color: #f59e0b;
-}
-
-/* 공통 스타일 */
 .time-input-group {
     display: flex;
     align-items: center;
@@ -344,11 +416,6 @@ textarea{min-height:80px; resize:vertical}
 
 .time-input:focus {
     outline: none;
-}
-
-.time-input::placeholder {
-    color: #999;
-    font-weight: normal;
 }
 
 .time-unit {
@@ -382,7 +449,6 @@ textarea{min-height:80px; resize:vertical}
     border-left: 3px solid;
 }
 
-/* 애니메이션 효과 */
 @keyframes fadeInSlide {
     0% {
         opacity: 0;
@@ -394,79 +460,7 @@ textarea{min-height:80px; resize:vertical}
     }
 }
 
-.time-inputs-wrapper {
-    transition: all 0.3s ease-in-out;
-}
-
-/* 반응형 대응 */
-@media (max-width: 768px) {
-    .time-input-group {
-        justify-content: center;
-    }
-
-    .time-input {
-        width: 50px !important;
-    }
-}
-
-/* 접근성을 위한 고대비 모드 지원 */
-@media (prefers-contrast: more) {
-    .highlight-input-area {
-        border: 2px solid #000;
-        background: #fff;
-        box-shadow: 0 0 0 2px #000;
-    }
-
-    .time-input {
-        border: 2px solid #000 !important;
-        background: #fff !important;
-        color: #000;
-    }
-
-    /* 포커스 상태 개선 */
-    .highlight-input-area:focus-within,
-    .time-input:focus {
-        outline: 3px solid #0066cc;
-        outline-offset: 2px;
-        box-shadow: 0 0 0 1px #000, 0 0 0 4px #0066cc;
-    }
-
-    /* 색상별 구분을 위한 패턴 추가 */
-    .weekday-time .highlight-input-area {
-        border-style: solid;
-        background-image: repeating-linear-gradient(
-                45deg,
-                transparent,
-                transparent 10px,
-                rgba(0,0,0,0.05) 10px,
-                rgba(0,0,0,0.05) 20px
-        );
-    }
-
-    .saturday-time .highlight-input-area {
-        border-style: dashed;
-    }
-
-    .holiday-time .highlight-input-area {
-        border-style: dotted;
-        border-width: 3px;
-    }
-
-    /* 텍스트 레이블 강화 */
-    .time-label {
-        color: #000 !important;
-        font-weight: 900;
-    }
-
-    /* 상태별 명확한 구분 */
-    .highlight-input-area::before {
-        background: #000 !important;
-        color: #fff !important;
-        border: 2px solid #fff;
-    }
-}
-
-/* 파일 업로드 버튼 그룹 */
+/* 파일 업로드 */
 .file-upload-buttons {
     display: flex;
     gap: 8px;
@@ -474,7 +468,6 @@ textarea{min-height:80px; resize:vertical}
     margin-bottom: 16px;
 }
 
-/* 파일 업로드 진행률 컨테이너 */
 .upload-progress-container {
     background: #fff;
     border: 1px solid #e5e7eb;
@@ -484,707 +477,48 @@ textarea{min-height:80px; resize:vertical}
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.upload-header {
-    margin-bottom: 16px;
-}
-
-.upload-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: #1f2937;
-    margin: 0;
-}
-
-/* 업로드 요약 정보 */
-.upload-summary {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    font-size: 14px;
-    color: #6b7280;
-}
-
-.upload-status {
-    font-weight: 500;
-    color: #059669;
-}
-
-.upload-size {
-    color: #4b5563;
-}
-
-.upload-percent {
-    color: #f59e0b;
-}
-
-/* 전체 진행률 바 */
-.progress-bar-container {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.progress-bar {
-    flex: 1;
-    height: 8px;
-    background-color: #e5e7eb;
-    border-radius: 4px;
-    overflow: hidden;
-    position: relative;
-}
-
-.progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #10b981 0%, #059669 100%);
-    border-radius: 4px;
-    width: 0%;
-    transition: width 0.3s ease;
-}
-
-.progress-text {
-    font-size: 14px;
-    font-weight: 600;
-    color: #059669;
-    min-width: 40px;
-    text-align: right;
-}
-
-/* 파일 목록 */
-.file-list {
-    margin-bottom: 20px;
-}
-
-.file-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px;
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
-    border-radius: 6px;
-    margin-bottom: 8px;
-}
-
-.file-icon {
-    font-size: 20px;
-    width: 24px;
-    text-align: center;
-}
-
-.file-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.file-name {
-    font-size: 14px;
-    font-weight: 500;
-    color: #1f2937;
-    margin-bottom: 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.file-size-progress {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.file-progress-bar {
-    flex: 1;
-    height: 4px;
-    background-color: #e5e7eb;
-    border-radius: 2px;
-    overflow: hidden;
-}
-
-.file-progress-fill {
-    height: 100%;
-    background: #10b981;
-    border-radius: 2px;
-    width: 0%;
-    transition: width 0.2s ease;
-}
-
-.file-size {
-    font-size: 12px;
-    color: #6b7280;
-    white-space: nowrap;
-}
-
-.file-status {
-    font-size: 12px;
-    padding: 2px 8px;
+.photo-upload-zone {
+    padding: 16px;
+    border: 2px dashed var(--border);
     border-radius: 12px;
-    font-weight: 500;
-    white-space: nowrap;
-}
-
-.file-status.uploading {
-    background: #dbeafe;
-    color: #1d4ed8;
-}
-
-.file-status.completed {
-    background: #dcfce7;
-    color: #059669;
-}
-
-.file-status.error {
-    background: #fee2e2;
-    color: #dc2626;
-}
-
-/* 업로드 액션 버튼들 */
-.upload-actions {
-    display: flex;
-    justify-content: space-between;
-    gap: 8px;
-}
-
-.btn-cancel {
-    background: #f3f4f6;
-    color: #6b7280;
-    border: 1px solid #d1d5db;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.btn-cancel:hover {
-    background: #e5e7eb;
-    color: #4b5563;
-}
-
-.btn-complete {
-    background: #10b981;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.btn-complete:hover {
-    background: #059669;
-}
-
-/* 반응형 대응 */
-@media (max-width: 768px) {
-    .file-upload-buttons {
-        flex-direction: column;
-    }
-
-    .upload-summary {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
-    }
-
-    .progress-bar-container {
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .progress-text {
-        text-align: center;
-    }
-
-    .file-size-progress {
-        flex-direction: column;
-        gap: 4px;
-        align-items: flex-start;
-    }
-
-    .upload-actions {
-        flex-direction: column;
-    }
-}
-
-/* 업로드 완료 애니메이션 */
-@keyframes uploadComplete {
-    0% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.05);
-    }
-    100% {
-        transform: scale(1);
-    }
-}
-
-.upload-progress-container.completed {
-    animation: uploadComplete 0.5s ease;
-    border-color: #10b981;
-}
-
-/* 전체 너비 사용하는 요소들 */
-.grid > div[style*="grid-column:1/-1"] {
-    grid-column: 1 / -1;
-}
-
-.section:last-child {
-    margin-bottom: 0;
-}
-
-/* Section 제목 스타일 */
-.section-title {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 16px;
-    padding-bottom: 8px;
-    border-bottom: 2px solid var(--line);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.section-title::before {
-    content: "";
-    width: 4px;
-    height: 20px;
-    background: var(--accent);
-    border-radius: 2px;
-}
-
-/* 기본정보 섹션 */
-.section.basic-info {
-    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
-
-.section.basic-info .section-title::before {
-    background: #3b82f6;
-}
-
-/* 사진&좌표 섹션 */
-.section.photo-location {
-    background: linear-gradient(135deg, #fefce8 0%, #ffffff 100%);
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
-
-.section.photo-location .section-title::before {
-    background: #f59e0b;
-}
-
-/* 기존 row 클래스를 컨테이너로 변경 */
-.sections-container {
-    display: flex;
-    flex-direction: column;
-    gap: 32px;
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-/* 그리드 레이아웃 개선 */
-.section .grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-    margin-top: 20px;
-}
-
-@media (max-width: 768px) {
-    .section .grid {
-        grid-template-columns: 1fr;
-        gap: 16px;
-    }
-
-    .sections-container {
-        padding: 16px;
-        gap: 24px;
-    }
-
-    .section.basic-info,
-    .section.photo-location {
-        padding: 20px;
-    }
-}
-
-/* 폼 컨트롤 스타일 개선 */
-.section label {
-    display: block;
-    margin-bottom: 8px;
-    color: var(--muted);
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.section .ctl {
-    display: flex;
-    gap: 8px;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 12px 16px;
-    background: white;
-    align-items: center;
-    transition: all 0.2s ease;
-}
-
-.section .ctl:focus-within {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-.section .ctl input {
-    border: 0;
-    outline: 0;
-    width: 100%;
-    background: transparent;
-    color: var(--text);
-    font-size: 14px;
-}
-
-/* 전체 너비 사용 요소 */
-.section .grid > div[style*="grid-column:1/-1"],
-.section .full-width {
-    grid-column: 1 / -1;
-}
-
-/* 버튼 스타일 개선 */
-.section .btn {
-    padding: 10px 16px;
-    border-radius: 8px;
-    border: 1px solid var(--line);
-    background: #f8fafc;
-    color: var(--text);
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.section .btn.light {
-    background: #eef2ff;
-    color: #1e40af;
-    border-color: #bfdbfe;
-}
-
-.section .btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-/* 사진 업로드 영역 특별 스타일 */
-.photo-upload-area {
     background: #f9fafb;
-    border: 2px dashed var(--line);
-    border-radius: 12px;
-    padding: 20px;
-    text-align: center;
     transition: all 0.3s ease;
 }
 
-.photo-upload-area:hover {
-    border-color: var(--accent);
+.photo-upload-zone:hover {
+    border-color:var(--accent);
     background: rgba(37, 99, 235, 0.02);
 }
 
-.file-upload-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    justify-content: center;
-    margin-bottom: 16px;
-}
-
-.thumb {
-    width: 100%;
-    max-height: 300px;
-    object-fit: contain;
-    border: 2px solid var(--line);
-    border-radius: 12px;
-    background: #f8fafc;
-    margin-top: 16px;
-}
-
-/* 좌표 입력 영역 */
-.coordinates-input {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-top: 16px;
-}
-
-@media (max-width: 480px) {
-    .coordinates-input {
-        grid-template-columns: 1fr;
-    }
-
-    .file-upload-buttons {
-        flex-direction: column;
-    }
-}
-
-/* 접근성 개선 */
-.section[aria-expanded="false"] {
-    opacity: 0.7;
-}
-
-.section:focus-within {
-    outline: 2px solid var(--accent);
-    outline-offset: 4px;
-}
-
-/* 애니메이션 효과 */
-.section {
-    animation: fadeInUp 0.4s ease-out;
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* 호버 효과 */
-.section:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-}
-
-/* 로딩 상태 */
-.section.loading {
-    pointer-events: none;
-    opacity: 0.6;
-}
-
-.section.loading::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--line);
-    border-top: 2px solid var(--accent);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    transform: translate(-50%, -50%);
-}
-
-@keyframes spin {
-    0% { transform: translate(-50%, -50%) rotate(0deg); }
-    100% { transform: translate(-50%, -50%) rotate(360deg); }
-}
-
-/* 표지판 사진 미리보기 */
-.thumb {
-    max-width: 300px;
-    max-height: 200px;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    object-fit: cover;
-}
-
-/* 파일 업로드 버튼 그룹 */
-.file-upload-buttons {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 8px;
-}
-
-/* 경사도 입력 필드 하이라이트 */
-#slope_input_wrap {
+.photo-section {
     background: linear-gradient(135deg, #fefce8 0%, #ffffff 100%);
-    padding: 16px;
-    border-radius: 8px;
-    border: 1px solid #fbbf24;
 }
 
-#slope_input_wrap .ctl {
-    background: #ffffff;
-    padding: 10px 12px;
-    border-radius: 6px;
-    border: 1px solid #e9ecef;
-    transition: all 0.2s ease;
-}
-
-#slope_input_wrap .ctl:focus-within {
-    border-color: #f59e0b;
-    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
-}
-
-#slope_input_wrap .ctl input {
-    width: 100%;
-    font-weight: 500;
-}
-
-#slope_input_wrap .ctl input:focus {
-    outline: none;
-}
-
-/* 안전시설 체크박스 그룹 */
-.check-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    align-items: center;
-}
-
-.check-group label {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+/* 저장 버튼 */
+.btn-save {
+    font-size: 1.1rem;
+    padding: 14px 32px;
+    background: linear-gradient(180deg, #10b981, #059669);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
     cursor: pointer;
-    white-space: nowrap;
-    padding: 8px 12px;
-    border: 1px solid var(--border);
-    border-radius: 20px;
     transition: all 0.2s ease;
 }
 
-.check-group label:hover {
-    background: #f0f9ff;
-    border-color: var(--primary);
+.btn-save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3);
 }
 
-.check-group input[type="checkbox"]:checked + span {
-    color: var(--primary);
-    font-weight: 600;
-}
-
-/* 기타 입력 필드 스타일 */
-.safety-etc input[type="text"] {
-    margin-left: 8px;
-    padding: 4px 8px;
-    border: 1px solid #d1d5db;
-    border-radius: 4px;
-    font-size: 0.9rem;
-}
-
-.safety-etc input[type="text"]:disabled {
-    background-color: #f3f4f6;
-    color: #9ca3af;
-}
-
-/* 라디오 버튼 그룹 */
-.radio-group {
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-}
-
-.radio-group label {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-}
-
-/* ===== 여기서부터 새로 추가 ===== */
-
-/* 요금 지불방식 - '기타' 입력칸 스타일 개선 */
-.pay-etc {
-    display: inline-flex !important;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 10px !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 999px !important;
-    background: transparent !important;
-    line-height: 1.2;
-}
-
-.pay-etc input[type="text"] {
-    width: 200px !important;
-    max-width: none !important;
-    padding: 4px 10px !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 6px !important;
-    background: #ffffff !important;
-    color: var(--text) !important;
-    font-size: 0.9rem !important;
-    transition: all 0.2s ease;
-    margin: 0 !important;
-}
-
-.pay-etc input[type="text"]:focus {
-    border-color: var(--primary) !important;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
-    outline: none !important;
-}
-
-.pay-etc input[type="text"]:disabled {
-    background-color: #f3f4f6 !important;
-    color: #9ca3af !important;
-    border-color: #e5e7eb !important;
+.btn-save:disabled {
+    background: #9ca3af;
     cursor: not-allowed;
+    transform: none;
 }
 
-.pay-etc input[type="text"]::placeholder {
-    color: #9ca3af;
-    font-style: italic;
-}
-
-/* 체크박스가 선택되었을 때 기타 입력칸 강조 */
-.pay-etc:has(input[type="checkbox"]:checked) input[type="text"]:not(:disabled) {
-    border-color: var(--primary);
-    background: #f0f9ff !important;
-}
-
-/* 라디오/체크 박스 그룹 내 레이블 통일 (기존 스타일 덮어쓰기) */
-.radio-group label, .check-group label {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 10px;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    background: transparent;
-    line-height: 1.2;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.radio-group label:hover, .check-group label:hover {
-    background: #f0f9ff;
-    border-color: var(--primary);
-}
-
-.radio-group input[type="radio"], .check-group input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    accent-color: var(--primary);
-    cursor: pointer;
-}
-
-/* 선택된 체크박스/라디오의 레이블 스타일 */
-.radio-group label:has(input:checked),
-.check-group label:has(input:checked) {
-    background: #eef2ff;
-    border-color: var(--primary);
-}
-
-.radio-group label:has(input:checked) span,
-.check-group label:has(input:checked) span {
-    color: var(--primary);
-    font-weight: 600;
-}
-
-/* 🔥 로딩 인디케이터 스타일 */
+/* 로딩 인디케이터 */
 #global-loader {
     display: none;
     position: fixed;
@@ -1220,12 +554,6 @@ textarea{min-height:80px; resize:vertical}
     border-top-color: #3b82f6;
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
-}
-
-.loader-message {
-    color: #374151;
-    font-size: 0.9rem;
-    font-weight: 500;
 }
 
 @keyframes spin {

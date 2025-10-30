@@ -60,14 +60,14 @@
             </div>
         </div>
     </section>
-    <section class="section">
-        <!-- 사진 & 좌표 -->
-        <div class="card">
-            <h2>현장 사진 & 좌표</h2>
+    <!-- 사진 & 좌표 섹션 -->
+    <section class="row">
+        <div class="card section-card photo-section">
+            <h2 class="section-header">현장 사진 & 좌표</h2>
             <div class="grid">
                 <div style="grid-column:1/-1">
                     <label>사진 업로드</label>
-                    <div class="ctl">
+                    <div class="photo-upload-zone">
                         <input id="f_photo_lib" type="file" accept="image/*,image/heic,image/heif" style="display:none" />
                         <input id="f_photo_cam" type="file" accept="image/*" capture="environment" style="display:none" />
                         <div class="file-upload-buttons">
@@ -75,47 +75,6 @@
                             <button type="button" class="btn ghost" id="btnTakePhoto">카메라 촬영</button>
                             <button type="button" class="btn" id="btnUseGeolocation">기기 위치로 좌표</button>
                             <button type="button" class="btn ghost" id="btnClearPhoto">초기화</button>
-                        </div>
-
-                        <!-- 파일 업로드 진행률 표시 영역 -->
-                        <div id="upload-progress-area" class="upload-progress-container" style="display: none;">
-                            <div class="upload-header">
-                                <h3 class="upload-title">첨부파일 업로드</h3>
-                            </div>
-
-                            <div class="upload-summary">
-                                <span class="upload-status">0개 / 1개</span>
-                                <span class="upload-size">0MB / 0MB</span>
-                                <span class="upload-percent">0% 남음</span>
-                            </div>
-
-                            <div class="progress-bar-container">
-                                <div class="progress-bar">
-                                    <div class="progress-fill" id="progress-fill"></div>
-                                </div>
-                                <span class="progress-text" id="progress-text">0%</span>
-                            </div>
-
-                            <div class="file-list">
-                                <div class="file-item" id="upload-file-item" style="display: none;">
-                                    <div class="file-icon">📁</div>
-                                    <div class="file-info">
-                                        <div class="file-name" id="file-name">파일명.jpg</div>
-                                        <div class="file-size-progress">
-                                            <div class="file-progress-bar">
-                                                <div class="file-progress-fill" id="file-progress-fill"></div>
-                                            </div>
-                                            <span class="file-size" id="file-size">0MB / 0MB</span>
-                                        </div>
-                                    </div>
-                                    <div class="file-status" id="file-status">전송중</div>
-                                </div>
-                            </div>
-
-                            <div class="upload-actions">
-                                <button type="button" class="btn-cancel" id="btn-upload-cancel">취소</button>
-                                <button type="button" class="btn-complete" id="btn-upload-complete" style="display: none;">완료</button>
-                            </div>
                         </div>
                     </div>
                 </div>
