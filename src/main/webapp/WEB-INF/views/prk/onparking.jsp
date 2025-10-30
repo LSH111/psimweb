@@ -563,17 +563,17 @@
             <!-- 표지판 사진 업로드 영역 - 기본적으로 숨겨진 상태 -->
             <div id="sign_photo_wrap" style="grid-column:1/-1; display:none;">
                 <label>표지판 사진</label>
-                <div class="ctl">
+                <div class="photo-upload-zone">
                     <input id="f_sign_photo_lib" type="file" accept="image/*,image/heic,image/heif" style="display:none" />
                     <input id="f_sign_photo_cam" type="file" accept="image/*" capture="environment" style="display:none" />
                     <div class="file-upload-buttons">
-                        <button type="button" class="btn light" id="btnSignPhotoLibrary">사진첩에서 선택</button>
-                        <button type="button" class="btn ghost" id="btnSignPhotoCamera">카메라 촬영</button>
-                        <button type="button" class="btn ghost" id="btnClearSignPhoto">초기화</button>
+                        <button type="button" class="btn light" id="btnSignPhotoLibrary">📁 사진첩에서 선택</button>
+                        <button type="button" class="btn ghost" id="btnSignPhotoCamera">📷 카메라 촬영</button>
+                        <button type="button" class="btn ghost" id="btnClearSignPhoto">🗑️ 초기화</button>
                     </div>
-                    <div style="grid-column:1/-1; margin-top:8px;">
-                        <img id="sign_preview" class="thumb" alt="표지판 사진 미리보기" style="display:none;" />
-                    </div>
+                </div>
+                <div style="grid-column:1/-1; margin-top:8px;">
+                    <img id="sign_preview" class="thumb" alt="표지판 사진 미리보기" style="display:none;" />
                 </div>
             </div>
 
@@ -629,9 +629,10 @@
         </div>
     </section>
 
+    <!-- 저장 버튼 섹션 -->
     <section class="card">
-        <div class="actions">
-            <button class="btn" id="btnSave">저장</button>
+        <div class="actions" style="justify-content: center;">
+            <button class="btn btn-save" id="btnSave">💾 저장하기</button>
         </div>
     </section>
 </div>

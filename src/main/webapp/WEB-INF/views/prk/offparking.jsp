@@ -62,62 +62,21 @@
         </div>
     </section>
 
-    <!-- 현장 사진 & 좌표 -->
-    <section class="section">
-        <div class="card">
-            <h2>현장 사진 & 좌표</h2>
+    <!-- 사진 & 좌표 섹션 -->
+    <section class="row">
+        <div class="card section-card photo-section">
+            <h2 class="section-header">📸 현장 사진 & 좌표</h2>
             <div class="grid">
                 <div style="grid-column:1/-1">
                     <label>사진 업로드</label>
-                    <div class="ctl">
+                    <div class="photo-upload-zone">
                         <input id="f_photo_lib" type="file" accept="image/*,image/heic,image/heif" style="display:none" />
                         <input id="f_photo_cam" type="file" accept="image/*" capture="environment" style="display:none" />
                         <div class="file-upload-buttons">
-                            <button type="button" class="btn light" id="btnPickFromLibrary">사진첩에서 선택</button>
-                            <button type="button" class="btn ghost" id="btnTakePhoto">카메라 촬영</button>
-                            <button type="button" class="btn" id="btnUseGeolocation">기기 위치로 좌표</button>
-                            <button type="button" class="btn ghost" id="btnClearPhoto">초기화</button>
-                        </div>
-
-                        <!-- 파일 업로드 진행률 표시 영역 -->
-                        <div id="upload-progress-area" class="upload-progress-container" style="display: none;">
-                            <div class="upload-header">
-                                <h3 class="upload-title">첨부파일 업로드</h3>
-                            </div>
-
-                            <div class="upload-summary">
-                                <span class="upload-status">0개 / 1개</span>
-                                <span class="upload-size">0MB / 0MB</span>
-                                <span class="upload-percent">0% 남음</span>
-                            </div>
-
-                            <div class="progress-bar-container">
-                                <div class="progress-bar">
-                                    <div class="progress-fill" id="progress-fill"></div>
-                                </div>
-                                <span class="progress-text" id="progress-text">0%</span>
-                            </div>
-
-                            <div class="file-list">
-                                <div class="file-item" id="upload-file-item" style="display: none;">
-                                    <div class="file-icon">📁</div>
-                                    <div class="file-info">
-                                        <div class="file-name" id="file-name">파일명.jpg</div>
-                                        <div class="file-size-progress">
-                                            <div class="file-progress-bar">
-                                                <div class="file-progress-fill" id="file-progress-fill"></div>
-                                            </div>
-                                            <span class="file-size" id="file-size">0MB / 0MB</span>
-                                        </div>
-                                    </div>
-                                    <div class="file-status" id="file-status">전송중</div>
-                                </div>
-                            </div>
-
-                            <div class="upload-actions">
-                                <button type="button" class="btn-cancel" id="btn-upload-cancel">취소</button>
-                                <button type="button" class="btn-complete" id="btn-upload-complete" style="display: none;">완료</button>
-                            </div>
+                            <button type="button" class="btn light" id="btnPickFromLibrary">📁 사진첩에서 선택</button>
+                            <button type="button" class="btn ghost" id="btnTakePhoto">📷 카메라 촬영</button>
+                            <button type="button" class="btn" id="btnUseGeolocation">📍 기기 위치로 좌표</button>
+                            <button type="button" class="btn ghost" id="btnClearPhoto">🗑️ 초기화</button>
                         </div>
                     </div>
                 </div>
@@ -594,17 +553,17 @@
             <!-- 표지판 사진 업로드 영역 -->
             <div id="sign_photo_wrap" style="grid-column:1/-1; display:none;">
                 <label>표지판 사진</label>
-                <div class="ctl">
+                <div class="photo-upload-zone">
                     <input id="f_sign_photo_lib" type="file" accept="image/*,image/heic,image/heif" style="display:none" />
                     <input id="f_sign_photo_cam" type="file" accept="image/*" capture="environment" style="display:none" />
                     <div class="file-upload-buttons">
-                        <button type="button" class="btn light" id="btnSignPhotoLibrary">사진첩</button>
-                        <button type="button" class="btn ghost" id="btnSignPhotoCamera">촬영</button>
-                        <button type="button" class="btn ghost" id="btnClearSignPhoto">초기화</button>
+                        <button type="button" class="btn light" id="btnSignPhotoLibrary">📁 사진첩에서 선택</button>
+                        <button type="button" class="btn ghost" id="btnSignPhotoCamera">📷 카메라 촬영</button>
+                        <button type="button" class="btn ghost" id="btnClearSignPhoto">🗑️ 초기화</button>
                     </div>
-                    <div style="margin-top:8px;">
-                        <img id="sign_preview" class="thumb" alt="표지판 사진" style="display:none;" />
-                    </div>
+                </div>
+                <div style="margin-top:8px;">
+                    <img id="sign_preview" class="thumb" alt="표지판 사진" style="display:none;" />
                 </div>
             </div>
 
@@ -620,17 +579,17 @@
             <!-- 발권기 사진 업로드 영역 -->
             <div id="ticket_photo_wrap" style="grid-column:1/-1; display:none;">
                 <label>발권기 사진</label>
-                <div class="ctl">
+                <div class="photo-upload-zone">
                     <input id="f_ticket_photo_lib" type="file" accept="image/*,image/heic,image/heif" style="display:none" />
                     <input id="f_ticket_photo_cam" type="file" accept="image/*" capture="environment" style="display:none" />
                     <div class="file-upload-buttons">
-                        <button type="button" class="btn light" id="btnTicketPhotoLibrary">사진첩</button>
-                        <button type="button" class="btn ghost" id="btnTicketPhotoCamera">촬영</button>
-                        <button type="button" class="btn ghost" id="btnClearTicketPhoto">초기화</button>
+                        <button type="button" class="btn light" id="btnTicketPhotoLibrary">📁 사진첩에서 선택</button>
+                        <button type="button" class="btn ghost" id="btnTicketPhotoCamera">📷 카메라 촬영</button>
+                        <button type="button" class="btn ghost" id="btnClearTicketPhoto">🗑️ 초기화</button>
                     </div>
-                    <div style="margin-top:8px;">
-                        <img id="ticket_preview" class="thumb" alt="발권기 사진" style="display:none;" />
-                    </div>
+                </div>
+                <div style="margin-top:8px;">
+                    <img id="ticket_preview" class="thumb" alt="발권기 사진" style="display:none;" />
                 </div>
             </div>
 
@@ -646,17 +605,17 @@
             <!-- 차단기 사진 업로드 영역 -->
             <div id="barrier_photo_wrap" style="grid-column:1/-1; display:none;">
                 <label>차단기 사진</label>
-                <div class="ctl">
+                <div class="photo-upload-zone">
                     <input id="f_barrier_photo_lib" type="file" accept="image/*,image/heic,image/heif" style="display:none" />
                     <input id="f_barrier_photo_cam" type="file" accept="image/*" capture="environment" style="display:none" />
                     <div class="file-upload-buttons">
-                        <button type="button" class="btn light" id="btnBarrierPhotoLibrary">사진첩</button>
-                        <button type="button" class="btn ghost" id="btnBarrierPhotoCamera">촬영</button>
-                        <button type="button" class="btn ghost" id="btnClearBarrierPhoto">초기화</button>
+                        <button type="button" class="btn light" id="btnBarrierPhotoLibrary">📁 사진첩에서 선택</button>
+                        <button type="button" class="btn ghost" id="btnBarrierPhotoCamera">📷 카메라 촬영</button>
+                        <button type="button" class="btn ghost" id="btnClearBarrierPhoto">🗑️ 초기화</button>
                     </div>
-                    <div style="margin-top:8px;">
-                        <img id="barrier_preview" class="thumb" alt="차단기 사진" style="display:none;" />
-                    </div>
+                </div>
+                <div style="margin-top:8px;">
+                    <img id="barrier_preview" class="thumb" alt="차단기 사진" style="display:none;" />
                 </div>
             </div>
 
@@ -680,17 +639,17 @@
             <!-- 출차알람 사진 업로드 영역 -->
             <div id="exit_alarm_photo_wrap" style="grid-column:1/-1; display:none;">
                 <label>출차알람 사진</label>
-                <div class="ctl">
+                <div class="photo-upload-zone">
                     <input id="f_exit_alarm_photo_lib" type="file" accept="image/*,image/heic,image/heif" style="display:none" />
                     <input id="f_exit_alarm_photo_cam" type="file" accept="image/*" capture="environment" style="display:none" />
                     <div class="file-upload-buttons">
-                        <button type="button" class="btn light" id="btnExitAlarmPhotoLibrary">사진첩</button>
-                        <button type="button" class="btn ghost" id="btnExitAlarmPhotoCamera">촬영</button>
-                        <button type="button" class="btn ghost" id="btnClearExitAlarmPhoto">초기화</button>
+                        <button type="button" class="btn light" id="btnExitAlarmPhotoLibrary">📁 사진첩에서 선택</button>
+                        <button type="button" class="btn ghost" id="btnExitAlarmPhotoCamera">📷 카메라 촬영</button>
+                        <button type="button" class="btn ghost" id="btnClearExitAlarmPhoto">🗑️ 초기화</button>
                     </div>
-                    <div style="margin-top:8px;">
-                        <img id="exit_alarm_preview" class="thumb" alt="출차알람 사진" style="display:none;" />
-                    </div>
+                </div>
+                <div style="margin-top:8px;">
+                    <img id="exit_alarm_preview" class="thumb" alt="출차알람 사진" style="display:none;" />
                 </div>
             </div>
         </div>
@@ -754,17 +713,17 @@
         <div class="grid">
             <div style="grid-column:1/-1">
                 <label>주차장 입구 사진</label>
-                <div class="ctl">
+                <div class="photo-upload-zone">
                     <input id="f_entrance_photo_lib" type="file" accept="image/*,image/heic,image/heif" style="display:none" />
                     <input id="f_entrance_photo_cam" type="file" accept="image/*" capture="environment" style="display:none" />
                     <div class="file-upload-buttons">
-                        <button type="button" class="btn light" id="btnEntrancePhotoLibrary">사진첩</button>
-                        <button type="button" class="btn ghost" id="btnEntrancePhotoCamera">촬영</button>
-                        <button type="button" class="btn ghost" id="btnClearEntrancePhoto">초기화</button>
+                        <button type="button" class="btn light" id="btnEntrancePhotoLibrary">📁 사진첩에서 선택</button>
+                        <button type="button" class="btn ghost" id="btnEntrancePhotoCamera">📷 카메라 촬영</button>
+                        <button type="button" class="btn ghost" id="btnClearEntrancePhoto">🗑️ 초기화</button>
                     </div>
-                    <div style="margin-top:8px;">
-                        <img id="entrance_preview" class="thumb" alt="입구 사진" style="display:none;" />
-                    </div>
+                </div>
+                <div style="margin-top:8px;">
+                    <img id="entrance_preview" class="thumb" alt="입구 사진" style="display:none;" />
                 </div>
             </div>
 
@@ -861,10 +820,10 @@
     <!-- 비고 섹션 추가 -->
     <section class="card"> </section>
 
-    <!-- 저장 버튼 -->
+    <!-- 저장 버튼 섹션 -->
     <section class="card">
-        <div class="actions">
-            <button class="btn" id="btnSave">저장</button>
+        <div class="actions" style="justify-content: center;">
+            <button class="btn btn-save" id="btnSave">💾 저장하기</button>
         </div>
     </section>
 </div>
