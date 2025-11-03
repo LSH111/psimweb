@@ -1226,6 +1226,13 @@ function bindDataToForm(data) {
     if (f_addrJ) f_addrJ.value = data.dtadd || '';
     if (f_addrR) f_addrR.value = '';  // 도로명 주소는 별도 필드 필요
 
+    // 🔥 우편번호 바인딩
+    const f_zip = document.getElementById('f_zip');
+    if (f_zip && data.zip) {
+        f_zip.value = data.zip;
+        console.log('✅ 우편번호 바인딩:', data.zip);
+    }
+
     // 좌표
     if (f_lat) f_lat.value = data.prkPlceLat || '';
     if (f_lng) f_lng.value = data.prkPlceLon || '';
@@ -1725,6 +1732,140 @@ function setCheckboxValue(name, value, checked) {
     }
 }
 
+// 🔥 좌표로 행정구역 정보 가져오기
+async function convertCoordToRegion(longitude, latitude) {
+    try {
+        const response = await fetch(`/api/kakao/coord2region?longitude=${longitude}&latitude=${latitude}`);
+        const result = await response.json();
+
+        if (result.success) {
+            // 시도, 시군구, 읍면동 자동 입력
+            if (result.sido) {
+                document.getElementById('f_sido').value = result.sido;
+            }
+            if (result.sigungu) {
+                document.getElementById('f_sigungu').value = result.sigungu;
+            }
+            if (result.emd) {
+                document.getElementById('f_emd').value = result.emd;
+            }
+
+            console.log('좌표->행정구역 변환 성공:', result);
+
+            // 헤더 주소 업데이트
+            updateHeaderAddr();
+
+            return result;
+        } else {
+            console.warn('행정구역 변환 실패:', result.message);
+        }
+    } catch (error) {
+        console.error('좌표->행정구역 변환 에러:', error);
+    }
+}
+
+// 🔥 좌표를 주소로 변환하는 함수 (우편번호 포함)
+async function convertCoordToAddress(longitude, latitude) {
+    try {
+        const response = await fetch(`/api/kakao/coord2address?longitude=${longitude}&latitude=${latitude}`);
+        const result = await response.json();
+
+        if (result.success) {
+            // 지번 주소
+            if (result.jibunAddress) {
+                document.getElementById('f_addr_jibun').value = result.jibunAddress;
+            }
+
+            // 도로명 주소
+            if (result.roadAddress) {
+                document.getElementById('f_addr_road').value = result.roadAddress;
+            }
+
+            // 🔥 우편번호 저장
+            if (result.zoneNo) {
+                const f_zip = document.getElementById('f_zip');
+                if (f_zip) {
+                    f_zip.value = result.zoneNo;
+                    console.log('📮 우편번호 저장:', result.zoneNo);
+                }
+            }
+
+            // 시도, 시군구, 읍면동 추출
+            if (result.data && result.data.address) {
+                const addr = result.data.address;
+                document.getElementById('f_sido').value = addr.region_1depth_name || '';
+                document.getElementById('f_sigungu').value = addr.region_2depth_name || '';
+                document.getElementById('f_emd').value = addr.region_3depth_name || '';
+            }
+
+            // 🔥 추가: 행정구역 정보도 함께 가져오기
+            await convertCoordToRegion(longitude, latitude);
+
+            console.log('좌표->주소 변환 성공:', result);
+
+            // 헤더 주소 업데이트
+            updateHeaderAddr();
+
+            return result;
+        } else {
+            console.warn('주소 변환 실패:', result.message);
+            alert('주소를 찾을 수 없습니다.');
+        }
+    } catch (error) {
+        console.error('좌표->주소 변환 에러:', error);
+        alert('주소 변환 중 오류가 발생했습니다.');
+    }
+}
+
+// 기기 위치로 좌표 설정 버튼 클릭 시 주소 및 행정구역도 함께 가져오기
+document.getElementById('btnUseGeolocation')?.addEventListener('click', async function() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            async function(position) {
+                const lat = position.coords.latitude.toFixed(6);
+                const lng = position.coords.longitude.toFixed(6);
+
+                document.getElementById('f_lat').value = lat;
+                document.getElementById('f_lng').value = lng;
+
+                // 좌표를 주소로 변환 (우편번호 포함)
+                await convertCoordToAddress(lng, lat);
+
+                alert('현재 위치의 좌표, 주소, 우편번호, 행정구역 정보를 가져왔습니다.');
+            },
+            function(error) {
+                console.error('위치 정보 가져오기 실패:', error);
+                alert('위치 정보를 가져올 수 없습니다.');
+            }
+        );
+    } else {
+        alert('이 브라우저는 위치 정보를 지원하지 않습니다.');
+    }
+});
+
+// EXIF에서 GPS 좌표를 추출한 후 주소 및 행정구역으로 변환
+async function handlePhotoWithGPS(file) {
+    try {
+        const exif = await exifr.parse(file);
+        if (exif && exif.latitude && exif.longitude) {
+            const lat = exif.latitude.toFixed(6);
+            const lng = exif.longitude.toFixed(6);
+
+            document.getElementById('f_lat').value = lat;
+            document.getElementById('f_lng').value = lng;
+
+            // 좌표를 주소로 변환 (우편번호 포함)
+            await convertCoordToAddress(lng, lat);
+
+            alert('사진에서 GPS 좌표, 주소, 우편번호, 행정구역 정보를 추출했습니다.');
+        } else {
+            alert('사진에 GPS 정보가 없습니다.');
+        }
+    } catch (error) {
+        console.error('EXIF 파싱 에러:', error);
+    }
+}
+
 // ========== 저장 함수 수정 ==========
 async function doSave() {
     try {
@@ -1803,6 +1944,9 @@ function mapPayloadToServerFormat(payload) {
         dtadd: payload.addrJibun || payload.addrRoad,
         prkPlceLat: payload.lat,
         prkPlceLon: payload.lng,
+
+        // 🔥 우편번호 추가
+        zip: document.getElementById('f_zip')?.value || null,
 
         // 주차면수
         totPrkCnt: payload.totalStalls,

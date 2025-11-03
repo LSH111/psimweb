@@ -44,7 +44,8 @@
                 <div><label for="f_sido">시도</label><div class="ctl"><input id="f_sido" type="text" /></div></div>
                 <div><label for="f_sigungu">시군구</label><div class="ctl"><input id="f_sigungu" type="text" /></div></div>
                 <div><label for="f_emd">읍면동</label><div class="ctl"><input id="f_emd" type="text" /></div></div>
-
+                <!-- 🔥 우편번호 hidden 필드 추가 -->
+                <input type="hidden" id="f_zip" />
                 <!-- 주소: 지번/도로명 + 주소찾기 -->
                 <div style="grid-column:1/-1">
                     <label for="f_addr_jibun">지번 주소</label>

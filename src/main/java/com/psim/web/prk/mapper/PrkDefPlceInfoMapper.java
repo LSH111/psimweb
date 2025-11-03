@@ -38,6 +38,27 @@ public interface PrkDefPlceInfoMapper {
     void updateAtchPrklotInfo(ParkingDetailVO parkingData);
     void updateAtchPrklotOperInfo(ParkingDetailVO parkingData);
 
+    // ========== 🔥 INSERT 메서드 추가 ==========
+
+    // 기본 주차장 정보 INSERT
+    void insertPrkDefPlceInfo(ParkingDetailVO parkingData);
+
+    // 사업별 주차장 정보 INSERT
+    void insertBizPerPrklotInfo(ParkingDetailVO parkingData);
+
+    // 노상주차장 INSERT
+    void insertOnstrPrklotInfo(ParkingDetailVO parkingData);
+    void insertOnstrPrklotOperInfo(ParkingDetailVO parkingData);
+
+    // 노외주차장 INSERT
+    void insertOffstrPrklotInfo(ParkingDetailVO parkingData);
+    void insertOffstrPrklotOperInfo(ParkingDetailVO parkingData);
+
+    // 부설주차장 INSERT
+    void insertAtchPrklotInfo(ParkingDetailVO parkingData);
+    void insertAtchPrklotOperInfo(ParkingDetailVO parkingData);
+
+
     // 수정 기능 (UPDATE)
     void updateParkingStatus(Map<String, Object> params);
     void updateSelectedParking(Map<String, Object> params);

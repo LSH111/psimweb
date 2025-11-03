@@ -257,4 +257,145 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
             throw new RuntimeException("주차장 정보 업데이트 중 오류가 발생했습니다.", e);
         }
     }
+
+    // ========== 🔥 INSERT 메서드 구현 ==========
+
+    /**
+     * 주차장 저장 (신규/수정 자동 판별)
+     */
+    @Override
+    @Transactional
+    public String saveParking(ParkingDetailVO parkingData) {
+        try {
+            boolean isNew = parkingData.getPrkPlceManageNo() == null
+                    || parkingData.getPrkPlceManageNo().trim().isEmpty();
+
+            if (isNew) {
+                log.info("신규 주차장 등록 - 유형: {}", parkingData.getPrkPlceType());
+
+                String prkType = parkingData.getPrkPlceType();
+                if ("노상".equals(prkType)) {
+                    return insertOnstreetParking(parkingData);
+                } else if ("노외".equals(prkType)) {
+                    return insertOffstreetParking(parkingData);
+                } else if ("부설".equals(prkType)) {
+                    return insertBuildParking(parkingData);
+                } else {
+                    throw new IllegalArgumentException("유효하지 않은 주차장 유형: " + prkType);
+                }
+            } else {
+                log.info("기존 주차장 수정 - {}", parkingData.getPrkPlceManageNo());
+
+                String prkType = parkingData.getPrkPlceType();
+                if ("노상".equals(prkType)) {
+                    updateOnstreetParking(parkingData);
+                } else if ("노외".equals(prkType)) {
+                    updateOffstreetParking(parkingData);
+                } else if ("부설".equals(prkType)) {
+                    updateBuildParking(parkingData);
+                }
+
+                return parkingData.getPrkPlceManageNo();
+            }
+        } catch (Exception e) {
+            log.error("주차장 저장 실패", e);
+            throw new RuntimeException("주차장 정보 저장 중 오류가 발생했습니다: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 노상주차장 신규 등록
+     */
+    @Override
+    @Transactional
+    public String insertOnstreetParking(ParkingDetailVO parkingData) {
+        try {
+            // 주차장관리번호 생성
+            String prkPlceManageNo = generatePrkPlceManageNo();
+            parkingData.setPrkPlceManageNo(prkPlceManageNo);
+            parkingData.setPrkPlceInfoSn(1);
+
+            log.info("노상주차장 등록 시작 - {}", prkPlceManageNo);
+
+            // INSERT 실행
+            prkDefPlceInfoMapper.insertPrkDefPlceInfo(parkingData);
+            prkDefPlceInfoMapper.insertBizPerPrklotInfo(parkingData);
+            prkDefPlceInfoMapper.insertOnstrPrklotInfo(parkingData);
+            prkDefPlceInfoMapper.insertOnstrPrklotOperInfo(parkingData);
+
+            log.info("✅ 노상주차장 등록 완료 - {}", prkPlceManageNo);
+            return prkPlceManageNo;
+
+        } catch (Exception e) {
+            log.error("노상주차장 등록 실패", e);
+            throw new RuntimeException("노상주차장 등록 중 오류: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 노외주차장 신규 등록
+     */
+    @Override
+    @Transactional
+    public String insertOffstreetParking(ParkingDetailVO parkingData) {
+        try {
+            String prkPlceManageNo = generatePrkPlceManageNo();
+            parkingData.setPrkPlceManageNo(prkPlceManageNo);
+            parkingData.setPrkPlceInfoSn(1);
+
+            log.info("노외주차장 등록 시작 - {}", prkPlceManageNo);
+
+            prkDefPlceInfoMapper.insertPrkDefPlceInfo(parkingData);
+            prkDefPlceInfoMapper.insertBizPerPrklotInfo(parkingData);
+            prkDefPlceInfoMapper.insertOffstrPrklotInfo(parkingData);
+            prkDefPlceInfoMapper.insertOffstrPrklotOperInfo(parkingData);
+
+            log.info("✅ 노외주차장 등록 완료 - {}", prkPlceManageNo);
+            return prkPlceManageNo;
+
+        } catch (Exception e) {
+            log.error("노외주차장 등록 실패", e);
+            throw new RuntimeException("노외주차장 등록 중 오류: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 부설주차장 신규 등록
+     */
+    @Override
+    @Transactional
+    public String insertBuildParking(ParkingDetailVO parkingData) {
+        try {
+            String prkPlceManageNo = generatePrkPlceManageNo();
+            parkingData.setPrkPlceManageNo(prkPlceManageNo);
+            parkingData.setPrkPlceInfoSn(1);
+
+            log.info("부설주차장 등록 시작 - {}", prkPlceManageNo);
+
+            prkDefPlceInfoMapper.insertPrkDefPlceInfo(parkingData);
+            prkDefPlceInfoMapper.insertBizPerPrklotInfo(parkingData);
+            prkDefPlceInfoMapper.insertAtchPrklotInfo(parkingData);
+            prkDefPlceInfoMapper.insertAtchPrklotOperInfo(parkingData);
+
+            log.info("✅ 부설주차장 등록 완료 - {}", prkPlceManageNo);
+            return prkPlceManageNo;
+
+        } catch (Exception e) {
+            log.error("부설주차장 등록 실패", e);
+            throw new RuntimeException("부설주차장 등록 중 오류: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 주차장관리번호 생성
+     * 형식: PRK + YYYYMMDDHHMMSS + 랜덤3자리
+     * 예: PRK20251031153045001
+     */
+    private String generatePrkPlceManageNo() {
+        String timestamp = java.time.LocalDateTime.now().format(
+                java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+        );
+        String randomNum = String.format("%03d", (int)(Math.random() * 1000));
+        return "PRK" + timestamp + randomNum;
+    }
 }

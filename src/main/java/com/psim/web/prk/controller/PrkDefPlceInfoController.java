@@ -10,6 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,9 +32,13 @@ public class PrkDefPlceInfoController {
     // AJAX로 주차장 목록 데이터 조회 (페이징 제거)
     @GetMapping("/parking-data")
     @ResponseBody
-    public Map<String, Object> getParkingData(@RequestParam Map<String, Object> params) {
+    public Map<String, Object> getParkingData(@RequestParam Map<String, Object> params, HttpSession session) {
         Map<String, Object> result = new HashMap<>();
-
+        // 🔥 세션에서 userBizList 가져와서 params에 추가
+        List<String> userBizList = (List<String>) session.getAttribute("userBizList");
+        if (userBizList != null && !userBizList.isEmpty()) {
+            params.put("userBizList", userBizList);
+        }
         try {
             // 페이징 관련 파라미터 제거
             // offset, limit 파라미터를 전달하지 않음
@@ -350,6 +355,72 @@ public class PrkDefPlceInfoController {
         }
 
         return ip;
+    }
+
+    /**
+     * 🔥 주차장 저장 (신규/수정 통합)
+     */
+    @PostMapping("/parking-save")
+    public ResponseEntity<Map<String, Object>> saveParking(
+            @RequestBody ParkingDetailVO parkingData,
+            HttpServletRequest request) {
+
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            // 신규/수정 판별
+            boolean isNew = parkingData.getPrkPlceManageNo() == null
+                    || parkingData.getPrkPlceManageNo().trim().isEmpty();
+
+            log.info("💾 주차장 {} - 유형: {}",
+                    isNew ? "신규 등록" : "수정",
+                    parkingData.getPrkPlceType());
+
+            // 🔥 사용자 정보 설정 (개발용 임시)
+            String userId = "SYSTEM";
+            String clientIp = "127.0.0.1";
+
+            // 🔥 실제 운영 환경에서는 세션에서 가져오기
+            /*
+            HttpSession session = request.getSession(false);
+            if (session == null || session.getAttribute("userId") == null) {
+                response.put("success", false);
+                response.put("message", "로그인이 필요합니다.");
+                return ResponseEntity.status(401).body(response);
+            }
+
+            String userId = session.getAttribute("userId").toString();
+            String prkBizMngNo = session.getAttribute("prkBizMngNo").toString(); // 사업번호
+            parkingData.setPrkBizMngNo(prkBizMngNo);
+            String clientIp = getClientIp(request);
+            */
+
+            parkingData.setUpdusrId(userId);
+            parkingData.setUpdusrIpAddr(clientIp);
+
+            // 🔥 신규 등록인 경우 사업번호 설정 필요
+            if (isNew && (parkingData.getPrkBizMngNo() == null || parkingData.getPrkBizMngNo().isEmpty())) {
+                // 임시로 하드코딩 (실제는 세션에서)
+                parkingData.setPrkBizMngNo("BIZ2025001");
+            }
+
+            // 저장 실행
+            String prkPlceManageNo = prkDefPlceInfoService.saveParking(parkingData);
+
+            response.put("success", true);
+            response.put("message", isNew ? "주차장이 등록되었습니다." : "주차장 정보가 수정되었습니다.");
+            response.put("prkPlceManageNo", prkPlceManageNo);
+            response.put("isNew", isNew);
+
+            log.info("✅ 주차장 저장 완료 - {}", prkPlceManageNo);
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("❌ 주차장 저장 실패", e);
+            response.put("success", false);
+            response.put("message", "저장 중 오류가 발생했습니다: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(response);
+        }
     }
 
     @GetMapping("/onparking")

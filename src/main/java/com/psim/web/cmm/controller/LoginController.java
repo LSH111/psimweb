@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpSession;
+import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
@@ -60,15 +61,41 @@ public class LoginController {
             return "redirect:/";
         }
 
-        // 세션 설정
+        // 기존 세션 설정
         establishAuthenticatedSession(session, loginUser);
+
+        // 🔥 사업관리번호 목록 조회 및 세션 저장 (강화된 로그)
+        try {
+            System.out.println("🔍 사업관리번호 목록 조회 시작: userId=" + loginUser.getUserId());
+
+            List<String> userBizList = loginService.selectUserBizList(loginUser.getUserId());
+
+            if (userBizList == null) {
+                System.out.println("⚠️ 사업관리번호 목록이 null입니다. 빈 리스트로 초기화합니다.");
+                userBizList = java.util.Collections.emptyList();
+            }
+
+            session.setAttribute("userBizList", userBizList);
+
+            System.out.println("✅ 사업관리번호 목록 세션 저장 완료: " + userBizList.size() + "개");
+            System.out.println("📋 사업번호 목록: " + userBizList);
+
+        } catch (Exception e) {
+            System.err.println("⚠️ 사업관리번호 조회 실패: " + e.getMessage());
+            e.printStackTrace();
+            // 실패해도 로그인은 진행 (빈 리스트로 처리)
+            session.setAttribute("userBizList", java.util.Collections.emptyList());
+        }
+
         System.out.println("✅ 로그인 성공: userId=" + userId);
 
-        // 세션 설정 검증 로그 추가
-        System.out.println("🔍 세션 설정 확인 - sessionId: " + session.getId()
-                + ", LOGIN: " + session.getAttribute(SESSION_ATTR_LOGIN_FLAG)
-                + ", userId: " + session.getAttribute("userId")
-                + ", loginUser: " + session.getAttribute(SESSION_ATTR_AUTHENTICATED_USER));
+        // 🔥 세션 설정 검증 로그 강화
+        System.out.println("🔍 세션 설정 확인:");
+        System.out.println("  - sessionId: " + session.getId());
+        System.out.println("  - LOGIN: " + session.getAttribute(SESSION_ATTR_LOGIN_FLAG));
+        System.out.println("  - userId: " + session.getAttribute("userId"));
+        System.out.println("  - loginUser: " + session.getAttribute(SESSION_ATTR_AUTHENTICATED_USER));
+        System.out.println("  - userBizList: " + session.getAttribute("userBizList")); // 🔥 추가
 
         // 이전 페이지가 있으면 그곳으로, 없으면 index로
         String redirectUrl = (String) session.getAttribute("redirectAfterLogin");

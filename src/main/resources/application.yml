@@ -90,6 +90,11 @@ server:
         http-only: true  # JavaScript 접근 차단
         same-site: lax  # 🔥 strict → lax로 변경 (로컬 개발 편의성)
 
+# Kakao API 설정
+kakao:
+  api:
+    key: 9e769fbf1ccdb874ffffc371a19e12d8
+
 management:
   endpoints:
     web:

@@ -28,4 +28,32 @@
         WHERE   user_id = #{userId}
           AND   user_pw = #{hashedPassword}
     </select>
+
+    <!-- 🔥 사용자가 접근 가능한 사업관리번호 목록 조회 -->
+    <select id="selectUserBizList" parameterType="string" resultType="string">
+        SELECT DISTINCT
+            bpp.prk_biz_mng_no
+        FROM cpk.tb_biz_per_prklot_info bpp
+                 INNER JOIN cpk.tb_prk_srvy_biz_info psb
+                            ON bpp.prk_biz_mng_no = psb.prk_biz_mng_no
+        WHERE bpp.srvy_id = #{srvyId}
+          AND psb.use_yn = 'Y'
+        ORDER BY bpp.prk_biz_mng_no
+    </select>
+
+    <!-- 사용자의 사업정보 상세 조회 (사업명 포함) -->
+    <select id="selectUserBizInfoList" parameterType="String" resultType="java.util.HashMap">
+        SELECT DISTINCT
+            psb.prk_biz_mng_no,
+            psb.biz_nm,
+            psb.biz_yy,
+            psb.sido_cd,
+            psb.sigungu_cd
+        FROM tb_biz_per_prklot_info bpp
+                 INNER JOIN tb_prk_srvy_biz_info psb
+                            ON bpp.prk_biz_mng_no = psb.prk_biz_mng_no
+        WHERE bpp.srvy_id = #{srvyId}
+          AND psb.use_yn = 'Y'
+        ORDER BY psb.biz_yy DESC, psb.biz_nm
+    </select>
 </mapper>
