@@ -1,13 +1,16 @@
 package com.psim.web.prk.controller;
 
+import com.psim.web.file.service.AttchPicMngInfoService;
 import com.psim.web.prk.service.PrkDefPlceInfoService;
 import com.psim.web.prk.vo.ParkingDetailVO;
 import com.psim.web.prk.vo.ParkingListVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -23,6 +26,7 @@ import java.util.Map;
 public class PrkDefPlceInfoController {
 
     private final PrkDefPlceInfoService prkDefPlceInfoService;
+    private final AttchPicMngInfoService attchPicService; // 🔥 추가
 
     @GetMapping("/parkinglist")
     public String parkingList() {
@@ -92,69 +96,49 @@ public class PrkDefPlceInfoController {
     }
 
     /**
-     * 노상주차장 정보 업데이트
+     * 🔥 노상주차장 정보 업데이트 (파일 업로드 포함)
      */
     @PostMapping("/onparking-update")
     public ResponseEntity<Map<String, Object>> updateOnstreetParking(
             @RequestBody ParkingDetailVO parkingData,
+            @RequestParam(value = "mainPhoto", required = false) MultipartFile mainPhoto,
+            @RequestParam(value = "signPhoto", required = false) MultipartFile signPhoto,
             HttpServletRequest request) {
 
         Map<String, Object> response = new HashMap<>();
 
         try {
-            log.info("💾 노상주차장 업데이트 요청 - prkPlceManageNo: {}", parkingData.getPrkPlceManageNo());
+            log.info("🔄 노상주차장 업데이트 시작: {}", parkingData.getPrkPlceManageNo());
 
-            // 필수 값 검증
-            if (parkingData.getPrkPlceManageNo() == null || parkingData.getPrkPlceManageNo().trim().isEmpty()) {
-                response.put("success", false);
-                response.put("message", "주차장 관리번호는 필수입니다.");
-                return ResponseEntity.badRequest().body(response);
-            }
-
-            // 🔥 개발 중에는 임시로 하드코딩된 사용자 정보 사용
-            String userId = "SYSTEM";
-            String clientIp = "127.0.0.1";
-
-            // 🔥 실제 운영 환경에서는 아래 주석을 해제하고 위 2줄은 삭제
-                /*
-                HttpSession session = request.getSession(false);
-                String userId = null;
-                if (session != null) {
-                    Object userObj = session.getAttribute("userId");
-                    if (userObj != null) {
-                        userId = userObj.toString();
-                    }
-                }
-
-                if (userId == null || userId.trim().isEmpty()) {
-                    response.put("success", false);
-                    response.put("message", "로그인이 필요합니다.");
-                    return ResponseEntity.status(401).body(response);
-                }
-
-                String clientIp = getClientIp(request);
-                */
-
-            // VO에 설정
-            parkingData.setUpdusrId(userId);
-            parkingData.setUpdusrIpAddr(clientIp);
-
-            log.info("📝 업데이트 정보 - 사용자: {}, IP: {}", userId, clientIp);
-
-            // 업데이트 실행
+            // 주차장 정보 저장
             prkDefPlceInfoService.updateOnstreetParking(parkingData);
 
+            Integer prkPlceInfoSn = parkingData.getPrkPlceInfoSn();
+
+            // 🔥 현장 사진 저장
+            if (mainPhoto != null && !mainPhoto.isEmpty()) {
+                log.info("📸 현장 사진 저장 시작");
+                attchPicService.uploadAndSaveFile(prkPlceInfoSn, "ON_MAIN", mainPhoto);
+            }
+
+            // 🔥 표지판 사진 저장
+            if (signPhoto != null && !signPhoto.isEmpty()) {
+                log.info("📸 표지판 사진 저장 시작");
+                attchPicService.uploadAndSaveFile(prkPlceInfoSn, "ON_SIGN", signPhoto);
+            }
+
             response.put("success", true);
-            response.put("message", "주차장 정보가 성공적으로 저장되었습니다.");
-            log.info("✅ 노상주차장 업데이트 성공 - prkPlceManageNo: {}", parkingData.getPrkPlceManageNo());
+            response.put("message", "저장되었습니다.");
+
+            log.info("✅ 노상주차장 업데이트 완료");
 
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
             log.error("❌ 노상주차장 업데이트 실패", e);
             response.put("success", false);
-            response.put("message", "데이터 저장 중 오류가 발생했습니다: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(response);
+            response.put("message", "저장 중 오류가 발생했습니다: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
@@ -189,49 +173,61 @@ public class PrkDefPlceInfoController {
     }
 
     /**
-     * 🔥 노외주차장 정보 업데이트
+     * 🔥 노외주차장 정보 업데이트 (파일 업로드 포함)
      */
     @PostMapping("/offparking-update")
     public ResponseEntity<Map<String, Object>> updateOffstreetParking(
             @RequestBody ParkingDetailVO parkingData,
+            @RequestParam(value = "mainPhoto", required = false) MultipartFile mainPhoto,
+            @RequestParam(value = "signPhoto", required = false) MultipartFile signPhoto,
+            @RequestParam(value = "ticketPhoto", required = false) MultipartFile ticketPhoto,
+            @RequestParam(value = "barrierPhoto", required = false) MultipartFile barrierPhoto,
+            @RequestParam(value = "exitAlarmPhoto", required = false) MultipartFile exitAlarmPhoto,
+            @RequestParam(value = "entrancePhoto", required = false) MultipartFile entrancePhoto,
             HttpServletRequest request) {
 
         Map<String, Object> response = new HashMap<>();
 
         try {
-            log.info("💾 노외주차장 업데이트 요청 - prkPlceManageNo: {}", parkingData.getPrkPlceManageNo());
+            log.info("🔄 노외주차장 업데이트 시작: {}", parkingData.getPrkPlceManageNo());
 
-            // 필수 값 검증
-            if (parkingData.getPrkPlceManageNo() == null || parkingData.getPrkPlceManageNo().trim().isEmpty()) {
-                response.put("success", false);
-                response.put("message", "주차장 관리번호는 필수입니다.");
-                return ResponseEntity.badRequest().body(response);
-            }
-
-            // 🔥 개발 중에는 임시로 하드코딩된 사용자 정보 사용
-            String userId = "SYSTEM";
-            String clientIp = "127.0.0.1";
-
-            // VO에 설정
-            parkingData.setUpdusrId(userId);
-            parkingData.setUpdusrIpAddr(clientIp);
-
-            log.info("📝 업데이트 정보 - 사용자: {}, IP: {}", userId, clientIp);
-
-            // 업데이트 실행
+            // 주차장 정보 저장
             prkDefPlceInfoService.updateOffstreetParking(parkingData);
 
+            Integer prkPlceInfoSn = parkingData.getPrkPlceInfoSn();
+
+            // 🔥 각 사진 저장
+            if (mainPhoto != null && !mainPhoto.isEmpty()) {
+                attchPicService.uploadAndSaveFile(prkPlceInfoSn, "OFF_MAIN", mainPhoto);
+            }
+            if (signPhoto != null && !signPhoto.isEmpty()) {
+                attchPicService.uploadAndSaveFile(prkPlceInfoSn, "OFF_SIGN", signPhoto);
+            }
+            if (ticketPhoto != null && !ticketPhoto.isEmpty()) {
+                attchPicService.uploadAndSaveFile(prkPlceInfoSn, "OFF_TICKET", ticketPhoto);
+            }
+            if (barrierPhoto != null && !barrierPhoto.isEmpty()) {
+                attchPicService.uploadAndSaveFile(prkPlceInfoSn, "OFF_BARRIER", barrierPhoto);
+            }
+            if (exitAlarmPhoto != null && !exitAlarmPhoto.isEmpty()) {
+                attchPicService.uploadAndSaveFile(prkPlceInfoSn, "OFF_EXIT_ALARM", exitAlarmPhoto);
+            }
+            if (entrancePhoto != null && !entrancePhoto.isEmpty()) {
+                attchPicService.uploadAndSaveFile(prkPlceInfoSn, "OFF_ENTRANCE", entrancePhoto);
+            }
+
             response.put("success", true);
-            response.put("message", "주차장 정보가 성공적으로 저장되었습니다.");
-            log.info("✅ 노외주차장 업데이트 성공 - prkPlceManageNo: {}", parkingData.getPrkPlceManageNo());
+            response.put("message", "저장되었습니다.");
+
+            log.info("✅ 노외주차장 업데이트 완료");
 
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
             log.error("❌ 노외주차장 업데이트 실패", e);
             response.put("success", false);
-            response.put("message", "데이터 저장 중 오류가 발생했습니다: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(response);
+            response.put("message", "저장 중 오류가 발생했습니다: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
@@ -266,52 +262,63 @@ public class PrkDefPlceInfoController {
     }
 
     /**
-     * 🔥 부설주차장 정보 업데이트
+     * 🔥 부설주차장 정보 업데이트 (파일 업로드 포함)
      */
     @PostMapping("/buildparking-update")
     public ResponseEntity<Map<String, Object>> updateBuildParking(
             @RequestBody ParkingDetailVO parkingData,
+            @RequestParam(value = "mainPhoto", required = false) MultipartFile mainPhoto,
+            @RequestParam(value = "signPhoto", required = false) MultipartFile signPhoto,
+            @RequestParam(value = "ticketPhoto", required = false) MultipartFile ticketPhoto,
+            @RequestParam(value = "barrierPhoto", required = false) MultipartFile barrierPhoto,
+            @RequestParam(value = "exitAlarmPhoto", required = false) MultipartFile exitAlarmPhoto,
+            @RequestParam(value = "entrancePhoto", required = false) MultipartFile entrancePhoto,
             HttpServletRequest request) {
 
         Map<String, Object> response = new HashMap<>();
 
         try {
-            log.info("💾 부설주차장 업데이트 요청 - prkPlceManageNo: {}", parkingData.getPrkPlceManageNo());
+            log.info("🔄 부설주차장 업데이트 시작: {}", parkingData.getPrkPlceManageNo());
 
-            // 필수 값 검증
-            if (parkingData.getPrkPlceManageNo() == null || parkingData.getPrkPlceManageNo().trim().isEmpty()) {
-                response.put("success", false);
-                response.put("message", "주차장 관리번호는 필수입니다.");
-                return ResponseEntity.badRequest().body(response);
-            }
-
-            // 🔥 개발 중에는 임시로 하드코딩된 사용자 정보 사용
-            String userId = "SYSTEM";
-            String clientIp = "127.0.0.1";
-
-            // VO에 설정
-            parkingData.setUpdusrId(userId);
-            parkingData.setUpdusrIpAddr(clientIp);
-
-            log.info("📝 업데이트 정보 - 사용자: {}, IP: {}", userId, clientIp);
-
-            // 업데이트 실행
+            // 주차장 정보 저장
             prkDefPlceInfoService.updateBuildParking(parkingData);
 
+            Integer prkPlceInfoSn = parkingData.getPrkPlceInfoSn();
+
+            // 🔥 각 사진 저장
+            if (mainPhoto != null && !mainPhoto.isEmpty()) {
+                attchPicService.uploadAndSaveFile(prkPlceInfoSn, "BLD_MAIN", mainPhoto);
+            }
+            if (signPhoto != null && !signPhoto.isEmpty()) {
+                attchPicService.uploadAndSaveFile(prkPlceInfoSn, "BLD_SIGN", signPhoto);
+            }
+            if (ticketPhoto != null && !ticketPhoto.isEmpty()) {
+                attchPicService.uploadAndSaveFile(prkPlceInfoSn, "BLD_TICKET", ticketPhoto);
+            }
+            if (barrierPhoto != null && !barrierPhoto.isEmpty()) {
+                attchPicService.uploadAndSaveFile(prkPlceInfoSn, "BLD_BARRIER", barrierPhoto);
+            }
+            if (exitAlarmPhoto != null && !exitAlarmPhoto.isEmpty()) {
+                attchPicService.uploadAndSaveFile(prkPlceInfoSn, "BLD_EXIT_ALARM", exitAlarmPhoto);
+            }
+            if (entrancePhoto != null && !entrancePhoto.isEmpty()) {
+                attchPicService.uploadAndSaveFile(prkPlceInfoSn, "BLD_ENTRANCE", entrancePhoto);
+            }
+
             response.put("success", true);
-            response.put("message", "주차장 정보가 성공적으로 저장되었습니다.");
-            log.info("✅ 부설주차장 업데이트 성공 - prkPlceManageNo: {}", parkingData.getPrkPlceManageNo());
+            response.put("message", "저장되었습니다.");
+
+            log.info("✅ 부설주차장 업데이트 완료");
 
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
             log.error("❌ 부설주차장 업데이트 실패", e);
             response.put("success", false);
-            response.put("message", "데이터 저장 중 오류가 발생했습니다: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(response);
+            response.put("message", "저장 중 오류가 발생했습니다: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
-
 
     /**
      * 클라이언트 실제 IP 주소 추출 (프록시 고려)

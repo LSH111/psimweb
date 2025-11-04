@@ -1,51 +1,101 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
 <mapper namespace="com.psim.web.file.mapper.AttchPicMngInfoMapper">
 
-    <select id="selectAllAttchPicMngInfos" resultType="com.psim.web.file.vo.AttchPicMngInfoVO">
-        SELECT * FROM tb_attch_pic_mng_info
-    </select>
-
-    <select id="selectAttchPicMngInfoById" parameterType="int" resultType="com.psim.web.file.vo.AttchPicMngInfoVO">
-        SELECT * FROM tb_attch_pic_mng_info WHERE pic_mng_sn = #{picMngSn}
-    </select>
-
-    <insert id="insertAttchPicMngInfo" parameterType="com.psim.web.file.vo.AttchPicMngInfoVO">
+    <!-- 🔥 INSERT -->
+    <insert id="insertAttchPicMngInfo" parameterType="AttchPicMngInfoVO">
         INSERT INTO tb_attch_pic_mng_info (
-            pic_mng_sn, unified_id, pic_mng_group, orgnl_file_nm, stre_file_nm,
-            file_path, file_sz, file_extn, prk_plce_info_sn, prk_plce_manage_no,
-            pic_desc, reg_dt, rgst_id, rgst_ip_addr, updt_dt, updusr_id, updusr_ip_addr
+            prk_plce_info_sn,
+            prk_plce_type,
+            prk_oper_type,
+            seq_no,
+            ext_nm,
+            file_path,
+            file_nm,
+            real_file_nm,
+            prk_img_id,
+            reg_dt,
+            rgst_id,
+            rgst_ip_addr
         ) VALUES (
-            #{picMngSn}, #{unifiedId}, #{picMngGroup}, #{orgnlFileNm}, #{streFileNm},
-            #{filePath}, #{fileSz}, #{fileExtn}, #{prkPlceInfoSn}, #{prkPlceManageNo},
-            #{picDesc}, #{regDt}, #{rgstId}, #{rgstIpAddr}, #{updtDt}, #{updusrId}, #{updusrIpAddr}
-        )
+                     #{prkPlceInfoSn},
+                     #{prkPlceType},
+                     #{prkOperType},
+                     #{seqNo},
+                     #{extNm},
+                     #{filePath},
+                     #{fileNm},
+                     #{realFileNm},
+                     #{prkImgId},
+                     NOW(),
+                     #{rgstId},
+                     #{rgstIpAddr}
+                 )
     </insert>
 
-    <update id="updateAttchPicMngInfo" parameterType="com.psim.web.file.vo.AttchPicMngInfoVO">
+    <!-- 🔥 UPDATE -->
+    <update id="updateAttchPicMngInfo" parameterType="AttchPicMngInfoVO">
         UPDATE tb_attch_pic_mng_info
-        <set>
-            <if test="unifiedId != null">unified_id = #{unifiedId},</if>
-            <if test="picMngGroup != null">pic_mng_group = #{picMngGroup},</if>
-            <if test="orgnlFileNm != null">orgnl_file_nm = #{orgnlFileNm},</if>
-            <if test="streFileNm != null">stre_file_nm = #{streFileNm},</if>
-            <if test="filePath != null">file_path = #{filePath},</if>
-            <if test="fileSz != null">file_sz = #{fileSz},</if>
-            <if test="fileExtn != null">file_extn = #{fileExtn},</if>
-            <if test="prkPlceInfoSn != null">prk_plce_info_sn = #{prkPlceInfoSn},</if>
-            <if test="prkPlceManageNo != null">prk_plce_manage_no = #{prkPlceManageNo},</if>
-            <if test="picDesc != null">pic_desc = #{picDesc},</if>
-            <if test="regDt != null">reg_dt = #{regDt},</if>
-            <if test="rgstId != null">rgst_id = #{rgstId},</if>
-            <if test="rgstIpAddr != null">rgst_ip_addr = #{rgstIpAddr},</if>
-            <if test="updtDt != null">updt_dt = #{updtDt},</if>
-            <if test="updusrId != null">updusr_id = #{updusrId},</if>
-            <if test="updusrIpAddr != null">updusr_ip_addr = #{updusrIpAddr},</if>
-        </set>
-        WHERE pic_mng_sn = #{picMngSn}
+        SET
+            ext_nm = #{extNm},
+            file_path = #{filePath},
+            file_nm = #{fileNm},
+            real_file_nm = #{realFileNm},
+            updt_dt = NOW(),
+            updusr_id = #{updusrId},
+            updusr_ip_addr = #{updusrIpAddr}
+        WHERE prk_plce_info_sn = #{prkPlceInfoSn}
+          AND prk_img_id = #{prkImgId}
+          AND seq_no = #{seqNo}
     </update>
 
-    <delete id="deleteAttchPicMngInfo" parameterType="int">
-        DELETE FROM tb_attch_pic_mng_info WHERE pic_mng_sn = #{picMngSn}
+    <!-- 🔥 SELECT -->
+    <select id="selectAttchPicMngInfoList" resultType="AttchPicMngInfoVO">
+        SELECT
+        prk_plce_info_sn AS prkPlceInfoSn,
+        prk_plce_type AS prkPlceType,
+        prk_oper_type AS prkOperType,
+        seq_no AS seqNo,
+        ext_nm AS extNm,
+        file_path AS filePath,
+        file_nm AS fileNm,
+        real_file_nm AS realFileNm,
+        prk_img_id AS prkImgId,
+        reg_dt AS regDt,
+        rgst_id AS rgstId,
+        rgst_ip_addr AS rgstIpAddr,
+        updt_dt AS updtDt,
+        updusr_id AS updusrId,
+        updusr_ip_addr AS updusrIpAddr
+        FROM tb_attch_pic_mng_info
+        WHERE prk_plce_info_sn = #{prkPlceInfoSn}
+        <if test="prkImgId != null and prkImgId != ''">
+            AND prk_img_id = #{prkImgId}
+        </if>
+        <if test="seqNo != null">
+            AND seq_no = #{seqNo}
+        </if>
+        ORDER BY seq_no ASC
+    </select>
+
+    <!-- 🔥 최대 순번 조회 -->
+    <select id="selectMaxSeqNo" resultType="java.lang.Integer">
+        SELECT COALESCE(MAX(seq_no), 0)
+        FROM tb_attch_pic_mng_info
+        WHERE prk_plce_info_sn = #{prkPlceInfoSn}
+          AND prk_img_id = #{prkImgId}
+    </select>
+
+    <!-- 🔥 DELETE -->
+    <delete id="deleteAttchPicMngInfo">
+        DELETE FROM tb_attch_pic_mng_info
+        WHERE prk_plce_info_sn = #{prkPlceInfoSn}
+        AND prk_img_id = #{prkImgId}
+        <if test="seqNo != null">
+            AND seq_no = #{seqNo}
+        </if>
     </delete>
+
 </mapper>

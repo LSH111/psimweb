@@ -1,6 +1,7 @@
 package com.psim.web.prk.controller;
 
 import com.psim.web.cmm.vo.CoUserVO;
+import com.psim.web.file.service.AttchPicMngInfoService;
 import com.psim.web.prk.service.PrkUsageStatusService;
 import com.psim.web.prk.vo.PrkUsageStatusVO;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import java.util.Map;
 public class PrkUsageStatusController {
     
     private final PrkUsageStatusService usageStatusService;
+    private final AttchPicMngInfoService attchPicService; // 🔥 추가
 
     /**
      * 주차이용실태 목록 화면

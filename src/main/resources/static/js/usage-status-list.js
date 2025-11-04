@@ -205,30 +205,29 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 // ========== 탭 전환 함수 ==========
 
-/**
- * 등록 탭 표시 및 활성화
- */
 function showAddTab() {
     console.log('📂 등록 탭 표시');
     const tabAdd = $('#tabAdd');
 
-    // 탭 표시
     if (tabAdd) {
         tabAdd.style.display = 'inline-flex';
     }
 
-    // 등록 탭으로 전환
     switchToAddTab();
 
-    // usage-add.js의 초기화 함수 호출 (있다면)
+    // 🔥 usage-add.js의 초기화 함수 호출
     if (typeof window.initUsageAddForm === 'function') {
         window.initUsageAddForm();
     }
+
+    // 🔥 사진 업로드 버튼 재초기화
+    if (typeof window.reinitPhotoUploadButtons === 'function') {
+        setTimeout(() => {
+            window.reinitPhotoUploadButtons();
+        }, 300);
+    }
 }
 
-/**
- * 등록 탭 숨김
- */
 function hideAddTab() {
     console.log('📂 등록 탭 숨김');
     const tabAdd = $('#tabAdd');
@@ -245,18 +244,13 @@ function hideAddTab() {
         panelAdd.classList.remove('active');
     }
 
-    // 목록 탭으로 전환
     switchToListTab();
 
-    // 폼 초기화 (있다면)
     if (typeof window.resetUsageAddForm === 'function') {
         window.resetUsageAddForm();
     }
 }
 
-/**
- * 목록 탭으로 전환
- */
 function switchToListTab() {
     console.log('📋 목록 탭으로 전환');
     const tabList = $('#tabList');
@@ -264,7 +258,6 @@ function switchToListTab() {
     const panelList = $('#panelList');
     const panelAdd = $('#panelAdd');
 
-    // 탭 활성화
     if (tabList) {
         tabList.classList.add('active');
         tabList.setAttribute('aria-selected', 'true');
@@ -274,7 +267,6 @@ function switchToListTab() {
         tabAdd.setAttribute('aria-selected', 'false');
     }
 
-    // 패널 표시
     if (panelList) {
         panelList.classList.add('active');
         panelList.style.display = 'block';
@@ -285,9 +277,6 @@ function switchToListTab() {
     }
 }
 
-/**
- * 등록 탭으로 전환
- */
 function switchToAddTab() {
     console.log('📝 등록 탭으로 전환');
     const tabList = $('#tabList');
@@ -295,7 +284,6 @@ function switchToAddTab() {
     const panelList = $('#panelList');
     const panelAdd = $('#panelAdd');
 
-    // 탭 활성화
     if (tabList) {
         tabList.classList.remove('active');
         tabList.setAttribute('aria-selected', 'false');
@@ -305,7 +293,6 @@ function switchToAddTab() {
         tabAdd.setAttribute('aria-selected', 'true');
     }
 
-    // 패널 표시
     if (panelList) {
         panelList.classList.remove('active');
         panelList.style.display = 'none';

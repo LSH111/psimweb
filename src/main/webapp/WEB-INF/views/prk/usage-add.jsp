@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/pages/usage-add.css"/>
+<script src="${pageContext.request.contextPath}/static/js/usage-add.js"></script>
 <!-- usage-status-list.jsp에 포함되므로 html, head, body 태그 제거 -->
 <div class="wrap">
     <header class="card head">
@@ -54,15 +55,15 @@
         </div>
     </section>
 
-    <!-- 🔥 사진 & 좌표 섹션 추가 -->
+    <!-- 🔥 사진 & 좌표 섹션 - multiple 속성 추가 -->
     <section class="card">
         <h2>현장 사진 & 좌표</h2>
         <div class="grid">
             <div style="grid-column:1/-1">
-                <label>사진 업로드</label>
+                <label>사진 업로드 (여러 장 가능)</label>
                 <div class="photo-upload-zone" style="border:2px dashed #cbd5e1; border-radius:8px; padding:20px; text-align:center; background:#f8fafc;">
-                    <input id="f_photo_lib" type="file" accept="image/*,image/heic,image/heif" style="display:none" />
-                    <input id="f_photo_cam" type="file" accept="image/*" capture="environment" style="display:none" />
+                    <input id="f_photo_lib" type="file" accept="image/*,image/heic,image/heif" multiple style="display:none" />
+                    <input id="f_photo_cam" type="file" accept="image/*" capture="environment" multiple style="display:none" />
 
                     <div class="file-upload-buttons" style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-bottom:16px;">
                         <button type="button" class="btn light" id="btnPickFromLibrary">사진첩에서 선택</button>
@@ -71,67 +72,31 @@
                         <button type="button" class="btn ghost" id="btnClearPhoto">초기화</button>
                     </div>
 
-                    <!-- 업로드 진행률 표시 -->
-                    <div id="upload-progress-area" class="upload-progress-container" style="display:none; background:white; border-radius:8px; padding:20px; margin-top:16px; text-align:left;">
-                        <div class="upload-header" style="margin-bottom:16px;">
-                            <h3 class="upload-title" style="font-size:1.1rem; font-weight:600; color:#1e293b;">첨부파일 업로드</h3>
-                        </div>
-
-                        <div class="upload-summary" style="display:flex; justify-content:space-between; margin-bottom:12px; font-size:0.9rem; color:#64748b;">
-                            <span class="upload-status">0개 / 1개</span>
-                            <span class="upload-size">0MB / 0MB</span>
-                            <span class="upload-percent">0% 남음</span>
-                        </div>
-
-                        <div class="progress-bar-container" style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
-                            <div class="progress-bar" style="flex:1; height:24px; background:#e2e8f0; border-radius:12px; overflow:hidden; position:relative;">
-                                <div class="progress-fill" id="progress-fill" style="height:100%; background:linear-gradient(90deg, #3b82f6, #8b5cf6); transition:width 0.3s;"></div>
-                            </div>
-                            <span class="progress-text" id="progress-text" style="font-size:0.9rem; font-weight:600; color:#1e293b; min-width:45px; text-align:right;">0%</span>
-                        </div>
-
-                        <div class="file-list">
-                            <div class="file-item" id="upload-file-item" style="display:none; padding:12px; background:#f8fafc; border-radius:8px; margin-bottom:12px;">
-                                <div style="display:flex; align-items:center; gap:12px;">
-                                    <div class="file-icon" style="font-size:2rem;">📁</div>
-                                    <div class="file-info" style="flex:1;">
-                                        <div class="file-name" id="file-name" style="font-size:0.9rem; font-weight:600; color:#1e293b; margin-bottom:4px;">파일명.jpg</div>
-                                        <div class="file-size-progress">
-                                            <div class="file-progress-bar" style="height:6px; background:#e2e8f0; border-radius:3px; overflow:hidden; margin-bottom:4px;">
-                                                <div class="file-progress-fill" id="file-progress-fill" style="height:100%; background:#3b82f6; transition:width 0.3s;"></div>
-                                            </div>
-                                            <span class="file-size" id="file-size" style="font-size:0.8rem; color:#64748b;">0MB / 0MB</span>
-                                        </div>
-                                    </div>
-                                    <div class="file-status" id="file-status" style="font-size:0.85rem; color:#8b5cf6; font-weight:600;">전송중</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="upload-actions" style="display:flex; gap:8px; justify-content:flex-end; margin-top:16px;">
-                            <button type="button" class="btn ghost" id="btn-upload-cancel">취소</button>
-                            <button type="button" class="btn" id="btn-upload-complete" style="display:none;">완료</button>
-                        </div>
+                    <!-- 선택된 파일 목록 표시 -->
+                    <div id="selected-files-list" style="display:none; margin-top:16px; text-align:left;">
+                        <h4 style="font-size:0.9rem; font-weight:600; color:#1e293b; margin-bottom:12px;">선택된 파일 (<span id="file-count">0</span>개)</h4>
+                        <div id="files-container" style="display:flex; flex-direction:column; gap:8px;"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- 사진 미리보기 -->
-            <div style="grid-column:1/-1">
-                <img id="preview" class="thumb" alt="사진 미리보기" style="display:none; max-width:100%; border-radius:8px; border:1px solid #e2e8f0;" />
+            <!-- 사진 미리보기 (여러 장) -->
+            <div id="preview-container" style="grid-column:1/-1; display:none;">
+                <h4 style="font-size:0.9rem; font-weight:600; color:#1e293b; margin-bottom:12px;">미리보기</h4>
+                <div id="preview-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:12px;"></div>
             </div>
 
             <!-- 위도/경도 -->
             <div>
                 <label for="f_lat">위도</label>
                 <div class="ctl">
-                    <input id="f_lat" class="mono" inputmode="decimal" placeholder="37.5665" />
+                    <input id="f_lat" class="mono" inputmode="decimal" placeholder="37.5665" readonly />
                 </div>
             </div>
             <div>
                 <label for="f_lng">경도</label>
                 <div class="ctl">
-                    <input id="f_lng" class="mono" inputmode="decimal" placeholder="126.9780" />
+                    <input id="f_lng" class="mono" inputmode="decimal" placeholder="126.9780" readonly />
                 </div>
             </div>
         </div>

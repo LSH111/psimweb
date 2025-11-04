@@ -141,8 +141,8 @@
 <jsp:include page="/WEB-INF/views/fragments/footer.jsp"/>
 
 <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
-<script defer src="${pageContext.request.contextPath}/static/js/usage-status-list.js"></script>
-<script defer src="${pageContext.request.contextPath}/static/js/usage-add.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/usage-add.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/usage-status-list.js"></script>
 
 </body>
 </html>
