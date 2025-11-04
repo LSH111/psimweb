@@ -1,0 +1,284 @@
+/* usage-add.css */
+
+:root{
+    /* Palette (Light) */
+    --bg: #ffffff;
+    --card: #ffffff;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --primary: #2563eb;
+    --primary-2: #1d4ed8;
+    --border: #e5e7eb;
+    --line: #e5e7eb;
+    --accent: #2563eb;
+    --warn: #dc2626;
+    --ok: #16a34a;
+}
+
+.wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* 헤더 */
+.head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--line);
+}
+
+.head .title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+}
+
+.head .actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* 섹션 카드 */
+section.card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+section.card h2 {
+    margin: 0 0 16px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 8px;
+}
+
+/* 그리드 레이아웃 */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+}
+
+.grid.row-1c {
+    grid-template-columns: 1fr 1fr;
+}
+
+/* 라벨 */
+label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--muted);
+}
+
+/* 컨트롤 */
+.ctl {
+    position: relative;
+}
+
+.ctl input,
+.ctl select,
+.ctl textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--text);
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.ctl input:focus,
+.ctl select:focus,
+.ctl textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.ctl textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* 라디오 그룹 */
+.radio-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    cursor: pointer;
+}
+
+.radio-group input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    cursor: pointer;
+    accent-color: var(--accent);
+}
+
+.radio-group span {
+    font-size: 14px;
+    color: var(--text);
+}
+
+/* 시간 입력 */
+.time-range-inputs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.time-input-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.time-input {
+    width: 60px;
+    padding: 10px 8px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.time-unit {
+    font-size: 14px;
+    color: var(--muted);
+}
+
+.time-separator {
+    font-size: 18px;
+    color: var(--muted);
+    margin: 0 12px;
+}
+
+/* 버튼 */
+.btn {
+    padding: 10px 20px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn:hover {
+    background: #1d4ed8;
+}
+
+.btn.light {
+    background: #f8fafc;
+    color: var(--text);
+}
+
+.btn.light:hover {
+    background: #e2e8f0;
+}
+
+.btn-save {
+    padding: 14px 32px;
+    font-size: 16px;
+    background: var(--accent);
+    color: #fff;
+}
+
+.btn-save:hover {
+    background: #1d4ed8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+/* 액션 */
+.actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* 주소찾기 레이어 */
+#postcodeLayer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+}
+
+#postcodeWrap {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 500px;
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+#postcodeClose {
+    margin-bottom: 10px;
+}
+
+#postcodeContainer {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .grid.row-1c {
+        grid-template-columns: 1fr;
+    }
+
+    .time-input-group {
+        flex-wrap: wrap;
+    }
+
+    section.card {
+        padding: 16px;
+    }
+
+    .head {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .head .actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}

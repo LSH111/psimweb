@@ -7,8 +7,6 @@ import lombok.Setter;
 import java.util.Date;
 
 @Data
-@Getter
-@Setter
 public class CoUserVO {
     private String userId;
     private String userCd;
@@ -47,4 +45,6 @@ public class CoUserVO {
     private String pwdChangeDd;
     private String changeYn;
     private String cfrmYn;
+    private String useYn;
+    private String sidoCd;
 }

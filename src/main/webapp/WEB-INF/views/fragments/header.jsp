@@ -56,7 +56,7 @@
                 <a href="#">주차장</a>
                 <ul class="sub">
                     <li><a href="<c:url value='/prk/parkinglist'/>">주차장실태조사</a></li>
-                    <li><a href="#">이용실태조사</a></li>
+                    <li><a href="<c:url value='/prk/usage-status-list'/>">이용실태조사</a></li>
                 </ul>
             </li>
             <li class="has-sub">

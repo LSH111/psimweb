@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.psim.web.prk.mapper.PrkUsageStatusMapper">
+
+
+    <select id="selectUsageStatusList" parameterType="com.psim.web.prk.vo.PrkUsageStatusVO"
+            resultType="com.psim.web.prk.vo.PrkUsageStatusVO">
+
+        SELECT
+        t.cmpl_sn,
+        t.prk_biz_mng_no,
+        TO_CHAR(t.examin_dd, 'YYYY-MM-DD') AS examin_dd,
+        t.examin_timelge,
+        t.srvy_id,
+        t.srvy_tel,
+        t.dynt_dv_cd,
+        t.vhcle_no,
+        t.vhcty_cd,
+        t.law_gbn,
+        t.law_cd,
+        t.plce_lat,
+        t.plce_lon,
+        t.hd_inout_cd,
+        t.vhcle_reg_yn,
+        t.emd_cd,
+        t.remark,
+        t.reg_dt,
+        t.rgst_id,
+        -- 🔥 사업 정보에서 행정구역 코드 가져오기
+        b.sido_cd,
+        b.sigungu_cd,
+        -- 🔥 시도명 조회
+        cpk.FN_GET_CODE_NM(b.sido_cd, 'B0001') AS sido_nm,
+        -- 🔥 시군구명 조회
+        cpk.FN_GET_CODE_NM(b.sigungu_cd, 'B0002') AS sigungu_nm,
+        -- 🔥 읍면동명 조회 (sido_cd, sigungu_cd, emd_cd 사용)
+        (SELECT lgal_emd_nm
+        FROM cpk.tb_co_ldong
+        WHERE sido_cd = b.sido_cd
+        AND sigungu_cd = b.sigungu_cd
+        AND emd_cd = t.emd_cd
+        LIMIT 1) AS lgal_emd_nm,
+        -- 🔥 코드명 변환
+        (SELECT code_nm FROM cpk.tb_co_code WHERE code_cd = t.vhcty_cd AND group_cd = 'VHCTY_CD' AND use_yn = 'Y') AS vhcty_nm,
+        (SELECT code_nm FROM cpk.tb_co_code WHERE code_cd = t.dynt_dv_cd AND group_cd = 'DYNT_DV_CD' AND use_yn = 'Y') AS dynt_dv_nm,
+        CASE
+        WHEN t.law_cd = '1' THEN '적법'
+        WHEN t.law_cd = '2' THEN '불법'
+        ELSE '미정'
+        END AS law_cd_nm,
+        CASE
+        WHEN t.vhcle_reg_yn = 'Y' THEN '등록'
+        WHEN t.vhcle_reg_yn = 'N' THEN '미등록'
+        ELSE '-'
+        END AS vhcle_reg_yn_nm
+        FROM cpk.tb_prklot_cmpl_info t
+        -- 🔥 사업 정보 테이블 조인
+        INNER JOIN cpk.tb_prk_srvy_biz_info b ON t.prk_biz_mng_no = b.prk_biz_mng_no
+        WHERE 1=1
+        <if test="prkBizMngNo != null and prkBizMngNo != ''">
+            AND t.prk_biz_mng_no = #{prkBizMngNo}
+        </if>
+        <if test="searchVehicleNo != null and searchVehicleNo != ''">
+            AND t.vhcle_no LIKE '%' || #{searchVehicleNo} || '%'
+        </if>
+        <if test="searchLawCd != null and searchLawCd != ''">
+            AND t.law_cd = #{searchLawCd}
+        </if>
+        <if test="dyntDvCd != null and dyntDvCd != ''">
+            AND t.dynt_dv_cd = #{dyntDvCd}
+        </if>
+        <if test="searchStartDate != null and searchStartDate != ''">
+            AND t.examin_dd &gt;= TO_TIMESTAMP(#{searchStartDate}, 'YYYY-MM-DD')
+        </if>
+        <if test="searchEndDate != null and searchEndDate != ''">
+            AND t.examin_dd &lt;= TO_TIMESTAMP(#{searchEndDate} || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+        </if>
+        <if test="searchEmdCode != null and searchEmdCode != ''">
+            AND t.emd_cd = #{searchEmdCode}
+        </if>
+        ORDER BY t.examin_dd DESC, t.examin_timelge DESC
+    </select>
+
+    <select id="selectUsageStatusDetail" parameterType="com.psim.web.prk.vo.PrkUsageStatusVO"
+            resultType="com.psim.web.prk.vo.PrkUsageStatusVO">
+        SELECT
+            prk_biz_mng_no,
+            examin_dd,
+            examin_timelge,
+            srvy_id,
+            srvy_tel,
+            dynt_dv_cd,
+            vhcle_no,
+            vhcty_cd,
+            law_gbn,
+            law_cd,
+            plce_lat,
+            plce_lon,
+            hd_inout_cd,
+            vhcle_reg_yn,
+            remark,
+            reg_dt,
+            rgst_id,
+            rgst_ip_addr,
+            updt_dt,
+            updusr_id,
+            updusr_ip_addr,
+            cmpl_sn
+        FROM cpk.tb_prklot_cmpl_info
+        WHERE cmpl_sn = #{cmplSn}
+    </select>
+
+    <insert id="insertUsageStatus" parameterType="com.psim.web.prk.vo.PrkUsageStatusVO" useGeneratedKeys="true" keyProperty="cmplSn" keyColumn="cmpl_sn">
+        INSERT INTO cpk.tb_prklot_cmpl_info (
+            cmpl_sn,
+            prk_biz_mng_no,
+            examin_dd,
+            examin_timelge,
+            srvy_id,
+            srvy_tel,
+            dynt_dv_cd,
+            vhcle_no,
+            vhcty_cd,
+            law_gbn,
+            law_cd,
+            plce_lat,
+            plce_lon,
+            hd_inout_cd,
+            vhcle_reg_yn,
+            emd_cd,
+            remark,
+            reg_dt,
+            rgst_id,
+            rgst_ip_addr,
+            updt_dt,
+            updusr_id,
+            updusr_ip_addr
+        ) VALUES (
+             NEXTVAL('cpk.seq_prklot_cmpl_info'),
+             #{prkBizMngNo},
+             #{examinDd},
+             #{examinTimelge},
+             #{srvyId},
+             #{srvyTel},
+             #{dyntDvCd},
+             #{vhcleNo},
+             #{vhctyCd},
+             #{lawGbn},
+             #{lawGbn},
+             #{plceLat},
+             #{plceLon},
+             #{hdInoutCd},
+             #{vhcleRegYn},
+             #{emdCd},
+             #{remark},
+             NOW(),
+             #{rgstId},
+             #{rgstIpAddr},
+             NOW(),
+             #{updusrId},
+             #{updusrIpAddr}
+         )
+    </insert>
+
+    <update id="updateUsageStatus" parameterType="com.psim.web.prk.vo.PrkUsageStatusVO">
+        UPDATE cpk.tb_prklot_cmpl_info
+        SET
+            vhcle_no = #{vhcleNo},
+            law_cd = #{lawCd},
+            law_gbn = #{lawGbn},
+            dynt_dv_cd = #{dyntDvCd},
+            plce_lat = #{plceLat},
+            plce_lon = #{plceLon},
+            remark = #{remark},
+            updt_dt = NOW(),
+            updusr_id = #{updusrId},
+            updusr_ip_addr = #{updusrIpAddr}
+        WHERE cmpl_sn = #{cmplSn}
+    </update>
+
+    <delete id="deleteUsageStatus" parameterType="com.psim.web.prk.vo.PrkUsageStatusVO">
+        DELETE FROM cpk.tb_prklot_cmpl_info
+        WHERE cmpl_sn = #{cmplSn}
+    </delete>
+
+</mapper>

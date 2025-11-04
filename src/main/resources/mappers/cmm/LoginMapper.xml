@@ -6,7 +6,10 @@
     <select id="findUserById" resultType="com.psim.web.cmm.vo.CoUserVO">
         SELECT  user_id AS userId,
                 user_pw AS userPw,
-                user_nm AS userNm
+                user_nm AS userNm,
+                mbtlnum as mbtlnum,
+                sigungu_cd AS sigunguCd,
+                LEFT(TRIM(sigungu_cd), 2) AS sidoCd
         FROM    cpk.tb_co_user
         WHERE   user_id = #{userId}
     </select>
@@ -14,7 +17,10 @@
     <select id="login" resultType="com.psim.web.cmm.vo.CoUserVO">
         SELECT  user_id AS userId,
                 user_pw AS userPw,
-                user_nm AS userNm
+                user_nm AS userNm,
+                mbtlnum as mbtlnum,
+                sigungu_cd AS sigunguCd,
+            LEFT(TRIM(sigungu_cd), 2) AS sidoCd
         FROM    cpk.tb_co_user
         WHERE   user_id = #{userId}
           AND   user_pw = #{password}
@@ -23,7 +29,10 @@
     <select id="loginWithHash" resultType="com.psim.web.cmm.vo.CoUserVO">
         SELECT  user_id AS userId,
                 user_pw AS userPw,
-                user_nm AS userNm
+                user_nm AS userNm,
+                mbtlnum as mbtlnum,
+                sigungu_cd AS sigunguCd,
+            LEFT(TRIM(sigungu_cd), 2) AS sidoCd
         FROM    cpk.tb_co_user
         WHERE   user_id = #{userId}
           AND   user_pw = #{hashedPassword}
