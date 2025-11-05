@@ -54,10 +54,11 @@ public class PrkUsageStatusController {
             model.addAttribute("userName", loginUser.getUserNm());
             model.addAttribute("userTel", loginUser.getMbtlnum());
 
-            log.info("사용자 정보 - prkBizMngNo: {}, sigunguCd: {}, sidoCd: {}, userName: {}, userTel: {}",
-                    prkBizMngNo, loginUser.getSigunguCd(), loginUser.getSidoCd(), loginUser.getUserNm(), loginUser.getMbtlnum());
+            log.info("📋 세션 정보 전달 - prkBizMngNo: {}, sigunguCd: {}, sidoCd: {}, userName: {}, userTel: {}",
+                    prkBizMngNo, loginUser.getSigunguCd(), loginUser.getSidoCd(),
+                    loginUser.getUserNm(), loginUser.getMbtlnum());
         } else {
-            log.warn("세션에 로그인 사용자 정보가 없습니다.");
+            log.warn("⚠️ 세션에 로그인 사용자 정보가 없습니다.");
         }
 
         return "prk/usage-status-list";

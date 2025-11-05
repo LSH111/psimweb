@@ -1,7 +1,7 @@
 # 🔥 파일 업로드 설정 (YAML 형식으로 수정)
 file:
   upload:
-    path: /var/uploads/psim
+    path: /Users/isihyeong/upload/psim
 
 spring:
   profiles:

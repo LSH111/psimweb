@@ -7,7 +7,7 @@
     <!-- 🔥 최대 순번 조회 (주차장용) -->
     <select id="selectMaxSeqNo" resultType="java.lang.Integer">
         SELECT COALESCE(MAX(seq_no), 0)
-        FROM tb_attch_pic_mng_info
+        FROM cpk.tb_attch_pic_mng_info
         WHERE prk_plce_info_sn = #{prkPlceInfoSn}
         <if test="prkImgId != null and prkImgId != ''">
             AND prk_img_id = #{prkImgId}
@@ -17,7 +17,7 @@
     <!-- 🔥 최대 순번 조회 (이용실태용) -->
     <select id="selectMaxSeqNoForUsage" resultType="java.lang.Integer">
         SELECT COALESCE(MAX(seq_no), 0)
-        FROM tb_attch_pic_mng_info
+        FROM cpk.tb_attch_pic_mng_info
         WHERE cmpl_sn = #{cmplSn}
         <if test="prkImgId != null and prkImgId != ''">
             AND prk_img_id = #{prkImgId}
@@ -27,7 +27,7 @@
 
     <!-- 🔥 INSERT - cmpl_sn 추가 -->
     <insert id="insertAttchPicMngInfo" parameterType="com.psim.web.file.vo.AttchPicMngInfoVO">
-        INSERT INTO tb_attch_pic_mng_info (
+        INSERT INTO cpk.tb_attch_pic_mng_info (
             prk_plce_info_sn,
             prk_plce_type,
             prk_oper_type,
@@ -80,7 +80,7 @@
         updt_dt AS updtDt,
         updusr_id AS updusrId,
         updusr_ip_addr AS updusrIpAddr
-        FROM tb_attch_pic_mng_info
+        FROM cpk.tb_attch_pic_mng_info
         WHERE 1=1
         <if test="prkPlceInfoSn != null">
             AND prk_plce_info_sn = #{prkPlceInfoSn}
@@ -117,7 +117,7 @@
 
     <!-- 🔥 UPDATE -->
     <update id="updateAttchPicMngInfo" parameterType="com.psim.web.file.vo.AttchPicMngInfoVO">
-        UPDATE tb_attch_pic_mng_info
+        UPDATE cpk.tb_attch_pic_mng_info
         SET
         ext_nm = #{extNm},
         file_path = #{filePath},
@@ -141,7 +141,7 @@
 
     <!-- 🔥 DELETE -->
     <delete id="deleteAttchPicMngInfo">
-        DELETE FROM tb_attch_pic_mng_info
+        DELETE FROM cpk.tb_attch_pic_mng_info
         WHERE 1=1
         <choose>
             <when test="cmplSn != null and cmplSn != ''">

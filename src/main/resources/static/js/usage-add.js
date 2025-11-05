@@ -146,12 +146,15 @@
                 openPostcode();
             }
 
-            // 저장 버튼
+            // 저장 버튼 - 🔥 이 부분을 수정하세요
             else if (target.id === 'btnSave' || target.id === 'btnSaveTop' ||
                 target.closest('#btnSave') || target.closest('#btnSaveTop')) {
                 e.preventDefault();
+                e.stopPropagation(); // 🔥 추가
+                e.stopImmediatePropagation(); // 🔥 추가
                 console.log('💾 저장 버튼 클릭 (이벤트 위임)');
                 handleSave();
+                return false; // 🔥 추가
             }
 
             // 우편번호 닫기 버튼
@@ -243,7 +246,7 @@
                     // 시군구 목록 로드
                     await FormCodeUtils.loadSigunguList(sessionInfo.sidoCd);
 
-                    // 🔥 시군구도 자동 선택
+                    // 🔥 시군구도 자동 선택 및 readonly 처리
                     if (sessionInfo.sigunguCd) {
                         const sigunguSelect = $('#f_sigungu');
                         if (sigunguSelect) {
@@ -254,6 +257,11 @@
                                 sigunguSelect.value = sessionInfo.sigunguCd;
                                 console.log('✅ 세션에서 시군구 자동 선택:', sessionInfo.sigunguCd);
 
+                                // 🔥 시군구 readonly 처리
+                                sigunguSelect.disabled = true;
+                                sigunguSelect.style.backgroundColor = '#f1f5f9';
+                                sigunguSelect.style.cursor = 'not-allowed';
+
                                 // 읍면동 목록 로드
                                 await FormCodeUtils.loadEmdList(sessionInfo.sigunguCd);
                             }
@@ -263,8 +271,11 @@
             }
         }
 
-        // 조사원 정보 세션에서 자동 입력
+        // 🔥 조사원 정보 세션에서 자동 입력 (readonly 처리 포함)
         setupSurveyorInfo();
+
+        // 🔥 차량번호 입력 검증 추가
+        setupPlateNumberValidation();
 
         // 오늘 날짜 기본값 설정
         setTodayDate();
@@ -272,7 +283,7 @@
         console.log('✅ 폼 초기화 완료');
     }
 
-    // 조사원 정보 설정
+    // 🔥 조사원 정보 설정 (readonly 처리)
     function setupSurveyorInfo() {
         if (typeof sessionInfo !== 'undefined') {
             const surveyorName = $('#f_surveyorName');
@@ -280,11 +291,60 @@
 
             if (surveyorName && sessionInfo.userNm) {
                 surveyorName.value = sessionInfo.userNm;
+                surveyorName.readOnly = true;
+                surveyorName.style.backgroundColor = '#f1f5f9';
+                surveyorName.style.cursor = 'not-allowed';
+                console.log('✅ 조사원 성명 자동 입력 및 readonly:', sessionInfo.userNm);
             }
             if (surveyorContact && sessionInfo.mbtlnum) {
                 surveyorContact.value = sessionInfo.mbtlnum;
+                surveyorContact.readOnly = true;
+                surveyorContact.style.backgroundColor = '#f1f5f9';
+                surveyorContact.style.cursor = 'not-allowed';
+                console.log('✅ 조사원 연락처 자동 입력 및 readonly:', sessionInfo.mbtlnum);
             }
         }
+    }
+
+    // 🔥 차량번호 형식 검증 추가
+    function setupPlateNumberValidation() {
+        const plateInput = $('#f_plateNumber');
+        if (!plateInput) return;
+
+        // 실시간 입력 검증
+        plateInput.addEventListener('input', function(e) {
+            let value = e.target.value;
+
+            // 한글, 숫자만 허용 (공백 제거)
+            value = value.replace(/[^가-힣0-9ㄱ-ㅎㅏ-ㅣ]/g, '');
+
+            e.target.value = value;
+        });
+
+        // 포커스 아웃 시 최종 검증
+        plateInput.addEventListener('blur', function(e) {
+            const value = e.target.value.trim();
+
+            if (value && !isValidPlateNumber(value)) {
+                alert('⚠️ 올바른 차량번호 형식이 아닙니다.\n\n예시:\n- 12가3456\n- 서울12가3456\n- 123가4567\n- 경기12가3456');
+                e.target.focus();
+            }
+        });
+
+        console.log('✅ 차량번호 검증 설정 완료');
+    }
+
+    // 🔥 한국 차량번호 패턴 검증
+    function isValidPlateNumber(plateNumber) {
+        if (!plateNumber) return false;
+
+        // 한국 차량번호 패턴들
+        const patterns = [
+            /^\d{2,3}[가-힣]{1}\d{4}$/,           // 12가3456, 123가4567
+            /^[가-힣]{2}\d{2,3}[가-힣]{1}\d{4}$/  // 서울12가3456, 경기123가4567
+        ];
+
+        return patterns.some(pattern => pattern.test(plateNumber));
     }
 
     // 오늘 날짜 설정
@@ -560,9 +620,38 @@
         console.log('사진 초기화 완료');
     }
 
+
+    // 🔥 저장 중 플래그 추가
+    let isSaving = false;
+
     // ========== 저장 처리 ==========
     async function handleSave() {
+        // 🔥 이미 저장 중이면 중복 실행 방지
+        if (isSaving) {
+            console.warn('⚠️ 이미 저장 중입니다.');
+            return;
+        }
+
         console.log('💾 저장 시작');
+
+        // 🔥 저장 시작 플래그 설정
+        isSaving = true;
+
+        // 🔥 버튼 비활성화
+        const saveButtons = document.querySelectorAll('#btnSave, #btnSaveTop');
+        saveButtons.forEach(btn => {
+            btn.disabled = true;
+            btn.textContent = '저장 중...';
+        });
+
+        // 🔥 validation 실패 시 복구하는 함수
+        const resetSaveState = () => {
+            isSaving = false;
+            saveButtons.forEach(btn => {
+                btn.disabled = false;
+                btn.textContent = '💾 저장하기';
+            });
+        };
 
         const data = {
             emdCd: $('#f_emd')?.value || '',
@@ -571,7 +660,7 @@
             vhctyCd: document.querySelector('input[name="vehicleType"]:checked')?.value || '',
             lawGbn: document.querySelector('input[name="lawGbn"]:checked')?.value || '1',
             lawCd: document.querySelector('input[name="lawGbn"]:checked')?.value || '1',
-            vhcleNo: $('#f_plateNumber')?.value || '',
+            vhcleNo: $('#f_plateNumber')?.value?.trim() || '',
             srvyId: $('#f_surveyorName')?.value || '',
             srvyTel: $('#f_surveyorContact')?.value || '',
             remark: $('#f_remarks')?.value || '',
@@ -579,20 +668,34 @@
             plceLon: $('#f_lng')?.value || ''
         };
 
+        // 🔥 필수 입력 검증 - 실패 시 상태 복구
         if (!data.emdCd) {
             alert('읍면동을 선택해주세요.');
+            resetSaveState();
             return;
         }
         if (!data.examinDd) {
             alert('조사일을 입력해주세요.');
+            resetSaveState();
             return;
         }
+
+        // 🔥 차량번호 검증
         if (!data.vhcleNo) {
             alert('차량번호를 입력해주세요.');
+            resetSaveState();
             return;
         }
+        if (!isValidPlateNumber(data.vhcleNo)) {
+            alert('⚠️ 올바른 차량번호 형식이 아닙니다.\n\n예시:\n- 12가3456\n- 서울12가3456\n- 123가4567\n- 경기12가3456');
+            $('#f_plateNumber')?.focus();
+            resetSaveState();
+            return;
+        }
+
         if (!data.srvyId) {
             alert('조사원 성명을 입력해주세요.');
+            resetSaveState();
             return;
         }
 
@@ -618,18 +721,53 @@
                 resetUsageAddForm();
                 clearPhoto();
 
-                if (typeof window.switchToListTab === 'function') {
-                    window.switchToListTab();
+                // 🔥 등록 탭 닫기
+                const tabAdd = document.querySelector('[data-tab="add"]');
+                if (tabAdd) {
+                    tabAdd.classList.remove('active');
+                    console.log('✅ 등록 탭 닫기');
                 }
-                if (typeof window.loadUsageStatusList === 'function') {
-                    window.loadUsageStatusList();
+
+                // 🔥 등록 패널 숨기기
+                const panelAdd = document.querySelector('#panelAdd');
+                if (panelAdd) {
+                    panelAdd.style.display = 'none';
+                    console.log('✅ 등록 패널 숨기기');
                 }
+
+                // 🔥 목록 탭 활성화
+                const tabList = document.querySelector('[data-tab="list"]');
+                if (tabList) {
+                    tabList.classList.add('active');
+                    console.log('✅ 목록 탭 활성화');
+                }
+
+                // 🔥 목록 패널 표시
+                const panelList = document.querySelector('#panelList');
+                if (panelList) {
+                    panelList.style.display = 'block';
+                    console.log('✅ 목록 패널 표시');
+                }
+
+                // 🔥 목록 새로고침 (딜레이 추가)
+                setTimeout(() => {
+                    if (typeof window.loadUsageStatusList === 'function') {
+                        console.log('✅ 목록 새로고침');
+                        window.loadUsageStatusList();
+                    } else {
+                        console.warn('⚠️ loadUsageStatusList 함수가 없습니다.');
+                    }
+                }, 300);
+
             } else {
                 alert('저장 실패: ' + (result.message || '알 수 없는 오류'));
             }
         } catch (error) {
             console.error('❌ 저장 오류:', error);
-            alert('저장 중 오류가 발생했습니다.');
+            alert('저장 중 오류가 발생했습니다: ' + error.message);
+        } finally {
+            // 🔥 저장 완료 후 플래그 해제 및 버튼 활성화
+            resetSaveState();
         }
     }
 

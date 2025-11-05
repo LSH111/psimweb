@@ -173,34 +173,37 @@
         </div>
     </section>
 
-    <!-- 차량번호 -->
+    <!-- 🔥 차량번호 - 패턴 검증 추가 -->
     <section class="card">
         <h2>차량번호</h2>
         <div class="grid">
             <div>
                 <label for="f_plateNumber">차량번호</label>
                 <div class="ctl">
-                    <input id="f_plateNumber" type="text" placeholder="예) 123가4567"/>
+                    <input id="f_plateNumber" type="text" placeholder="예) 12가3456, 서울12가3456" maxlength="12"/>
+                    <small style="display:block; margin-top:6px; color:#64748b; font-size:0.85rem;">
+                        형식: 12가3456, 서울12가3456, 123가4567 등
+                    </small>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- 조사원 -->
+    <!-- 🔥 조사원 - readonly 처리 -->
     <section class="card">
         <h2>조사원</h2>
         <div class="grid row-1c">
             <div>
                 <label for="f_surveyorName">성명</label>
                 <div class="ctl">
-                    <input id="f_surveyorName" type="text" placeholder="조사원 이름"/>
+                    <input id="f_surveyorName" type="text" placeholder="조사원 이름" readonly style="background-color:#f1f5f9; cursor:not-allowed;"/>
                 </div>
             </div>
 
             <div>
                 <label for="f_surveyorContact">연락처</label>
                 <div class="ctl">
-                    <input id="f_surveyorContact" type="text" placeholder="예) 010-1234-5678" inputmode="tel"/>
+                    <input id="f_surveyorContact" type="text" placeholder="예) 010-1234-5678" inputmode="tel" readonly style="background-color:#f1f5f9; cursor:not-allowed;"/>
                 </div>
             </div>
         </div>
