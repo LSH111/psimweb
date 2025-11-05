@@ -1,5 +1,6 @@
 package com.psim.web.prk.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.psim.web.file.service.AttchPicMngInfoService;
 import com.psim.web.prk.service.PrkDefPlceInfoService;
 import com.psim.web.prk.vo.ParkingDetailVO;
@@ -100,15 +101,21 @@ public class PrkDefPlceInfoController {
      */
     @PostMapping("/onparking-update")
     public ResponseEntity<Map<String, Object>> updateOnstreetParking(
-            @RequestBody ParkingDetailVO parkingData,
-            @RequestParam(value = "mainPhoto", required = false) MultipartFile mainPhoto,
-            @RequestParam(value = "signPhoto", required = false) MultipartFile signPhoto,
+            @RequestPart("parkingData") String parkingDataJson, // ✅ JSON 문자열로 받기
+            @RequestPart(value = "mainPhoto", required = false) MultipartFile mainPhoto,
+            @RequestPart(value = "signPhoto", required = false) MultipartFile signPhoto,
             HttpServletRequest request) {
 
         Map<String, Object> response = new HashMap<>();
 
         try {
-            log.info("🔄 노상주차장 업데이트 시작: {}", parkingData.getPrkPlceManageNo());
+            log.info("🔄 노상주차장 업데이트 시작");
+
+            // ✅ JSON 문자열을 객체로 변환
+            ObjectMapper objectMapper = new ObjectMapper();
+            ParkingDetailVO parkingData = objectMapper.readValue(parkingDataJson, ParkingDetailVO.class);
+
+            log.info("📝 주차장 관리번호: {}", parkingData.getPrkPlceManageNo());
 
             // 주차장 정보 저장
             prkDefPlceInfoService.updateOnstreetParking(parkingData);
@@ -117,13 +124,13 @@ public class PrkDefPlceInfoController {
 
             // 🔥 현장 사진 저장
             if (mainPhoto != null && !mainPhoto.isEmpty()) {
-                log.info("📸 현장 사진 저장 시작");
+                log.info("📸 현장 사진 저장 시작: {}", mainPhoto.getOriginalFilename());
                 attchPicService.uploadAndSaveFile(prkPlceInfoSn, "ON_MAIN", mainPhoto);
             }
 
             // 🔥 표지판 사진 저장
             if (signPhoto != null && !signPhoto.isEmpty()) {
-                log.info("📸 표지판 사진 저장 시작");
+                log.info("📸 표지판 사진 저장 시작: {}", signPhoto.getOriginalFilename());
                 attchPicService.uploadAndSaveFile(prkPlceInfoSn, "ON_SIGN", signPhoto);
             }
 

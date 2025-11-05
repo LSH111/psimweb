@@ -1,9 +1,22 @@
+# 🔥 파일 업로드 설정 (YAML 형식으로 수정)
+file:
+  upload:
+    path: /var/uploads/psim
+
 spring:
   profiles:
-    #active: dev
+  #active: dev
   config:
     activate:
       on-profile: default
+
+  # 🔥 파일 업로드 설정
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 50MB
+      enabled: true
+
   datasource:
     # PostgreSQL을 기본 설정으로 변경
     driver-class-name: ${DB_DRIVER:org.postgresql.Driver}
@@ -40,7 +53,7 @@ mybatis:
     lazy-loading-enabled: false
     aggressive-lazy-loading: false
     default-statement-timeout: 30
-    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl  # 🔥 SQL 로깅 활성화
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
 
 # 로깅 설정
 logging:
@@ -48,29 +61,27 @@ logging:
     root: INFO
     com.psim: DEBUG
     com.psim.web: DEBUG
-    com.psim.web.prk.mapper: TRACE     # 🔥 주차장 Mapper SQL 로깅
-    com.psim.web.cmm.mapper: TRACE     # 🔥 공통 Mapper SQL 로깅
+    com.psim.web.prk.mapper: TRACE
+    com.psim.web.cmm.mapper: TRACE
     com.zaxxer.hikari: INFO
     org.springframework.jdbc: DEBUG
     org.springframework.transaction: DEBUG
     org.mybatis: DEBUG
-    org.apache.ibatis: TRACE            # 🔥 추가
-    java.sql: TRACE                     # 🔥 추가
-    java.sql.Connection: DEBUG          # 🔥 추가
-    java.sql.Statement: DEBUG           # 🔥 추가
-    java.sql.PreparedStatement: DEBUG   # 🔥 추가
-    java.sql.ResultSet: TRACE           # 🔥 추가
+    org.apache.ibatis: TRACE
+    java.sql: TRACE
+    java.sql.Connection: DEBUG
+    java.sql.Statement: DEBUG
+    java.sql.PreparedStatement: DEBUG
+    java.sql.ResultSet: TRACE
   pattern:
     console: |
-
       %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(%logger{40})
       %msg%n
     file: |
-
       %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{40}
       %msg%n
   file:
-    name: logs/psim-web.log           # 🔥 로그 파일 저장
+    name: logs/psim-web.log
     max-size: 10MB
     max-history: 30
 
@@ -84,11 +95,11 @@ server:
       enabled: true
       force: true
     session:
-      timeout: 30m  # 30분 세션 타임아웃
+      timeout: 30m
       cookie:
-        secure: false  # 🔥 개발 환경에서는 false (HTTP 허용)
-        http-only: true  # JavaScript 접근 차단
-        same-site: lax  # 🔥 strict → lax로 변경 (로컬 개발 편의성)
+        secure: false
+        http-only: true
+        same-site: lax
 
 # Kakao API 설정
 kakao:
@@ -98,7 +109,7 @@ kakao:
 management:
   endpoints:
     web:
-      base-path: /api  # 이 설정이 있으면 /api/health로 매핑됨
+      base-path: /api
       exposure:
         include: health
   endpoint:

@@ -1601,7 +1601,7 @@ async function handlePhotoWithGPS(file) {
     }
 }
 
-// ========== 🔥 저장 함수 ==========
+// ========== 저장 함수 수정 ==========
 async function doSave() {
     try {
         const validationErrors = validateRequiredFields();
@@ -1621,12 +1621,89 @@ async function doSave() {
 
         console.log('📤 전송 데이터:', serverData);
 
+        // 🔥 FormData 생성
+        const formData = new FormData();
+
+        // JSON 데이터를 Blob으로 추가
+        formData.append('parkingData', new Blob([JSON.stringify(serverData)], {
+            type: 'application/json'
+        }));
+
+        // 🔥 현장 사진
+        const mainPhotoLib = document.getElementById('f_photo_lib');
+        const mainPhotoCam = document.getElementById('f_photo_cam');
+
+        if (mainPhotoLib && mainPhotoLib.files && mainPhotoLib.files.length > 0) {
+            formData.append('mainPhoto', mainPhotoLib.files[0]);
+            console.log('📸 현장 사진 추가:', mainPhotoLib.files[0].name);
+        } else if (mainPhotoCam && mainPhotoCam.files && mainPhotoCam.files.length > 0) {
+            formData.append('mainPhoto', mainPhotoCam.files[0]);
+            console.log('📸 현장 사진 추가:', mainPhotoCam.files[0].name);
+        }
+
+        // 🔥 표지판 사진
+        const signPhotoLib = document.getElementById('f_sign_photo_lib');
+        const signPhotoCam = document.getElementById('f_sign_photo_cam');
+
+        if (signPhotoLib && signPhotoLib.files && signPhotoLib.files.length > 0) {
+            formData.append('signPhoto', signPhotoLib.files[0]);
+            console.log('📸 표지판 사진 추가:', signPhotoLib.files[0].name);
+        } else if (signPhotoCam && signPhotoCam.files && signPhotoCam.files.length > 0) {
+            formData.append('signPhoto', signPhotoCam.files[0]);
+            console.log('📸 표지판 사진 추가:', signPhotoCam.files[0].name);
+        }
+
+        // 🔥 발권기 사진
+        const ticketPhotoLib = document.getElementById('f_ticket_photo_lib');
+        const ticketPhotoCam = document.getElementById('f_ticket_photo_cam');
+
+        if (ticketPhotoLib && ticketPhotoLib.files && ticketPhotoLib.files.length > 0) {
+            formData.append('ticketPhoto', ticketPhotoLib.files[0]);
+            console.log('📸 발권기 사진 추가:', ticketPhotoLib.files[0].name);
+        } else if (ticketPhotoCam && ticketPhotoCam.files && ticketPhotoCam.files.length > 0) {
+            formData.append('ticketPhoto', ticketPhotoCam.files[0]);
+            console.log('📸 발권기 사진 추가:', ticketPhotoCam.files[0].name);
+        }
+
+        // 🔥 차단기 사진
+        const barrierPhotoLib = document.getElementById('f_barrier_photo_lib');
+        const barrierPhotoCam = document.getElementById('f_barrier_photo_cam');
+
+        if (barrierPhotoLib && barrierPhotoLib.files && barrierPhotoLib.files.length > 0) {
+            formData.append('barrierPhoto', barrierPhotoLib.files[0]);
+            console.log('📸 차단기 사진 추가:', barrierPhotoLib.files[0].name);
+        } else if (barrierPhotoCam && barrierPhotoCam.files && barrierPhotoCam.files.length > 0) {
+            formData.append('barrierPhoto', barrierPhotoCam.files[0]);
+            console.log('📸 차단기 사진 추가:', barrierPhotoCam.files[0].name);
+        }
+
+        // 🔥 출차알람 사진
+        const exitAlarmPhotoLib = document.getElementById('f_exit_alarm_photo_lib');
+        const exitAlarmPhotoCam = document.getElementById('f_exit_alarm_photo_cam');
+
+        if (exitAlarmPhotoLib && exitAlarmPhotoLib.files && exitAlarmPhotoLib.files.length > 0) {
+            formData.append('exitAlarmPhoto', exitAlarmPhotoLib.files[0]);
+            console.log('📸 출차알람 사진 추가:', exitAlarmPhotoLib.files[0].name);
+        } else if (exitAlarmPhotoCam && exitAlarmPhotoCam.files && exitAlarmPhotoCam.files.length > 0) {
+            formData.append('exitAlarmPhoto', exitAlarmPhotoCam.files[0]);
+            console.log('📸 출차알람 사진 추가:', exitAlarmPhotoCam.files[0].name);
+        }
+
+        // 🔥 주차장 입구 사진
+        const entrancePhotoLib = document.getElementById('f_entrance_photo_lib');
+        const entrancePhotoCam = document.getElementById('f_entrance_photo_cam');
+
+        if (entrancePhotoLib && entrancePhotoLib.files && entrancePhotoLib.files.length > 0) {
+            formData.append('entrancePhoto', entrancePhotoLib.files[0]);
+            console.log('📸 입구 사진 추가:', entrancePhotoLib.files[0].name);
+        } else if (entrancePhotoCam && entrancePhotoCam.files && entrancePhotoCam.files.length > 0) {
+            formData.append('entrancePhoto', entrancePhotoCam.files[0]);
+            console.log('📸 입구 사진 추가:', entrancePhotoCam.files[0].name);
+        }
+
         const response = await fetch('/prk/buildparking-update', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(serverData)
+            body: formData
         });
 
         if (!response.ok) {

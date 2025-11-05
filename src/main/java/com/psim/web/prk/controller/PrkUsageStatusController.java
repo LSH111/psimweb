@@ -1,6 +1,7 @@
 package com.psim.web.prk.controller;
 
 import com.psim.web.cmm.vo.CoUserVO;
+import com.psim.web.file.vo.AttchPicMngInfoVO;
 import com.psim.web.file.service.AttchPicMngInfoService;
 import com.psim.web.prk.service.PrkUsageStatusService;
 import com.psim.web.prk.vo.PrkUsageStatusVO;
@@ -9,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -125,62 +127,85 @@ public class PrkUsageStatusController {
      */
     @PostMapping("/api/usage-status/save")
     @ResponseBody
-    public Map<String, Object> saveUsageStatus(@RequestBody PrkUsageStatusVO vo,
-                                               HttpServletRequest request,
-                                               HttpSession session) {
+    public Map<String, Object> saveUsageStatus(
+            @RequestParam Map<String, String> params,
+            @RequestParam(value = "photos", required = false) List<MultipartFile> photos,
+            HttpServletRequest request,
+            HttpSession session) {
+
         Map<String, Object> result = new HashMap<>();
 
         try {
-            // 🔥 세션에서 로그인 사용자 정보 가져오기
             CoUserVO loginUser = (CoUserVO) session.getAttribute("loginUser");
-
             if (loginUser == null) {
                 result.put("success", false);
-                result.put("message", "로그인 정보가 없습니다. 다시 로그인해주세요.");
+                result.put("message", "로그인 정보가 없습니다.");
                 return result;
             }
 
-            // 🔥 세션에서 사업관리번호 목록 가져오기
             @SuppressWarnings("unchecked")
             List<String> userBizList = (List<String>) session.getAttribute("userBizList");
-
-            if (userBizList != null && !userBizList.isEmpty()) {
-                // 첫 번째 사업관리번호 사용
-                String prkBizMngNo = userBizList.get(0);
-                vo.setPrkBizMngNo(prkBizMngNo);
-                log.info("세션에서 가져온 사업관리번호: {}", prkBizMngNo);
-            } else {
+            if (userBizList == null || userBizList.isEmpty()) {
                 result.put("success", false);
-                result.put("message", "사업관리번호 정보가 없습니다. 다시 로그인해주세요.");
+                result.put("message", "사업관리번호 정보가 없습니다.");
                 return result;
             }
 
-            // 🔥 등록자/수정자 ID 설정
+            // VO 생성
+            PrkUsageStatusVO vo = new PrkUsageStatusVO();
+            vo.setPrkBizMngNo(userBizList.get(0));
+            vo.setEmdCd(params.get("emdCd"));
+            vo.setExaminDd(params.get("examinDd"));
+            vo.setExaminTimelge(params.get("examinTimelge"));
+            vo.setVhctyCd(params.get("vhctyCd"));
+            vo.setLawGbn(params.get("lawGbn"));
+            vo.setLawCd(params.get("lawCd"));
+            vo.setVhcleNo(params.get("vhcleNo"));
+            vo.setSrvyId(params.get("srvyId"));
+            vo.setSrvyTel(params.get("srvyTel"));
+            vo.setRemark(params.get("remark"));
+            vo.setPlceLat(params.get("plceLat"));
+            vo.setPlceLon(params.get("plceLon"));
             vo.setRgstId(loginUser.getUserId());
             vo.setUpdusrId(loginUser.getUserId());
+            vo.setRgstIpAddr(request.getRemoteAddr());
+            vo.setUpdusrIpAddr(request.getRemoteAddr());
 
-            // IP 주소 설정
-            String ipAddress = request.getRemoteAddr();
-            vo.setRgstIpAddr(ipAddress);
-            vo.setUpdusrIpAddr(ipAddress);
+            log.info("💾 이용실태 저장 시작 - 차량번호: {}", vo.getVhcleNo());
 
-            log.info("저장 데이터 - prkBizMngNo: {}, rgstId: {}, rgstIpAddr: {}",
-                    vo.getPrkBizMngNo(), vo.getRgstId(), vo.getRgstIpAddr());
+            // 🔥 이용실태 저장 (cmpl_sn 자동 생성)
+            int cnt = usageStatusService.insertUsageStatus(vo);
 
-            int cnt = 0;
-            if (vo.getCmplSn() != null && !vo.getCmplSn().isEmpty()) {
-                // 수정
-                cnt = usageStatusService.updateUsageStatus(vo);
+            if (cnt > 0) {
+                String cmplSn = vo.getCmplSn();
+                log.info("✅ 이용실태 저장 완료 - cmpl_sn: {}", cmplSn);
+
+                // 🔥 파일 업로드 (cmplSn 사용)
+                if (photos != null && !photos.isEmpty()) {
+                    log.info("📸 파일 업로드 시작 - {}개", photos.size());
+
+                    List<AttchPicMngInfoVO> uploadedFiles = attchPicService.uploadAndSaveFilesForUsage(
+                            cmplSn,
+                            "USG_PHOTO",
+                            photos,
+                            loginUser.getUserId(),      // 🔥 사용자 ID 전달
+                            request.getRemoteAddr()     // 🔥 사용자 IP 전달
+                    );
+
+                    log.info("✅ 파일 업로드 완료: {}개", uploadedFiles.size());
+                    result.put("uploadedFiles", uploadedFiles);
+                }
+
+                result.put("success", true);
+                result.put("message", "저장되었습니다.");
+                result.put("cmplSn", cmplSn);
             } else {
-                // 등록
-                cnt = usageStatusService.insertUsageStatus(vo);
+                result.put("success", false);
+                result.put("message", "저장에 실패했습니다.");
             }
 
-            result.put("success", cnt > 0);
-            result.put("message", cnt > 0 ? "저장되었습니다." : "저장에 실패했습니다.");
-
         } catch (Exception e) {
-            log.error("주차이용실태 저장 오류", e);
+            log.error("❌ 저장 오류", e);
             result.put("success", false);
             result.put("message", "저장 중 오류가 발생했습니다: " + e.getMessage());
         }

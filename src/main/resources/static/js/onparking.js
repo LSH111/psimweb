@@ -1869,32 +1869,60 @@ async function handlePhotoWithGPS(file) {
 // ========== 저장 함수 수정 ==========
 async function doSave() {
     try {
-
-        // 🔥 1. 필수 입력 검증 (기본정보 제외)
+        // 1. 필수 입력 검증
         const validationErrors = validateRequiredFields();
         if (validationErrors.length > 0) {
             alert('다음 항목을 입력해주세요:\n\n' + validationErrors.join('\n'));
             return;
         }
+
         const payload = buildPayload();
 
-        // 🔥 prkPlceManageNo 추가 (필수!)
         if (!payload.id) {
             alert('주차장 관리번호가 없습니다. 데이터를 다시 조회해주세요.');
             return;
         }
 
-        // 🔥 서버 전송용 데이터 매핑
         const serverData = mapPayloadToServerFormat(payload);
 
         console.log('📤 전송 데이터:', serverData);
 
+        // 🔥 FormData 생성
+        const formData = new FormData();
+
+        // JSON 데이터를 Blob으로 추가
+        formData.append('parkingData', new Blob([JSON.stringify(serverData)], {
+            type: 'application/json'
+        }));
+
+        // 🔥 현장 사진 파일 추가
+        const mainPhotoLib = document.getElementById('f_photo_lib');
+        const mainPhotoCam = document.getElementById('f_photo_cam');
+
+        if (mainPhotoLib && mainPhotoLib.files && mainPhotoLib.files.length > 0) {
+            formData.append('mainPhoto', mainPhotoLib.files[0]);
+            console.log('📸 현장 사진(사진첩) 추가:', mainPhotoLib.files[0].name);
+        } else if (mainPhotoCam && mainPhotoCam.files && mainPhotoCam.files.length > 0) {
+            formData.append('mainPhoto', mainPhotoCam.files[0]);
+            console.log('📸 현장 사진(카메라) 추가:', mainPhotoCam.files[0].name);
+        }
+
+        // 🔥 표지판 사진 파일 추가
+        const signPhotoLib = document.getElementById('f_sign_photo_lib');
+        const signPhotoCam = document.getElementById('f_sign_photo_cam');
+
+        if (signPhotoLib && signPhotoLib.files && signPhotoLib.files.length > 0) {
+            formData.append('signPhoto', signPhotoLib.files[0]);
+            console.log('📸 표지판 사진(사진첩) 추가:', signPhotoLib.files[0].name);
+        } else if (signPhotoCam && signPhotoCam.files && signPhotoCam.files.length > 0) {
+            formData.append('signPhoto', signPhotoCam.files[0]);
+            console.log('📸 표지판 사진(카메라) 추가:', signPhotoCam.files[0].name);
+        }
+
+        // 🔥 서버 API 호출
         const response = await fetch('/prk/onparking-update', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(serverData)
+            body: formData
         });
 
         if (!response.ok) {
@@ -1904,10 +1932,7 @@ async function doSave() {
         const result = await response.json();
 
         if (result.success) {
-            // ✅ 모바일/하이브리드 환경 대응: alert 후 충분한 대기 시간 제공
             alert('저장되었습니다.');
-
-            // 🔥 alert가 완전히 표시된 후 페이지 이동 (1.5초 대기)
             setTimeout(() => {
                 window.location.href = '/prk/parkinglist';
             }, 1500);

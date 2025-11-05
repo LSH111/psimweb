@@ -20,7 +20,10 @@ public class AttchPicMngInfoVO {
     private LocalDateTime updtDt;       // 수정일시
     private String updusrId;            // 수정자 ID
     private String updusrIpAddr;        // 수정 IP
-    
-    // 🔥 이미지 구분자 (화면 및 사진 종류 구분)
+
     private String prkImgId;            // 이미지 ID
+
+    // 🔥 이용실태 연결용
+    private String cmplSn;              // 실태조사일련번호
+    private String attachType;          // 첨부 타입 (PARKING=주차장, USAGE=이용실태)
 }

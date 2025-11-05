@@ -4,8 +4,29 @@
 
 <mapper namespace="com.psim.web.file.mapper.AttchPicMngInfoMapper">
 
-    <!-- 🔥 INSERT -->
-    <insert id="insertAttchPicMngInfo" parameterType="AttchPicMngInfoVO">
+    <!-- 🔥 최대 순번 조회 (주차장용) -->
+    <select id="selectMaxSeqNo" resultType="java.lang.Integer">
+        SELECT COALESCE(MAX(seq_no), 0)
+        FROM tb_attch_pic_mng_info
+        WHERE prk_plce_info_sn = #{prkPlceInfoSn}
+        <if test="prkImgId != null and prkImgId != ''">
+            AND prk_img_id = #{prkImgId}
+        </if>
+    </select>
+
+    <!-- 🔥 최대 순번 조회 (이용실태용) -->
+    <select id="selectMaxSeqNoForUsage" resultType="java.lang.Integer">
+        SELECT COALESCE(MAX(seq_no), 0)
+        FROM tb_attch_pic_mng_info
+        WHERE cmpl_sn = #{cmplSn}
+        <if test="prkImgId != null and prkImgId != ''">
+            AND prk_img_id = #{prkImgId}
+        </if>
+    </select>
+
+
+    <!-- 🔥 INSERT - cmpl_sn 추가 -->
+    <insert id="insertAttchPicMngInfo" parameterType="com.psim.web.file.vo.AttchPicMngInfoVO">
         INSERT INTO tb_attch_pic_mng_info (
             prk_plce_info_sn,
             prk_plce_type,
@@ -16,6 +37,8 @@
             file_nm,
             real_file_nm,
             prk_img_id,
+            cmpl_sn,
+            attach_type,
             reg_dt,
             rgst_id,
             rgst_ip_addr
@@ -29,30 +52,16 @@
                      #{fileNm},
                      #{realFileNm},
                      #{prkImgId},
+                     #{cmplSn},
+                     #{attachType},
                      NOW(),
                      #{rgstId},
                      #{rgstIpAddr}
                  )
     </insert>
 
-    <!-- 🔥 UPDATE -->
-    <update id="updateAttchPicMngInfo" parameterType="AttchPicMngInfoVO">
-        UPDATE tb_attch_pic_mng_info
-        SET
-            ext_nm = #{extNm},
-            file_path = #{filePath},
-            file_nm = #{fileNm},
-            real_file_nm = #{realFileNm},
-            updt_dt = NOW(),
-            updusr_id = #{updusrId},
-            updusr_ip_addr = #{updusrIpAddr}
-        WHERE prk_plce_info_sn = #{prkPlceInfoSn}
-          AND prk_img_id = #{prkImgId}
-          AND seq_no = #{seqNo}
-    </update>
-
-    <!-- 🔥 SELECT -->
-    <select id="selectAttchPicMngInfoList" resultType="AttchPicMngInfoVO">
+    <!-- 🔥 SELECT - cmpl_sn으로도 조회 가능 -->
+    <select id="selectAttchPicMngInfoList" resultType="com.psim.web.file.vo.AttchPicMngInfoVO">
         SELECT
         prk_plce_info_sn AS prkPlceInfoSn,
         prk_plce_type AS prkPlceType,
@@ -63,6 +72,8 @@
         file_nm AS fileNm,
         real_file_nm AS realFileNm,
         prk_img_id AS prkImgId,
+        cmpl_sn AS cmplSn,
+        attach_type AS attachType,
         reg_dt AS regDt,
         rgst_id AS rgstId,
         rgst_ip_addr AS rgstIpAddr,
@@ -70,29 +81,79 @@
         updusr_id AS updusrId,
         updusr_ip_addr AS updusrIpAddr
         FROM tb_attch_pic_mng_info
-        WHERE prk_plce_info_sn = #{prkPlceInfoSn}
+        WHERE 1=1
+        <if test="prkPlceInfoSn != null">
+            AND prk_plce_info_sn = #{prkPlceInfoSn}
+        </if>
         <if test="prkImgId != null and prkImgId != ''">
             AND prk_img_id = #{prkImgId}
         </if>
         <if test="seqNo != null">
             AND seq_no = #{seqNo}
         </if>
+        <if test="cmplSn != null and cmplSn != ''">
+            AND cmpl_sn = #{cmplSn}
+        </if>
         ORDER BY seq_no ASC
     </select>
-
-    <!-- 🔥 최대 순번 조회 -->
+<!--
+    &lt;!&ndash; 🔥 최대 순번 조회 - cmpl_sn 조건 추가 &ndash;&gt;
     <select id="selectMaxSeqNo" resultType="java.lang.Integer">
         SELECT COALESCE(MAX(seq_no), 0)
         FROM tb_attch_pic_mng_info
-        WHERE prk_plce_info_sn = #{prkPlceInfoSn}
-          AND prk_img_id = #{prkImgId}
-    </select>
+        WHERE 1=1
+        <choose>
+            <when test="cmplSn != null and cmplSn != ''">
+                AND cmpl_sn = #{cmplSn}
+            </when>
+            <otherwise>
+                AND prk_plce_info_sn = #{prkPlceInfoSn}
+            </otherwise>
+        </choose>
+        <if test="prkImgId != null and prkImgId != ''">
+            AND prk_img_id = #{prkImgId}
+        </if>
+    </select>-->
+
+    <!-- 🔥 UPDATE -->
+    <update id="updateAttchPicMngInfo" parameterType="com.psim.web.file.vo.AttchPicMngInfoVO">
+        UPDATE tb_attch_pic_mng_info
+        SET
+        ext_nm = #{extNm},
+        file_path = #{filePath},
+        file_nm = #{fileNm},
+        real_file_nm = #{realFileNm},
+        updt_dt = NOW(),
+        updusr_id = #{updusrId},
+        updusr_ip_addr = #{updusrIpAddr}
+        WHERE 1=1
+        <choose>
+            <when test="cmplSn != null and cmplSn != ''">
+                AND cmpl_sn = #{cmplSn}
+            </when>
+            <otherwise>
+                AND prk_plce_info_sn = #{prkPlceInfoSn}
+            </otherwise>
+        </choose>
+        AND prk_img_id = #{prkImgId}
+        AND seq_no = #{seqNo}
+    </update>
 
     <!-- 🔥 DELETE -->
     <delete id="deleteAttchPicMngInfo">
         DELETE FROM tb_attch_pic_mng_info
-        WHERE prk_plce_info_sn = #{prkPlceInfoSn}
-        AND prk_img_id = #{prkImgId}
+        WHERE 1=1
+        <choose>
+            <when test="cmplSn != null and cmplSn != ''">
+                AND cmpl_sn = #{cmplSn}
+            </when>
+            <otherwise>
+                AND prk_plce_info_sn = #{prkPlceInfoSn}
+            </otherwise>
+        </choose>
+        <if test="prkImgId != null and prkImgId != ''">
+            AND prk_img_id = #{prkImgId}
+        </if>
         <if test="seqNo != null">
             AND seq_no = #{seqNo}
         </if>

@@ -7,6 +7,9 @@
     <title>주차이용실태관리</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/pages/usage-status.css"/>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/pages/usage-add.css"/>
+    <!-- 🔥 EXIF.js 라이브러리 (사진 GPS 정보 추출) -->
+    <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
+
     <!-- contextPath 및 세션 정보를 JavaScript 전역 변수로 정의 -->
     <script>
         var contextPath = '${pageContext.request.contextPath}';

@@ -228,6 +228,41 @@
         // 행정구역 데이터 로드
         await FormCodeUtils.loadSidoList();
 
+        // 🔥 세션에서 시도 코드가 있으면 자동 선택
+        if (typeof sessionInfo !== 'undefined' && sessionInfo.sidoCd) {
+            const sidoSelect = $('#f_sido');
+            if (sidoSelect) {
+                // 시도 코드로 옵션 찾기
+                const sidoOptions = Array.from(sidoSelect.options);
+                const matchingSido = sidoOptions.find(opt => opt.value === sessionInfo.sidoCd);
+
+                if (matchingSido) {
+                    sidoSelect.value = sessionInfo.sidoCd;
+                    console.log('✅ 세션에서 시도 자동 선택:', sessionInfo.sidoCd);
+
+                    // 시군구 목록 로드
+                    await FormCodeUtils.loadSigunguList(sessionInfo.sidoCd);
+
+                    // 🔥 시군구도 자동 선택
+                    if (sessionInfo.sigunguCd) {
+                        const sigunguSelect = $('#f_sigungu');
+                        if (sigunguSelect) {
+                            const sigunguOptions = Array.from(sigunguSelect.options);
+                            const matchingSigungu = sigunguOptions.find(opt => opt.value === sessionInfo.sigunguCd);
+
+                            if (matchingSigungu) {
+                                sigunguSelect.value = sessionInfo.sigunguCd;
+                                console.log('✅ 세션에서 시군구 자동 선택:', sessionInfo.sigunguCd);
+
+                                // 읍면동 목록 로드
+                                await FormCodeUtils.loadEmdList(sessionInfo.sigunguCd);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // 조사원 정보 세션에서 자동 입력
         setupSurveyorInfo();
 
@@ -266,10 +301,129 @@
         const files = Array.from(event.target.files);
         if (files.length === 0) return;
 
-        console.log('선택된 파일 수:', files.length);
+        console.log('📸 선택된 파일 수:', files.length);
         selectedPhotoFiles = [...selectedPhotoFiles, ...files];
+
+        // 🔥 첫 번째 사진에서 GPS 정보 추출 시도
+        if (files.length > 0 && files[0]) {
+            console.log('🔍 GPS 정보 추출 시작:', files[0].name);
+            extractGPSFromPhoto(files[0]);
+        }
+
         displaySelectedFiles();
         displayPreviews();
+    }
+
+    // 🔥 사진에서 GPS 정보 추출
+    function extractGPSFromPhoto(file) {
+        console.log('📍 EXIF 데이터 읽기 시작:', file.name);
+
+        // EXIF.js 라이브러리 확인
+        if (typeof EXIF === 'undefined') {
+            console.error('❌ EXIF.js 라이브러리가 로드되지 않았습니다.');
+            console.log('💡 "기기 위치로 좌표" 버튼을 사용하세요.');
+            return;
+        }
+
+        // FileReader로 파일 읽기
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            console.log('✅ 파일 읽기 완료');
+
+            // 이미지 객체 생성
+            const img = new Image();
+            img.src = e.target.result;
+
+            img.onload = function() {
+                console.log('🖼️ 이미지 로드 완료');
+
+                EXIF.getData(img, function() {
+                    console.log('📦 EXIF 데이터 읽기 완료');
+
+                    // 모든 EXIF 태그 출력 (디버깅용)
+                    const allTags = EXIF.getAllTags(this);
+                    console.log('📋 모든 EXIF 태그:', allTags);
+
+                    const lat = EXIF.getTag(this, 'GPSLatitude');
+                    const latRef = EXIF.getTag(this, 'GPSLatitudeRef');
+                    const lng = EXIF.getTag(this, 'GPSLongitude');
+                    const lngRef = EXIF.getTag(this, 'GPSLongitudeRef');
+
+                    console.log('🔍 GPS 데이터:', {
+                        lat: lat,
+                        latRef: latRef,
+                        lng: lng,
+                        lngRef: lngRef
+                    });
+
+                    if (lat && lng) {
+                        const latitude = convertDMSToDD(lat, latRef);
+                        const longitude = convertDMSToDD(lng, lngRef);
+
+                        console.log('✅ GPS 좌표 변환 완료:', {
+                            latitude: latitude,
+                            longitude: longitude
+                        });
+
+                        const latInput = $('#f_lat');
+                        const lngInput = $('#f_lng');
+
+                        if (latInput) {
+                            latInput.value = latitude.toFixed(6);
+                            console.log('✅ 위도 입력:', latInput.value);
+                        }
+                        if (lngInput) {
+                            lngInput.value = longitude.toFixed(6);
+                            console.log('✅ 경도 입력:', lngInput.value);
+                        }
+
+                        alert(`📍 사진에서 위치 정보를 가져왔습니다.\n위도: ${latitude.toFixed(6)}\n경도: ${longitude.toFixed(6)}`);
+
+                    } else {
+                        console.warn('⚠️ 이 사진에는 GPS 정보가 없습니다.');
+                        alert('⚠️ 이 사진에는 위치 정보가 없습니다.\n"기기 위치로 좌표" 버튼을 사용하거나,\n위치 정보가 있는 사진을 선택해주세요.');
+                    }
+                });
+            };
+
+            img.onerror = function() {
+                console.error('❌ 이미지 로드 실패');
+            };
+        };
+
+        reader.onerror = function() {
+            console.error('❌ 파일 읽기 실패');
+        };
+
+        reader.readAsDataURL(file);
+    }
+
+// 🔥 DMS(도분초)를 DD(십진도) 형식으로 변환
+    function convertDMSToDD(dms, ref) {
+        if (!dms || dms.length !== 3) {
+            console.error('❌ 잘못된 DMS 형식:', dms);
+            return 0;
+        }
+
+        const degrees = dms[0];
+        const minutes = dms[1];
+        const seconds = dms[2];
+
+        let dd = degrees + minutes / 60 + seconds / 3600;
+
+        console.log('🔄 DMS → DD 변환:', {
+            input: `${degrees}° ${minutes}' ${seconds}"`,
+            ref: ref,
+            output: dd
+        });
+
+        // 남위(S) 또는 서경(W)인 경우 음수로 변환
+        if (ref === 'S' || ref === 'W') {
+            dd = dd * -1;
+        }
+
+        return dd;
     }
 
     // 선택된 파일 목록 표시
