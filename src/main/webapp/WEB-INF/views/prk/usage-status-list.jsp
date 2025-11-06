@@ -1,3 +1,4 @@
+
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
@@ -7,26 +8,106 @@
     <title>주차이용실태관리</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/pages/usage-status.css"/>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/pages/usage-add.css"/>
-    <!-- 🔥 EXIF.js 라이브러리 (사진 GPS 정보 추출) -->
-    <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
 
-    <!-- contextPath 및 세션 정보를 JavaScript 전역 변수로 정의 -->
+    <!-- 🔥 1. 전역 변수 먼저 정의 -->
     <script>
         var contextPath = '${pageContext.request.contextPath}';
-        // 🔥 세션 정보 전달
         var sessionInfo = {
             prkBizMngNo: '${prkBizMngNo}',
             sigunguCd: '${sigunguCd}',
             sidoCd: '${sidoCd}',
-            userNm: '${userName}',         // 🔥 조사원명 (중복)
-            mbtlnum: '${userTel}'         // 🔥 조사원 연락처 (중복)
+            userNm: '${userName}',
+            mbtlnum: '${userTel}'
         };
-        console.log('세션 정보:', sessionInfo);
+        console.log('🔧 전역 변수 초기화 완료:', { contextPath, sessionInfo });
     </script>
+
+    <style>
+        /* 🔥 파일명 표시 스타일 */
+        .file-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .file-item {
+            position: relative;
+            display: inline-block;
+            padding: 4px 10px;
+            background-color: #f1f5f9;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #475569;
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-item:hover {
+            background-color: #e0e7ff;
+            color: #4f46e5;
+            transform: translateY(-1px);
+        }
+
+        .loading-files,
+        .no-files,
+        .error-files {
+            font-size: 12px;
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        .error-files {
+            color: #ef4444;
+        }
+
+        /* 🔥 이미지 미리보기 툴팁 */
+        .image-preview-tooltip {
+            position: fixed;
+            display: none;
+            z-index: 10000;
+            max-width: 450px;
+            max-height: 450px;
+            border: 3px solid #334155;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            background: white;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .image-preview-tooltip img {
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            background: #f8fafc;
+        }
+
+        /* 카드에 파일 영역 스타일 */
+        .card-files-section {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .card-files-label {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+    </style>
 </head>
 <body>
 
-<!-- 🔥 Content 영역 -->
+<!-- Content 영역 -->
 <main class="app-content">
     <div class="container">
         <div class="card">
@@ -78,8 +159,8 @@
                                 <div class="control">
                                     <select id="searchLawCd" name="searchLawCd">
                                         <option value="">전체</option>
-                                        <option value="Y">적</option>
-                                        <option value="N">불</option>
+                                        <option value="1">적</option>
+                                        <option value="2">불</option>
                                     </select>
                                 </div>
                             </div>
@@ -110,9 +191,8 @@
 
                     <div class="tabs" role="tablist" aria-label="목록">
                         <button id="tabList" class="tab-btn active" role="tab" aria-controls="panelList"
-                       test         aria-selected="true">목록
+                                aria-selected="true">목록
                         </button>
-                        <!-- 🔥 등록 탭 (초기에는 숨김) -->
                         <button id="tabAdd" class="tab-btn" role="tab" aria-controls="panelAdd"
                                 aria-selected="false" style="display:none;">등록
                             <span class="tab-close" aria-label="탭 닫기">×</span>
@@ -122,10 +202,26 @@
                     <div class="tab-panels">
                         <!-- 목록 패널 -->
                         <div id="panelList" class="tab-panel active" role="tabpanel" aria-labelledby="tabList">
+                            <!-- 지도 영역 -->
+                            <div id="mapContainer" style="width:100%; height:400px; margin-bottom:20px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
+
+                            <!-- 범례 -->
+                            <div style="display:flex; gap:16px; margin-bottom:16px; padding:12px; background:#f8fafc; border-radius:6px;">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <div style="width:12px; height:12px; background:#3b82f6; border-radius:50%;"></div>
+                                    <span style="font-size:0.9rem; color:#475569;">적법 주차</span>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <div style="width:12px; height:12px; background:#ef4444; border-radius:50%;"></div>
+                                    <span style="font-size:0.9rem; color:#475569;">불법 주차</span>
+                                </div>
+                            </div>
+
+                            <!-- 목록 카드 영역 -->
                             <div id="cards" class="cards" aria-label="검색 결과 - 카드 목록"></div>
                         </div>
 
-                        <!-- 🔥 등록 패널 (초기에는 숨김) -->
+                        <!-- 등록 패널 -->
                         <div id="panelAdd" class="tab-panel" role="tabpanel" aria-labelledby="tabAdd" style="display:none;">
                             <div class="add-form-container">
                                 <jsp:include page="/WEB-INF/views/prk/usage-add.jsp"/>
@@ -140,12 +236,64 @@
     </div>
 </main>
 
+<!-- 🔥 이미지 미리보기 툴팁 -->
+<div id="imagePreviewTooltip" class="image-preview-tooltip">
+    <img id="previewImage" src="" alt="미리보기">
+</div>
+
 <!-- Footer 영역 -->
 <jsp:include page="/WEB-INF/views/fragments/footer.jsp"/>
 
+<!-- 🔥 2. 외부 라이브러리 (동기 로드) -->
+<script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
 <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
-<script src="${pageContext.request.contextPath}/static/js/usage-add.js"></script>
+
+<!-- 🔥 3. Kakao Maps SDK (JavaScript 키 사용) -->
+<script type="text/javascript"
+        src="//dapi.kakao.com/v2/maps/sdk.js?appkey=a1194f70f6ecf2ece7a703a4a07a0876&libraries=clusterer"
+        onerror="console.error('❌ Kakao Maps API 스크립트 로드 실패'); window.kakaoMapsLoadError = true;">
+</script>
+
+<!-- 🔥 4. Kakao Maps 로드 확인 -->
+<script>
+    (function() {
+        console.log('🔍 Kakao Maps 로드 체크 시작');
+
+        if (window.kakaoMapsLoadError) {
+            console.error('❌ Kakao Maps API 스크립트 파일 로드 실패');
+            window.kakaoMapsReady = false;
+            window.dispatchEvent(new Event('kakaoMapsLoadFailed'));
+            return;
+        }
+
+        let checkCount = 0;
+        const maxChecks = 20;
+
+        const checkInterval = setInterval(function() {
+            checkCount++;
+
+            console.log(`⏳ Kakao Maps 체크 ${checkCount}/${maxChecks}`);
+            console.log('- typeof kakao:', typeof kakao);
+            console.log('- typeof kakao.maps:', typeof kakao !== 'undefined' ? typeof kakao.maps : 'N/A');
+
+            if (typeof kakao !== 'undefined' && typeof kakao.maps !== 'undefined') {
+                clearInterval(checkInterval);
+                console.log('✅ Kakao Maps API 로드 완료!');
+                window.kakaoMapsReady = true;
+                window.dispatchEvent(new Event('kakaoMapsLoaded'));
+            } else if (checkCount >= maxChecks) {
+                clearInterval(checkInterval);
+                console.error('❌ Kakao Maps API 로드 실패 (최대 재시도 초과)');
+                window.kakaoMapsReady = false;
+                window.dispatchEvent(new Event('kakaoMapsLoadFailed'));
+            }
+        }, 500);
+    })();
+</script>
+
+<!-- 🔥 5. 애플리케이션 스크립트 (마지막) -->
 <script src="${pageContext.request.contextPath}/static/js/usage-status-list.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/usage-add.js"></script>
 
 </body>
 </html>

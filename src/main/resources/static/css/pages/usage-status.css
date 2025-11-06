@@ -589,3 +589,37 @@ a:hover {
         padding: 3px 6px;
     }
 }
+
+#imagePreviewTooltip {
+    position: absolute;
+    z-index: 9999;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    padding: 8px;
+    max-width: 400px;
+    max-height: 400px;
+    pointer-events: none; /* 🔥 마우스 이벤트 통과 */
+}
+
+#previewImage {
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+    border-radius: 4px;
+    object-fit: contain;
+}
+
+/* 🔥 로딩 중 표시 */
+#imagePreviewTooltip::before {
+    content: '로딩 중...';
+    display: block;
+    text-align: center;
+    color: #94a3b8;
+    padding: 20px;
+}
+
+#imagePreviewTooltip img[src] + ::before {
+    display: none;
+}

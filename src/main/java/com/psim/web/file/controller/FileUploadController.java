@@ -1,16 +1,22 @@
-
 package com.psim.web.file.controller;
 
 import com.psim.web.file.service.AttchPicMngInfoService;
 import com.psim.web.file.vo.AttchPicMngInfoVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 /**
@@ -24,6 +30,9 @@ import java.util.*;
 public class FileUploadController {
 
     private final AttchPicMngInfoService attchPicService;
+    
+    @Value("${file.upload.path:/upload/parking}")
+    private String uploadBasePath;
 
     /**
      * 🔥 단일 파일 업로드
@@ -195,6 +204,65 @@ public class FileUploadController {
             result.put("success", false);
             result.put("message", "파일 삭제 실패: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+        }
+    }
+
+    /**
+     * 🔥 이미지 파일 조회 (미리보기용)
+     * @param cmplSn 단속일련번호
+     * @param prkImgId 이미지 구분 ID
+     * @param seqNo 순번
+     * @return 이미지 파일
+     */
+    @GetMapping("/preview")
+    @ResponseBody
+    public ResponseEntity<Resource> previewImage(
+            @RequestParam(value = "cmplSn", required = false) String cmplSn,
+            @RequestParam("prkImgId") String prkImgId,
+            @RequestParam("seqNo") Integer seqNo
+    ) {
+        try {
+            log.info("🖼️ 이미지 미리보기 요청: cmplSn={}, prkImgId={}, seqNo={}", cmplSn, prkImgId, seqNo);
+
+            // 파일 정보 조회
+            List<AttchPicMngInfoVO> fileList = attchPicService.getAttchPicMngInfoListByCmplSn(cmplSn, prkImgId);
+            
+            AttchPicMngInfoVO fileInfo = fileList.stream()
+                    .filter(f -> f.getSeqNo().equals(seqNo))
+                    .findFirst()
+                    .orElse(null);
+
+            if (fileInfo == null) {
+                log.warn("⚠️ 파일 정보를 찾을 수 없습니다.");
+                return ResponseEntity.notFound().build();
+            }
+
+            // 실제 파일 경로
+            String filePath = uploadBasePath + "/" + fileInfo.getFilePath() + "/" + fileInfo.getFileNm();
+            Path path = Paths.get(filePath);
+            Resource resource = new UrlResource(path.toUri());
+
+            if (!resource.exists() || !resource.isReadable()) {
+                log.warn("⚠️ 파일을 읽을 수 없습니다: {}", filePath);
+                return ResponseEntity.notFound().build();
+            }
+
+            // Content-Type 설정
+            String contentType = "image/" + fileInfo.getExtNm();
+            if (fileInfo.getExtNm().equalsIgnoreCase("jpg")) {
+                contentType = "image/jpeg";
+            }
+
+            log.info("✅ 이미지 제공 성공: {}", fileInfo.getFileNm());
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + fileInfo.getRealFileNm() + "\"")
+                    .body(resource);
+
+        } catch (Exception e) {
+            log.error("❌ 이미지 미리보기 실패", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

@@ -26,9 +26,9 @@ import java.util.Map;
 @RequestMapping("/prk")
 @RequiredArgsConstructor
 public class PrkUsageStatusController {
-    
+
     private final PrkUsageStatusService usageStatusService;
-    private final AttchPicMngInfoService attchPicService; // 🔥 추가
+    private final AttchPicMngInfoService attchPicService;
 
     /**
      * 주차이용실태 목록 화면
@@ -50,7 +50,6 @@ public class PrkUsageStatusController {
             model.addAttribute("prkBizMngNo", prkBizMngNo);
             model.addAttribute("sigunguCd", loginUser.getSigunguCd());
             model.addAttribute("sidoCd", loginUser.getSidoCd());
-            // 🔥 조사원 정보 추가 (사용자명과 연락처)
             model.addAttribute("userName", loginUser.getUserNm());
             model.addAttribute("userTel", loginUser.getMbtlnum());
 
@@ -73,13 +72,11 @@ public class PrkUsageStatusController {
         Map<String, Object> result = new HashMap<>();
 
         try {
-            // 🔥 검색 조건 로깅
             log.info("🔍 목록 조회 요청 - prkBizMngNo: {}, searchVehicleNo: {}, searchLawCd: {}",
                     vo.getPrkBizMngNo(), vo.getSearchVehicleNo(), vo.getSearchLawCd());
 
             List<PrkUsageStatusVO> list = usageStatusService.getUsageStatusList(vo);
 
-            // 🔥 조회 결과 로깅
             log.info("✅ 목록 조회 결과: {}건", list != null ? list.size() : 0);
             if (list != null && !list.isEmpty()) {
                 log.info("📋 첫 번째 데이터: {}", list.get(0));
@@ -107,19 +104,47 @@ public class PrkUsageStatusController {
     @ResponseBody
     public Map<String, Object> getUsageStatusDetail(PrkUsageStatusVO vo) {
         Map<String, Object> result = new HashMap<>();
-    
+
         try {
             PrkUsageStatusVO data = usageStatusService.getUsageStatusDetail(vo);
-        
+
             result.put("success", true);
             result.put("data", data);
-        
+
         } catch (Exception e) {
             log.error("주차이용실태 상세 조회 오류", e);
             result.put("success", false);
             result.put("message", "상세 조회 중 오류가 발생했습니다.");
         }
-    
+
+        return result;
+    }
+
+    /**
+     * 🔥 이용실태 첨부파일 목록 조회 API
+     */
+    @GetMapping("/api/usage-status/files")
+    @ResponseBody
+    public Map<String, Object> getUsageStatusFiles(
+            @RequestParam("cmplSn") String cmplSn
+    ) {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            log.info("📂 첨부파일 목록 조회: cmplSn={}", cmplSn);
+
+            List<AttchPicMngInfoVO> fileList = attchPicService.getAttchPicMngInfoListByCmplSn(cmplSn, "USG_PHOTO");
+
+            result.put("success", true);
+            result.put("files", fileList);
+            result.put("count", fileList != null ? fileList.size() : 0);
+
+        } catch (Exception e) {
+            log.error("❌ 첨부파일 목록 조회 오류", e);
+            result.put("success", false);
+            result.put("message", "첨부파일 목록 조회 중 오류가 발생했습니다.");
+        }
+
         return result;
     }
 
@@ -174,14 +199,14 @@ public class PrkUsageStatusController {
 
             log.info("💾 이용실태 저장 시작 - 차량번호: {}", vo.getVhcleNo());
 
-            // 🔥 이용실태 저장 (cmpl_sn 자동 생성)
+            // 이용실태 저장 (cmpl_sn 자동 생성)
             int cnt = usageStatusService.insertUsageStatus(vo);
 
             if (cnt > 0) {
                 String cmplSn = vo.getCmplSn();
                 log.info("✅ 이용실태 저장 완료 - cmpl_sn: {}", cmplSn);
 
-                // 🔥 파일 업로드 (cmplSn 사용)
+                // 파일 업로드 (cmplSn 사용)
                 if (photos != null && !photos.isEmpty()) {
                     log.info("📸 파일 업로드 시작 - {}개", photos.size());
 
@@ -189,8 +214,8 @@ public class PrkUsageStatusController {
                             cmplSn,
                             "USG_PHOTO",
                             photos,
-                            loginUser.getUserId(),      // 🔥 사용자 ID 전달
-                            request.getRemoteAddr()     // 🔥 사용자 IP 전달
+                            loginUser.getUserId(),
+                            request.getRemoteAddr()
                     );
 
                     log.info("✅ 파일 업로드 완료: {}개", uploadedFiles.size());
@@ -221,19 +246,19 @@ public class PrkUsageStatusController {
     @ResponseBody
     public Map<String, Object> deleteUsageStatus(PrkUsageStatusVO vo) {
         Map<String, Object> result = new HashMap<>();
-    
+
         try {
             int cnt = usageStatusService.deleteUsageStatus(vo);
-        
+
             result.put("success", cnt > 0);
             result.put("message", cnt > 0 ? "삭제되었습니다." : "삭제에 실패했습니다.");
-        
+
         } catch (Exception e) {
             log.error("주차이용실태 삭제 오류", e);
             result.put("success", false);
             result.put("message", "삭제 중 오류가 발생했습니다.");
         }
-    
+
         return result;
     }
 }

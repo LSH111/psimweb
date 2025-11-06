@@ -9,8 +9,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import java.util.stream.Collectors;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -241,7 +239,7 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             String cmplSn,
             String prkImgId
     ) {
-        return mapper.selectAttchPicMngInfoList(null, prkImgId, null);
+        return mapper.selectAttchPicMngInfoListByCmplSn(cmplSn, prkImgId);
     }
 
     @Override
@@ -251,17 +249,25 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             String prkImgId,
             Integer seqNo
     ) {
-        List<AttchPicMngInfoVO> files = mapper.selectAttchPicMngInfoList(
-                null, prkImgId, seqNo
-        );
+        List<AttchPicMngInfoVO> files = mapper.selectAttchPicMngInfoListByCmplSn(cmplSn, prkImgId);
 
         for (AttchPicMngInfoVO file : files) {
-            deletePhysicalFile(file);
+            if (seqNo == null || file.getSeqNo().equals(seqNo)) {
+                deletePhysicalFile(file);
+            }
         }
 
         mapper.deleteAttchPicMngInfo(null, prkImgId, seqNo);
 
         log.info("✅ 이용실태 파일 삭제 완료: {} 건", files.size());
+    }
+
+    @Override
+    public List<AttchPicMngInfoVO> getAttchPicMngInfoListByCmplSn(
+            String cmplSn,
+            String prkImgId
+    ) {
+        return mapper.selectAttchPicMngInfoListByCmplSn(cmplSn, prkImgId);
     }
 
     // ========== Private Helper Methods ==========

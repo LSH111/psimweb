@@ -45,6 +45,11 @@ public interface AttchPicMngInfoService {
             List<MultipartFile> files
     );
 
+    List<AttchPicMngInfoVO> getAttchPicMngInfoList(
+            Integer prkPlceInfoSn,
+            String prkImgId
+    );
+
     /**
      * 파일 업로드 및 정보 저장 (이용실태용)
      * @param cmplSn 실태조사일련번호
@@ -75,6 +80,11 @@ public interface AttchPicMngInfoService {
             String userIp
     ) throws RuntimeException;
 
+    List<AttchPicMngInfoVO> getAttchPicMngInfoListForUsage(
+            String cmplSn,
+            String prkImgId
+    );
+
     /**
      * 특정 이미지 삭제
      * @param prkPlceInfoSn 주차장 정보 일련번호
@@ -93,31 +103,10 @@ public interface AttchPicMngInfoService {
      * @param prkImgId 이미지 구분 ID
      * @param seqNo 순번
      */
-    void deleteAttchPicMngInfoForUsage(
-            String cmplSn,
-            String prkImgId,
-            Integer seqNo
-    );
+    void deleteAttchPicMngInfoForUsage(String cmplSn, String prkImgId, Integer seqNo);
 
     /**
-     * 주차장별 이미지 목록 조회
-     * @param prkPlceInfoSn 주차장 정보 일련번호
-     * @param prkImgId 이미지 구분 ID (null이면 전체)
-     * @return 이미지 정보 목록
+     * 🔥 이용실태 파일 목록 조회 (cmplSn 기준)
      */
-    List<AttchPicMngInfoVO> getAttchPicMngInfoList(
-            Integer prkPlceInfoSn,
-            String prkImgId
-    );
-
-    /**
-     * 이용실태별 이미지 목록 조회
-     * @param cmplSn 실태조사일련번호
-     * @param prkImgId 이미지 구분 ID (null이면 전체)
-     * @return 이미지 정보 목록
-     */
-    List<AttchPicMngInfoVO> getAttchPicMngInfoListForUsage(
-            String cmplSn,
-            String prkImgId
-    );
+    List<AttchPicMngInfoVO> getAttchPicMngInfoListByCmplSn(String cmplSn, String prkImgId);
 }

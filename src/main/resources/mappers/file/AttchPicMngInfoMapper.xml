@@ -159,4 +159,25 @@
         </if>
     </delete>
 
+    <!-- 🔥 단속일련번호로 파일 목록 조회 -->
+    <select id="selectAttchPicMngInfoListByCmplSn" resultType="com.psim.web.file.vo.AttchPicMngInfoVO">
+        SELECT
+        cmpl_sn AS cmplSn,
+        prk_img_id AS prkImgId,
+        seq_no AS seqNo,
+        real_file_nm AS realFileNm,
+        file_nm AS fileNm,
+        file_path AS filePath,
+        ext_nm AS extNm,
+        reg_dt AS regDt,
+        rgst_id AS rgstId,
+        rgst_ip_addr AS rgstIpAddr
+        FROM cpk.tb_attch_pic_mng_info
+        WHERE cmpl_sn = #{cmplSn}
+        <if test="prkImgId != null and prkImgId != ''">
+            AND prk_img_id = #{prkImgId}
+        </if>
+        ORDER BY seq_no
+    </select>
+
 </mapper>
