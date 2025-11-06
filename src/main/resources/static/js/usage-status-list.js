@@ -102,7 +102,7 @@
         );
     }
 
-    // ========== 🔥 지도에 마커 추가 (같은 좌표 = 하나의 마커 + 개수 표시) ==========
+    // ========== 🔥 지도에 마커 추가 (적법/불법 혼합 표시) ==========
     function addMarkersToMap(dataList) {
         if (!kakaoMap) return;
 
@@ -137,12 +137,30 @@
         // 🔥 각 위치마다 하나의 마커만 생성
         locationGroups.forEach((items) => {
             const position = new kakao.maps.LatLng(items[0].originalLat, items[0].originalLng);
-            const isLegal = (items[0].lawCd === '1');
-            const markerImageUrl = isLegal
-                ? 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_blue.png'
-                : 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png';
 
-            const imageSize = new kakao.maps.Size(28, 40);
+            // 🔥 적법/불법 여부 확인
+            const hasLegal = items.some(item => item.lawCd === '1');
+            const hasIllegal = items.some(item => item.lawCd !== '1');
+
+            // 🔥 마커 색상 결정 (로컬 SVG 파일 사용)
+            let markerImageUrl;
+            let badgeColor;
+
+            if (hasLegal && hasIllegal) {
+                // 🔥 혼합: 주황색 SVG 마커
+                markerImageUrl = `${contextPath}/static/img/marker-orange-48px.svg`;
+                badgeColor = '#FF8A00'; // SVG 파일과 동일한 색상
+            } else if (hasLegal) {
+                // 적법만: 파란색 SVG 마커
+                markerImageUrl = `${contextPath}/static/img/marker-blue-48px.svg`;
+                badgeColor = '#007AFF'; // SVG 파일과 동일한 색상
+            } else {
+                // 불법만: 빨간색 SVG 마커
+                markerImageUrl = `${contextPath}/static/img/marker-red-48px.svg`;
+                badgeColor = '#FF3B30'; // SVG 파일과 동일한 색상
+            }
+
+            const imageSize = new kakao.maps.Size(48, 48);
             const markerImage = new kakao.maps.MarkerImage(markerImageUrl, imageSize);
 
             const marker = new kakao.maps.Marker({
@@ -158,30 +176,29 @@
 
             // 🔥 개수 표시 (2개 이상일 때만)
             if (items.length > 1) {
-                const badgeColor = isLegal ? '#3b82f6' : '#ef4444';
                 const content = `
-                    <div style="
-                        position: absolute;
-                        bottom: 45px;
-                        left: 50%;
-                        transform: translateX(-50%);
-                        background: ${badgeColor};
-                        color: white;
-                        min-width: 28px;
-                        height: 28px;
-                        border-radius: 14px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        font-size: 14px;
-                        font-weight: bold;
-                        border: 3px solid white;
-                        box-shadow: 0 3px 6px rgba(0,0,0,0.4);
-                        padding: 0 8px;
-                    ">
-                        ${items.length}
-                    </div>
-                `;
+                        <div style="
+                            position: absolute;
+                            bottom: 30px;
+                            left: 50%;
+                            transform: translateX(-50%);
+                            background: ${badgeColor};
+                            color: white;
+                            min-width: 24px;
+                            height: 24px;
+                            border-radius: 12px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 12px;
+                            font-weight: bold;
+                            border: 2px solid white;
+                            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                            padding: 0 6px;
+                        ">
+                            ${items.length}
+                        </div>
+                    `;
 
                 const customOverlay = new kakao.maps.CustomOverlay({
                     position: position,
@@ -196,6 +213,7 @@
 
             // 🔥 클릭 이벤트
             kakao.maps.event.addListener(marker, 'click', function() {
+                // 🔥 지도 중심 이동 제거 - InfoWindow만 표시
                 if (items.length === 1) {
                     showInfoWindow(marker, items[0]);
                     scrollToCard(items[0].cmplSn);
@@ -236,48 +254,57 @@
         console.log(`✅ 지도에 ${markers.length}개 위치 표시 완료`);
     }
 
-    // ========== 🔥 단일 항목 인포윈도우 ==========
+    // ========== 🔥 단일 항목 인포윈도우 (마커 옆에 표시) ==========
     function showInfoWindow(marker, item) {
         if (currentInfoWindow) {
-            currentInfoWindow.close();
+            currentInfoWindow.setMap(null);
         }
 
         const isLegal = (item.lawCd === '1');
         const statusColor = isLegal ? '#3b82f6' : '#ef4444';
         const statusText = isLegal ? '적법 주차' : '불법 주차';
 
-        const content = `
-            <div style="padding:15px; min-width:200px; position:relative;">
-                <button onclick="closeInfoWindow()" 
-                        style="position:absolute; top:8px; right:8px; width:24px; height:24px; 
-                               border:none; background:#f1f5f9; cursor:pointer; 
-                               font-size:18px; color:#64748b; border-radius:4px;">
-                    ×
-                </button>
-                <div style="font-weight:bold; color:${statusColor}; margin-bottom:8px;">
-                    ${statusText}
+        const content = document.createElement('div');
+        content.style.cssText = 'position:relative; background:white; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.2); border:1px solid #e5e7eb;';
+        content.innerHTML = `
+                <div style="padding:15px; min-width:200px;">
+                    <button onclick="closeInfoWindow()" 
+                            style="position:absolute; top:8px; right:8px; width:24px; height:24px; 
+                                   border:none; background:#f1f5f9; cursor:pointer; 
+                                   font-size:18px; color:#64748b; border-radius:4px;">
+                        ×
+                    </button>
+                    <div style="font-weight:bold; color:${statusColor}; margin-bottom:8px;">
+                        ${statusText}
+                    </div>
+                    <div style="margin-bottom:6px;">
+                        <strong>차량번호:</strong> ${item.vhcleNo || '-'}
+                    </div>
+                    <div style="margin-bottom:6px;">
+                        <strong>조사일:</strong> ${item.examinDd || '-'}
+                    </div>
+                    <div style="margin-bottom:6px;">
+                        <strong>조사원:</strong> ${item.srvyId || '-'}
+                    </div>
                 </div>
-                <div style="margin-bottom:6px;">
-                    <strong>차량번호:</strong> ${item.vhcleNo || '-'}
-                </div>
-                <div style="margin-bottom:6px;">
-                    <strong>조사일:</strong> ${item.examinDd || '-'}
-                </div>
-                <div style="margin-bottom:6px;">
-                    <strong>조사원:</strong> ${item.srvyId || '-'}
-                </div>
-            </div>
-        `;
+            `;
 
-        const infoWindow = new kakao.maps.InfoWindow({ content: content });
-        infoWindow.open(kakaoMap, marker);
-        currentInfoWindow = infoWindow;
+        const customOverlay = new kakao.maps.CustomOverlay({
+            content: content,
+            position: marker.getPosition(),
+            xAnchor: -0.1,  // 🔥 마커 오른쪽에 표시
+            yAnchor: 0.5,   // 🔥 마커와 같은 높이
+            zIndex: 999
+        });
+
+        customOverlay.setMap(kakaoMap);
+        currentInfoWindow = customOverlay;
     }
 
-    // ========== 🔥 여러 항목 인포윈도우 ==========
+    // ========== 🔥 여러 항목 인포윈도우 (마커 옆에 표시) ==========
     function showMultipleInfoWindow(marker, items) {
         if (currentInfoWindow) {
-            currentInfoWindow.close();
+            currentInfoWindow.setMap(null);
         }
 
         const itemsHtml = items.map((item, idx) => {
@@ -286,71 +313,76 @@
             const statusText = isLegal ? '적법' : '불법';
 
             return `
-                <div style="padding:12px; border-bottom:1px solid #e2e8f0; cursor:pointer; transition: background 0.2s;"
-                     onmouseover="this.style.background='#f8fafc'"
-                     onmouseout="this.style.background='white'"
-                     onclick="window.handleMultiItemClick('${item.cmplSn}', ${item.originalLat}, ${item.originalLng})">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                        <span style="font-weight:600; color:#1e293b; font-size:15px;">
-                            ${idx + 1}. ${item.vhcleNo || '-'}
-                        </span>
-                        <span style="font-size:12px; padding:3px 10px; background:${statusColor}; color:white; border-radius:12px;">
-                            ${statusText}
-                        </span>
+                    <div style="padding:12px; border-bottom:1px solid #e2e8f0; cursor:pointer; transition: background 0.2s;"
+                         onmouseover="this.style.background='#f8fafc'"
+                         onmouseout="this.style.background='white'"
+                         onclick="window.handleMultiItemClick('${item.cmplSn}')">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                            <span style="font-weight:600; color:#1e293b; font-size:15px;">
+                                ${idx + 1}. ${item.vhcleNo || '-'}
+                            </span>
+                            <span style="font-size:12px; padding:3px 10px; background:${statusColor}; color:white; border-radius:12px;">
+                                ${statusText}
+                            </span>
+                        </div>
+                        <div style="font-size:13px; color:#64748b; margin-bottom:4px;">
+                            📅 ${item.examinDd || '-'}
+                        </div>
+                        <div style="font-size:13px; color:#64748b;">
+                            👤 ${item.srvyId || '-'}
+                        </div>
                     </div>
-                    <div style="font-size:13px; color:#64748b; margin-bottom:4px;">
-                        📅 ${item.examinDd || '-'}
+                `;
+        }).join('');
+
+        const content = document.createElement('div');
+        content.style.cssText = 'position:relative; background:white; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.2); border:1px solid #e5e7eb;';
+        content.innerHTML = `
+                <div style="padding:15px; min-width:300px; max-width:350px; max-height:450px; overflow-y:auto;">
+                    <button onclick="closeInfoWindow()" 
+                            style="position:sticky; top:0; right:0; float:right; width:32px; height:32px; 
+                                   border:none; background:#f1f5f9; cursor:pointer; 
+                                   font-size:20px; color:#64748b; border-radius:6px; z-index:10; 
+                                   transition: all 0.2s;"
+                            onmouseover="this.style.background='#e2e8f0'"
+                            onmouseout="this.style.background='#f1f5f9'">
+                        ×
+                    </button>
+                    <div style="font-weight:bold; margin-bottom:12px; color:#1e293b; font-size:17px;">
+                        📍 이 위치의 주차 현황
                     </div>
-                    <div style="font-size:13px; color:#64748b;">
-                        👤 ${item.srvyId || '-'}
+                    <div style="font-size:14px; color:#64748b; margin-bottom:16px; padding:8px 12px; background:#f8fafc; border-radius:6px;">
+                        총 <span style="color:#ef4444; font-weight:600; font-size:16px;">${items.length}건</span>
+                    </div>
+                    <div style="clear:both;">
+                        ${itemsHtml}
                     </div>
                 </div>
             `;
-        }).join('');
 
-        const content = `
-            <div style="padding:15px; min-width:300px; max-width:350px; max-height:450px; overflow-y:auto; position:relative; background:white; border-radius:8px;">
-                <button onclick="closeInfoWindow()" 
-                        style="position:sticky; top:0; right:0; float:right; width:32px; height:32px; 
-                               border:none; background:#f1f5f9; cursor:pointer; 
-                               font-size:20px; color:#64748b; border-radius:6px; z-index:10; 
-                               transition: all 0.2s;"
-                        onmouseover="this.style.background='#e2e8f0'"
-                        onmouseout="this.style.background='#f1f5f9'">
-                    ×
-                </button>
-                <div style="font-weight:bold; margin-bottom:12px; color:#1e293b; font-size:17px;">
-                    📍 이 위치의 주차 현황
-                </div>
-                <div style="font-size:14px; color:#64748b; margin-bottom:16px; padding:8px 12px; background:#f8fafc; border-radius:6px;">
-                    총 <span style="color:#ef4444; font-weight:600; font-size:16px;">${items.length}건</span>
-                </div>
-                <div style="clear:both;">
-                    ${itemsHtml}
-                </div>
-            </div>
-        `;
-
-        const infoWindow = new kakao.maps.InfoWindow({
+        const customOverlay = new kakao.maps.CustomOverlay({
             content: content,
-            removable: false
+            position: marker.getPosition(),
+            xAnchor: -0.1,  // 🔥 마커 오른쪽에 표시
+            yAnchor: 0.5,   // 🔥 마커와 같은 높이
+            zIndex: 999
         });
 
-        infoWindow.open(kakaoMap, marker);
-        currentInfoWindow = infoWindow;
+        customOverlay.setMap(kakaoMap);
+        currentInfoWindow = customOverlay;
     }
 
     // ========== 🔥 인포윈도우 항목 클릭 핸들러 ==========
     window.handleMultiItemClick = function(cmplSn) {
         if (currentInfoWindow) {
-            currentInfoWindow.close();
+            currentInfoWindow.setMap(null);
         }
         scrollToCard(cmplSn);
     };
 
     window.closeInfoWindow = function() {
         if (currentInfoWindow) {
-            currentInfoWindow.close();
+            currentInfoWindow.setMap(null);
             currentInfoWindow = null;
         }
     };
@@ -803,8 +835,14 @@
         if (!kakaoMap || !lat || !lng) return;
 
         const position = new kakao.maps.LatLng(parseFloat(lat), parseFloat(lng));
-        kakaoMap.panTo(position);
-        kakaoMap.setLevel(3);
+
+        // 🔥 부드러운 이동으로 변경 (panTo 대신 setCenter 사용)
+        kakaoMap.setCenter(position);
+
+        // 🔥 줌 레벨은 현재 유지 (필요시 조정)
+        if (kakaoMap.getLevel() > 4) {
+            kakaoMap.setLevel(4);
+        }
 
         const marker = markers.find(m => {
             if (!m.itemData) return false;
@@ -814,7 +852,7 @@
         if (marker) {
             setTimeout(() => {
                 kakao.maps.event.trigger(marker, 'click');
-            }, 500);
+            }, 300); // 지도 이동 후 InfoWindow 표시
         }
     };
 

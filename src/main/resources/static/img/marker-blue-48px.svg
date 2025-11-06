@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+<defs>
+  <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+    <feDropShadow dx="0" dy="1" stdDeviation="1.92" flood-color="#000000" flood-opacity="0.25"/>
+  </filter>
+</defs>
+<g filter="url(#shadow)">
+  <circle cx="24.0" cy="18.240000000000002" r="14.399999999999999" fill="#007AFF"/>
+  <polygon points="16.08,29.04 31.92,29.04 24.0,47" fill="#007AFF"/>
+  <circle cx="24.0" cy="18.240000000000002" r="6.4799999999999995" fill="#FFFFFF"/>
+</g>
+</svg>
