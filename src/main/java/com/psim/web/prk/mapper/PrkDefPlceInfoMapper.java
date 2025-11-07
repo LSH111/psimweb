@@ -1,6 +1,6 @@
 package com.psim.web.prk.mapper;
 
- import com.psim.web.prk.vo.ParkingDetailVO;
+import com.psim.web.prk.vo.ParkingDetailVO;
 import com.psim.web.prk.vo.ParkingListVO;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -10,60 +10,37 @@ import java.util.Map;
 @Mapper
 public interface PrkDefPlceInfoMapper {
 
-    // 조회 기능 (SELECT)
+    // ========== 목록 조회 ==========
     List<ParkingListVO> selectParkingList(Map<String, Object> params);
-    int selectParkingListCount(Map<String, Object> params);
-    ParkingListVO selectParkingDetail(Map<String, Object> params);
+    List<ParkingListVO> selectParkingListForMap(Map<String, Object> params);
 
-    // 노상주차장 상세 조회 추가
+    // ========== 상세 조회 ==========
     ParkingDetailVO selectOnstreetParkingDetail(String prkPlceManageNo);
-
-    // 노상주차장 업데이트 메서드 추가
-    void updatePrkDefPlceInfo(ParkingDetailVO parkingData);
-    void updateOnstrPrklotInfo(ParkingDetailVO parkingData);
-    void updateOnstrPrklotOperInfo(ParkingDetailVO parkingData);
-    void updateBizPerPrklotPrgsSts(ParkingDetailVO parkingData);
-
-    // 🔥 노외주차장 상세 조회 추가
     ParkingDetailVO selectOffstreetParkingDetail(String prkPlceManageNo);
-
-    // 🔥 노외주차장 업데이트 메서드 추가
-    void updateOffstrPrklotInfo(ParkingDetailVO parkingData);
-    void updateOffstrPrklotOperInfo(ParkingDetailVO parkingData);
-
-    // 🔥 부설주차장 상세 조회 추가
     ParkingDetailVO selectBuildParkingDetail(String prkPlceManageNo);
 
-    // 🔥 부설주차장 업데이트 메서드 추가
-    void updateAtchPrklotInfo(ParkingDetailVO parkingData);
-    void updateAtchPrklotOperInfo(ParkingDetailVO parkingData);
+    // ========== 신규 등록 ==========
+    String generateParkingManageNo();
+    void insertOnstreetParking(ParkingDetailVO vo);
+    void insertOffstreetParking(ParkingDetailVO vo);
+    void insertBuildParking(ParkingDetailVO vo);
+    // 🔥 4개의 INSERT 메서드 분리
+    void insertPrkDefPlceInfo(ParkingDetailVO vo);
+    void insertBizPerPrklotInfo(ParkingDetailVO vo);
+    void insertOnstrPrklotInfo(ParkingDetailVO vo);
+    void insertOnstrPrklotOperInfo(ParkingDetailVO vo);
 
-    // ========== 🔥 INSERT 메서드 추가 ==========
 
-    // 기본 주차장 정보 INSERT
-    void insertPrkDefPlceInfo(ParkingDetailVO parkingData);
+    // ========== 수정 ==========
+    void updatePrkDefPlceInfo(ParkingDetailVO vo);
+    void updateOnstrPrklotInfo(ParkingDetailVO vo);
+    void updateOnstrPrklotOperInfo(ParkingDetailVO vo);
+    void updateOffstrPrklotInfo(ParkingDetailVO vo);
+    void updateOffstrPrklotOperInfo(ParkingDetailVO vo);
+    void updateAtchPrklotInfo(ParkingDetailVO vo);
+    void updateAtchPrklotOperInfo(ParkingDetailVO vo);
+    void updateBizPerPrklotPrgsSts(ParkingDetailVO vo);
 
-    // 사업별 주차장 정보 INSERT
-    void insertBizPerPrklotInfo(ParkingDetailVO parkingData);
-
-    // 노상주차장 INSERT
-    void insertOnstrPrklotInfo(ParkingDetailVO parkingData);
-    void insertOnstrPrklotOperInfo(ParkingDetailVO parkingData);
-
-    // 노외주차장 INSERT
-    void insertOffstrPrklotInfo(ParkingDetailVO parkingData);
-    void insertOffstrPrklotOperInfo(ParkingDetailVO parkingData);
-
-    // 부설주차장 INSERT
-    void insertAtchPrklotInfo(ParkingDetailVO parkingData);
-    void insertAtchPrklotOperInfo(ParkingDetailVO parkingData);
-
-    // 수정 기능 (UPDATE)
-    void updateParkingStatus(Map<String, Object> params);
-    void updateSelectedParking(Map<String, Object> params);
-
-    /**
-     * 지도용 주차장 목록 조회 (좌표 포함)
-     */
-    List<ParkingListVO> selectParkingListForMap(Map<String, Object> params);
+    // ========== 상태 변경 ==========
+    int updateStatusToPending(List<String> manageNoList);
 }

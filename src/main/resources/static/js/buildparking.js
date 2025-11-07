@@ -56,6 +56,146 @@ function applyCurrencyFormat(input) {
     });
 }
 
+// ========== 🔥 행정구역 코드 로더 추가 ==========
+const RegionCodeLoader = {
+    // 진행상태 로드
+    async loadProgressStatus() {
+        try {
+            const response = await fetch('/cmm/codes/status');
+            const result = await response.json();
+
+            const statusSelect = $('#f_status');
+            if (!statusSelect) return;
+
+            statusSelect.innerHTML = '<option value="">선택</option>';
+            if (result.success && result.data) {
+                result.data.forEach(item => {
+                    // 🔥 codeCd가 "10"인 항목만 추가
+                    if (item.codeCd === '10') {
+                        const option = document.createElement('option');
+                        option.value = item.codeCd;
+                        option.textContent = item.codeNm;
+                        statusSelect.appendChild(option);
+                    }
+                });
+                console.log('✅ 진행상태 로드 완료:', result.data.length);
+            }
+        } catch (error) {
+            console.error('❌ 진행상태 로드 실패:', error);
+        }
+    },
+
+    // 시도 목록 로드
+    async loadSidoList() {
+        try {
+            const response = await fetch('/cmm/codes/sido');
+            const result = await response.json();
+
+            const sidoSelect = $('#f_sido');
+            if (!sidoSelect) return;
+
+            sidoSelect.innerHTML = '<option value="">선택</option>';
+            if (result.success && result.data) {
+                result.data.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.codeCd;
+                    option.textContent = item.codeNm;
+                    sidoSelect.appendChild(option);
+                });
+                console.log('✅ 시도 목록 로드 완료:', result.data.length);
+            }
+        } catch (error) {
+            console.error('❌ 시도 로드 실패:', error);
+        }
+    },
+
+    // 시군구 목록 로드
+    async loadSigunguList(sidoCd) {
+        try {
+            const sigunguSelect = $('#f_sigungu');
+            const emdSelect = $('#f_emd');
+
+            if (!sigunguSelect || !emdSelect) return;
+
+            sigunguSelect.innerHTML = '<option value="">선택</option>';
+            emdSelect.innerHTML = '<option value="">선택</option>';
+            emdSelect.disabled = true;
+
+            if (!sidoCd) {
+                sigunguSelect.disabled = true;
+                return;
+            }
+
+            const response = await fetch(`/cmm/codes/sigungu?sidoCd=${sidoCd}`);
+            const result = await response.json();
+
+            if (result.success && result.data) {
+                result.data.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.codeCd;
+                    option.textContent = item.codeNm;
+                    sigunguSelect.appendChild(option);
+                });
+                sigunguSelect.disabled = false;
+                console.log('✅ 시군구 목록 로드 완료:', result.data.length);
+            }
+        } catch (error) {
+            console.error('❌ 시군구 로드 실패:', error);
+        }
+    },
+
+    // 읍면동 목록 로드
+    async loadEmdList(sigunguCd) {
+        try {
+            const emdSelect = $('#f_emd');
+            if (!emdSelect) return;
+
+            emdSelect.innerHTML = '<option value="">선택</option>';
+
+            if (!sigunguCd) {
+                emdSelect.disabled = true;
+                return;
+            }
+
+            const response = await fetch(`/cmm/codes/emd?sigunguCd=${sigunguCd}`);
+            const result = await response.json();
+
+            if (result.success && result.data) {
+                result.data.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.emdCd;
+                    option.textContent = item.lgalEmdNm;
+                    emdSelect.appendChild(option);
+                });
+                emdSelect.disabled = false;
+                console.log('✅ 읍면동 목록 로드 완료:', result.data.length);
+            }
+        } catch (error) {
+            console.error('❌ 읍면동 로드 실패:', error);
+        }
+    },
+
+    // 🔥 이벤트 리스너 설정
+    setupEventListeners() {
+        const sidoSelect = $('#f_sido');
+        const sigunguSelect = $('#f_sigungu');
+
+        if (sidoSelect) {
+            sidoSelect.addEventListener('change', (e) => {
+                console.log('🔄 시도 변경:', e.target.value);
+                this.loadSigunguList(e.target.value);
+            });
+        }
+
+        if (sigunguSelect) {
+            sigunguSelect.addEventListener('change', (e) => {
+                console.log('🔄 시군구 변경:', e.target.value);
+                this.loadEmdList(e.target.value);
+            });
+        }
+    }
+};
+
 // ========== 🔥 동적 코드 로더 ==========
 const CodeLoader = {
     async loadDynamicCodes() {
@@ -332,11 +472,12 @@ $('#btnFindAddr')?.addEventListener('click', () => {
     container.innerHTML = '';
     new daum.Postcode({
         oncomplete(data) {
-            const road = data.roadAddress || data.address || '';
-            const jibun = data.jibunAddress || data.autoJibunAddress || data.address || '';
-            if (f_addrJ) f_addrJ.value = jibun;
-            if (f_addrR) f_addrR.value = road;
-            updateHeaderAddr();
+            console.log('🔍 다음 주소 API 응답:', data);
+
+            // 🔥 주소 파싱 및 자동 입력
+            parseAndFillAddress(data);
+
+            // 레이어 닫기
             layer.style.display = 'none';
         }, width: '100%', height: '100%'
     }).embed(container);
@@ -347,6 +488,175 @@ $('#postcodeClose')?.addEventListener('click', () => {
 layer?.addEventListener('click', (e) => {
     if (e.target === layer) layer.style.display = 'none';
 });
+
+// 🔥 주소 데이터 파싱 및 입력 함수
+async function parseAndFillAddress(data) {
+    try {
+        console.log('📝 주소 파싱 시작', data);
+
+        // 🔥 1. 우편번호
+        const f_zip = document.getElementById('f_zip');
+        if (f_zip && data.zonecode) {
+            f_zip.value = data.zonecode;
+            console.log('✅ 우편번호:', data.zonecode);
+        }
+
+        // 🔥 2. 지번주소 / 도로명주소 먼저 입력
+        if (f_addrJ && data.jibunAddress) {
+            f_addrJ.value = data.jibunAddress;
+            console.log('✅ 지번주소:', data.jibunAddress);
+        }
+
+        if (f_addrR) {
+            const roadAddr = data.roadAddress || data.autoRoadAddress || '';
+            f_addrR.value = roadAddr;
+            console.log('✅ 도로명주소:', roadAddr);
+        }
+
+        // 🔥 3. 시도/시군구/읍면동 코드 매핑용 객체
+        const regionMap = {
+            sido: data.sido,          // "충청북도"
+            sigungu: data.sigungu,    // "영동군"
+            bname: data.bname,        // "황간면"
+            bname1: data.bname1       // 법정동명
+        };
+
+        console.log('🗺️ 행정구역 정보:', regionMap);
+
+        // 🔥 4. 시도 선택 - 텍스트로 매칭
+        if (regionMap.sido) {
+            const sidoSelect = $('#f_sido');
+            if (sidoSelect) {
+                // 옵션 중에서 텍스트가 포함된 것 찾기
+                const sidoOption = Array.from(sidoSelect.options).find(
+                    opt => opt.textContent.trim() === regionMap.sido
+                );
+
+                if (sidoOption) {
+                    sidoSelect.value = sidoOption.value;
+                    console.log('✅ 시도 선택:', regionMap.sido, '→', sidoOption.value);
+
+                    // change 이벤트 발생시켜 시군구 로드
+                    sidoSelect.dispatchEvent(new Event('change'));
+
+                    // 시군구 로드 대기
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                } else {
+                    console.warn('⚠️ 시도를 찾을 수 없음:', regionMap.sido);
+                }
+            }
+        }
+
+        // 🔥 5. 시군구 선택 - 텍스트로 매칭
+        if (regionMap.sigungu) {
+            const sigunguSelect = $('#f_sigungu');
+            if (sigunguSelect) {
+                // 옵션 중에서 텍스트가 포함된 것 찾기
+                const sigunguOption = Array.from(sigunguSelect.options).find(
+                    opt => opt.textContent.trim().includes(regionMap.sigungu)
+                );
+
+                if (sigunguOption) {
+                    sigunguSelect.value = sigunguOption.value;
+                    console.log('✅ 시군구 선택:', regionMap.sigungu, '→', sigunguOption.value);
+
+                    // change 이벤트 발생시켜 읍면동 로드
+                    sigunguSelect.dispatchEvent(new Event('change'));
+
+                    // 읍면동 로드 대기
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                } else {
+                    console.warn('⚠️ 시군구를 찾을 수 없음:', regionMap.sigungu);
+                }
+            }
+        }
+
+        // 🔥 6. 읍면동 선택 - 텍스트로 매칭
+        if (regionMap.bname) {
+            const emdSelect = $('#f_emd');
+            if (emdSelect) {
+                // 옵션 중에서 텍스트가 포함된 것 찾기
+                const emdOption = Array.from(emdSelect.options).find(
+                    opt => opt.textContent.trim().includes(regionMap.bname)
+                );
+
+                if (emdOption) {
+                    emdSelect.value = emdOption.value;
+                    console.log('✅ 읍면동 선택:', regionMap.bname, '→', emdOption.value);
+
+                    // change 이벤트 발생
+                    emdSelect.dispatchEvent(new Event('change'));
+                } else {
+                    console.warn('⚠️ 읍면동을 찾을 수 없음:', regionMap.bname);
+                }
+            }
+        }
+
+        // 🔥 7. 리 입력 (리가 있는 경우)
+        const riInput = $('#f_ri');
+        if (riInput && data.bname1) {
+            // bname1에 "리"가 포함되어 있으면 리 입력
+            if (data.bname1.includes('리')) {
+                riInput.value = data.bname1;
+                console.log('✅ 리 입력:', data.bname1);
+            }
+        }
+
+        // 🔥 8. 산 여부 판단
+        const isMountain = data.jibunAddress && data.jibunAddress.includes('산');
+        const mountainRadios = document.querySelectorAll('input[name="mountainYn"]');
+        mountainRadios.forEach(radio => {
+            if (radio.value === (isMountain ? 'Y' : 'N')) {
+                radio.checked = true;
+            }
+        });
+        console.log('✅ 산 여부:', isMountain ? '산' : '일반');
+
+        // 🔥 9. 본번/부번 파싱
+        let mainNum = '';
+        let subNum = '';
+
+        // 지번 주소에서 번지 추출 (예: "123-45" 또는 "123")
+        const jibunMatch = data.jibunAddress.match(/(\d+)-(\d+)/);
+        if (jibunMatch) {
+            mainNum = jibunMatch[1];
+            subNum = jibunMatch[2];
+        } else {
+            const jibunMatchSingle = data.jibunAddress.match(/\s(\d+)$/);
+            if (jibunMatchSingle) {
+                mainNum = jibunMatchSingle[1];
+            }
+        }
+
+        const mainNumInput = $('#f_mainNum');
+        const subNumInput = $('#f_subNum');
+
+        if (mainNumInput && mainNum) {
+            mainNumInput.value = mainNum;
+            console.log('✅ 본번:', mainNum);
+        }
+        if (subNumInput && subNum) {
+            subNumInput.value = subNum;
+            console.log('✅ 부번:', subNum);
+        }
+
+        // 🔥 10. 건물명 입력
+        const buildingNameInput = $('#f_buildingName');
+        if (buildingNameInput && data.buildingName) {
+            buildingNameInput.value = data.buildingName;
+            console.log('✅ 건물명:', data.buildingName);
+        }
+
+        // 헤더 주소 업데이트
+        updateHeaderAddr();
+
+        console.log('✅ 주소 파싱 및 입력 완료');
+
+    } catch (error) {
+        console.error('❌ 주소 파싱 오류:', error);
+        alert('주소 정보를 처리하는 중 오류가 발생했습니다.');
+    }
+}
 
 // ========== 사진 업로드/좌표 ==========
 const inLib = $('#f_photo_lib'), inCam = $('#f_photo_cam');
@@ -1191,9 +1501,8 @@ async function loadParkingDetailFromServer() {
 let loadedBizMngNo = null;
 let loadedPrkPlceInfoSn = null;
 
-// ========== 🔥 서버 데이터로 폼 채우기 ==========
 // 🔥 서버 데이터로 폼 채우기 ==========
-function populateFormWithData(data) {
+async function populateFormWithData(data) {
     console.log('📝 폼 데이터 채우기 시작', data);
 
     // 🔥 사업관리번호, 정보일련번호 저장
@@ -1209,10 +1518,41 @@ function populateFormWithData(data) {
     // 기본 정보
     if (f_id) f_id.value = data.prkPlceManageNo || '';
     if (f_name) f_name.value = data.prkplceNm || '';
-    if (f_status) f_status.value = data.prgsStsCd || '';
-    if (f_sido) f_sido.value = data.sidoNm || '';
-    if (f_sigungu) f_sigungu.value = data.sigunguNm || '';
-    if (f_emd) f_emd.value = data.lgalEmdNm || '';
+    // 🔥 진행상태 바인딩 (select)
+    if (f_status && data.prgsStsCd) {
+        f_status.value = data.prgsStsCd;
+        console.log('✅ 진행상태 바인딩:', data.prgsStsCd);
+    }
+    // 🔥 행정구역 바인딩 (select) - sidoCd, sigunguCd 사용
+    if (data.sidoCd) {
+        const f_sido = $('#f_sido');
+        if (f_sido) {
+            f_sido.value = data.sidoCd;
+            console.log('✅ 시도코드 바인딩:', data.sidoCd);
+
+            // 시군구 로드
+            await RegionCodeLoader.loadSigunguList(data.sidoCd);
+
+            if (data.sigunguCd) {
+                const f_sigungu = $('#f_sigungu');
+                if (f_sigungu) {
+                    f_sigungu.value = data.sigunguCd;
+                    console.log('✅ 시군구코드 바인딩:', data.sigunguCd);
+
+                    // 읍면동 로드
+                    await RegionCodeLoader.loadEmdList(data.sigunguCd);
+
+                    if (data.emdCd) {
+                        const f_emd = $('#f_emd');
+                        if (f_emd) {
+                            f_emd.value = data.emdCd;
+                            console.log('✅ 읍면동코드 바인딩:', data.emdCd);
+                        }
+                    }
+                }
+            }
+        }
+    }
     if (f_addrJ) f_addrJ.value = data.dtadd || '';
     if (f_addrR) f_addrR.value = '';
 
@@ -1843,12 +2183,19 @@ function validateRequiredFields() {
     return errors;
 }
 
-// ========== 🔥 DOMContentLoaded 이벤트 ==========
+// ========== 🔥 DOMContentLoaded 수정 ==========
 document.addEventListener('DOMContentLoaded', async function () {
     console.log('=== 부설주차장 페이지 초기화 시작 ===');
 
+    // 🔥 1. 행정구역 코드 로드 (가장 먼저 실행)
+    await RegionCodeLoader.loadProgressStatus();
+    await RegionCodeLoader.loadSidoList();
+    RegionCodeLoader.setupEventListeners();
+
+    // 2. 동적 코드 로드
     await CodeLoader.applyAllDynamicCodes();
 
+    // 3. 나머지 설정
     setupMechPrklotOperToggle();
     setupOperationEntityToggle();
     setupTimeOperationEvents('weekday');
@@ -1861,8 +2208,10 @@ document.addEventListener('DOMContentLoaded', async function () {
     setupPedestrianSafetyEvents();
     setupPeakTimeValidation();
 
+    // 4. 서버 데이터 로드
     await loadParkingDetailFromServer();
 
+    // 5. 저장 버튼
     $('#btnSave')?.addEventListener('click', doSave);
     $('#btnSaveTop')?.addEventListener('click', doSave);
 

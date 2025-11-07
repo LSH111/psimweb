@@ -1,4 +1,3 @@
-
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" isELIgnored="true" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
@@ -12,326 +11,419 @@
     <!-- Kakao Maps JS -->
     <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=a1194f70f6ecf2ece7a703a4a07a0876&libraries=services"></script>
 
-
+    <!-- parkingmap 전용 스타일 -->
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { width: 100%; height: 100vh; overflow: hidden; font-family: 'Pretendard', -apple-system, sans-serif; }
-        #map { width: 100%; height: 100%; }
-
-        /* 🔥 검색 패널 - 접을 수 있는 형태 */
-        .search-panel {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 10;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            max-width: 400px;
-            width: calc(100% - 40px);
-            transition: all 0.3s ease;
+        /* body/html - 헤더 높이 고려 */
+        html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            height: 100vh !important;
+            overflow: hidden !important;
+            box-sizing: border-box !important;
         }
 
-        /* 검색 헤더 (항상 표시) */
+        body * {
+            box-sizing: border-box !important;
+        }
+
+        /* 🔥 지도 영역 - margin-top 제거 */
+        body > #map {
+            width: 100% !important;
+            height: 100vh !important;  /* 전체 높이 */
+            position: relative !important;
+            margin-top: 0 !important;  /* 제거 */
+        }
+
+        /* 검색 패널 */
+        #map > .search-panel {
+            position: absolute !important;
+            top: 20px !important;
+            left: 20px !important;
+            z-index: 10 !important;
+            background: white !important;
+            border-radius: 12px !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+            max-width: 400px !important;
+            width: calc(100% - 40px) !important;
+            transition: all 0.3s ease !important;
+        }
+
         .search-header {
-            padding: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid #e2e8f0;
-            cursor: pointer;
-            user-select: none;
+            padding: 16px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            cursor: pointer !important;
+            user-select: none !important;
+            border-radius: 12px 12px 0 0 !important;
         }
 
         .search-header:hover {
-            background: #f8fafc;
+            background: #f8fafc !important;
         }
 
         .search-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #1e293b;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            font-size: 16px !important;
+            font-weight: 600 !important;
+            color: #1e293b !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
         }
 
         .toggle-icon {
-            font-size: 20px;
-            color: #64748b;
-            transition: transform 0.3s ease;
+            font-size: 20px !important;
+            color: #64748b !important;
+            transition: transform 0.3s ease !important;
         }
 
         .search-panel.collapsed .toggle-icon {
-            transform: rotate(-90deg);
+            transform: rotate(-90deg) !important;
         }
 
-        /* 검색 컨텐츠 (접었다 펼 수 있음) */
         .search-content {
-            max-height: calc(100vh - 200px);
-            overflow: hidden;
-            transition: max-height 0.3s ease;
+            max-height: calc(100vh - 280px) !important;
+            overflow: hidden !important;
+            transition: max-height 0.3s ease !important;
         }
 
         .search-panel.collapsed .search-content {
-            max-height: 0;
+            max-height: 0 !important;
         }
 
         .search-section {
-            padding: 16px;
-            border-bottom: 1px solid #e2e8f0;
+            padding: 16px !important;
+            border-bottom: 1px solid #e2e8f0 !important;
         }
 
         .search-input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 10px;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 10px !important;
+            margin-bottom: 10px !important;
         }
 
         .search-input {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: all 0.2s;
+            width: 100% !important;
+            padding: 10px 12px !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 8px !important;
+            font-size: 14px !important;
+            transition: all 0.2s !important;
         }
 
         .search-input:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            outline: none !important;
+            border-color: #2563eb !important;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
         }
 
         .search-btn {
-            width: 100%;
-            padding: 10px 20px;
-            background: #2563eb;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
+            width: 100% !important;
+            padding: 10px 20px !important;
+            background: #2563eb !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 8px !important;
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            cursor: pointer !important;
+            transition: all 0.2s !important;
         }
 
         .search-btn:hover {
-            background: #1d4ed8;
-            transform: translateY(-1px);
-        }
-
-        .search-btn:active {
-            transform: translateY(0);
+            background: #1d4ed8 !important;
+            transform: translateY(-1px) !important;
         }
 
         .search-result {
-            margin-top: 10px;
-            padding: 8px 12px;
-            background: #f0fdf4;
-            border: 1px solid #86efac;
-            border-radius: 6px;
-            font-size: 13px;
-            color: #166534;
+            margin-top: 10px !important;
+            padding: 8px 12px !important;
+            background: #f0fdf4 !important;
+            border: 1px solid #86efac !important;
+            border-radius: 6px !important;
+            font-size: 13px !important;
+            color: #166534 !important;
         }
 
         .search-error {
-            background: #fef2f2;
-            border-color: #fca5a5;
-            color: #991b1b;
+            background: #fef2f2 !important;
+            border-color: #fca5a5 !important;
+            color: #991b1b !important;
         }
 
-        /* 🔥 주차장 리스트 */
+        /* 주차장 리스트 */
         .parking-list-section {
-            max-height: 400px;
-            overflow-y: auto;
-            padding: 12px 16px;
+            max-height: 350px !important;
+            overflow-y: auto !important;
+            padding: 12px 16px !important;
         }
 
         .parking-list-header {
-            font-size: 13px;
-            font-weight: 600;
-            color: #64748b;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 8px;
-            background: #f1f5f9;
-            border-radius: 6px;
-            position: sticky;
-            top: 0;
-            z-index: 1;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            color: #64748b !important;
+            margin-bottom: 10px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            padding: 8px !important;
+            background: #f1f5f9 !important;
+            border-radius: 6px !important;
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 1 !important;
         }
 
         .parking-item {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
+            background: #f8fafc !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 8px !important;
+            padding: 12px !important;
+            margin-bottom: 8px !important;
+            cursor: pointer !important;
+            transition: all 0.2s !important;
         }
 
         .parking-item:hover {
-            background: #eff6ff;
-            border-color: #3b82f6;
-            transform: translateX(4px);
+            background: #eff6ff !important;
+            border-color: #3b82f6 !important;
+            transform: translateX(4px) !important;
         }
 
         .parking-item-name {
-            font-size: 14px;
-            font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 4px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            color: #1e293b !important;
+            margin-bottom: 4px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+            flex-wrap: wrap !important;
         }
 
         .parking-item-type {
-            display: inline-block;
-            padding: 2px 6px;
-            background: #e0e7ff;
-            color: #3730a3;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 500;
+            display: inline-block !important;
+            padding: 2px 6px !important;
+            background: #e0e7ff !important;
+            color: #3730a3 !important;
+            border-radius: 4px !important;
+            font-size: 11px !important;
+            font-weight: 500 !important;
         }
 
         .parking-item-type.type-01 {
-            background: #fee2e2;
-            color: #991b1b;
+            background: #fee2e2 !important;
+            color: #991b1b !important;
         }
 
         .parking-item-type.type-02 {
-            background: #dbeafe;
-            color: #1e40af;
+            background: #dbeafe !important;
+            color: #1e40af !important;
         }
 
         .parking-item-type.type-03 {
-            background: #dcfce7;
-            color: #166534;
+            background: #dcfce7 !important;
+            color: #166534 !important;
         }
 
         .parking-item-location {
-            font-size: 12px;
-            color: #64748b;
-            margin-bottom: 2px;
-            font-weight: 500;
+            font-size: 12px !important;
+            color: #64748b !important;
+            margin-bottom: 2px !important;
+            font-weight: 500 !important;
         }
 
         .parking-item-address {
-            font-size: 11px;
-            color: #94a3b8;
-            line-height: 1.4;
+            font-size: 11px !important;
+            color: #94a3b8 !important;
+            line-height: 1.4 !important;
         }
 
         .parking-list-empty {
-            text-align: center;
-            padding: 32px 16px;
-            color: #94a3b8;
-            font-size: 13px;
+            text-align: center !important;
+            padding: 32px 16px !important;
+            color: #94a3b8 !important;
+            font-size: 13px !important;
         }
 
         /* 현재 위치 버튼 */
         .location-btn {
-            position: absolute;
-            bottom: 30px;
-            right: 30px;
-            z-index: 10;
-            background: white;
-            border: 2px solid #2563eb;
-            border-radius: 50%;
-            width: 56px;
-            height: 56px;
-            font-size: 24px;
-            color: #2563eb;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            position: absolute !important;
+            bottom: 30px !important;
+            right: 30px !important;
+            z-index: 10 !important;
+            background: white !important;
+            border: 2px solid #2563eb !important;
+            border-radius: 50% !important;
+            width: 56px !important;
+            height: 56px !important;
+            font-size: 24px !important;
+            color: #2563eb !important;
+            cursor: pointer !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+            transition: all 0.2s !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
         }
 
         .location-btn:hover {
-            background: #2563eb;
-            color: white;
-            transform: scale(1.1);
+            background: #2563eb !important;
+            color: white !important;
+            transform: scale(1.1) !important;
         }
 
         /* 상태 메시지 */
         .status-message {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            background: white;
-            border-radius: 8px;
-            padding: 12px 20px;
-            font-size: 14px;
-            font-weight: 500;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            max-width: 400px;
-            pointer-events: none;
-            white-space: nowrap;
+            position: absolute !important;
+            bottom: 30px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            z-index: 10 !important;
+            background: white !important;
+            border-radius: 8px !important;
+            padding: 12px 20px !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+            max-width: 400px !important;
+            pointer-events: none !important;
+            white-space: nowrap !important;
         }
 
         .status-message.success {
-            border-left: 4px solid #10b981;
-            color: #059669;
-            background: #f0fdf4;
+            border-left: 4px solid #10b981 !important;
+            color: #059669 !important;
+            background: #f0fdf4 !important;
         }
+
         .status-message.error {
-            border-left: 4px solid #ef4444;
-            color: #dc2626;
-            background: #fef2f2;
+            border-left: 4px solid #ef4444 !important;
+            color: #dc2626 !important;
+            background: #fef2f2 !important;
         }
+
         .status-message.info {
-            border-left: 4px solid #3b82f6;
-            color: #2563eb;
-            background: #eff6ff;
+            border-left: 4px solid #3b82f6 !important;
+            color: #2563eb !important;
+            background: #eff6ff !important;
         }
 
         /* 모바일 대응 */
         @media (max-width: 768px) {
-            .search-panel {
-                top: 10px;
-                left: 10px;
-                right: 10px;
-                width: auto;
-                max-width: none;
+            body > #map {
+                height: 100vh !important;  /* 전체 높이 */
+                margin-top: 0 !important;  /* 제거 */
+            }
+
+            #map > .search-panel {
+                top: 10px !important;
+                left: 10px !important;
+                right: 10px !important;
+                width: auto !important;
+                max-width: none !important;
+            }
+
+            .search-header {
+                padding: 14px !important;
+            }
+
+            .search-title {
+                font-size: 15px !important;
+            }
+
+            .search-section {
+                padding: 14px !important;
+            }
+
+            .search-content {
+                max-height: calc(100vh - 200px) !important;
             }
 
             .parking-list-section {
-                max-height: 300px;
+                max-height: 250px !important;
             }
 
             .location-btn {
-                bottom: 20px;
-                right: 20px;
-                width: 48px;
-                height: 48px;
-                font-size: 20px;
+                bottom: 20px !important;
+                right: 20px !important;
+                width: 48px !important;
+                height: 48px !important;
+                font-size: 20px !important;
             }
 
             .status-message {
-                bottom: 80px;
-                font-size: 12px;
-                padding: 10px 16px;
+                bottom: 80px !important;
+                font-size: 12px !important;
+                padding: 10px 16px !important;
+                max-width: calc(100% - 40px) !important;
             }
+        }
+
+        /* 가로 모드 */
+        @media (max-height: 600px) and (orientation: landscape) {
+            body > #map {
+                height: 100vh !important;  /* 전체 높이 */
+                margin-top: 0 !important;  /* 제거 */
+            }
+
+            #map > .search-panel {
+                top: 10px !important;
+                left: 10px !important;
+                max-width: 350px !important;
+                max-height: calc(100vh - 70px) !important;
+            }
+
+            .search-content {
+                max-height: calc(100vh - 150px) !important;
+            }
+
+            .parking-list-section {
+                max-height: 200px !important;
+            }
+
+            .location-btn {
+                bottom: 15px !important;
+                right: 15px !important;
+                width: 44px !important;
+                height: 44px !important;
+                font-size: 18px !important;
+            }
+
+            .status-message {
+                bottom: 70px !important;
+                font-size: 11px !important;
+                padding: 8px 14px !important;
+            }
+        }
+
+        /* 스크롤바 스타일 */
+        .parking-list-section::-webkit-scrollbar {
+            width: 6px !important;
+        }
+
+        .parking-list-section::-webkit-scrollbar-track {
+            background: #f1f5f9 !important;
+            border-radius: 3px !important;
+        }
+
+        .parking-list-section::-webkit-scrollbar-thumb {
+            background: #cbd5e1 !important;
+            border-radius: 3px !important;
+        }
+
+        .parking-list-section::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8 !important;
         }
     </style>
 </head>
 <body>
 <!-- 지도 영역 -->
 <div id="map">
-    <!-- 🔥 접을 수 있는 검색 패널 -->
+    <!-- 접을 수 있는 검색 패널 -->
     <div class="search-panel" id="searchPanel">
         <!-- 헤더 (항상 표시, 클릭하면 접기/펼치기) -->
         <div class="search-header" onclick="toggleSearchPanel()">
@@ -387,7 +479,7 @@
     let watchId = null;
     let parkingMarkers = [];
 
-    // 🔥 검색 패널 토글
+    // 검색 패널 토글
     function toggleSearchPanel() {
         const panel = document.getElementById('searchPanel');
         panel.classList.toggle('collapsed');
@@ -478,12 +570,10 @@
         }
     }
 
-    // 주차장 검색
     async function searchParkingByRegion() {
         const sidoCd = document.getElementById('searchSido').value;
         const sigunguCd = document.getElementById('searchSigungu').value;
 
-        // 🔥 시도/시군구 선택 정보 로깅
         const sidoSelect = document.getElementById('searchSido');
         const sigunguSelect = document.getElementById('searchSigungu');
 
@@ -508,7 +598,6 @@
             const params = new URLSearchParams();
             params.append('sidoCd', sidoCd);
 
-            // 🔥 시군구 코드도 반드시 전달
             if (sigunguCd) {
                 params.append('sigunguCd', sigunguCd);
             }
@@ -523,19 +612,17 @@
             if (result.success && result.list && result.list.length > 0) {
                 console.log('✅ 주차장 검색 성공:', result.list.length + '개');
 
-                // 🔥 검색 조건 표시 메시지 개선
-                let searchCondition = sidoText;
-                if (sigunguText && sigunguText !== '시군구 선택') {
-                    searchCondition += ' ' + sigunguText;
-                }
-
                 displayParkingMarkers(result.list);
-                displayParkingList(result.list);  // 🔥 리스트 표시 추가
+                displayParkingList(result.list);
                 showMessage(`✅ ${result.list.length}개 주차장 표시`, 'success');
-                showSearchResult(`${searchCondition}: ${result.list.length}개 주차장`);
+
+                const searchResult = document.getElementById('searchResult');
+                if (searchResult) {
+                    searchResult.style.display = 'none';
+                }
             } else {
                 displayParkingMarkers([]);
-                displayParkingList([]);  // 🔥 빈 리스트 표시
+                displayParkingList([]);
 
                 let searchCondition = sidoText;
                 if (sigunguText && sigunguText !== '시군구 선택') {
@@ -552,7 +639,7 @@
         }
     }
 
-    // 🔥 주차장 리스트 표시
+    // 주차장 리스트 표시
     function displayParkingList(parkingList) {
         const headerEl = document.getElementById('parkingListHeader');
         const itemsContainer = document.getElementById('parkingListItems');
@@ -601,13 +688,12 @@
         }).join('');
     }
 
-    // 🔥 주차장으로 이동
+    // 주차장으로 이동
     function moveToParking(lat, lng, name, manageNo, type) {
         const position = new kakao.maps.LatLng(parseFloat(lat), parseFloat(lng));
         map.setCenter(position);
         map.setLevel(3);
 
-        // 해당 마커 찾아서 클릭 이벤트 트리거
         const targetMarker = parkingMarkers.find(marker => {
             const markerPos = marker.getPosition();
             return Math.abs(markerPos.getLat() - lat) < 0.00001 &&
@@ -620,7 +706,6 @@
 
         showMessage('📍 ' + name, 'info');
 
-        // 🔥 모바일에서는 자동으로 패널 접기
         if (window.innerWidth <= 768) {
             const panel = document.getElementById('searchPanel');
             if (panel && !panel.classList.contains('collapsed')) {
@@ -629,7 +714,7 @@
         }
     }
 
-    // 🔥 HTML 이스케이프 처리
+    // HTML 이스케이프 처리
     function escapeHtml(text) {
         if (!text) return '';
         const div = document.createElement('div');
@@ -716,7 +801,6 @@
 
     // 주차장 정보 인포윈도우 표시
     function showParkingInfo(parking, marker) {
-        // 🔥 행정구역 정보 조합
         const locationParts = [];
         if (parking.sidoNm) locationParts.push(parking.sidoNm);
         if (parking.sigunguNm) locationParts.push(parking.sigunguNm);
@@ -758,9 +842,19 @@
 
     // 주차장 상세보기 함수
     function openParkingDetail(prkPlceManageNo, prkPlceType) {
-        // 🔥 현재 검색 조건 저장 (돌아왔을 때 복원용)
+        // 🔥 현재 지도 상태 저장
         sessionStorage.setItem('parkingMapReturn', 'true');
-        sessionStorage.setItem('parkingMapScrollY', window.scrollY);
+        sessionStorage.setItem('parkingMapCenter', JSON.stringify({
+            lat: map.getCenter().getLat(),
+            lng: map.getCenter().getLng()
+        }));
+        sessionStorage.setItem('parkingMapLevel', map.getLevel());
+
+        // 🔥 현재 검색 조건 저장
+        const sidoCd = document.getElementById('searchSido')?.value || '';
+        const sigunguCd = document.getElementById('searchSigungu')?.value || '';
+        sessionStorage.setItem('parkingMapSido', sidoCd);
+        sessionStorage.setItem('parkingMapSigungu', sigunguCd);
 
         const url = `/prk/parkinglist?openDetail=${encodeURIComponent(prkPlceManageNo)}&type=${encodeURIComponent(prkPlceType)}`;
         window.location.href = url;
@@ -917,7 +1011,6 @@
 
                 console.log('✅ 카카오맵 로드 완료');
 
-                // 🔥 시도 선택 이벤트 등록 전 엘리먼트 확인
                 const searchSido = document.getElementById('searchSido');
                 const searchSigungu = document.getElementById('searchSigungu');
                 const regionSearchBtn = document.getElementById('regionSearchBtn');
@@ -944,18 +1037,114 @@
                     console.log('✅ 위치 버튼 이벤트 등록 완료');
                 }
 
-                // 시도 목록 로드
                 loadSidoList();
 
-                // 자동 위치 추적 시작
-                setTimeout(() => {
-                    startLocationTracking();
-                }, 500);
+                // 🔥 지도 복원 로직 수정
+                const isReturnFromList = sessionStorage.getItem('parkingMapReturn');
+                if (isReturnFromList === 'true') {
+                    console.log('🔄 지도 상태 복원 시작');
+                    // ⭐ 시도 목록 로드 완료 후 복원 실행
+                    setTimeout(async () => {
+                        await restoreMapState();
+                    }, 800); // 시도 목록 로드 대기
+                } else {
+                    // 기본 위치 추적 시작
+                    setTimeout(() => {
+                        startLocationTracking();
+                    }, 500);
+                }
 
             } catch (error) {
                 console.error('❌ 지도 초기화 오류:', error);
                 showMessage('❌ 지도를 불러올 수 없습니다', 'error');
             }
+        }
+    }
+
+    // 🔥 지도 상태 복원 함수
+    async function restoreMapState() {
+        try {
+            console.log('🔄 지도 상태 복원 시작');
+
+            // 지도 위치 복원
+            const centerData = sessionStorage.getItem('parkingMapCenter');
+            const level = sessionStorage.getItem('parkingMapLevel');
+
+            if (centerData) {
+                const center = JSON.parse(centerData);
+                const position = new kakao.maps.LatLng(center.lat, center.lng);
+                map.setCenter(position);
+                console.log('✅ 지도 중심 복원:', center);
+            }
+
+            if (level) {
+                map.setLevel(parseInt(level));
+                console.log('✅ 지도 레벨 복원:', level);
+            }
+
+            // 검색 조건 복원
+            const sidoCd = sessionStorage.getItem('parkingMapSido');
+            const sigunguCd = sessionStorage.getItem('parkingMapSigungu');
+
+            console.log('📍 복원할 검색 조건:', { sidoCd, sigunguCd });
+
+            if (sidoCd) {
+                const sidoSelect = document.getElementById('searchSido');
+                if (sidoSelect) {
+                    // ⭐ 시도 선택 전 옵션 확인
+                    const sidoOption = sidoSelect.querySelector(`option[value="${sidoCd}"]`);
+                    if (sidoOption) {
+                        sidoSelect.value = sidoCd;
+                        console.log('✅ 시도 복원:', sidoCd);
+
+                        // 시군구 목록 로드
+                        if (sigunguCd) {
+                            await loadSigunguList(sidoCd);
+
+                            // ⭐ 시군구 목록 로드 완료 후 선택
+                            const sigunguSelect = document.getElementById('searchSigungu');
+                            if (sigunguSelect) {
+                                // 짧은 대기 후 시군구 선택
+                                setTimeout(() => {
+                                    const sigunguOption = sigunguSelect.querySelector(`option[value="${sigunguCd}"]`);
+                                    if (sigunguOption) {
+                                        sigunguSelect.value = sigunguCd;
+                                        console.log('✅ 시군구 복원:', sigunguCd);
+                                    } else {
+                                        console.warn('⚠️ 시군구 옵션을 찾을 수 없음:', sigunguCd);
+                                    }
+                                }, 300);
+                            }
+                        }
+
+                        // ⭐ 주차장 데이터 자동 검색 (시군구 로드 대기)
+                        setTimeout(async () => {
+                            await searchParkingByRegion();
+                        }, sigunguCd ? 600 : 300);
+                    } else {
+                        console.warn('⚠️ 시도 옵션을 찾을 수 없음:', sidoCd);
+                    }
+                }
+            }
+
+            // 세션 스토리지 정리
+            sessionStorage.removeItem('parkingMapReturn');
+            sessionStorage.removeItem('parkingMapCenter');
+            sessionStorage.removeItem('parkingMapLevel');
+            sessionStorage.removeItem('parkingMapSido');
+            sessionStorage.removeItem('parkingMapSigungu');
+
+            console.log('✅ 지도 상태 복원 완료');
+            showMessage('📍 이전 위치로 복귀했습니다', 'success');
+
+        } catch (error) {
+            console.error('❌ 지도 상태 복원 실패:', error);
+            showMessage('⚠️ 지도 복원 중 오류 발생', 'error');
+
+            // 복원 실패 시 기본 동작
+            setTimeout(() => {
+                startLocationTracking();
+            }, 500);
         }
     }
 

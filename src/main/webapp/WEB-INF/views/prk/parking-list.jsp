@@ -11,6 +11,20 @@
             openDetailId: '<c:out value="${openDetailId}" default=""/>',
             parkingType: '<c:out value="${parkingType}" default=""/>'
         };
+
+        // 🔥 지도로 돌아가기 함수 (sessionStorage 유지)
+        //function goBackToMap() {
+            // sessionStorage는 그대로 유지 (parkingmap.jsp에서 복원 후 정리)
+        //    window.location.href = '${pageContext.request.contextPath}/gis/parkingmap';
+        //}
+
+        /* =========================
+           지도로 돌아가기
+           ========================= */
+        window.goBackToMap = function() {
+            // 🔥 세션 스토리지 정리하지 않음 (지도에서 복원 후 삭제)
+            window.location.href = '/gis/parkingmap';
+        };
     </script>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/pages/parking-list.css"/>
 </head>
@@ -92,6 +106,7 @@
                             <button type="button" id="resetBtn" class="btn ghost">초기화</button>
                             <button type="button" id="exportBtn" class="btn sec">CSV 내보내기</button>
                             <button type="button" id="sendBtn" class="btn">선택 전송</button>
+                            <button type="button" id="addNewBtn" class="btn">신규 추가</button>
                         </div>
                     </form>
                 </section>

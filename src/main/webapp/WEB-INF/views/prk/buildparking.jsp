@@ -40,13 +40,84 @@
             <div class="grid">
                 <div><label for="f_id">주차장관리번호</label><div class="ctl"><input id="f_id" class="mono" type="text" readonly /></div></div>
                 <div><label for="f_name">주차장명</label><div class="ctl"><input id="f_name" type="text" placeholder="예) 상암DMC 복합" /></div></div>
-                <div><label for="f_status">진행상태</label><div class="ctl"><input id="f_status" type="text" placeholder="예) TEMP/APPROVED" /></div></div>
+                <!-- 🔥 진행상태를 select로 변경 -->
+                <div>
+                    <label for="f_status">진행상태</label>
+                    <div class="ctl">
+                        <select id="f_status">
+
+                            <!-- JavaScript에서 동적으로 로드 -->
+                        </select>
+                    </div>
+                </div>
                 <div><label for="f_type">주차장구분</label><div class="ctl"><input id="f_type" type="text" value="부설" readonly /></div></div>
-                <div><label for="f_sido">시도</label><div class="ctl"><input id="f_sido" /></div></div>
-                <div><label for="f_sigungu">시군구</label><div class="ctl"><input id="f_sigungu" /></div></div>
-                <div><label for="f_emd">읍면동</label><div class="ctl"><input id="f_emd" /></div></div>
+                <!-- 🔥 시도/시군구/읍면동을 select로 변경 -->
+                <div>
+                    <label for="f_sido">시도</label>
+                    <div class="ctl">
+                        <select id="f_sido">
+                            <option value="">선택</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label for="f_sigungu">시군구</label>
+                    <div class="ctl">
+                        <select id="f_sigungu" disabled>
+                            <option value="">선택</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label for="f_emd">읍면동</label>
+                    <div class="ctl">
+                        <select id="f_emd" disabled>
+                            <option value="">선택</option>
+                        </select>
+                    </div>
+                </div>
                 <!-- 🔥 우편번호 hidden 필드 추가 -->
                 <input type="hidden" id="f_zip" />
+
+                <!-- 🔥 리(里) 추가 -->
+                <div>
+                    <label for="f_ri">리(里)</label>
+                    <div class="ctl">
+                        <input id="f_ri" type="text" placeholder="예) 상리" />
+                    </div>
+                </div>
+
+                <!-- 🔥 산 여부 라디오 버튼 추가 -->
+                <div style="grid-column:1/-1">
+                    <label>산 여부</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="mountainYn" value="N" checked /> <span>일반</span></label>
+                        <label><input type="radio" name="mountainYn" value="Y" /> <span>산</span></label>
+                    </div>
+                </div>
+
+                <!-- 🔥 본번/부번 추가 -->
+                <div>
+                    <label for="f_mainNum">본번</label>
+                    <div class="ctl">
+                        <input id="f_mainNum" type="number" min="0" placeholder="예) 123" inputmode="numeric" />
+                    </div>
+                </div>
+                <div>
+                    <label for="f_subNum">부번</label>
+                    <div class="ctl">
+                        <input id="f_subNum" type="number" min="0" placeholder="예) 45" inputmode="numeric" />
+                    </div>
+                </div>
+
+                <!-- 🔥 건물명 추가 (선택 항목) -->
+                <div style="grid-column:1/-1">
+                    <label for="f_buildingName">건물명 (선택)</label>
+                    <div class="ctl">
+                        <input id="f_buildingName" type="text" placeholder="예) 타워팰리스" />
+                    </div>
+                </div>
+
                 <!-- 주소: 지번/도로명 + 주소찾기 -->
                 <div style="grid-column:1/-1">
                     <label for="f_addr_jibun">지번 주소</label>

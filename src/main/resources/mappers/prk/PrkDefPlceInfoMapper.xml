@@ -760,70 +760,6 @@
           AND prk_plce_info_sn = #{prkPlceInfoSn}
     </update>
 
-    <!-- ========== 🔥 INSERT 쿼리 추가 ========== -->
-
-    <!-- 기본 주차장 정보 INSERT -->
-    <insert id="insertPrkDefPlceInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
-        INSERT INTO cpk.tb_prk_def_plce_info (
-            prk_plce_manage_no,
-            prk_plce_info_sn,
-            prkplce_nm,
-            prk_plce_type,
-            ldong_cd,
-            zip,
-            dtadd,
-            prk_plce_lat,
-            prk_plce_lon,
-            use_yn,
-            reg_dt,
-            rgst_id,
-            rgst_ip_addr
-        ) VALUES (
-                     #{prkPlceManageNo},
-                     #{prkPlceInfoSn},
-                     #{prkplceNm},
-                     #{prkPlceType},
-                     #{ldongCd},
-                     #{zip},
-                     #{dtadd},
-                     #{prkPlceLat},
-                     #{prkPlceLon},
-                     'Y',
-                     NOW(),
-                     #{updusrId},
-                     #{updusrIpAddr}
-                 )
-    </insert>
-
-    <!-- 사업별 주차장 정보 INSERT -->
-    <insert id="insertBizPerPrklotInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
-        INSERT INTO cpk.tb_biz_per_prklot_info (
-            biz_per_prk_mng_no,
-            prk_biz_mng_no,
-            prk_plce_manage_no,
-            prk_plce_info_sn,
-            prgs_sts_cd,
-            srvy_id,
-            srvy_dt,
-            use_yn,
-            reg_dt,
-            rgst_id,
-            rgst_ip_addr
-        ) VALUES (
-                     #{bizPerPrkMngNo},
-                     #{prkBizMngNo},
-                     #{prkPlceManageNo},
-                     #{prkPlceInfoSn},
-                     '00', /* 임시저장 상태 */
-                     #{updusrId},
-                     NOW(),
-                     'Y',
-                     NOW(),
-                     #{updusrId},
-                     #{updusrIpAddr}
-                 )
-    </insert>
-
     <!-- 노상주차장 정보 INSERT -->
     <insert id="insertOnstrPrklotInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
         INSERT INTO cpk.tb_onstr_prklot_info (
@@ -1141,4 +1077,256 @@
         ORDER BY tpdpi.prkplce_nm ASC
     </select>
 
+    <!-- 🔥 선택된 주차장 상태를 승인 대기로 업데이트 -->
+    <update id="updateStatusToPending" parameterType="map">
+        UPDATE cpk.tb_biz_per_prklot_info
+        SET prgs_sts_cd = '10', /* 승인 대기 상태 코드 */
+        updt_dt = NOW()
+        WHERE prk_plce_manage_no IN
+        <foreach collection="manageNoList" item="manageNo" open="(" separator="," close=")">
+            #{manageNo}
+        </foreach>
+    </update>
+
+    <!-- 🔥 주차장관리번호 생성 (DB 함수 호출) -->
+    <select id="generateParkingManageNo" resultType="string">
+        SELECT cpk.fn_create_srvy_prk_plce_manage_no2()
+    </select>
+
+    <!-- 🔥 주차장정보일련번호 생성 -->
+    <select id="generateParkingInfoSn" parameterType="string" resultType="int">
+        SELECT COALESCE(MAX(prk_plce_info_sn), 0) + 1
+        FROM cpk.tb_prk_def_plce_info
+        WHERE prk_plce_manage_no = #{prkPlceManageNo}
+    </select>
+
+    <!-- 🔥 사업별주차관리번호 생성 -->
+    <select id="generateBizPerPrkMngNo" resultType="string">
+        SELECT 'BP' || TO_CHAR(NOW(), 'YYYYMMDDHH24MISS') ||
+               LPAD(CAST(FLOOR(RANDOM() * 1000) AS TEXT), 3, '0')
+    </select>
+
+    <!-- 🔥 1. 기본 주차장 정보 INSERT -->
+    <insert id="insertPrkDefPlceInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
+        INSERT INTO cpk.tb_prk_def_plce_info (
+            prk_plce_manage_no,
+            prk_plce_info_sn,
+            prkplce_nm,
+            prk_plce_type,
+            ldong_cd,
+            zip,
+            dtadd,
+            prk_plce_lat,
+            prk_plce_lon,
+            use_yn,
+            reg_dt,
+            rgst_id,
+            rgst_ip_addr
+        ) VALUES (
+                     #{prkPlceManageNo},
+                     1,
+                     #{prkplceNm},
+                     'ON',
+                     #{ldongCd},
+                     #{zip},
+                     #{dtadd},
+                     #{prkPlceLat},
+                     #{prkPlceLon},
+                     'Y',
+                     NOW(),
+                     #{updusrId},
+                     #{updusrIpAddr}
+                 )
+    </insert>
+
+    <!-- 🔥 2. 사업별 주차장 정보 INSERT -->
+    <insert id="insertBizPerPrklotInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
+        INSERT INTO cpk.tb_biz_per_prklot_info (
+            biz_per_prk_mng_no,
+            prk_biz_mng_no,
+            prk_plce_manage_no,
+            prk_plce_info_sn,
+            prgs_sts_cd,
+            srvy_id,
+            srvy_dt,
+            use_yn,
+            reg_dt,
+            rgst_id,
+            rgst_ip_addr
+        ) VALUES (
+                     #{bizPerPrkMngNo},
+                     #{prkBizMngNo},
+                     #{prkPlceManageNo},
+                     1,
+                     '00',
+                     #{updusrId},
+                     NOW(),
+                     'Y',
+                     NOW(),
+                     #{updusrId},
+                     #{updusrIpAddr}
+                 )
+    </insert>
+
+    <!-- 🔥 3. 노상주차장 정보 INSERT -->
+    <insert id="insertOnstrPrklotInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
+        INSERT INTO cpk.tb_onstr_prklot_info (
+            prk_plce_manage_no,
+            tot_prk_cnt,
+            disab_prk_cnt,
+            compact_prk_cnt,
+            eco_prk_cnt,
+            pregnant_prk_cnt,
+            prk_oper_mthd_cd,
+            oper_mby_cd,
+            mgr_org,
+            mgr_org_tel_no,
+            subordn_opertn_cd,
+            use_yn,
+            reg_dt,
+            rgst_id,
+            rgst_ip_addr
+        ) VALUES (
+                     #{prkPlceManageNo},
+                     #{totPrkCnt},
+                     #{disabPrkCnt},
+                     #{compactPrkCnt},
+                     #{ecoPrkCnt},
+                     #{pregnantPrkCnt},
+                     #{prkOperMthdCd},
+                     #{operMbyCd},
+                     #{mgrOrg},
+                     #{mgrOrgTelNo},
+                     #{subordnOpertnCd},
+                     'Y',
+                     NOW(),
+                     #{updusrId},
+                     #{updusrIpAddr}
+                 )
+    </insert>
+
+    <!-- 🔥 4. 노상주차장 운영 정보 INSERT -->
+    <insert id="insertOnstrPrklotOperInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
+        INSERT INTO cpk.tb_onstr_prklot_oper_info (
+            prk_plce_manage_no,
+            dynt_dv_cd,
+            wk_zon,
+            wk_wkdy_oper_tm_cd,
+            wk_wkdy_oper_star_tm,
+            wk_wkdy_oper_end_tm,
+            wk_sat_oper_tm_cd,
+            wk_sat_oper_star_tm,
+            wk_sat_oper_end_tm,
+            wk_hldy_oper_tm_cd,
+            wk_hldy_oper_star_tm,
+            wk_hldy_oper_end_tm,
+            nt_zon,
+            nt_wkdy_oper_tm_cd,
+            nt_wkdy_oper_star_tm,
+            nt_wkdy_oper_end_tm,
+            nt_sat_oper_tm_cd,
+            nt_sat_oper_star_tm,
+            nt_sat_oper_end_tm,
+            nt_hldy_oper_tm_cd,
+            nt_hldy_oper_star_tm,
+            nt_hldy_oper_end_tm,
+            wk_fee_aply_cd,
+            wk_res_day_fee,
+            wk_res_wk_fee,
+            wk_res_ft_fee,
+            wk_gn_frst_30m_fee,
+            wk_gn_int_10m_fee,
+            wk_gn_1h_fee,
+            wk_gn_day_fee,
+            wk_fee_mnth_pass_prc,
+            wk_fee_hfyr_pass_prc,
+            wk_fee_mthd_cd,
+            wk_fee_stlmt_mthd_cd,
+            wk_fee_pay_mthd_othr,
+            nt_fee_aply_cd,
+            nt_res_day_fee,
+            nt_res_ft_fee,
+            nt_res_nt_fee,
+            nt_gn_frst_30m_fee,
+            nt_gn_int_10m_fee,
+            nt_gn_1h_fee,
+            nt_gn_day_fee,
+            nt_fee_mnth_pass_prc,
+            nt_fee_hfyr_pass_prc,
+            nt_fee_mthd_cd,
+            nt_fee_stlmt_mthd_cd,
+            nt_fee_pay_mthd_othr,
+            prklot_sign_yn,
+            slp_sec_yn,
+            sixle_cnt,
+            sixgt_cnt,
+            antislp_fclty_yn,
+            slp_ctn_guid_sign_yn,
+            partclr_matter,
+            use_yn,
+            reg_dt,
+            rgst_id,
+            rgst_ip_addr
+        ) VALUES (
+                     #{prkPlceManageNo},
+                     #{dyntDvCd},
+                     #{wkZon},
+                     #{wkWkdyOperTmCd},
+                     #{wkWkdyOperStarTm},
+                     #{wkWkdyOperEndTm},
+                     #{wkSatOperTmCd},
+                     #{wkSatOperStarTm},
+                     #{wkSatOperEndTm},
+                     #{wkHldyOperTmCd},
+                     #{wkHldyOperStarTm},
+                     #{wkHldyOperEndTm},
+                     #{ntZon},
+                     #{ntWkdyOperTmCd},
+                     #{ntWkdyOperStarTm},
+                     #{ntWkdyOperEndTm},
+                     #{ntSatOperTmCd},
+                     #{ntSatOperStarTm},
+                     #{ntSatOperEndTm},
+                     #{ntHldyOperTmCd},
+                     #{ntHldyOperStarTm},
+                     #{ntHldyOperEndTm},
+                     #{wkFeeAplyCd},
+                     #{wkResDayFee},
+                     #{wkResWkFee},
+                     #{wkResFtFee},
+                     #{wkGnFrst30mFee},
+                     #{wkGnInt10mFee},
+                     #{wkGn1hFee},
+                     #{wkGnDayFee},
+                     #{wkFeeMnthPassPrc},
+                     #{wkFeeHfyrPassPrc},
+                     #{wkFeeMthdCd},
+                     #{wkFeeStlmtMthdCd},
+                     #{wkFeePayMthdOthr},
+                     #{ntFeeAplyCd},
+                     #{ntResDayFee},
+                     #{ntResFtFee},
+                     #{ntResNtFee},
+                     #{ntGnFrst30mFee},
+                     #{ntGnInt10mFee},
+                     #{ntGn1hFee},
+                     #{ntGnDayFee},
+                     #{ntFeeMnthPassPrc},
+                     #{ntFeeHfyrPassPrc},
+                     #{ntFeeMthdCd},
+                     #{ntFeeStlmtMthdCd},
+                     #{ntFeePayMthdOthr},
+                     #{prklotSignYn},
+                     #{slpSecYn},
+                     #{sixleCnt},
+                     #{sixgtCnt},
+                     #{antislpFcltyYn},
+                     #{slpCtnGuidSignYn},
+                     #{partclrMatter},
+                     'Y',
+                     NOW(),
+                     #{updusrId},
+                     #{updusrIpAddr}
+                 )
+    </insert>
 </mapper>
