@@ -398,4 +398,9 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
         String randomNum = String.format("%03d", (int)(Math.random() * 1000));
         return "PRK" + timestamp + randomNum;
     }
+
+    @Override
+    public List<ParkingListVO> getParkingListForMap(Map<String, Object> params) {
+        return prkDefPlceInfoMapper.selectParkingListForMap(params);
+    }
 }

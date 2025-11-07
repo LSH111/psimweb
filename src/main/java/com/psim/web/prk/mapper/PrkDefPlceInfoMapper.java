@@ -58,8 +58,12 @@ public interface PrkDefPlceInfoMapper {
     void insertAtchPrklotInfo(ParkingDetailVO parkingData);
     void insertAtchPrklotOperInfo(ParkingDetailVO parkingData);
 
-
     // 수정 기능 (UPDATE)
     void updateParkingStatus(Map<String, Object> params);
     void updateSelectedParking(Map<String, Object> params);
+
+    /**
+     * 지도용 주차장 목록 조회 (좌표 포함)
+     */
+    List<ParkingListVO> selectParkingListForMap(Map<String, Object> params);
 }

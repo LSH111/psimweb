@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,8 +30,23 @@ public class PrkDefPlceInfoController {
     private final PrkDefPlceInfoService prkDefPlceInfoService;
     private final AttchPicMngInfoService attchPicService; // 🔥 추가
 
-    @GetMapping("/parkinglist")
+    /*@GetMapping("/parkinglist")
     public String parkingList() {
+        return "prk/parking-list";
+    }*/
+    @GetMapping("/parkinglist")
+    public String parkingList(
+            @RequestParam(value = "openDetail", required = false) String openDetailId,
+            @RequestParam(value = "type", required = false) String parkingType,
+            Model model) {
+
+        // 🔥 상세보기 파라미터가 있으면 모델에 추가
+        if (openDetailId != null && !openDetailId.isEmpty()) {
+            model.addAttribute("openDetailId", openDetailId);
+            model.addAttribute("parkingType", parkingType);
+            log.info("🔍 상세보기 요청: ID={}, Type={}", openDetailId, parkingType);
+        }
+
         return "prk/parking-list";
     }
 
@@ -435,6 +451,60 @@ public class PrkDefPlceInfoController {
             response.put("message", "저장 중 오류가 발생했습니다: " + e.getMessage());
             return ResponseEntity.internalServerError().body(response);
         }
+    }
+
+    /**
+     * 🔥 지도용 주차장 데이터 조회 (좌표 포함 + 시도/시군구 필터링)
+     */
+    @GetMapping("/parking-map-data")
+    @ResponseBody
+    public Map<String, Object> getParkingMapData(
+            @RequestParam(required = false) String sidoCd,
+            @RequestParam(required = false) String sigunguCd,
+            HttpSession session) {
+
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            log.info("🔍 지도용 주차장 데이터 조회 - sidoCd: {}, sigunguCd: {}", sidoCd, sigunguCd);
+
+            // 🔥 세션에서 userBizList 가져오기
+            @SuppressWarnings("unchecked")
+            List<String> userBizList = (List<String>) session.getAttribute("userBizList");
+
+            Map<String, Object> params = new HashMap<>();
+            if (userBizList != null && !userBizList.isEmpty()) {
+                params.put("userBizList", userBizList);
+            }
+
+            // 🔥 시도/시군구 파라미터 추가
+            if (sidoCd != null && !sidoCd.isEmpty()) {
+                params.put("sidoCd", sidoCd);
+                log.info("✅ 시도 필터 적용: {}", sidoCd);
+            }
+            if (sigunguCd != null && !sigunguCd.isEmpty()) {
+                params.put("sigunguCd", sigunguCd);
+                log.info("✅ 시군구 필터 적용: {}", sigunguCd);
+            }
+
+            // 좌표가 있는 주차장만 조회
+            List<ParkingListVO> list = prkDefPlceInfoService.getParkingListForMap(params);
+
+            result.put("success", true);
+            result.put("list", list);
+            result.put("totalCount", list.size());
+
+            log.info("✅ 지도용 주차장 데이터 조회 완료: {}개", list.size());
+
+        } catch (Exception e) {
+            log.error("❌ 지도용 주차장 데이터 조회 오류", e);
+            result.put("success", false);
+            result.put("message", "데이터 조회 중 오류가 발생했습니다.");
+            result.put("list", new ArrayList<>());
+            result.put("totalCount", 0);
+        }
+
+        return result;
     }
 
     @GetMapping("/onparking")

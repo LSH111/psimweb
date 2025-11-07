@@ -21,4 +21,8 @@ public class ParkingListVO {
     private String prkBizMngNo;      // 주차사업관리번호
     private String prkPlceManageNo;  // 주차장관리번호
     private Integer prkPlceInfoSn;   // 주차장정보일련번호
+
+    // 🔥 지도용 좌표 필드 추가
+    private String prkPlceLat;       // 위도
+    private String prkPlceLon;       // 경도
 }

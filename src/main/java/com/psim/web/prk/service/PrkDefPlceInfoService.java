@@ -57,4 +57,10 @@ public interface PrkDefPlceInfoService {
      * 주차장 저장 (신규/수정 자동 판별)
      */
     String saveParking(ParkingDetailVO parkingData);
+
+    /**
+     * 지도용 주차장 데이터 조회 (좌표 포함)
+     */
+    List<ParkingListVO> getParkingListForMap(Map<String, Object> params);
+
 }
