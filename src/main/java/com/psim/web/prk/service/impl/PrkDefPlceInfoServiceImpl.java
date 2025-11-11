@@ -173,43 +173,89 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
     @Transactional(
             propagation = Propagation.REQUIRED,
             isolation = Isolation.READ_COMMITTED,
-            timeout = 60, // 60초로 증가
+            timeout = 60,
             rollbackFor = Exception.class
     )
     public void insertOnstreetParking(ParkingDetailVO vo) {
         try {
-            // 🔥 1. prkPlceInfoSn 생성 (DB에서 MAX + 1 조회) - INSERT 전에 먼저 실행!
+            // 🔥 STEP 0: prkPlceInfoSn 생성
             log.info("🔵 [STEP 0/4] prkPlceInfoSn 생성 시작");
             Integer newSn = prkDefPlceInfoMapper.generateParkingInfoSn(vo.getPrkPlceManageNo());
             vo.setPrkPlceInfoSn(newSn);
 
-            // 🔥 SN 검증
             if (vo.getPrkPlceInfoSn() == null || vo.getPrkPlceInfoSn() <= 0) {
                 log.error("❌ prkPlceInfoSn이 생성되지 않았습니다: {}", vo.getPrkPlceInfoSn());
                 throw new RuntimeException("주차장 일련번호 생성 실패");
             }
             log.info("✅ [STEP 0/4] prkPlceInfoSn 생성 완료: {}", newSn);
 
+            // 🔥 STEP 1: 기본 정보 INSERT
             log.info("🔵 [STEP 1/4] tb_prk_def_plce_info INSERT 시작");
-            prkDefPlceInfoMapper.insertPrkDefPlceInfo(vo);
-            log.info("✅ [STEP 1/4] tb_prk_def_plce_info INSERT 완료 - prkPlceInfoSn: {}", vo.getPrkPlceInfoSn());
+            log.info("📥 입력 데이터 검증:");
+            log.info("   - prkPlceManageNo: {}", vo.getPrkPlceManageNo());
+            log.info("   - prkplceNm: {}", vo.getPrkplceNm());
+            log.info("   - ldongCd: {}", vo.getLdongCd());
+            log.info("   - zip: {}", vo.getZip());
+            log.info("   - dtadd: {}", vo.getDtadd());
+            log.info("   - prkPlceLat: {}", vo.getPrkPlceLat());
+            log.info("   - prkPlceLon: {}", vo.getPrkPlceLon());
 
+            prkDefPlceInfoMapper.insertPrkDefPlceInfo(vo);
+            log.info("✅ [STEP 1/4] tb_prk_def_plce_info INSERT 완료");
+
+            // 🔥 STEP 2: 사업별 주차장 정보 INSERT
             log.info("🔵 [STEP 2/4] tb_biz_per_prklot_info INSERT 시작");
+            log.info("📥 입력 데이터:");
+            log.info("   - prkBizMngNo: {}", vo.getPrkBizMngNo());
+            log.info("   - bizPerPrkMngNo: {}", vo.getBizPerPrkMngNo());
+            log.info("   - prgsStsCd: {}", vo.getPrgsStsCd() != null ? vo.getPrgsStsCd() : "10");
+
             prkDefPlceInfoMapper.insertBizPerPrklotInfo(vo);
             log.info("✅ [STEP 2/4] tb_biz_per_prklot_info INSERT 완료");
 
+            // 🔥 STEP 3: 노상주차장 기본 정보 INSERT
             log.info("🔵 [STEP 3/4] tb_onstr_prklot_info INSERT 시작");
+            log.info("📥 주차면수 데이터:");
+            log.info("   - totPrkCnt: {}", vo.getTotPrkCnt());
+            log.info("   - prkOperMthdCd: {}", vo.getPrkOperMthdCd());
+            log.info("   - operMbyCd: {}", vo.getOperMbyCd());
+            log.info("   - mgrOrg: {}", vo.getMgrOrg());
+            log.info("   - mgrOrgTelNo: {}", vo.getMgrOrgTelNo());
+
             prkDefPlceInfoMapper.insertOnstrPrklotInfo(vo);
             log.info("✅ [STEP 3/4] tb_onstr_prklot_info INSERT 완료");
 
+            // 🔥 STEP 4: 노상주차장 운영 정보 INSERT
             log.info("🔵 [STEP 4/4] tb_onstr_prklot_oper_info INSERT 시작");
+            log.info("📥 운영 정보 데이터 (주간):");
+            log.info("   - dyntDvCd: {}", vo.getDyntDvCd());
+            log.info("   - wkZon: {}", vo.getWkZon());
+            log.info("   - wkFeeAplyCd: {}", vo.getWkFeeAplyCd());
+            log.info("   - wkFeeMthdCd: {}", vo.getWkFeeMthdCd());
+            log.info("📥 운영 정보 데이터 (야간):");
+            log.info("   - ntZon: {}", vo.getNtZon());
+            log.info("   - ntFeeAplyCd: {}", vo.getNtFeeAplyCd());
+            log.info("   - ntFeeMthdCd: {}", vo.getNtFeeMthdCd());
+
             prkDefPlceInfoMapper.insertOnstrPrklotOperInfo(vo);
             log.info("✅ [STEP 4/4] tb_onstr_prklot_oper_info INSERT 완료");
 
-            log.info("🎉 노상주차장 4단계 INSERT 모두 성공");
+            log.info("🎉🎉🎉 노상주차장 4단계 INSERT 모두 성공");
 
         } catch (Exception e) {
-            log.error("❌❌❌ 노상주차장 INSERT 실패 - 단계별 롤백 수행", e);
+            log.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            log.error("❌❌❌ 노상주차장 INSERT 실패");
+            log.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            log.error("예외 타입: {}", e.getClass().getName());
+            log.error("예외 메시지: {}", e.getMessage());
+            log.error("상세 스택:", e);
+
+            Throwable cause = e.getCause();
+            while (cause != null) {
+                log.error("  └─ Caused by: {} - {}", cause.getClass().getName(), cause.getMessage());
+                cause = cause.getCause();
+            }
+
             throw new RuntimeException("노상주차장 등록 실패: " + e.getMessage(), e);
         }
     }

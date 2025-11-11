@@ -25,6 +25,7 @@ public interface PrkDefPlceInfoMapper {
                                    @Param("prkplceSe") String prkplceSe,
                                    @Param("operMbyCd") String operMbyCd,
                                    @Param("prkPlceType") String prkPlceType);
+
     // 🔥 추가: 주차장정보일련번호 생성
     Integer generateParkingInfoSn(@Param("prkPlceManageNo") String prkPlceManageNo);
     void insertOnstreetParking(ParkingDetailVO vo);
@@ -35,7 +36,6 @@ public interface PrkDefPlceInfoMapper {
     void insertBizPerPrklotInfo(ParkingDetailVO vo);
     void insertOnstrPrklotInfo(ParkingDetailVO vo);
     void insertOnstrPrklotOperInfo(ParkingDetailVO vo);
-
 
     // ========== 수정 ==========
     void updatePrkDefPlceInfo(ParkingDetailVO vo);

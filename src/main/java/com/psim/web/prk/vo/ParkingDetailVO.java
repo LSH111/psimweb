@@ -52,6 +52,7 @@ public class ParkingDetailVO {
     private String sigunguNm;          // 시군구명
     private String emdCd;              // 읍면동코드
     private String lgalEmdNm;          // 법정읍면동명
+    private String adstrdCd;           // 행정동코드
 
     /* ========================================
      * 사업별 주차장 정보 (tb_biz_per_prklot_info)
