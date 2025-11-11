@@ -1,5 +1,6 @@
 package com.psim.web.prk.vo;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 /**
@@ -34,7 +35,14 @@ public class ParkingDetailVO {
     private String dtadd;              // 상세주소
     private String prkPlceLat;         // 주차장위도
     private String prkPlceLon;         // 주차장경도
-
+    // 🔥 추가 필드
+    private String bdnbr;              // 건물번호
+    private String lnmMnno;            // 본번
+    private String lnmSbno;            // 부번
+    private String mntnYn;             // 산여부
+    private String liCd;               // 리코드
+    private String roadaddr;           // 도로명주소
+    private String rnmadr;  // 도로명주소 필드 추가
     /* ========================================
      * 행정구역 정보 (tb_co_ldong)
      * ======================================== */
@@ -169,9 +177,14 @@ public class ParkingDetailVO {
      * (tb_onstr_prklot_oper_info)
      * ======================================== */
     private String prklotSignYn;       // 주차장표지판유무
+
     private String slpYn;              // 경사구간여부 (slpSecYn -> slpYn)
+    private String slpSecYn;           // 경사구간여부 (DB: slp_sec_yn)
+    private Integer sixleCnt;          // 6프로이하
+    private Integer sixgtCnt;          // 6프로상
     private String slp4to6Yn;          // 경사도4~6%여부
     private String slp6gtAreaCnt;      // 경사도6%초과구간수 (sixleCnt -> slp6gtAreaCnt)
+    @JsonProperty("sixgtCnt")
     private String slp7gtAreaCnt;      // 경사도7%초과구간수 (sixgtCnt -> slp7gtAreaCnt)
     private String antislpFcltyYn;     // 미끄럼방지시설유무
     private String slpCtnGuidSignYn;   // 미끄럼주의안내표지판유무
@@ -217,7 +230,7 @@ public class ParkingDetailVO {
 
     // 🔥 부설주차장 추가 필드 (SQL 쿼리 기반)
     private String prgsStsRawCd;       // 진행상태 원본 코드
-    private String bdnbr;              // 건물번호 (지번)
+    //private String bdnbr;              // 건물번호 (지번)
     private String closedYn;           // 폐쇄여부
 
     // 주차장구분

@@ -815,40 +815,175 @@
         layer.style.display = 'block';
 
         new daum.Postcode({
-            oncomplete: function(data) {
-                const sido = $('#f_sido');
-                if (sido) {
-                    const sidoText = data.sido;
-                    const sidoOption = Array.from(sido.options).find(opt => opt.textContent === sidoText);
-                    if (sidoOption) {
-                        sido.value = sidoOption.value;
-                        sido.dispatchEvent(new Event('change'));
-                    }
-                }
+            oncomplete: async function(data) {
+                console.log('📮 다음 주소 API 전체 응답:', data);
 
-                setTimeout(async () => {
-                    const sigungu = $('#f_sigungu');
-                    if (sigungu) {
-                        const sigunguText = data.sigungu;
-                        const sigunguOption = Array.from(sigungu.options).find(opt => opt.textContent === sigunguText);
-                        if (sigunguOption) {
-                            sigungu.value = sigunguOption.value;
-                            sigungu.dispatchEvent(new Event('change'));
-                        }
-                    }
+                try {
+                    // 🔥 1단계: 시도 선택
+                    const sido = $('#f_sido');
+                    if (sido) {
+                        const sidoText = data.sido;
+                        console.log('🔍 시도 검색:', sidoText);
 
-                    setTimeout(() => {
-                        const emd = $('#f_emd');
-                        if (emd) {
-                            const emdText = data.bname;
-                            const emdOption = Array.from(emd.options).find(opt => opt.textContent === emdText);
-                            if (emdOption) {
-                                emd.value = emdOption.value;
-                                emd.dispatchEvent(new Event('change'));
+                        const sidoOption = Array.from(sido.options).find(opt =>
+                            opt.textContent.trim() === sidoText.trim()
+                        );
+
+                        if (sidoOption) {
+                            sido.value = sidoOption.value;
+                            sido.dispatchEvent(new Event('change'));
+                            console.log('✅ 시도 선택 완료:', sidoOption.value, '/', sidoText);
+
+                            // 🔥 2단계: 시군구 목록 로드 대기
+                            await FormCodeUtils.loadSigunguList(sidoOption.value);
+                            console.log('✅ 시군구 목록 로드 완료');
+
+                            // 🔥 3단계: 시군구 선택
+                            const sigungu = $('#f_sigungu');
+                            if (sigungu) {
+                                const sigunguText = data.sigungu;
+                                console.log('🔍 시군구 검색:', sigunguText);
+                                console.log('📋 시군구 옵션 목록:', Array.from(sigungu.options).map(o => o.textContent));
+
+                                const sigunguOption = Array.from(sigungu.options).find(opt =>
+                                    opt.textContent.trim() === sigunguText.trim()
+                                );
+
+                                if (sigunguOption) {
+                                    sigungu.value = sigunguOption.value;
+                                    sigungu.dispatchEvent(new Event('change'));
+                                    console.log('✅ 시군구 선택 완료:', sigunguOption.value, '/', sigunguText);
+
+                                    // 🔥 4단계: 읍면동 목록 로드 대기
+                                    await FormCodeUtils.loadEmdList(sigunguOption.value);
+                                    console.log('✅ 읍면동 목록 로드 완료');
+
+                                    // 🔥 5단계: 읍면동 선택
+                                    const emd = $('#f_emd');
+                                    if (emd) {
+                                        const emdText = data.bname; // bname = 법정동명
+                                        console.log('🔍 읍면동 검색:', emdText);
+                                        console.log('📋 읍면동 옵션 목록:',
+                                            Array.from(emd.options).map(o => `"${o.textContent.trim()}"`).join(', '));
+
+                                        // 🔥 다양한 매칭 시도
+                                        let emdOption = null;
+
+                                        // 방법 1: 정확히 일치
+                                        emdOption = Array.from(emd.options).find(opt =>
+                                            opt.textContent.trim() === emdText.trim()
+                                        );
+
+                                        // 방법 2: 읍/면/동 제거하고 비교
+                                        if (!emdOption) {
+                                            const emdTextClean = emdText.replace(/[읍면동]/g, '').trim();
+                                            console.log('🔄 읍/면/동 제거 후:', emdTextClean);
+
+                                            emdOption = Array.from(emd.options).find(opt => {
+                                                const optTextClean = opt.textContent.replace(/[읍면동]/g, '').trim();
+                                                return optTextClean === emdTextClean;
+                                            });
+                                        }
+
+                                        // 방법 3: 부분 포함 검색 (양방향)
+                                        if (!emdOption) {
+                                            console.log('🔄 부분 일치 검색 시도');
+                                            emdOption = Array.from(emd.options).find(opt => {
+                                                const optText = opt.textContent.trim();
+                                                const searchText = emdText.trim();
+
+                                                // "선택" 옵션은 제외
+                                                if (optText === '선택' || optText === '') return false;
+
+                                                return optText.includes(searchText) || searchText.includes(optText);
+                                            });
+                                        }
+
+                                        if (emdOption) {
+                                            emd.value = emdOption.value;
+                                            emd.dispatchEvent(new Event('change'));
+                                            console.log('✅ 읍면동 선택 완료:', emdOption.value, '/', emdOption.textContent);
+                                        } else {
+                                            console.error('❌ 읍면동을 찾을 수 없음:', emdText);
+                                            console.warn('💡 DB에 해당 읍면동 데이터가 없을 수 있습니다.');
+                                            alert(`⚠️ "${emdText}" 읍면동을 찾을 수 없습니다.\n수동으로 선택해주세요.`);
+                                        }
+                                    }
+                                } else {
+                                    console.error('❌ 시군구를 찾을 수 없음:', sigunguText);
+                                }
                             }
+                        } else {
+                            console.error('❌ 시도를 찾을 수 없음:', sidoText);
                         }
-                    }, 500);
-                }, 500);
+                    }
+
+                    // 🔥 6단계: 리(里) 파싱
+                    const ri = $('#f_ri');
+                    if (ri && data.bname2) {
+                        ri.value = data.bname2;
+                        console.log('✅ 리(里):', data.bname2);
+                    }
+
+                    // 🔥 7단계: 산 여부 파싱
+                    if (data.jibunAddress) {
+                        const isMountain = data.jibunAddress.includes('산');
+                        const mountainRadio = document.querySelector(`input[name="mountainYn"][value="${isMountain ? 'Y' : 'N'}"]`);
+                        if (mountainRadio) {
+                            mountainRadio.checked = true;
+                            console.log('✅ 산 여부:', isMountain ? '산' : '일반');
+                        }
+                    }
+
+                    // 🔥 8단계: 본번/부번 파싱
+                    if (data.bname1) {
+                        const parts = data.bname1.split('-');
+                        const mainNum = $('#f_mainNum');
+                        const subNum = $('#f_subNum');
+
+                        if (mainNum && parts[0]) {
+                            mainNum.value = parts[0].replace(/\D/g, ''); // 숫자만 추출
+                            console.log('✅ 본번:', mainNum.value);
+                        }
+                        if (subNum && parts[1]) {
+                            subNum.value = parts[1].replace(/\D/g, '');
+                            console.log('✅ 부번:', subNum.value);
+                        }
+                    }
+
+                    // 🔥 9단계: 건물명
+                    const buildingName = $('#f_buildingName');
+                    if (buildingName && data.buildingName) {
+                        buildingName.value = data.buildingName;
+                        console.log('✅ 건물명:', data.buildingName);
+                    }
+
+                    // 🔥 10단계: 주소 표시
+                    const addrJibun = $('#f_addr_jibun');
+                    const addrRoad = $('#f_addr_road');
+
+                    if (addrJibun) {
+                        addrJibun.value = data.jibunAddress || data.autoJibunAddress || '';
+                        console.log('✅ 지번주소:', addrJibun.value);
+                    }
+                    if (addrRoad) {
+                        addrRoad.value = data.roadAddress || data.autoRoadAddress || '';
+                        console.log('✅ 도로명주소:', addrRoad.value);
+                    }
+
+                    // 🔥 11단계: 우편번호 (hidden)
+                    const zip = $('#f_zip');
+                    if (zip && data.zonecode) {
+                        zip.value = data.zonecode;
+                        console.log('✅ 우편번호:', data.zonecode);
+                    }
+
+                    console.log('✅ 주소 파싱 완료');
+
+                } catch (error) {
+                    console.error('❌ 주소 파싱 중 오류:', error);
+                    alert('주소 정보를 처리하는 중 오류가 발생했습니다.');
+                }
 
                 layer.style.display = 'none';
             },

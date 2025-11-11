@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
@@ -86,38 +88,129 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
         }
     }
 
-    // ========== 신규 등록 ==========
-
+    /**
+     * DB 함수로 주차장 관리번호 생성
+     * - fn_create_srvy_prk_plce_manage_no2() 함수 호출
+     * - 내부와 외부에서 동일한 관리번호 생성 로직 사용
+     */
     @Override
-    public String generatePrkPlceManageNo() {
+    public String generatePrkPlceManageNo(String zipCode, String prkplceSe, String operMbyCd, String prkPlceType) {
+        log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        log.info("🔢 주차장 관리번호 생성 시작");
+        log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        log.info("📥 입력 파라미터:");
+        log.info("   - zipCode     : [{}] (length: {})", zipCode, zipCode != null ? zipCode.length() : "null");
+        log.info("   - prkplceSe   : [{}] (length: {})", prkplceSe, prkplceSe != null ? prkplceSe.length() : "null");
+        log.info("   - operMbyCd   : [{}] (length: {})", operMbyCd, operMbyCd != null ? operMbyCd.length() : "null");
+        log.info("   - prkPlceType : [{}] (length: {})", prkPlceType, prkPlceType != null ? prkPlceType.length() : "null");
+
         try {
-            String newManageNo = prkDefPlceInfoMapper.generateParkingManageNo();
-            log.info("✅ 주차장관리번호 생성: {}", newManageNo);
-            return newManageNo;
+            // 파라미터 검증
+            if (zipCode == null || zipCode.trim().isEmpty()) {
+                log.error("❌ 검증 실패: 우편번호가 null 또는 빈 문자열");
+                throw new IllegalArgumentException("우편번호가 필요합니다.");
+            }
+            if (prkplceSe == null || prkplceSe.trim().isEmpty()) {
+                log.error("❌ 검증 실패: 관리주체 코드가 null 또는 빈 문자열");
+                throw new IllegalArgumentException("관리주체(소유주체) 코드가 필요합니다.");
+            }
+            if (operMbyCd == null || operMbyCd.trim().isEmpty()) {
+                log.error("❌ 검증 실패: 운영주체 코드가 null 또는 빈 문자열");
+                throw new IllegalArgumentException("운영주체 코드가 필요합니다.");
+            }
+            if (prkPlceType == null || prkPlceType.trim().isEmpty()) {
+                log.error("❌ 검증 실패: 주차장유형 코드가 null 또는 빈 문자열");
+                throw new IllegalArgumentException("주차장유형 코드가 필요합니다.");
+            }
+
+            log.info("✅ 파라미터 검증 통과");
+            log.info("🔄 DB 함수 fn_create_srvy_prk_plce_manage_no2 호출 중...");
+
+            String manageNo = null;
+            try {
+                manageNo = prkDefPlceInfoMapper.generateParkingManageNo(zipCode, prkplceSe, operMbyCd, prkPlceType);
+                log.info("📤 DB 함수 반환값: [{}]", manageNo);
+            } catch (Exception dbException) {
+                log.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+                log.error("❌❌❌ DB 함수 호출 중 예외 발생 ❌❌❌");
+                log.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+                log.error("예외 타입: {}", dbException.getClass().getName());
+                log.error("예외 메시지: {}", dbException.getMessage());
+                log.error("상세 스택:", dbException);
+
+                // 🔥 SQL 관련 예외 정보 추출
+                Throwable cause = dbException.getCause();
+                while (cause != null) {
+                    log.error("  └─ Caused by: {} - {}", cause.getClass().getName(), cause.getMessage());
+                    cause = cause.getCause();
+                }
+
+                throw new RuntimeException("DB 함수 호출 실패: " + dbException.getMessage(), dbException);
+            }
+
+            if (manageNo == null || manageNo.trim().isEmpty()) {
+                log.error("❌ DB 함수가 null 또는 빈 문자열 반환");
+                throw new RuntimeException("주차장 관리번호 생성 실패: 생성된 번호가 없습니다.");
+            }
+
+            log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            log.info("✅✅✅ 주차장 관리번호 생성 성공: [{}]", manageNo);
+            log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            return manageNo;
+
+        } catch (IllegalArgumentException e) {
+            log.error("❌ 파라미터 검증 실패: {}", e.getMessage());
+            throw new RuntimeException("주차장 관리번호 생성 실패: " + e.getMessage(), e);
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
-            log.error("❌ 주차장관리번호 생성 실패", e);
-            throw new RuntimeException("주차장 관리번호 생성 실패", e);
+            log.error("❌ 예상치 못한 예외 발생", e);
+            throw new RuntimeException("주차장 관리번호 생성 실패: " + e.getMessage(), e);
         }
     }
 
     @Override
-    @Transactional
+    @Transactional(
+            propagation = Propagation.REQUIRED,
+            isolation = Isolation.READ_COMMITTED,
+            timeout = 60, // 60초로 증가
+            rollbackFor = Exception.class
+    )
     public void insertOnstreetParking(ParkingDetailVO vo) {
         try {
-            log.info("🆕 노상주차장 INSERT 시작: {}", vo.getPrkPlceManageNo());
-            // 🔥 4개의 INSERT를 순차적으로 실행 (하나의 트랜잭션)
+            // 🔥 1. prkPlceInfoSn 생성 (DB에서 MAX + 1 조회) - INSERT 전에 먼저 실행!
+            log.info("🔵 [STEP 0/4] prkPlceInfoSn 생성 시작");
+            Integer newSn = prkDefPlceInfoMapper.generateParkingInfoSn(vo.getPrkPlceManageNo());
+            vo.setPrkPlceInfoSn(newSn);
+
+            // 🔥 SN 검증
+            if (vo.getPrkPlceInfoSn() == null || vo.getPrkPlceInfoSn() <= 0) {
+                log.error("❌ prkPlceInfoSn이 생성되지 않았습니다: {}", vo.getPrkPlceInfoSn());
+                throw new RuntimeException("주차장 일련번호 생성 실패");
+            }
+            log.info("✅ [STEP 0/4] prkPlceInfoSn 생성 완료: {}", newSn);
+
+            log.info("🔵 [STEP 1/4] tb_prk_def_plce_info INSERT 시작");
             prkDefPlceInfoMapper.insertPrkDefPlceInfo(vo);
-            log.info("  ✅ 1/4: tb_prk_def_plce_info INSERT 완료");
+            log.info("✅ [STEP 1/4] tb_prk_def_plce_info INSERT 완료 - prkPlceInfoSn: {}", vo.getPrkPlceInfoSn());
+
+            log.info("🔵 [STEP 2/4] tb_biz_per_prklot_info INSERT 시작");
             prkDefPlceInfoMapper.insertBizPerPrklotInfo(vo);
-            log.info("  ✅ 2/4: tb_biz_per_prklot_info INSERT 완료");
+            log.info("✅ [STEP 2/4] tb_biz_per_prklot_info INSERT 완료");
+
+            log.info("🔵 [STEP 3/4] tb_onstr_prklot_info INSERT 시작");
             prkDefPlceInfoMapper.insertOnstrPrklotInfo(vo);
-            log.info("  ✅ 3/4: tb_onstr_prklot_info INSERT 완료");
+            log.info("✅ [STEP 3/4] tb_onstr_prklot_info INSERT 완료");
+
+            log.info("🔵 [STEP 4/4] tb_onstr_prklot_oper_info INSERT 시작");
             prkDefPlceInfoMapper.insertOnstrPrklotOperInfo(vo);
-            log.info("  ✅ 4/4: tb_onstr_prklot_oper_info INSERT 완료");
-            log.info("✅ 노상주차장 INSERT 완료 - 관리번호: {}", vo.getPrkPlceManageNo());
+            log.info("✅ [STEP 4/4] tb_onstr_prklot_oper_info INSERT 완료");
+
+            log.info("🎉 노상주차장 4단계 INSERT 모두 성공");
+
         } catch (Exception e) {
-            log.error("❌ 노상주차장 INSERT 실패", e);
-            throw new RuntimeException("노상주차장 등록 실패", e);
+            log.error("❌❌❌ 노상주차장 INSERT 실패 - 단계별 롤백 수행", e);
+            throw new RuntimeException("노상주차장 등록 실패: " + e.getMessage(), e);
         }
     }
 
@@ -150,7 +243,7 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
     // ========== 수정 ==========
 
     @Override
-    @Transactional
+    @Transactional(timeout = 30)
     @CacheEvict(value = "parkingDetail", key = "#parkingData.prkPlceManageNo")
     public void updateOnstreetParking(ParkingDetailVO parkingData) {
         try {

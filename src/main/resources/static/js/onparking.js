@@ -20,9 +20,10 @@ const RegionCodeLoader = {
 
             statusSelect.innerHTML = '<option value="">선택</option>';
             if (result.success && result.data) {
+                // 예: "10", "20", "30" 코드만 표시
+                const allowedCodes = ['10'];
                 result.data.forEach(item => {
-                    // 🔥 codeCd가 "10"인 항목만 추가
-                    if (item.codeCd === '10') {
+                    if (allowedCodes.includes(item.codeCd)) {
                         const option = document.createElement('option');
                         option.value = item.codeCd;
                         option.textContent = item.codeNm;
@@ -466,7 +467,7 @@ $('#btnFindAddr')?.addEventListener('click', ()=>{
 $('#postcodeClose')?.addEventListener('click', ()=>{ if(layer) layer.style.display='none'; });
 layer?.addEventListener('click', (e)=>{ if(e.target===layer) layer.style.display='none'; });
 
-// 🔥 주소 데이터 파싱 및 입력 함수
+// ========== 🔥 주소 데이터 파싱 및 입력 함수 ==========
 async function parseAndFillAddress(data) {
     try {
         console.log('📝 주소 파싱 시작', data);
@@ -494,8 +495,9 @@ async function parseAndFillAddress(data) {
         const regionMap = {
             sido: data.sido,          // "충북"
             sigungu: data.sigungu,    // "영동군"
-            bname: data.bname,        // "남성리" (리 정보)
-            bname1: data.bname1       // "황간면" (읍면동 정보)
+            bname: data.bname,        // "황간면" 또는 "황간면 남성리" (읍면동 + 리)
+            bname1: data.bname1,      // "황간면" (읍면동만)
+            bname2: data.bname2       // "남성리" (리만)
         };
 
         console.log('🗺️ 행정구역 정보:', regionMap);
@@ -577,8 +579,8 @@ async function parseAndFillAddress(data) {
             const emdSelect = $('#f_emd');
             if (emdSelect) {
                 // 옵션 중에서 텍스트가 포함된 것 찾기
-                const emdOption = Array.from(emdSelect.options).find(
-                    opt => opt.textContent.trim().includes(regionMap.bname1)
+                const emdOption = Array.from(emdSelect.options).find(opt =>
+                    opt.textContent.trim().includes(regionMap.bname1)
                 );
 
                 if (emdOption) {
@@ -591,15 +593,42 @@ async function parseAndFillAddress(data) {
                     console.warn('⚠️ 읍면동을 찾을 수 없음:', regionMap.bname1);
                 }
             }
+        } else if (regionMap.bname) {
+            // 🔥 bname1이 없는 경우 bname에서 읍/면/동만 추출
+            const emdSelect = $('#f_emd');
+            if (emdSelect) {
+                // "황간면 남성리" → "황간면"만 추출
+                const emdText = regionMap.bname.split(' ')[0];
+                console.log('🔍 읍면동 추출 (bname에서):', emdText);
+
+                const emdOption = Array.from(emdSelect.options).find(opt =>
+                    opt.textContent.trim().includes(emdText)
+                );
+
+                if (emdOption) {
+                    emdSelect.value = emdOption.value;
+                    console.log('✅ 읍면동 선택:', emdText, '→', emdOption.value);
+                    emdSelect.dispatchEvent(new Event('change'));
+                } else {
+                    console.warn('⚠️ 읍면동을 찾을 수 없음:', emdText);
+                }
+            }
         }
 
-        // 🔥 7. 리 입력 - bname(남성리)을 사용
+        // 🔥 7. 리 입력 - bname2를 우선 사용
         const riInput = $('#f_ri');
-        if (riInput && regionMap.bname) {
-            // bname에 "리"가 포함되어 있으면 리 입력
-            if (regionMap.bname.includes('리')) {
-                riInput.value = regionMap.bname;
-                console.log('✅ 리 입력:', regionMap.bname);
+        if (riInput) {
+            if (regionMap.bname2 && regionMap.bname2.includes('리')) {
+                riInput.value = regionMap.bname2;
+                console.log('✅ 리 입력 (bname2):', regionMap.bname2);
+            } else if (regionMap.bname && regionMap.bname.includes('리')) {
+                // bname2가 없으면 bname에서 리 추출
+                const parts = regionMap.bname.split(' ');
+                const riPart = parts.find(p => p.includes('리'));
+                if (riPart) {
+                    riInput.value = riPart;
+                    console.log('✅ 리 입력 (bname):', riPart);
+                }
             }
         }
 
@@ -613,19 +642,31 @@ async function parseAndFillAddress(data) {
         });
         console.log('✅ 산 여부:', isMountain ? '산' : '일반');
 
-        // 🔥 9. 본번/부번 파싱
+        // 🔥 9. 본번/부번 파싱 - 지번주소에서 직접 추출
+        const jibunAddress = data.jibunAddress || '';
         let mainNum = '';
         let subNum = '';
 
-        // 지번 주소에서 번지 추출 (예: "123-45" 또는 "123")
-        const jibunMatch = data.jibunAddress.match(/(\d+)-(\d+)/);
-        if (jibunMatch) {
-            mainNum = jibunMatch[1];
-            subNum = jibunMatch[2];
+        // 🔥 "산"을 제외하고 번지 정보만 추출
+        // 예: "충청북도 영동군 황간면 남성리 산12" → "12"
+        // 예: "충청북도 영동군 황간면 남성리 123-45" → "123", "45"
+
+        // 패턴 1: "산 123" 형식
+        const mountainPattern = /산\s*(\d+)/;
+        const mountainMatch = jibunAddress.match(mountainPattern);
+
+        if (mountainMatch) {
+            mainNum = mountainMatch[1];
+            console.log('✅ 본번 (산):', mainNum);
         } else {
-            const jibunMatchSingle = data.jibunAddress.match(/\s(\d+)$/);
-            if (jibunMatchSingle) {
-                mainNum = jibunMatchSingle[1];
+            // 패턴 2: "123-45" 또는 "123" 형식
+            const addressPattern = /(\d+)(?:-(\d+))?(?:\s|$)/;
+            const addressMatch = jibunAddress.match(addressPattern);
+
+            if (addressMatch) {
+                mainNum = addressMatch[1];
+                subNum = addressMatch[2] || '';
+                console.log('✅ 본번:', mainNum, '부번:', subNum || '없음');
             }
         }
 
@@ -634,11 +675,9 @@ async function parseAndFillAddress(data) {
 
         if (mainNumInput && mainNum) {
             mainNumInput.value = mainNum;
-            console.log('✅ 본번:', mainNum);
         }
         if (subNumInput && subNum) {
             subNumInput.value = subNum;
-            console.log('✅ 부번:', subNum);
         }
 
         // 🔥 10. 건물명 입력
@@ -1633,6 +1672,12 @@ async function bindDataToForm(data) {
         console.log('✅ 우편번호 바인딩:', data.zip);
     }
 
+    // 🔥 도로명주소 바인딩 추가
+    if (f_addrR && data.rnmadr) {
+        f_addrR.value = data.rnmadr;
+        console.log('✅ 도로명주소 바인딩:', data.rnmadr);
+    }
+
     // 좌표
     if (f_lat) f_lat.value = data.prkPlceLat || '';
     if (f_lng) f_lng.value = data.prkPlceLon || '';
@@ -2266,333 +2311,6 @@ async function handlePhotoWithGPS(file) {
     }
 }
 
-// ========== 저장 함수 ==========
-async function doSave() {
-    console.log('🚀 doSave 함수 실행 시작');
-
-    try {
-        // 1. 필수 입력 검증
-        console.log('1️⃣ 필수 입력 검증 시작');
-        const validationErrors = validateRequiredFields();
-
-        if (validationErrors.length > 0) {
-            console.warn('⚠️ 검증 실패:', validationErrors);
-            alert('다음 항목을 입력해주세요:\n\n' + validationErrors.join('\n'));
-            return;
-        }
-
-        console.log('✅ 검증 통과');
-
-        console.log('2️⃣ Payload 생성 시작');
-        const payload = buildPayload();
-        console.log('📦 생성된 Payload:', payload);
-
-        // 🔥 신규/수정 판별: payload.id가 없거나 비어있으면 신규
-        const isNewRecord = !payload.id || payload.id.trim() === '';
-        console.log(`📋 저장 모드: ${isNewRecord ? '신규 등록' : '수정'}`);
-
-        console.log('3️⃣ 서버 데이터 포맷 변환 시작');
-        const serverData = mapPayloadToServerFormat(payload);
-
-        // 🔥 신규 등록 시 주차장관리번호 제거 (서버에서 생성)
-        if (isNewRecord) {
-            delete serverData.prkPlceManageNo;
-            console.log('🆕 신규 등록: 주차장관리번호는 서버에서 생성');
-        }
-
-        console.log('📤 전송 데이터:', serverData);
-
-        // 🔥 FormData 생성
-        console.log('4️⃣ FormData 생성 시작');
-        const formData = new FormData();
-
-        // JSON 데이터를 Blob으로 추가
-        formData.append('parkingData', new Blob([JSON.stringify(serverData)], {
-            type: 'application/json'
-        }));
-
-        // 🔥 현장 사진 파일 추가
-        const mainPhotoLib = document.getElementById('f_photo_lib');
-        const mainPhotoCam = document.getElementById('f_photo_cam');
-
-        if (mainPhotoLib && mainPhotoLib.files && mainPhotoLib.files.length > 0) {
-            formData.append('mainPhoto', mainPhotoLib.files[0]);
-            console.log('📸 현장 사진(사진첩) 추가:', mainPhotoLib.files[0].name);
-        } else if (mainPhotoCam && mainPhotoCam.files && mainPhotoCam.files.length > 0) {
-            formData.append('mainPhoto', mainPhotoCam.files[0]);
-            console.log('📸 현장 사진(카메라) 추가:', mainPhotoCam.files[0].name);
-        }
-
-        // 🔥 표지판 사진 파일 추가
-        const signPhotoLib = document.getElementById('f_sign_photo_lib');
-        const signPhotoCam = document.getElementById('f_sign_photo_cam');
-
-        if (signPhotoLib && signPhotoLib.files && signPhotoLib.files.length > 0) {
-            formData.append('signPhoto', signPhotoLib.files[0]);
-            console.log('📸 표지판 사진(사진첩) 추가:', signPhotoLib.files[0].name);
-        } else if (signPhotoCam && signPhotoCam.files && signPhotoCam.files.length > 0) {
-            formData.append('signPhoto', signPhotoCam.files[0]);
-            console.log('📸 표지판 사진(카메라) 추가:', signPhotoCam.files[0].name);
-        }
-
-        // 🔥 서버 API 호출
-        console.log('5️⃣ 서버 API 호출 시작');
-        const response = await fetch('/prk/onparking-update', {
-            method: 'POST',
-            body: formData
-        });
-
-        console.log('📡 서버 응답:', response.status, response.statusText);
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        console.log('📥 서버 응답 데이터:', result);
-
-        if (result.success) {
-            alert(isNewRecord ? '신규 등록되었습니다.' : '수정되었습니다.');
-            console.log('✅ 저장 성공 - 페이지 이동');
-            setTimeout(() => {
-                window.location.href = '/prk/parkinglist';
-            }, 1500);
-        } else {
-            console.error('❌ 저장 실패:', result.message);
-            alert('❌ 저장 실패: ' + (result.message || '알 수 없는 오류'));
-        }
-    } catch (error) {
-        console.error('❌ 저장 중 오류:', error);
-        alert('저장 중 오류가 발생했습니다: ' + error.message);
-    }
-}
-
-// 🔥 쉼표 제거 및 숫자 변환 함수 추가
-function parseCurrency(value) {
-    if (!value) return null;
-    // 문자열에서 쉼표 제거 후 숫자로 변환
-    const cleaned = value.toString().replace(/,/g, '').trim();
-    const parsed = parseInt(cleaned, 10);
-    return (isNaN(parsed) || parsed <= 0) ? null : parsed;
-}
-
-// 🔥 프론트엔드 payload를 서버 VO 형식으로 변환
-function mapPayloadToServerFormat(payload) {
-    const data = {
-        // 🔥 주차장 관리번호 (수정 시에만 전송)
-        prkPlceManageNo: payload.id || null,
-
-        // 기본 정보
-        prkplceNm: payload.name,
-        dtadd: payload.addrJibun || payload.addrRoad,
-        prkPlceLat: payload.lat,
-        prkPlceLon: payload.lng,
-        zip: document.getElementById('f_zip')?.value || null,
-
-        // 🔥 행정구역 코드 (읍면동 코드)
-        emdCd: $('#f_emd')?.value || null,
-
-        // 주차면수
-        totPrkCnt: payload.totalStalls,
-        disabPrkCnt: payload.stalls.disabled,
-        compactPrkCnt: payload.stalls.compact,
-        ecoPrkCnt: payload.stalls.eco,
-        pregnantPrkCnt: payload.stalls.pregnant,
-
-        // 운영 정보
-        prkOperMthdCd: mapOperationType(payload.operationType),
-        operMbyCd: mapOwnerType(payload.ownerType),
-        mgrOrg: payload.manager.name,
-        mgrOrgTelNo: payload.manager.tel,
-        subordnOpertnCd: payload.oddEven,
-
-        // 주야간 구분
-        dyntDvCd: getDayNightCode(payload.times.day, payload.times.night)
-    };
-
-    // 🔥 운영방식 코드 확인
-    const operationTypeCode = mapOperationType(payload.operationType);
-    const isNormalStreet = (operationTypeCode === '01'); // 일반노상주차장
-    const isResident = (operationTypeCode === '02');     // 거주자우선주차장
-    const isBoth = (operationTypeCode === '03');         // 복합
-
-    console.log('🔍 운영방식 확인:', {
-        원본: payload.operationType,
-        변환코드: operationTypeCode,
-        일반노상: isNormalStreet,
-        거주자우선: isResident,
-        복합: isBoth
-    });
-
-    // 주간 데이터
-    if (payload.times.day && payload.day) {
-        data.wkZon = payload.day.grade;
-        data.wkFeeAplyCd = payload.day.feeType;
-
-        // 주간 운영시간
-        if (payload.day.operatingHours) {
-            const weekday = payload.day.operatingHours.weekday;
-            data.wkWkdyOperTmCd = weekday.code;
-            if (weekday.time) {
-                data.wkWkdyOperStarTm = weekday.time.startTime;
-                data.wkWkdyOperEndTm = weekday.time.endTime;
-            }
-
-            const saturday = payload.day.operatingHours.saturday;
-            data.wkSatOperTmCd = saturday.code;
-            if (saturday.time) {
-                data.wkSatOperStarTm = saturday.time.startTime;
-                data.wkSatOperEndTm = saturday.time.endTime;
-            }
-
-            const holiday = payload.day.operatingHours.holiday;
-            data.wkHldyOperTmCd = holiday.code;
-            if (holiday.time) {
-                data.wkHldyOperStarTm = holiday.time.startTime;
-                data.wkHldyOperEndTm = holiday.time.endTime;
-            }
-        }
-
-        // 🔥 주간 거주자 요금 - 거주자우선 또는 복합일 때만
-        if (isResident || isBoth) {
-            data.wkResDayFee = parseCurrency($('#f_day_res_day')?.value);
-            data.wkResWkFee = parseCurrency($('#f_day_res_all')?.value);
-            data.wkResFtFee = parseCurrency($('#f_day_res_full')?.value);
-            console.log('💳 주간 거주자 요금 추가');
-        }
-
-        // 🔥 주간 일반 요금 - 일반노상 또는 복합일 때만
-        if (isNormalStreet || isBoth) {
-            data.wkGnFrst30mFee = parseCurrency($('#f_day_fee_first30')?.value);
-            data.wkGnInt10mFee = parseCurrency($('#f_day_fee_per10')?.value);
-            data.wkGn1hFee = parseCurrency($('#f_day_fee_per60')?.value);
-            data.wkGnDayFee = parseCurrency($('#f_day_fee_daily')?.value);
-            data.wkFeeMnthPassPrc = parseCurrency($('#f_day_fee_monthly')?.value);
-            data.wkFeeHfyrPassPrc = parseCurrency($('#f_day_fee_halfyear')?.value);
-            console.log('💳 주간 일반노상 요금 추가');
-        }
-
-        // 주간 지불/정산방식
-        data.wkFeeMthdCd = joinCodes(payload.day.payMethods);
-        data.wkFeeStlmtMthdCd = joinCodes(payload.day.settleMethods);
-
-        // 기타 항목 추출
-        const etcMethod = payload.day.payMethods?.find(m => m.startsWith('기타'));
-        if (etcMethod && etcMethod.includes(':')) {
-            data.wkFeePayMthdOthr = etcMethod.split(':')[1];
-        }
-    }
-
-    // 야간 데이터
-    if (payload.times.night && payload.night) {
-        data.ntZon = payload.night.grade;
-        data.ntFeeAplyCd = payload.night.feeType;
-
-        // 야간 운영시간
-        if (payload.night.operatingHours) {
-            const weekday = payload.night.operatingHours.weekday;
-            data.ntWkdyOperTmCd = weekday.code;
-            if (weekday.time) {
-                data.ntWkdyOperStarTm = weekday.time.startTime;
-                data.ntWkdyOperEndTm = weekday.time.endTime;
-            }
-
-            const saturday = payload.night.operatingHours.saturday;
-            data.ntSatOperTmCd = saturday.code;
-            if (saturday.time) {
-                data.ntSatOperStarTm = saturday.time.startTime;
-                data.ntSatOperEndTm = saturday.time.endTime;
-            }
-
-            const holiday = payload.night.operatingHours.holiday;
-            data.ntHldyOperTmCd = holiday.code;
-            if (holiday.time) {
-                data.ntHldyOperStarTm = holiday.time.startTime;
-                data.ntHldyOperEndTm = holiday.time.endTime;
-            }
-        }
-
-        // 🔥 야간 거주자 요금 - 거주자우선 또는 복합일 때만
-        if (isResident || isBoth) {
-            data.ntResDayFee = parseCurrency($('#f_night_res_all')?.value);
-            data.ntResFtFee = parseCurrency($('#f_night_res_full')?.value);
-            data.ntResNtFee = parseCurrency($('#f_night_res_night')?.value);
-            console.log('💳 야간 거주자 요금 추가');
-        }
-
-        // 🔥 야간 일반 요금 - 일반노상 또는 복합일 때만
-        if (isNormalStreet || isBoth) {
-            data.ntGnFrst30mFee = parseCurrency($('#f_night_fee_first30')?.value);
-            data.ntGnInt10mFee = parseCurrency($('#f_night_fee_per10')?.value);
-            data.ntGn1hFee = parseCurrency($('#f_night_fee_per60')?.value);
-            data.ntGnDayFee = parseCurrency($('#f_night_fee_daily')?.value);
-            data.ntFeeMnthPassPrc = parseCurrency($('#f_night_fee_monthly')?.value);
-            data.ntFeeHfyrPassPrc = parseCurrency($('#f_night_fee_halfyear')?.value);
-            console.log('💳 야간 일반노상 요금 추가');
-        }
-
-        // 야간 지불/정산방식
-        data.ntFeeMthdCd = joinCodes(payload.night.payMethods);
-        data.ntFeeStlmtMthdCd = joinCodes(payload.night.settleMethods);
-
-        // 기타 항목 추출
-        const etcMethod = payload.night.payMethods?.find(m => m.startsWith('기타'));
-        if (etcMethod && etcMethod.includes(':')) {
-            data.ntFeePayMthdOthr = etcMethod.split(':')[1];
-        }
-    }
-
-    // 경사구간
-    if (payload.slope) {
-        data.slpSecYn = payload.slope.slpSecYn;
-        data.sixleCnt = payload.slope.sixleCnt;
-        data.sixgtCnt = payload.slope.sixgtCnt;
-    }
-
-    // 안전시설
-    if (payload.safety) {
-        data.antislpFcltyYn = payload.safety.antislpFcltyYn;
-        data.slpCtnGuidSignYn = payload.safety.slpCtnGuidSignYn;
-    }
-
-    // 🔥 비고 추가
-    data.partclrMatter = payload.partclrMatter || null;
-
-    // 🔥 전송 전 데이터 검증 로그
-    console.log('💰 최종 전송 데이터:', data);
-
-    return data;
-}
-
-// 🔥 운영방식 코드 변환
-function mapOperationType(type) {
-    if (type === '01' || type.includes('일반노상')) return '01';
-    if (type === '02' || type.includes('거주자우선')) return '02';
-    if (type === '03' || type.includes('복합')) return '03';
-    return '01';
-}
-
-// 🔥 운영주체 코드 변환
-function mapOwnerType(type) {
-    if (type === '01' || type.includes('지자체')) return '01';
-    if (type === '02' || type.includes('민간')) return '02';
-    return '01';
-}
-
-// 🔥 주야간 구분 코드
-function getDayNightCode(isDay, isNight) {
-    if (isDay && isNight) return '03'; // 주간+야간
-    if (isDay) return '01'; // 주간만
-    if (isNight) return '02'; // 야간만
-    return '01';
-}
-
-// 🔥 배열을 콤마로 연결
-function joinCodes(arr) {
-    if (!arr || arr.length === 0) return null;
-    return arr.join(',');
-}
-
 // ========== 🔥 필수 입력 검증 함수 ==========
 function validateRequiredFields() {
     const errors = [];
@@ -2807,6 +2525,357 @@ function validateRequiredFields() {
     }
 
     return errors;
+}
+
+// ========== 저장 함수 수정 ==========
+async function doSave() {
+    console.log('🚀 doSave 함수 실행 시작');
+
+    try {
+        // 1. 필수 입력 검증
+        const validationErrors = validateRequiredFields();
+        if (validationErrors.length > 0) {
+            alert('다음 항목을 입력해주세요:\n\n' + validationErrors.join('\n'));
+            return;
+        }
+
+        // 2. Payload 생성
+        const payload = buildPayload();
+        const isNewRecord = !payload.id || payload.id.trim() === '';
+
+        // 3. 서버 데이터 포맷 변환
+        const serverData = mapPayloadToServerFormat(payload);
+
+        // 🔥 신규 등록 시 주차장관리번호 제거
+        if (isNewRecord) {
+            delete serverData.prkPlceManageNo;
+        }
+
+        // 🔥 4. FormData 생성 (올바른 방법)
+        const formData = new FormData();
+
+        // JSON 데이터 추가
+        formData.append('parkingData', new Blob([JSON.stringify(serverData)], {
+            type: 'application/json'
+        }));
+
+        // 🔥 5. 현장 사진 추가 - 수정된 부분
+        const mainPhotoLib = document.getElementById('f_photo_lib');
+        const mainPhotoCam = document.getElementById('f_photo_cam');
+
+        let hasMainPhoto = false;
+
+        // 사진첩에서 선택한 파일 확인
+        if (mainPhotoLib && mainPhotoLib.files && mainPhotoLib.files.length > 0) {
+            formData.append('mainPhoto', mainPhotoLib.files[0]);
+            hasMainPhoto = true;
+            console.log('📸 현장 사진(사진첩) 추가:', mainPhotoLib.files[0].name);
+        }
+        // 카메라로 촬영한 파일 확인 (사진첩 파일이 없을 때만)
+        else if (mainPhotoCam && mainPhotoCam.files && mainPhotoCam.files.length > 0) {
+            formData.append('mainPhoto', mainPhotoCam.files[0]);
+            hasMainPhoto = true;
+            console.log('📸 현장 사진(카메라) 추가:', mainPhotoCam.files[0].name);
+        }
+
+        if (!hasMainPhoto) {
+            console.log('ℹ️ 현장 사진이 선택되지 않음');
+        }
+
+        // 🔥 6. 표지판 사진 추가 - 수정된 부분
+        const signPhotoLib = document.getElementById('f_sign_photo_lib');
+        const signPhotoCam = document.getElementById('f_sign_photo_cam');
+
+        let hasSignPhoto = false;
+
+        if (signPhotoLib && signPhotoLib.files && signPhotoLib.files.length > 0) {
+            formData.append('signPhoto', signPhotoLib.files[0]);
+            hasSignPhoto = true;
+            console.log('📸 표지판 사진(사진첩) 추가:', signPhotoLib.files[0].name);
+        } else if (signPhotoCam && signPhotoCam.files && signPhotoCam.files.length > 0) {
+            formData.append('signPhoto', signPhotoCam.files[0]);
+            hasSignPhoto = true;
+            console.log('📸 표지판 사진(카메라) 추가:', signPhotoCam.files[0].name);
+        }
+
+        if (!hasSignPhoto) {
+            console.log('ℹ️ 표지판 사진이 선택되지 않음');
+        }
+
+        // 🔥 7. FormData 내용 확인 (디버깅용)
+        console.log('📦 FormData 내용:');
+        for (let [key, value] of formData.entries()) {
+            if (value instanceof File) {
+                console.log(`  ${key}: ${value.name} (${value.size} bytes)`);
+            } else if (value instanceof Blob) {
+                console.log(`  ${key}: Blob (${value.size} bytes)`);
+            } else {
+                console.log(`  ${key}: ${value}`);
+            }
+        }
+
+        // 🔥 8. 서버 API 호출
+        console.log('📡 서버로 전송 시작...');
+        const response = await fetch('/prk/onparking-update', {
+            method: 'POST',
+            body: formData
+            // ⚠️ Content-Type 헤더는 설정하지 않음 (브라우저가 자동으로 multipart/form-data로 설정)
+        });
+
+        console.log('📥 서버 응답 상태:', response.status);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ HTTP 오류:', response.status, errorText);
+            throw new Error(`HTTP ${response.status}: ${errorText.substring(0, 200)}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ 서버 응답:', result);
+
+        if (result.success) {
+            alert(isNewRecord ? '신규 등록되었습니다.' : '수정되었습니다.');
+            setTimeout(() => {
+                window.location.href = '/prk/parkinglist';
+            }, 500);
+        } else {
+            alert('❌ 저장 실패: ' + (result.message || '알 수 없는 오류'));
+        }
+
+    } catch (error) {
+        console.error('❌ 저장 중 오류:', error);
+        alert('저장 중 오류가 발생했습니다:\n' + error.message);
+    }
+}
+
+// 🔥 쉼표 제거 및 숫자 변환 함수 추가
+function parseCurrency(value) {
+    if (!value) return null;
+    // 문자열에서 쉼표 제거 후 숫자로 변환
+    const cleaned = value.toString().replace(/,/g, '').trim();
+    const parsed = parseInt(cleaned, 10);
+    return (isNaN(parsed) || parsed <= 0) ? null : parsed;
+}
+
+// 🔥 프론트엔드 payload를 서버 VO 형식으로 변환
+function mapPayloadToServerFormat(payload) {
+    const data = {
+        // 🔥 주차장 관리번호 (수정 시에만 전송)
+        prkPlceManageNo: payload.id || null,
+
+        // 기본 정보
+        prkplceNm: payload.name,
+        dtadd: payload.addrJibun || payload.addrRoad,
+        rnmadr: payload.addrRoad || '', // 🔥 도로명주소 추가
+        prkPlceLat: payload.lat,
+        prkPlceLon: payload.lng,
+        zip: document.getElementById('f_zip')?.value || null,
+
+        // 🔥 행정구역 코드 (읍면동 코드)
+        emdCd: $('#f_emd')?.value || null,
+
+        // 🔥 진행상태 코드 추가
+        prgsStsCd: payload.status || '10', // 기본값 "10" (임시저장)
+
+        // 주차면수
+        totPrkCnt: payload.totalStalls,
+        disabPrkCnt: payload.stalls.disabled,
+        compactPrkCnt: payload.stalls.compact,
+        ecoPrkCnt: payload.stalls.eco,
+        pregnantPrkCnt: payload.stalls.pregnant,
+
+        // 운영 정보
+        prkOperMthdCd: mapOperationType(payload.operationType),
+        operMbyCd: mapOwnerType(payload.ownerType),
+        mgrOrg: payload.manager.name,
+        mgrOrgTelNo: payload.manager.tel,
+        subordnOpertnCd: payload.oddEven,
+
+        // 주야간 구분
+        dyntDvCd: getDayNightCode(payload.times.day, payload.times.night)
+    };
+
+    // 🔥 운영방식 코드 확인
+    const operationTypeCode = mapOperationType(payload.operationType);
+    const isNormalStreet = (operationTypeCode === '01'); // 일반노상주차장
+    const isResident = (operationTypeCode === '02');     // 거주자우선주차장
+    const isBoth = (operationTypeCode === '03');         // 복합
+
+    console.log('🔍 운영방식 확인:', {
+        원본: payload.operationType,
+        변환코드: operationTypeCode,
+        일반노상: isNormalStreet,
+        거주자우선: isResident,
+        복합: isBoth
+    });
+
+    // 주간 데이터
+    if (payload.times.day && payload.day) {
+        data.wkZon = payload.day.grade;
+        data.wkFeeAplyCd = payload.day.feeType;
+
+        // 주간 운영시간
+        if (payload.day.operatingHours) {
+            const weekday = payload.day.operatingHours.weekday;
+            data.wkWkdyOperTmCd = weekday.code;
+            if (weekday.time) {
+                data.wkWkdyOperStarTm = weekday.time.startTime;
+                data.wkWkdyOperEndTm = weekday.time.endTime;
+            }
+
+            const saturday = payload.day.operatingHours.saturday;
+            data.wkSatOperTmCd = saturday.code;
+            if (saturday.time) {
+                data.wkSatOperStarTm = saturday.time.startTime;
+                data.wkSatOperEndTm = saturday.time.endTime;
+            }
+
+            const holiday = payload.day.operatingHours.holiday;
+            data.wkHldyOperTmCd = holiday.code;
+            if (holiday.time) {
+                data.wkHldyOperStarTm = holiday.time.startTime;
+                data.wkHldyOperEndTm = holiday.time.endTime;
+            }
+        }
+
+        // 🔥 주간 거주자 요금 - 거주자우선 또는 복합일 때만
+        if (isResident || isBoth) {
+            data.wkResDayFee = parseCurrency($('#f_day_res_day')?.value);
+            data.wkResWkFee = parseCurrency($('#f_day_res_all')?.value);
+            data.wkResFtFee = parseCurrency($('#f_day_res_full')?.value);
+            console.log('💳 주간 거주자 요금 추가');
+        }
+
+        // 🔥 주간 일반 요금 - 일반노상 또는 복합일 때만
+        if (isNormalStreet || isBoth) {
+            data.wkGnFrst30mFee = parseCurrency($('#f_day_fee_first30')?.value);
+            data.wkGnInt10mFee = parseCurrency($('#f_day_fee_per10')?.value);
+            data.wkGn1hFee = parseCurrency($('#f_day_fee_per60')?.value);
+            data.wkGnDayFee = parseCurrency($('#f_day_fee_daily')?.value);
+            data.wkFeeMnthPassPrc = parseCurrency($('#f_day_fee_monthly')?.value);
+            data.wkFeeHfyrPassPrc = parseCurrency($('#f_day_fee_halfyear')?.value);
+            console.log('💳 주간 일반노상 요금 추가');
+        }
+
+        // 주간 지불/정산방식
+        data.wkFeeMthdCd = joinCodes(payload.day.payMethods);
+        data.wkFeeStlmtMthdCd = joinCodes(payload.day.settleMethods);
+
+        // 기타 항목 추출
+        const etcMethod = payload.day.payMethods?.find(m => m.startsWith('기타'));
+        if (etcMethod && etcMethod.includes(':')) {
+            data.wkFeePayMthdOthr = etcMethod.split(':')[1];
+        }
+    }
+
+    // 야간 데이터
+    if (payload.times.night && payload.night) {
+        data.ntZon = payload.night.grade;
+        data.ntFeeAplyCd = payload.night.feeType;
+
+        // 야간 운영시간
+        if (payload.night.operatingHours) {
+            const weekday = payload.night.operatingHours.weekday;
+            data.ntWkdyOperTmCd = weekday.code;
+            if (weekday.time) {
+                data.ntWkdyOperStarTm = weekday.time.startTime;
+                data.ntWkdyOperEndTm = weekday.time.endTime;
+            }
+
+            const saturday = payload.night.operatingHours.saturday;
+            data.ntSatOperTmCd = saturday.code;
+            if (saturday.time) {
+                data.ntSatOperStarTm = saturday.time.startTime;
+                data.ntSatOperEndTm = saturday.time.endTime;
+            }
+
+            const holiday = payload.night.operatingHours.holiday;
+            data.ntHldyOperTmCd = holiday.code;
+            if (holiday.time) {
+                data.ntHldyOperStarTm = holiday.time.startTime;
+                data.ntHldyOperEndTm = holiday.time.endTime;
+            }
+        }
+
+        // 🔥 야간 거주자 요금 - 거주자우선 또는 복합일 때만
+        if (isResident || isBoth) {
+            data.ntResDayFee = parseCurrency($('#f_night_res_all')?.value);
+            data.ntResFtFee = parseCurrency($('#f_night_res_full')?.value);
+            data.ntResNtFee = parseCurrency($('#f_night_res_night')?.value);
+            console.log('💳 야간 거주자 요금 추가');
+        }
+
+        // 🔥 야간 일반 요금 - 일반노상 또는 복합일 때만
+        if (isNormalStreet || isBoth) {
+            data.ntGnFrst30mFee = parseCurrency($('#f_night_fee_first30')?.value);
+            data.ntGnInt10mFee = parseCurrency($('#f_night_fee_per10')?.value);
+            data.ntGn1hFee = parseCurrency($('#f_night_fee_per60')?.value);
+            data.ntGnDayFee = parseCurrency($('#f_night_fee_daily')?.value);
+            data.ntFeeMnthPassPrc = parseCurrency($('#f_night_fee_monthly')?.value);
+            data.ntFeeHfyrPassPrc = parseCurrency($('#f_night_fee_halfyear')?.value);
+            console.log('💳 야간 일반노상 요금 추가');
+        }
+
+        // 야간 지불/정산방식
+        data.ntFeeMthdCd = joinCodes(payload.night.payMethods);
+        data.ntFeeStlmtMthdCd = joinCodes(payload.night.settleMethods);
+
+        // 기타 항목 추출
+        const etcMethod = payload.night.payMethods?.find(m => m.startsWith('기타'));
+        if (etcMethod && etcMethod.includes(':')) {
+            data.ntFeePayMthdOthr = etcMethod.split(':')[1];
+        }
+    }
+
+    // 경사구간
+    if (payload.slope) {
+        data.slpSecYn = payload.slope.slpSecYn;
+        data.sixleCnt = payload.slope.sixleCnt;
+        data.sixgtCnt = payload.slope.sixgtCnt;
+    }
+
+    // 안전시설
+    if (payload.safety) {
+        data.antislpFcltyYn = payload.safety.antislpFcltyYn;
+        data.slpCtnGuidSignYn = payload.safety.slpCtnGuidSignYn;
+    }
+
+    // 🔥 비고 추가
+    data.partclrMatter = payload.partclrMatter || null;
+
+    // 🔥 전송 전 데이터 검증 로그
+    console.log('💰 최종 전송 데이터:', data);
+
+    return data;
+}
+
+// 🔥 운영방식 코드 변환
+function mapOperationType(type) {
+    if (type === '01' || type.includes('일반노상')) return '01';
+    if (type === '02' || type.includes('거주자우선')) return '02';
+    if (type === '03' || type.includes('복합')) return '03';
+    return '01';
+}
+
+// 🔥 운영주체 코드 변환
+function mapOwnerType(type) {
+    if (type === '01' || type.includes('지자체')) return '01';
+    if (type === '02' || type.includes('민간')) return '02';
+    return '01';
+}
+
+// 🔥 주야간 구분 코드
+function getDayNightCode(isDay, isNight) {
+    if (isDay && isNight) return '03'; // 주간+야간
+    if (isDay) return '01'; // 주간만
+    if (isNight) return '02'; // 야간만
+    return '01';
+}
+
+// 🔥 배열을 콤마로 연결
+function joinCodes(arr) {
+    if (!arr || arr.length === 0) return null;
+    return arr.join(',');
 }
 
 // ========== 초기화 ==========

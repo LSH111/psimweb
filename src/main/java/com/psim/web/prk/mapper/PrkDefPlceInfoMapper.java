@@ -3,6 +3,7 @@ package com.psim.web.prk.mapper;
 import com.psim.web.prk.vo.ParkingDetailVO;
 import com.psim.web.prk.vo.ParkingListVO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.Map;
@@ -20,7 +21,12 @@ public interface PrkDefPlceInfoMapper {
     ParkingDetailVO selectBuildParkingDetail(String prkPlceManageNo);
 
     // ========== 신규 등록 ==========
-    String generateParkingManageNo();
+    String generateParkingManageNo(@Param("zipCode") String zipCode,
+                                   @Param("prkplceSe") String prkplceSe,
+                                   @Param("operMbyCd") String operMbyCd,
+                                   @Param("prkPlceType") String prkPlceType);
+    // 🔥 추가: 주차장정보일련번호 생성
+    Integer generateParkingInfoSn(@Param("prkPlceManageNo") String prkPlceManageNo);
     void insertOnstreetParking(ParkingDetailVO vo);
     void insertOffstreetParking(ParkingDetailVO vo);
     void insertBuildParking(ParkingDetailVO vo);

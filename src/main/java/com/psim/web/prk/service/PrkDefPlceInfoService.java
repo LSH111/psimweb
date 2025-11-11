@@ -2,6 +2,9 @@ package com.psim.web.prk.service;
 
 import com.psim.web.prk.vo.ParkingDetailVO;
 import com.psim.web.prk.vo.ParkingListVO;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -38,12 +41,23 @@ public interface PrkDefPlceInfoService {
     // ========== 신규 등록 (INSERT) ==========
     /**
      * DB 함수로 주차장 관리번호 생성
+     * @param zipCode 우편번호
+     * @param prkplceSe 관리주체(소유주체): 공영(1), 민영(2), 기타(9)
+     * @param operMbyCd 운영주체: 직영(1), 위탁(2), 기타(9)
+     * @param prkPlceType 주차장유형: 노상(1), 노외(2), 부설(3), 기타(9)
+     * @return 생성된 주차장 관리번호
      */
-    String generatePrkPlceManageNo();
+    String generatePrkPlceManageNo(String zipCode, String prkplceSe, String operMbyCd, String prkPlceType);
 
     /**
      * 노상주차장 신규 등록
      */
+    @Transactional(
+            propagation = Propagation.REQUIRED,
+            isolation = Isolation.READ_COMMITTED,
+            timeout = 30,
+            rollbackFor = Exception.class
+    )
     void insertOnstreetParking(ParkingDetailVO vo);
 
     /**
