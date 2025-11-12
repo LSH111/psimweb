@@ -718,6 +718,15 @@
 </div>
 
 <!-- 페이지 전용 JS -->
+<script>
+    // 🔥 세션 정보를 JavaScript 전역 변수로 설정
+    window.SESSION_DATA = {
+        prkBizMngNo: '${prkBizMngNo}',
+        sidoCd: '${sidoCd}',
+        sigunguCd: '${sigunguCd}',
+        userId: '${loginUser.userId}'
+    };
+</script>
 <script src="${pageContext.request.contextPath}/static/js/onparking.js"></script>
 </body>
 </html>
