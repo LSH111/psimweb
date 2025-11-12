@@ -4,9 +4,9 @@ import com.psim.web.prk.vo.PrkUsageStatusVO;
 import java.util.List;
 
 public interface PrkUsageStatusService {
-    public List<PrkUsageStatusVO> getUsageStatusList(PrkUsageStatusVO prkUsageStatusVO);
-    public PrkUsageStatusVO getUsageStatusDetail(PrkUsageStatusVO prkUsageStatusVO);
-    public int insertUsageStatus(PrkUsageStatusVO prkUsageStatusVO);
-    public int updateUsageStatus(PrkUsageStatusVO prkUsageStatusVO);
-    public int deleteUsageStatus(PrkUsageStatusVO prkUsageStatusVO);
+    List<PrkUsageStatusVO> getUsageStatusList(PrkUsageStatusVO prkUsageStatusVO);
+    PrkUsageStatusVO getUsageStatusDetail(PrkUsageStatusVO prkUsageStatusVO);
+    int insertUsageStatus(PrkUsageStatusVO prkUsageStatusVO);
+    int updateUsageStatus(PrkUsageStatusVO prkUsageStatusVO);
+    int deleteUsageStatus(PrkUsageStatusVO prkUsageStatusVO);
 }

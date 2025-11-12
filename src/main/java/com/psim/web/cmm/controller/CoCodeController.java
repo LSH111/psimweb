@@ -153,9 +153,23 @@ public class CoCodeController {
     public Map<String, Object> getStatusList() {
         Map<String, Object> result = new HashMap<>();
         try {
+            System.out.println("=== 진행상태 목록 조회 시작 ===");
+
+            List<CoCodeVO> statusList = coCodeService.getCodeListByGroup("PRK_013");
+            System.out.println("조회된 진행상태 목록 개수: " + (statusList != null ? statusList.size() : 0));
+
+            if (statusList != null && !statusList.isEmpty()) {
+                for (CoCodeVO item : statusList) {
+                    System.out.println("진행상태: " + item.getCodeCd() + " - " + item.getCodeNm());
+                }
+            }
+
             result.put("success", true);
-            result.put("data", coCodeService.getCodeListByGroup("PRK_013"));
+            result.put("data", statusList);
+            System.out.println("=== 진행상태 목록 조회 완료 ===");
         } catch (Exception e) {
+            System.err.println("=== 진행상태 목록 조회 중 오류 ===");
+            e.printStackTrace();
             result.put("success", false);
             result.put("message", "진행상태 목록 조회 실패: " + e.getMessage());
         }

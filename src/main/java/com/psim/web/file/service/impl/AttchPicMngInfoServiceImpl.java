@@ -292,7 +292,7 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
 
         String originalFileName = file.getOriginalFilename();
         String extension = getFileExtension(originalFileName);
-        String savedFileName = UUID.randomUUID().toString() + "." + extension;
+        String savedFileName = UUID.randomUUID() + "." + extension;
 
         Path filePath = dirPath.resolve(savedFileName);
         file.transferTo(filePath.toFile());

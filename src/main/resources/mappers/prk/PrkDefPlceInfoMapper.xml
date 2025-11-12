@@ -159,6 +159,7 @@
              , tpsbi.biz_exc_st_dt                              as bizExcStDt
              , tpsbi.biz_exc_ed_dt                              as bizExcEdDt
              , tpdpi.prk_plce_manage_no                         as prkPlceManageNo
+             , tpdpi.prk_plce_info_sn                           as prkPlceInfoSn
              , tpdpi.prkplce_nm                                 as prkplceNm
              , tcl.sido_cd                                      as sidoCd
              , tcl.sido_nm                                      as sidoNm
@@ -166,6 +167,7 @@
              , tcl.sigungu_nm                                   as sigunguNm
              , tcl.emd_cd                                       as emdCd
              , tcl.lgal_emd_nm                                  as lgalEmdNm
+             , tpdpi.zip                                        as zip
              , tpdpi.dtadd                                      as dtadd
              , tpdpi.prk_plce_lat                               as prkPlceLat
              , tpdpi.prk_plce_lon                               as prkPlceLon
@@ -229,25 +231,27 @@
              , topoi.antislp_fclty_yn                           as antislpFcltyYn
              , topoi.slp_ctn_guid_sign_yn                       as slpCtnGuidSignYn
              , topoi.partclr_matter                             as partclrMatter
-             , topoi.wk_fee_mnth_pass_prc                       as wkFeeMnthPassPrc -- 주간월정기권가격
-             , topoi.nt_fee_mnth_pass_prc                       as ntFeeMnthPassPrc -- 야간월정기권가격
-             , topoi.wk_fee_hfyr_pass_prc                       as wkFeeHfyrPassPrc -- 주간반기권가격
-             , topoi.nt_fee_hfyr_pass_prc                       as ntFeeHfyrPassPrc -- 야간반기권가격
-             , topoi.wk_fee_pay_mthd_othr                       as wkFeePayMthdOthr -- 주간요금지불방식기타
-             , topoi.nt_fee_pay_mthd_othr                       as ntFeePayMthdOthr -- 야간요금지불방식기타
+             , topoi.wk_fee_mnth_pass_prc                       as wkFeeMnthPassPrc
+             , topoi.nt_fee_mnth_pass_prc                       as ntFeeMnthPassPrc
+             , topoi.wk_fee_hfyr_pass_prc                       as wkFeeHfyrPassPrc
+             , topoi.nt_fee_hfyr_pass_prc                       as ntFeeHfyrPassPrc
+             , topoi.wk_fee_pay_mthd_othr                       as wkFeePayMthdOthr
+             , topoi.nt_fee_pay_mthd_othr                       as ntFeePayMthdOthr
         FROM cpk.tb_prk_def_plce_info tpdpi
                  INNER JOIN cpk.tb_onstr_prklot_info topi
-                           ON tpdpi.prk_plce_manage_no = topi.prk_plce_manage_no
+                            ON tpdpi.prk_plce_manage_no = topi.prk_plce_manage_no
+                                AND tpdpi.prk_plce_info_sn = topi.prk_plce_info_sn
                  INNER JOIN cpk.tb_onstr_prklot_oper_info topoi
-                           ON topi.prk_plce_manage_no = topoi.prk_plce_manage_no
+                            ON topi.prk_plce_manage_no = topoi.prk_plce_manage_no
+                                AND topi.prk_plce_info_sn = topoi.prk_plce_info_sn
                  LEFT JOIN cpk.tb_co_ldong tcl
                            ON tpdpi.ldong_cd = tcl.ldong_cd
                  INNER JOIN cpk.tb_biz_per_prklot_info tbppi
-                           ON tpdpi.prk_plce_manage_no = tbppi.prk_plce_manage_no
-                               AND tpdpi.prk_plce_info_sn = tbppi.prk_plce_info_sn
+                            ON tpdpi.prk_plce_manage_no = tbppi.prk_plce_manage_no
+                                AND tpdpi.prk_plce_info_sn = tbppi.prk_plce_info_sn
                  INNER JOIN cpk.tb_prk_srvy_biz_info tpsbi
-                      ON tbppi.prk_biz_mng_no = tpsbi.prk_biz_mng_no
-                          AND tpsbi.use_yn = 'Y'
+                            ON tbppi.prk_biz_mng_no = tpsbi.prk_biz_mng_no
+                                AND tpsbi.use_yn = 'Y'
         WHERE tpdpi.prk_plce_manage_no = #{prkPlceManageNo}
     </select>
 
@@ -270,6 +274,7 @@
             updusr_id = #{updusrId},
             updusr_ip_addr = #{updusrIpAddr}
         WHERE prk_plce_manage_no = #{prkPlceManageNo}
+          AND prk_plce_info_sn = #{prkPlceInfoSn}
     </update>
 
     <!-- 🔥 노상주차장 정보 업데이트 (tb_onstr_prklot_info) -->
@@ -289,6 +294,7 @@
           , updusr_id         = #{updusrId}
           , updusr_ip_addr    = #{updusrIpAddr}
         WHERE prk_plce_manage_no = #{prkPlceManageNo}
+          AND prk_plce_info_sn = #{prkPlceInfoSn}
     </update>
 
     <!-- 🔥 운영 정보 업데이트 (tb_onstr_prklot_oper_info) -->
@@ -354,6 +360,7 @@
           , updusr_id            = #{updusrId}
           , updusr_ip_addr       = #{updusrIpAddr}
         WHERE prk_plce_manage_no = #{prkPlceManageNo}
+          AND prk_plce_info_sn = #{prkPlceInfoSn}
     </update>
 
     <!-- 🔥 진행상태 업데이트 (tb_biz_per_prklot_info) -->
@@ -1019,8 +1026,7 @@
     </select>
 
     <!-- 🔥 [STEP 1/4] 주차장 기본 정보 INSERT -->
-    <insert id="insertPrkDefPlceInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO"
-            useGeneratedKeys="true" keyProperty="prkPlceInfoSn" keyColumn="prk_plce_info_sn">
+    <insert id="insertPrkDefPlceInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
         INSERT INTO cpk.tb_prk_def_plce_info (
             prk_plce_info_sn,
             prk_plce_manage_no,

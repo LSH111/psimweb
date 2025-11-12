@@ -24,7 +24,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         HttpSession session = request.getSession(false);
         Object loginFlag = (session != null) ? session.getAttribute("LOGIN") : null;
 
-        if (loginFlag != null && Boolean.TRUE.equals(loginFlag)) {
+        if (Boolean.TRUE.equals(loginFlag)) {
             return true;
         }
 

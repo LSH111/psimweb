@@ -185,7 +185,6 @@ public class ParkingDetailVO {
     private Integer sixgtCnt;          // 6프로상
     private String slp4to6Yn;          // 경사도4~6%여부
     private String slp6gtAreaCnt;      // 경사도6%초과구간수 (sixleCnt -> slp6gtAreaCnt)
-    @JsonProperty("sixgtCnt")
     private String slp7gtAreaCnt;      // 경사도7%초과구간수 (sixgtCnt -> slp7gtAreaCnt)
     private String antislpFcltyYn;     // 미끄럼방지시설유무
     private String slpCtnGuidSignYn;   // 미끄럼주의안내표지판유무

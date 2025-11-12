@@ -27,7 +27,7 @@ public class LoginController {
     public String loginForm(HttpSession session) {
         // 이미 로그인되어 있으면 index로 이동
         Object loginFlag = session.getAttribute(SESSION_ATTR_LOGIN_FLAG);
-        if (loginFlag != null && Boolean.TRUE.equals(loginFlag)) {
+        if (Boolean.TRUE.equals(loginFlag)) {
             return "redirect:/index";
         }
         return "/cmm/ts_login";

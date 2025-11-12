@@ -91,25 +91,67 @@ public class PrkDefPlceInfoController {
     public Map<String, Object> getOnstreetParkingDetail(@RequestParam String prkPlceManageNo) {
         Map<String, Object> result = new HashMap<>();
         try {
-            System.out.println("=== 노상주차장 상세 조회 요청: " + prkPlceManageNo + " ===");
+            log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            log.info("🔍 노상주차장 상세 조회 요청");
+            log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            log.info("📋 요청 파라미터: prkPlceManageNo={}", prkPlceManageNo);
 
+            // 🔥 파라미터 검증 추가
+            if (prkPlceManageNo == null || prkPlceManageNo.trim().isEmpty()) {
+                log.error("❌ 주차장 관리번호가 비어있습니다.");
+                result.put("success", false);
+                result.put("message", "주차장 관리번호가 필요합니다.");
+                return result;
+            }
+
+            log.info("🔄 Service 호출 시작");
             ParkingDetailVO detail = prkDefPlceInfoService.getOnstreetParkingDetail(prkPlceManageNo);
+            log.info("✅ Service 호출 완료");
 
             if (detail != null) {
+                log.info("✅ 데이터 조회 성공");
+                log.info("📦 조회된 데이터 요약:");
+                log.info("   - prkPlceManageNo: {}", detail.getPrkPlceManageNo());
+                log.info("   - prkplceNm: {}", detail.getPrkplceNm());
+                log.info("   - sidoCd: {}", detail.getSidoCd());
+                log.info("   - sigunguCd: {}", detail.getSigunguCd());
+                log.info("   - emdCd: {}", detail.getEmdCd());
+
                 result.put("success", true);
                 result.put("data", detail);
-                System.out.println("✅ 노상주차장 상세 조회 성공");
             } else {
+                log.warn("⚠️ 조회된 데이터가 없습니다: {}", prkPlceManageNo);
                 result.put("success", false);
                 result.put("message", "주차장 정보를 찾을 수 없습니다.");
-                System.out.println("⚠️ 데이터 없음");
             }
+
+            log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
         } catch (Exception e) {
-            System.err.println("❌ 노상주차장 상세 조회 실패: " + e.getMessage());
-            e.printStackTrace();
+            log.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            log.error("❌❌❌ 노상주차장 상세 조회 실패");
+            log.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            log.error("예외 타입: {}", e.getClass().getName());
+            log.error("예외 메시지: {}", e.getMessage());
+            log.error("상세 스택:", e);
+
+            // 🔥 원인 추적
+            Throwable cause = e.getCause();
+            while (cause != null) {
+                log.error("  └─ Caused by: {} - {}", cause.getClass().getName(), cause.getMessage());
+                cause = cause.getCause();
+            }
+
             result.put("success", false);
             result.put("message", "조회 중 오류가 발생했습니다: " + e.getMessage());
+
+            // 🔥 개발 환경에서만 상세 에러 반환
+            if (log.isDebugEnabled()) {
+                result.put("error", e.getClass().getName());
+                result.put("stackTrace", e.getStackTrace()[0].toString());
+            }
         }
+
         return result;
     }
 
@@ -234,7 +276,19 @@ public class PrkDefPlceInfoController {
                     log.info("✅ 기존 prkPlceInfoSn 획득: {}", prkPlceInfoSn);
                 } else {
                     log.error("❌ 기존 데이터를 찾을 수 없습니다: {}", prkPlceManageNo);
-                    throw new RuntimeException("수정할 주차장 데이터를 찾을 수 없습니다.");
+
+                    // 🔥 수정: 더 자세한 에러 정보 제공
+                    response.put("success", false);
+                    response.put("message", "수정할 주차장 정보를 찾을 수 없습니다. 주차장 관리번호: " + prkPlceManageNo);
+                    response.put("errorCode", "DATA_NOT_FOUND");
+                    response.put("prkPlceManageNo", prkPlceManageNo);
+
+                    log.error("💡 가능한 원인:");
+                    log.error("   1. 잘못된 주차장 관리번호");
+                    log.error("   2. 해당 사업에 속하지 않는 주차장");
+                    log.error("   3. 이미 삭제된 데이터");
+
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
                 }
 
                 log.info("🔄 DB UPDATE 실행");

@@ -62,7 +62,7 @@ public class AuthFilter implements Filter {
                     + ", loginUser: " + session.getAttribute("loginUser"));
         }
 
-        if (loginFlag != null && Boolean.TRUE.equals(loginFlag)) {
+        if (Boolean.TRUE.equals(loginFlag)) {
             // 로그인 상태 OK
             chain.doFilter(req, res);
             return;

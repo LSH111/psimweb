@@ -12,27 +12,37 @@ const RegionCodeLoader = {
     // 진행상태 로드
     async loadProgressStatus() {
         try {
-            const response = await fetch('/cmm/codes/status'); // 🔥 실제 API 경로로 수정 필요
+            console.log('🔄 진행상태 로드 시작');
+            const response = await fetch('/cmm/codes/status');
             const result = await response.json();
 
+            console.log('📥 진행상태 응답:', result);
+
             const statusSelect = $('#f_status');
-            if (!statusSelect) return;
+            if (!statusSelect) {
+                console.warn('⚠️ f_status 요소를 찾을 수 없습니다');
+                return;
+            }
 
             statusSelect.innerHTML = '<option value="">선택</option>';
-            if (result.success && result.data) {
-                // 예: "10", "20", "30" 코드만 표시
-                const allowedCodes = ['10'];
+
+            if (result.success && result.data && Array.isArray(result.data)) {
+                console.log(`📋 진행상태 데이터 ${result.data.length}개 로드됨`);
+
                 result.data.forEach(item => {
-                    if (allowedCodes.includes(item.codeCd)) {
-                        const option = document.createElement('option');
-                        option.value = item.codeCd;
-                        option.textContent = item.codeNm;
-                        statusSelect.appendChild(option);
-                    }
+                    console.log(`  - ${item.codeCd}: ${item.codeNm}`);
+                    const option = document.createElement('option');
+                    option.value = item.codeCd;
+                    option.textContent = item.codeNm;
+                    statusSelect.appendChild(option);
                 });
+
+                console.log('✅ 진행상태 로드 완료:', result.data.length);
+            } else {
+                console.error('❌ 진행상태 데이터 없음 또는 형식 오류:', result);
             }
         } catch (error) {
-            console.error('진행상태 로드 실패:', error);
+            console.error('❌ 진행상태 로드 실패:', error);
         }
     },
 
@@ -1529,9 +1539,15 @@ async function loadParkingDetail(prkPlceManageNo) {
     LoadingIndicator.show('주차장 정보를 불러오는 중...');
 
     try {
-        console.log('🔍 서버에서 상세 데이터 로드 시작:', prkPlceManageNo);
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('🔍 서버에서 상세 데이터 로드 시작');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('📋 요청 관리번호:', prkPlceManageNo);
+        console.log('🌐 요청 URL:', `/prk/onparking-detail?prkPlceManageNo=${encodeURIComponent(prkPlceManageNo)}`);
 
         const response = await fetch(`/prk/onparking-detail?prkPlceManageNo=${encodeURIComponent(prkPlceManageNo)}`);
+
+        console.log('📡 서버 응답 상태:', response.status, response.statusText);
 
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -1539,25 +1555,47 @@ async function loadParkingDetail(prkPlceManageNo) {
 
         const result = await response.json();
 
-        if (result.success && result.data) {
-            console.log('✅ 서버 데이터 로드 완료:', result.data);
+        console.log('📦 서버 응답 전체:', result);
+        console.log('  - success:', result.success);
+        console.log('  - message:', result.message);
+        console.log('  - data:', result.data);
 
-            // 🔥 행정구역 코드 확인
-            console.log('🗺️ 행정구역 코드:', {
+        if (result.success && result.data) {
+            console.log('✅ 서버 데이터 로드 성공');
+            console.log('📋 데이터 상세:', {
+                prkPlceManageNo: result.data.prkPlceManageNo,
+                prkplceNm: result.data.prkplceNm,
                 sidoCd: result.data.sidoCd,
                 sigunguCd: result.data.sigunguCd,
-                emdCd: result.data.emdCd,
-                ri: result.data.ri
+                emdCd: result.data.emdCd
             });
 
             bindDataToForm(result.data);
         } else {
-            console.error('❌ 데이터 로드 실패:', result.message);
-            alert('데이터를 불러오는데 실패했습니다: ' + (result.message || '알 수 없는 오류'));
+            console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.error('❌ 데이터 로드 실패');
+            console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.error('실패 사유:', result.message);
+            console.error('요청한 관리번호:', prkPlceManageNo);
+            console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+            alert('데이터를 불러오는데 실패했습니다.\n\n' +
+                '관리번호: ' + prkPlceManageNo + '\n' +
+                '사유: ' + (result.message || '알 수 없는 오류') + '\n\n' +
+                '서버 로그를 확인해주세요.');
         }
     } catch (error) {
-        console.error('❌ 데이터 로드 중 오류:', error);
-        alert('데이터를 불러오는데 실패했습니다: ' + error.message);
+        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.error('❌ 데이터 로드 중 예외 발생');
+        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.error('예외 타입:', error.name);
+        console.error('예외 메시지:', error.message);
+        console.error('예외 스택:', error.stack);
+        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+        alert('데이터를 불러오는데 실패했습니다.\n\n' +
+            '오류: ' + error.message + '\n\n' +
+            '브라우저 콘솔과 서버 로그를 확인해주세요.');
     } finally {
         LoadingIndicator.hide();
         console.log('✅ 로딩 인디케이터 숨김');
@@ -1665,15 +1703,48 @@ async function bindDataToForm(data) {
         console.log('✅ 주차장정보일련번호:', data.prkPlceInfoSn);
     }
 
-    // 🔥 1. 기본 필드 매핑 - tb_prk_def_plce_info 필드 추가
+    // 🔥 1. 기본 필드 매핑
     if (f_id) f_id.value = data.prkPlceManageNo || '';
     if (f_name) f_name.value = data.prkplceNm || '';
+
+    // 🔥 진행상태 바인딩 (재로드 없이 직접 설정)
     if (f_status && data.prgsStsCd) {
-        setTimeout(() => {
-            f_status.value = data.prgsStsCd;
-            console.log('✅ 진행상태 바인딩:', data.prgsStsCd);
-        }, 100);
+        // 1차 시도: 코드값으로 직접 설정
+        f_status.value = data.prgsStsCd;
+        console.log('✅ 진행상태 바인딩 (코드값):', data.prgsStsCd, '→', f_status.value);
+
+        // 값이 제대로 설정되지 않았다면 코드명으로 매칭 시도
+        if (f_status.value !== data.prgsStsCd) {
+            console.warn('⚠️ 코드값 바인딩 실패. 코드명으로 매칭 시도:', data.prgsStsCd);
+
+            const statusText = data.prgsStsCd; // "승인", "승인대기" 등
+            let matched = false;
+
+            // select의 option들을 순회하면서 텍스트가 일치하는 값을 찾음
+            for (let i = 0; i < f_status.options.length; i++) {
+                const option = f_status.options[i];
+                if (option.textContent.trim() === statusText.trim()) {
+                    f_status.value = option.value;
+                    matched = true;
+                    console.log('✅ 진행상태 바인딩 성공 (코드명 매칭):', {
+                        표시명: statusText,
+                        코드값: option.value
+                    });
+                    break;
+                }
+            }
+
+            if (!matched) {
+                console.error('❌ 진행상태 바인딩 완전 실패. 옵션 확인:', {
+                    시도한값: data.prgsStsCd,
+                    실제값: f_status.value,
+                    옵션수: f_status.options.length,
+                    사용가능한옵션: Array.from(f_status.options).map(o => `${o.value}:${o.textContent}`)
+                });
+            }
+        }
     }
+
     if (f_type) f_type.value = '노상';
 
     // 🔥 우편번호 바인딩
@@ -1728,16 +1799,16 @@ async function bindDataToForm(data) {
     if (f_lng) f_lng.value = data.prkPlceLon || '';
     console.log('✅ 좌표:', { lat: data.prkPlceLat, lng: data.prkPlceLon });
 
-    // 🔥 행정구역 바인딩 (시도/시군구/읍면동) - 순차적으로 로드
+    // 🔥 행정구역 바인딩 - 이미 로드된 옵션 사용
     if (data.sidoCd) {
         const f_sido = $('#f_sido');
         if (f_sido) {
+            // 🔥 시도 select가 비어있는지 확인
             if (f_sido.options.length <= 1) {
-                console.log('⏳ 시도 목록 다시 로드');
+                console.log('⏳ 시도 목록이 없음 - 재로드');
                 await RegionCodeLoader.loadSidoList();
+                await new Promise(resolve => setTimeout(resolve, 100));
             }
-
-            await new Promise(resolve => setTimeout(resolve, 100));
 
             f_sido.value = data.sidoCd;
             console.log('✅ 시도코드 바인딩:', data.sidoCd);
@@ -1745,7 +1816,6 @@ async function bindDataToForm(data) {
             if (data.sigunguCd) {
                 console.log('⏳ 시군구 로드 시작:', data.sidoCd);
                 await RegionCodeLoader.loadSigunguList(data.sidoCd);
-
                 await new Promise(resolve => setTimeout(resolve, 200));
 
                 const f_sigungu = $('#f_sigungu');
@@ -1756,7 +1826,6 @@ async function bindDataToForm(data) {
                     if (data.emdCd) {
                         console.log('⏳ 읍면동 로드 시작:', data.sigunguCd);
                         await RegionCodeLoader.loadEmdList(data.sigunguCd);
-
                         await new Promise(resolve => setTimeout(resolve, 200));
 
                         const f_emd = $('#f_emd');
@@ -2180,21 +2249,18 @@ async function bindDataToForm(data) {
 
 // ========== 🔥 모든 필드를 ReadOnly로 설정하는 함수 ==========
 function setAllFieldsReadOnly(isReadOnly) {
-    // 텍스트/숫자 입력 필드
+    // 🔥 1. 텍스트/숫자 입력 필드
     const inputs = $$('input[type="text"], input[type="number"], input[type="tel"], textarea');
     inputs.forEach(input => {
-        // 🔥 승인 상태면 모든 필드 readOnly 처리
         if (isReadOnly) {
+            // 🔥 승인 상태 → 모든 필드 readonly
             input.readOnly = true;
             input.style.backgroundColor = '#f3f4f6';
             input.style.cursor = 'not-allowed';
         } else {
-            // 편집 가능 상태에서만 특정 필드 제외
-            if (input.id === 'f_id' || input.id === 'f_totalStalls') {
-                // 관리번호, 총 주차면수는 항상 readOnly
-                input.readOnly = true;
-            } else if (input.id === 'f_addr_jibun' || input.id === 'f_addr_road') {
-                // 주소는 항상 readOnly (주소찾기 사용)
+            // 🔥 편집 가능 상태
+            const alwaysReadOnlyIds = ['f_id', 'f_totalStalls', 'f_addr_jibun', 'f_addr_road'];
+            if (alwaysReadOnlyIds.includes(input.id)) {
                 input.readOnly = true;
             } else {
                 input.readOnly = false;
@@ -2204,19 +2270,39 @@ function setAllFieldsReadOnly(isReadOnly) {
         }
     });
 
-    // Select 박스
+    // 🔥 2. Select 박스 (시도/시군구/읍면동 포함)
     const selects = $$('select');
     selects.forEach(select => {
-        select.disabled = isReadOnly;
+        if (isReadOnly) {
+            // 🔥 승인 상태 → 모든 SELECT disabled
+            select.disabled = true;
+            select.style.backgroundColor = '#f3f4f6';
+            select.style.cursor = 'not-allowed';
+            select.style.pointerEvents = 'none';  // 🔥 추가
+        } else {
+            // 🔥 편집 가능 상태 → SELECT 활성화
+            select.disabled = false;
+            select.style.backgroundColor = '';
+            select.style.cursor = '';
+            select.style.pointerEvents = '';
+        }
     });
 
-    // 라디오/체크박스
+    // 🔥 3. 라디오/체크박스
     const radiosAndChecks = $$('input[type="radio"], input[type="checkbox"]');
     radiosAndChecks.forEach(input => {
-        input.disabled = isReadOnly;
+        if (isReadOnly) {
+            input.disabled = true;
+            input.style.cursor = 'not-allowed';
+            input.style.pointerEvents = 'none';  // 🔥 추가
+        } else {
+            input.disabled = false;
+            input.style.cursor = '';
+            input.style.pointerEvents = '';
+        }
     });
 
-    // 파일 업로드 버튼
+    // 🔥 4. 파일 업로드 버튼
     const fileButtons = [
         '#btnPickFromLibrary', '#btnTakePhoto', '#btnUseGeolocation', '#btnClearPhoto',
         '#btnFindAddr',
@@ -2224,7 +2310,19 @@ function setAllFieldsReadOnly(isReadOnly) {
     ];
     fileButtons.forEach(selector => {
         const btn = $(selector);
-        if (btn) btn.disabled = isReadOnly;
+        if (btn) {
+            if (isReadOnly) {
+                btn.disabled = true;
+                btn.style.cursor = 'not-allowed';
+                btn.style.opacity = '0.5';
+                btn.style.pointerEvents = 'none';  // 🔥 추가
+            } else {
+                btn.disabled = false;
+                btn.style.cursor = '';
+                btn.style.opacity = '';
+                btn.style.pointerEvents = '';
+            }
+        }
     });
 
     console.log(`🔒 모든 필드 ${isReadOnly ? 'ReadOnly' : '편집 가능'} 처리 완료`);
@@ -2643,6 +2741,8 @@ function validateRequiredFields() {
 async function doSave() {
     console.log('🚀 doSave 함수 실행 시작');
 
+    console.log('🚀 doSave 함수 실행 시작');
+
     try {
         // 1. 필수 입력 검증
         const validationErrors = validateRequiredFields();
@@ -2743,30 +2843,105 @@ async function doSave() {
             }
         }
 
-        // 🔥 8. 서버 API 호출
-        console.log('📡 서버로 전송 중...');
-        const response = await fetch('/prk/onparking-update', {
-            method: 'POST',
-            body: formData
-        });
+        // 🔥 8. 타임아웃 설정 (30초)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => {
+            controller.abort();
+            console.error('⏰ 요청 타임아웃 (30초 초과)');
+        }, 30000);
 
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('📡 서버로 전송 중...');
+        console.log('🎯 URL:', '/prk/onparking-update');
+        console.log('📦 데이터 크기:', formData.size || 'unknown');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+        let response;
+        try {
+            response = await fetch('/prk/onparking-update', {
+                method: 'POST',
+                body: formData,
+                signal: controller.signal  // 🔥 타임아웃 시그널 추가
+            });
+
+            clearTimeout(timeoutId);  // 🔥 타임아웃 해제
+
+            console.log('📥 서버 응답 수신:', {
+                status: response.status,
+                statusText: response.statusText,
+                ok: response.ok,
+                headers: Object.fromEntries(response.headers.entries())
+            });
+
+        } catch (fetchError) {
+            clearTimeout(timeoutId);
+
+            console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.error('❌ fetch 호출 실패');
+            console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.error('에러 타입:', fetchError.name);
+            console.error('에러 메시지:', fetchError.message);
+            console.error('스택:', fetchError.stack);
+            console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+            if (fetchError.name === 'AbortError') {
+                alert('⏰ 서버 응답 시간이 초과되었습니다.\n\n네트워크 상태를 확인하거나 잠시 후 다시 시도해주세요.');
+            } else if (fetchError.name === 'TypeError') {
+                alert('🌐 네트워크 오류가 발생했습니다.\n\n' +
+                    '• 인터넷 연결을 확인해주세요.\n' +
+                    '• 서버가 실행 중인지 확인해주세요.\n' +
+                    '• 브라우저 콘솔에서 상세 오류를 확인하세요.');
+            } else {
+                alert('❌ 요청 전송 실패:\n\n' + fetchError.message);
+            }
+
+            throw fetchError;
+        }
+
+        // 9. 응답 처리
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+            const errorText = await response.text();
+            console.error('❌ 서버 에러 응답:', {
+                status: response.status,
+                statusText: response.statusText,
+                body: errorText
+            });
+            throw new Error(`HTTP ${response.status}: ${response.statusText}\n\n${errorText}`);
         }
 
         const result = await response.json();
+        console.log('✅ 서버 응답 데이터:', result);
+
         if (result.success) {
             alert(isNewRecord ? '신규 등록되었습니다.' : '수정되었습니다.');
             setTimeout(() => {
-                window.location.href = '/prk/parkinglist';
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({
+                        type: 'navigate',
+                        url: '/prk/parkinglist'
+                    }, '*');
+                } else {
+                    location.href = '/prk/parkinglist';
+                }
             }, 500);
         } else {
+            console.error('❌ 저장 실패:', result.message);
             alert('저장 실패: ' + result.message);
         }
 
     } catch (error) {
-        console.error('❌ 저장 오류:', error);
-        alert('저장 중 오류: ' + error.message);
+        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.error('❌ doSave 함수 예외 발생');
+        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.error('예외 타입:', error.name);
+        console.error('예외 메시지:', error.message);
+        console.error('예외 스택:', error.stack);
+        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+        // 이미 alert가 표시되지 않았다면
+        if (error.name !== 'AbortError' && error.name !== 'TypeError') {
+            alert('저장 중 오류: ' + error.message);
+        }
     }
 }
 
@@ -2816,28 +2991,36 @@ function joinCodes(arr) {
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('=== 노상주차장 페이지 초기화 시작 ===');
 
-    // 🔥 1. 행정구역 코드 로드
+    // 🔥 1. URL에서 관리번호 확인하여 신규/조회 구분
+    const prkPlceManageNo = p.id || f_id?.value;
+    const isNewRecord = !prkPlceManageNo || prkPlceManageNo === '';
+
+    console.log(`📋 모드: ${isNewRecord ? '신규 등록' : '조회/수정'}, ID: ${prkPlceManageNo}`);
+
+    // 🔥 2. 진행상태 로드 (모든 상태 표시)
     await RegionCodeLoader.loadProgressStatus();
+
+    // 3. 행정구역 코드 로드
     await RegionCodeLoader.loadSidoList();
     RegionCodeLoader.setupEventListeners();
 
-    // 2. 동적 코드 로드
+    // 4. 동적 코드 로드
     await CodeLoader.applyAllDynamicCodes();
 
-    // 2. 주간/야간 섹션 설정
+    // 5. 주간/야간 섹션 설정
     setupDayNightSections();
 
-    // 3. 시간제운영 이벤트 설정
+    // 6. 시간제운영 이벤트 설정
     setupTimeOperationEvents('day');
     setupTimeOperationEvents('night');
 
-    // 4. 경사구간 이벤트 설정
+    // 7. 경사구간 이벤트 설정
     setupSlopeToggle();
 
-    // 5. 주차장 표지판 이벤트 설정
+    // 8. 주차장 표지판 이벤트 설정
     setupSignToggle();
 
-    // 🔥 전화번호 입력 필드에 자동 포맷팅 적용
+    // 🔥 9. 전화번호 입력 필드에 자동 포맷팅 적용
     const f_mgr_tel = document.getElementById('f_mgr_tel');
     if (f_mgr_tel) {
         f_mgr_tel.addEventListener('input', function(e) {
@@ -2860,7 +3043,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
-    // 🔥 6. 저장 버튼 이벤트 - 로그 추가
+    // 🔥 10. 저장 버튼 이벤트 - 로그 추가
     const btnSave = document.getElementById('btnSave');
     const btnSaveTop = document.getElementById('btnSaveTop');
 
@@ -2888,17 +3071,19 @@ document.addEventListener('DOMContentLoaded', async function() {
         console.error('❌ btnSaveTop 요소를 찾을 수 없습니다!');
     }
 
-    // 7. URL에서 관리번호 가져와서 상세 데이터 로드
-    const prkPlceManageNo = p.id || f_id?.value;
-    if (prkPlceManageNo && prkPlceManageNo !== '') {
+    // 🔥 11. 상세 데이터 로드 (신규가 아닌 경우에만)
+    if (!isNewRecord) {
         await loadParkingDetail(prkPlceManageNo);
     } else {
-        console.log('ℹ️ 신규 등록 모드');
+        console.log('ℹ️ 신규 등록 모드 - 진행상태: 신규(10)만 선택 가능');
+        // 🔥 신규 등록 시 기본값 설정
+        if (f_status) {
+            f_status.value = '10';
+        }
     }
 
     console.log('✅ 페이지 초기화 완료');
 });
-
 
 
 // ========== 🔥 서버 데이터 매핑 함수 완전 수정 ==========
