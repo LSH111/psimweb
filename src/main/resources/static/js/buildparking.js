@@ -1436,6 +1436,10 @@ function setupPeakTimeValidation() {
     console.log('✅ 주차 첨두 시간대 검증 설정 완료');
 }
 
+// ========== 🔥 전역 변수로 사업관리번호, 정보일련번호 저장 ==========
+let loadedBizMngNo = null;
+let loadedPrkPlceInfoSn = null;
+
 // ========== 🔥 로딩 인디케이터 ==========
 const LoadingIndicator = {
     show(message = '데이터를 불러오는 중...') {
@@ -1483,7 +1487,7 @@ async function loadParkingDetailFromServer() {
 
         if (result.success && result.data) {
             console.log('✅ 서버 데이터 로드 성공:', result.data);
-            populateFormWithData(result.data);
+            await populateFormWithData(result.data);
         } else {
             console.error('❌ 서버 데이터 로드 실패:', result.message);
             alert('주차장 정보를 불러오지 못했습니다: ' + (result.message || '알 수 없는 오류'));
@@ -1496,10 +1500,6 @@ async function loadParkingDetailFromServer() {
         console.log('✅ 로딩 인디케이터 숨김');
     }
 }
-
-// ========== 🔥 전역 변수로 사업관리번호 저장 ==========
-let loadedBizMngNo = null;
-let loadedPrkPlceInfoSn = null;
 
 // 🔥 서버 데이터로 폼 채우기 ==========
 async function populateFormWithData(data) {
@@ -2183,7 +2183,6 @@ function validateRequiredFields() {
     return errors;
 }
 
-// ========== 🔥 DOMContentLoaded 수정 ==========
 document.addEventListener('DOMContentLoaded', async function () {
     console.log('=== 부설주차장 페이지 초기화 시작 ===');
 
