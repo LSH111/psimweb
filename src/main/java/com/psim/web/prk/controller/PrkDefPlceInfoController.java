@@ -1,14 +1,18 @@
 package com.psim.web.prk.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.psim.web.cmm.vo.CoUserVO;
 import com.psim.web.file.service.AttchPicMngInfoService;
 import com.psim.web.prk.service.PrkDefPlceInfoService;
 import com.psim.web.prk.vo.ParkingDetailVO;
 import com.psim.web.prk.vo.ParkingListVO;
-import com.psim.web.cmm.vo.CoUserVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,10 +21,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 
 @Slf4j
 @Controller
@@ -687,72 +694,6 @@ public class PrkDefPlceInfoController {
     }
 
     /**
-     * 🔥 주차장 저장 (신규/수정 통합)
-     */
-    /*@PostMapping("/parking-save")
-    public ResponseEntity<Map<String, Object>> saveParking(
-            @RequestBody ParkingDetailVO parkingData,
-            HttpServletRequest request) {
-
-        Map<String, Object> response = new HashMap<>();
-
-        try {
-            // 신규/수정 판별
-            boolean isNew = parkingData.getPrkPlceManageNo() == null
-                    || parkingData.getPrkPlceManageNo().trim().isEmpty();
-
-            log.info("💾 주차장 {} - 유형: {}",
-                    isNew ? "신규 등록" : "수정",
-                    parkingData.getPrkPlceType());
-
-            // 🔥 사용자 정보 설정 (개발용 임시)
-            String userId = "SYSTEM";
-            String clientIp = "127.0.0.1";
-
-            // 🔥 실제 운영 환경에서는 세션에서 가져오기
-            *//*
-            HttpSession session = request.getSession(false);
-            if (session == null || session.getAttribute("userId") == null) {
-                response.put("success", false);
-                response.put("message", "로그인이 필요합니다.");
-                return ResponseEntity.status(401).body(response);
-            }
-
-            String userId = session.getAttribute("userId").toString();
-            String prkBizMngNo = session.getAttribute("prkBizMngNo").toString(); // 사업번호
-            parkingData.setPrkBizMngNo(prkBizMngNo);
-            String clientIp = getClientIp(request);
-            *//*
-
-            parkingData.setUpdusrId(userId);
-            parkingData.setUpdusrIpAddr(clientIp);
-
-            // 🔥 신규 등록인 경우 사업번호 설정 필요
-            if (isNew && (parkingData.getPrkBizMngNo() == null || parkingData.getPrkBizMngNo().isEmpty())) {
-                // 임시로 하드코딩 (실제는 세션에서)
-                parkingData.setPrkBizMngNo("BIZ2025001");
-            }
-
-            // 저장 실행
-            String prkPlceManageNo = prkDefPlceInfoService.saveParking(parkingData);
-
-            response.put("success", true);
-            response.put("message", isNew ? "주차장이 등록되었습니다." : "주차장 정보가 수정되었습니다.");
-            response.put("prkPlceManageNo", prkPlceManageNo);
-            response.put("isNew", isNew);
-
-            log.info("✅ 주차장 저장 완료 - {}", prkPlceManageNo);
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            log.error("❌ 주차장 저장 실패", e);
-            response.put("success", false);
-            response.put("message", "저장 중 오류가 발생했습니다: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(response);
-        }
-    }*/
-
-    /**
      * 🔥 지도용 주차장 데이터 조회 (좌표 포함 + 시도/시군구 필터링)
      */
     @GetMapping("/parking-map-data")
@@ -841,6 +782,135 @@ public class PrkDefPlceInfoController {
         }
 
         return response;
+    }
+
+    /**
+     * 🔥 주차장 사진 정보 조회
+     */
+    @GetMapping("/parking-photos")
+    @ResponseBody
+    public Map<String, Object> getParkingPhotos(@RequestParam Integer prkPlceInfoSn) {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            log.info("📸 주차장 사진 정보 조회 - prkPlceInfoSn: {}", prkPlceInfoSn);
+
+            List<Map<String, Object>> photos = attchPicService.getPhotosByPrkPlceInfoSn(prkPlceInfoSn);
+
+            result.put("success", true);
+            result.put("photos", photos);
+
+            log.info("✅ 사진 정보 조회 완료: {}개", photos.size());
+
+        } catch (Exception e) {
+            log.error("❌ 사진 정보 조회 실패", e);
+            result.put("success", false);
+            result.put("message", "사진 정보 조회 중 오류가 발생했습니다: " + e.getMessage());
+        }
+
+        return result;
+    }
+
+    /**
+     * 🔥 주차장 이미지 파일 다운로드/표시 (복합키 사용)
+     */
+    @GetMapping("/photo")
+    public ResponseEntity<Resource> getPhoto(
+            @RequestParam Integer prkPlceInfoSn,
+            @RequestParam String prkImgId,
+            @RequestParam Integer seqNo) {
+        try {
+            log.info("📷 이미지 요청 - prkPlceInfoSn: {}, prkImgId: {}, seqNo: {}",
+                    prkPlceInfoSn, prkImgId, seqNo);
+
+            Map<String, Object> photoInfo = attchPicService.getPhotoFile(prkPlceInfoSn, prkImgId, seqNo);
+
+            log.warn("📷 이미지 요청 성공 ", photoInfo);
+
+            if (photoInfo == null) {
+                log.warn("⚠️ 이미지를 찾을 수 없음");
+                return ResponseEntity.notFound().build();
+            }
+
+            // 🔥 파일 경로에서 실제 파일 읽기
+            String uploadBasePath = "/Users/isihyeong/upload/psim"; // 실제 업로드 경로
+            String filePath = uploadBasePath + "/" + photoInfo.get("filepath") + "/" + photoInfo.get("filename");
+
+            Path path = Paths.get(filePath);
+            Resource resource = new UrlResource(path.toUri());
+
+            if (!resource.exists() || !resource.isReadable()) {
+                log.warn("⚠️ 파일을 읽을 수 없습니다: {}", filePath);
+                return ResponseEntity.notFound().build();
+            }
+
+            String contentType = (String) photoInfo.get("contentType");
+            String fileName = (String) photoInfo.get("fileName");
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType(contentType));
+            headers.setContentDispositionFormData("inline", fileName);
+
+            log.info("✅ 이미지 반환 완료");
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(resource);
+
+        } catch (Exception e) {
+            log.error("❌ 이미지 조회 실패", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * 🔥 이용실태 이미지 파일 다운로드/표시 (복합키 사용)
+     */
+    @GetMapping("/photo/usage")
+    public ResponseEntity<Resource> getPhotoForUsage(
+            @RequestParam String cmplSn,
+            @RequestParam String prkImgId,
+            @RequestParam Integer seqNo) {
+        try {
+            log.info("📷 이용실태 이미지 요청 - cmplSn: {}, prkImgId: {}, seqNo: {}",
+                    cmplSn, prkImgId, seqNo);
+
+            Map<String, Object> photoInfo = attchPicService.getPhotoFileForUsage(cmplSn, prkImgId, seqNo);
+
+            if (photoInfo == null) {
+                log.warn("⚠️ 이미지를 찾을 수 없음");
+                return ResponseEntity.notFound().build();
+            }
+
+            // 🔥 파일 경로에서 실제 파일 읽기
+            String uploadBasePath = "/upload/parking";
+            String filePath = uploadBasePath + "/" + photoInfo.get("filePath") + "/" + photoInfo.get("fileName");
+
+            Path path = Paths.get(filePath);
+            Resource resource = new UrlResource(path.toUri());
+
+            if (!resource.exists() || !resource.isReadable()) {
+                log.warn("⚠️ 파일을 읽을 수 없습니다: {}", filePath);
+                return ResponseEntity.notFound().build();
+            }
+
+            String contentType = (String) photoInfo.get("contentType");
+            String fileName = (String) photoInfo.get("fileName");
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType(contentType));
+            headers.setContentDispositionFormData("inline", fileName);
+
+            log.info("✅ 이용실태 이미지 반환 완료");
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(resource);
+
+        } catch (Exception e) {
+            log.error("❌ 이용실태 이미지 조회 실패", e);
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     @GetMapping("/onparking")

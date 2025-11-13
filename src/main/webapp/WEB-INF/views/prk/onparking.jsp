@@ -161,6 +161,8 @@
                     </div>
                 </div>
                 <div style="grid-column:1/-1"><img id="preview" class="thumb" alt="사진 미리보기"/></div>
+                <!-- 🔥 저장된 사진 정보 표시 영역 추가 -->
+                <div id="photo_info" style="grid-column:1/-1"></div>
                 <div><label for="f_lat">위도</label>
                     <div class="ctl"><input id="f_lat" class="mono" inputmode="decimal"/></div>
                 </div>
@@ -696,8 +698,7 @@
                 <label>주차장 표지판</label>
                 <div class="radio-group" id="sign_group">
                     <label><input type="radio" name="parkingSign" value="Y" id="sign_yes"/> <span>있음</span></label>
-                    <label><input type="radio" name="parkingSign" value="N" id="sign_no" checked/>
-                        <span>없음</span></label>
+                    <label><input type="radio" name="parkingSign" value="N" id="sign_no" checked/> <span>없음</span></label>
                 </div>
             </div>
 
@@ -718,6 +719,8 @@
                 <div style="grid-column:1/-1; margin-top:8px;">
                     <img id="sign_preview" class="thumb" alt="표지판 사진 미리보기" style="display:none;"/>
                 </div>
+                <!-- 🔥 저장된 표지판 사진 정보 표시 영역 추가 -->
+                <div id="sign_photo_info" style="margin-top: 10px;"></div>
             </div>
 
             <!-- 경사구간 여부 -->

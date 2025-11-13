@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -19,6 +20,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -350,6 +352,108 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             }
         } catch (IOException e) {
             log.warn("⚠️ 파일 삭제 실패: {}", file.getFileNm(), e);
+        }
+    }
+    /**
+     * 🔥 주차장 정보 일련번호로 사진 목록 조회
+     */
+    @Override
+    public List<Map<String, Object>> getPhotosByPrkPlceInfoSn(Integer prkPlceInfoSn) {
+        try {
+            log.info("📸 사진 목록 조회 - prkPlceInfoSn: {}", prkPlceInfoSn);
+            List<Map<String, Object>> photos = mapper.selectPhotosByPrkPlceInfoSn(prkPlceInfoSn);
+            log.info("✅ 사진 {}개 조회 완료", photos.size());
+            return photos;
+        } catch (Exception e) {
+            log.error("❌ 사진 목록 조회 실패", e);
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * 🔥 사진 파일 데이터 조회 (주차장용)
+     */
+    @Override
+    public Map<String, Object> getPhotoFile(Integer prkPlceInfoSn, String prkImgId, Integer seqNo) {
+        try {
+            log.info("📷 사진 파일 조회 (주차장) - prkPlceInfoSn: {}, prkImgId: {}, seqNo: {}",
+                    prkPlceInfoSn, prkImgId, seqNo);
+
+            Map<String, Object> photoInfo = mapper.selectPhotoFile(prkPlceInfoSn, prkImgId, seqNo);
+
+            if (photoInfo == null) {
+                log.warn("⚠️ 사진을 찾을 수 없음: prkPlceInfoSn={}, prkImgId={}, seqNo={}",
+                        prkPlceInfoSn, prkImgId, seqNo);
+                return null;
+            }
+
+            // Content-Type 결정
+            String extNm = (String) photoInfo.get("extNm");
+            String contentType = determineContentType(extNm);
+            photoInfo.put("contentType", contentType);
+
+            log.info("✅ 사진 파일 조회 완료 - 파일명: {}", photoInfo.get("fileName"));
+            return photoInfo;
+
+        } catch (Exception e) {
+            log.error("❌ 사진 파일 조회 실패", e);
+            return null;
+        }
+    }
+
+    /**
+     * 🔥 사진 파일 데이터 조회 (이용실태용)
+     */
+    @Override
+    public Map<String, Object> getPhotoFileForUsage(String cmplSn, String prkImgId, Integer seqNo) {
+        try {
+            log.info("📷 사진 파일 조회 (이용실태) - cmplSn: {}, prkImgId: {}, seqNo: {}",
+                    cmplSn, prkImgId, seqNo);
+
+            Map<String, Object> photoInfo = mapper.selectPhotoFileForUsage(cmplSn, prkImgId, seqNo);
+
+            if (photoInfo == null) {
+                log.warn("⚠️ 사진을 찾을 수 없음: cmplSn={}, prkImgId={}, seqNo={}",
+                        cmplSn, prkImgId, seqNo);
+                return null;
+            }
+
+            // Content-Type 결정
+            String extNm = (String) photoInfo.get("extNm");
+            String contentType = determineContentType(extNm);
+            photoInfo.put("contentType", contentType);
+
+            log.info("✅ 사진 파일 조회 완료 - 파일명: {}", photoInfo.get("fileName"));
+            return photoInfo;
+
+        } catch (Exception e) {
+            log.error("❌ 사진 파일 조회 실패", e);
+            return null;
+        }
+    }
+
+    /**
+     * Content-Type 결정 헬퍼 메서드
+     */
+    private String determineContentType(String extNm) {
+        if (extNm == null) {
+            return "application/octet-stream";
+        }
+
+        switch (extNm.toLowerCase()) {
+            case "jpg":
+            case "jpeg":
+                return "image/jpeg";
+            case "png":
+                return "image/png";
+            case "gif":
+                return "image/gif";
+            case "bmp":
+                return "image/bmp";
+            case "webp":
+                return "image/webp";
+            default:
+                return "application/octet-stream";
         }
     }
 }

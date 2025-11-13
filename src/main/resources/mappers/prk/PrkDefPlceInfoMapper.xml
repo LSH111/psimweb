@@ -169,8 +169,15 @@
              , tcl.lgal_emd_nm                                  as lgalEmdNm
              , tpdpi.zip                                        as zip
              , tpdpi.dtadd                                      as dtadd
+             , tpdpi.roadaddr                                      as rnmadr
              , tpdpi.prk_plce_lat                               as prkPlceLat
              , tpdpi.prk_plce_lon                               as prkPlceLon
+             -- 🔥 누락된 필드 추가
+             , tpdpi.bdnbr                                      as bdnbr
+             , tpdpi.lnm_mnno                                   as lnmMnno
+             , tpdpi.lnm_sbno                                   as lnmSbno
+             , tpdpi.mntn_yn                                    as mntnYn
+             , tpdpi.li_cd                                      as liCd
              , topi.tot_prk_cnt                                 as totPrkCnt
              , topi.disab_prk_cnt                               as disabPrkCnt
              , topi.compact_prk_cnt                             as compactPrkCnt

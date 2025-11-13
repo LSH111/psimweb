@@ -180,4 +180,46 @@
         ORDER BY seq_no
     </select>
 
+    <!-- 🔥 주차장 정보 일련번호로 사진 목록 조회 -->
+    <select id="selectPhotosByPrkPlceInfoSn" resultType="map">
+        SELECT
+            prk_plce_info_sn AS prkPlceInfoSn,
+            prk_img_id AS prkImgId,
+            seq_no AS seqNo,
+            real_file_nm AS realFileNm,
+            file_nm AS fileNm,
+            file_path AS filePath,
+            ext_nm AS extNm,
+            reg_dt AS regDt
+        FROM cpk.tb_attch_pic_mng_info
+        WHERE prk_plce_info_sn = #{prkPlceInfoSn}
+        ORDER BY prk_img_id, seq_no
+    </select>
+
+    <!-- 🔥 사진 파일 데이터 조회 (prkPlceInfoSn + prkImgId + seqNo 복합키) -->
+    <select id="selectPhotoFile" resultType="map">
+        SELECT
+            file_nm AS fileName,
+            ext_nm AS extNm,
+            file_path AS filePath,
+            real_file_nm AS realFileNm
+        FROM cpk.tb_attch_pic_mng_info
+        WHERE prk_plce_info_sn = #{prkPlceInfoSn}
+          AND prk_img_id = #{prkImgId}
+          AND seq_no = #{seqNo}
+    </select>
+
+    <!-- 🔥 이용실태 파일 조회 (cmplSn + prkImgId + seqNo 복합키) -->
+    <select id="selectPhotoFileForUsage" resultType="map">
+        SELECT
+            file_nm AS fileName,
+            ext_nm AS extNm,
+            file_path AS filePath,
+            real_file_nm AS realFileNm
+        FROM cpk.tb_attch_pic_mng_info
+        WHERE cmpl_sn = #{cmplSn}
+          AND prk_img_id = #{prkImgId}
+          AND seq_no = #{seqNo}
+    </select>
+
 </mapper>

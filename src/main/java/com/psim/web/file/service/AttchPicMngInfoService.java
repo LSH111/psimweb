@@ -4,6 +4,7 @@ import com.psim.web.file.vo.AttchPicMngInfoVO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 public interface AttchPicMngInfoService {
 
@@ -109,4 +110,25 @@ public interface AttchPicMngInfoService {
      * 🔥 이용실태 파일 목록 조회 (cmplSn 기준)
      */
     List<AttchPicMngInfoVO> getAttchPicMngInfoListByCmplSn(String cmplSn, String prkImgId);
+
+    /**
+     * 주차장 정보 일련번호로 사진 목록 조회
+     */
+    List<Map<String, Object>> getPhotosByPrkPlceInfoSn(Integer prkPlceInfoSn);
+
+    /**
+     * 사진 파일 데이터 조회 (주차장용)
+     * @param prkPlceInfoSn 주차장 정보 일련번호
+     * @param prkImgId 이미지 ID
+     * @param seqNo 순번
+     */
+    Map<String, Object> getPhotoFile(Integer prkPlceInfoSn, String prkImgId, Integer seqNo);
+
+    /**
+     * 사진 파일 데이터 조회 (이용실태용)
+     * @param cmplSn 실태조사일련번호
+     * @param prkImgId 이미지 ID
+     * @param seqNo 순번
+     */
+    Map<String, Object> getPhotoFileForUsage(String cmplSn, String prkImgId, Integer seqNo);
 }
