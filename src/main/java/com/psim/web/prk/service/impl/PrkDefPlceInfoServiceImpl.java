@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -261,15 +262,62 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
     }
 
     @Override
-    @Transactional
+    @Transactional(
+            propagation = Propagation.REQUIRED,
+            isolation = Isolation.READ_COMMITTED,
+            timeout = 60,
+            rollbackFor = Exception.class
+    )
     public void insertOffstreetParking(ParkingDetailVO vo) {
         try {
-            log.info("🆕 노외주차장 INSERT: {}", vo.getPrkPlceManageNo());
-            prkDefPlceInfoMapper.insertOffstreetParking(vo);
-            log.info("✅ 노외주차장 INSERT 완료 - SN: {}", vo.getPrkPlceInfoSn());
+            // 🔥 STEP 0: prkPlceInfoSn 생성
+            log.info("🔵 [노외주차장 STEP 0/4] prkPlceInfoSn 생성 시작");
+            Integer newSn = prkDefPlceInfoMapper.generateParkingInfoSn(vo.getPrkPlceManageNo());
+            vo.setPrkPlceInfoSn(newSn);
+
+            if (vo.getPrkPlceInfoSn() == null || vo.getPrkPlceInfoSn() <= 0) {
+                log.error("❌ prkPlceInfoSn이 생성되지 않았습니다: {}", vo.getPrkPlceInfoSn());
+                throw new RuntimeException("주차장 일련번호 생성 실패");
+            }
+            log.info("✅ [STEP 0/4] prkPlceInfoSn 생성 완료: {}", newSn);
+
+            // 🔥 STEP 1: 기본 정보 INSERT
+            log.info("🔵 [STEP 1/4] tb_prk_def_plce_info INSERT 시작");
+            prkDefPlceInfoMapper.insertPrkDefPlceInfo(vo);
+            log.info("✅ [STEP 1/4] tb_prk_def_plce_info INSERT 완료");
+
+            // 🔥 STEP 2: 사업별 주차장 정보 INSERT
+            log.info("🔵 [STEP 2/4] tb_biz_per_prklot_info INSERT 시작");
+            prkDefPlceInfoMapper.insertBizPerPrklotInfo(vo);
+            log.info("✅ [STEP 2/4] tb_biz_per_prklot_info INSERT 완료");
+
+            // 🔥 STEP 3: 노외주차장 기본 정보 INSERT
+            log.info("🔵 [STEP 3/4] tb_offstr_prklot_info INSERT 시작");
+            prkDefPlceInfoMapper.insertOffstrPrklotInfo(vo);
+            log.info("✅ [STEP 3/4] tb_offstr_prklot_info INSERT 완료");
+
+            // 🔥 STEP 4: 노외주차장 운영 정보 INSERT
+            log.info("🔵 [STEP 4/4] tb_offstr_prklot_oper_info INSERT 시작");
+            prkDefPlceInfoMapper.insertOffstrPrklotOperInfo(vo);
+            log.info("✅ [STEP 4/4] tb_offstr_prklot_oper_info INSERT 완료");
+
+            log.info("🎉🎉🎉 노외주차장 4단계 INSERT 모두 성공");
+
         } catch (Exception e) {
-            log.error("❌ 노외주차장 INSERT 실패", e);
-            throw new RuntimeException("노외주차장 등록 실패", e);
+            log.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            log.error("❌❌❌ 노외주차장 INSERT 실패");
+            log.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            log.error("예외 타입: {}", e.getClass().getName());
+            log.error("예외 메시지: {}", e.getMessage());
+            log.error("상세 스택:", e);
+
+            Throwable cause = e.getCause();
+            while (cause != null) {
+                log.error("  └─ Caused by: {} - {}", cause.getClass().getName(), cause.getMessage());
+                cause = cause.getCause();
+            }
+
+            throw new RuntimeException("노외주차장 등록 실패: " + e.getMessage(), e);
         }
     }
 
@@ -345,17 +393,20 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
     }
 
     // ========== 상태 변경 ==========
-
     @Override
     @Transactional
-    public int updateSelectedStatusToPending(List<String> manageNoList) {
-        if (manageNoList == null || manageNoList.isEmpty()) {
+    public int updateSelectedStatusToPending(List<Map<String, Object>> parkingList) {
+        if (parkingList == null || parkingList.isEmpty()) {
             return 0;
         }
 
         try {
-            log.info("🔄 {}개 주차장 상태 변경 → 승인 대기", manageNoList.size());
-            int count = prkDefPlceInfoMapper.updateStatusToPending(manageNoList);
+            log.info("🔄 {}개 주차장 상태 변경 → 승인 대기", parkingList.size());
+
+            Map<String, Object> params = new HashMap<>();
+            params.put("parkingList", parkingList);
+
+            int count = prkDefPlceInfoMapper.updateStatusToPending(params);
             log.info("✅ 상태 변경 완료: {}건", count);
             return count;
         } catch (Exception e) {

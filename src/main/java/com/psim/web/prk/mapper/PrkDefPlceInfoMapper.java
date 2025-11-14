@@ -28,15 +28,16 @@ public interface PrkDefPlceInfoMapper {
 
     // 🔥 추가: 주차장정보일련번호 생성
     Integer generateParkingInfoSn(@Param("prkPlceManageNo") String prkPlceManageNo);
-    void insertOnstreetParking(ParkingDetailVO vo);
-    void insertOffstreetParking(ParkingDetailVO vo);
     void insertBuildParking(ParkingDetailVO vo);
     // 🔥 4개의 INSERT 메서드 분리
     void insertPrkDefPlceInfo(ParkingDetailVO vo);
     void insertBizPerPrklotInfo(ParkingDetailVO vo);
     void insertOnstrPrklotInfo(ParkingDetailVO vo);
     void insertOnstrPrklotOperInfo(ParkingDetailVO vo);
-
+    void insertOffstrPrklotInfo(ParkingDetailVO vo);
+    void insertOffstrPrklotOperInfo(ParkingDetailVO vo);
+    void insertAtchPrklotInfo(ParkingDetailVO vo);
+    void insertAtchPrklotOperInfo(ParkingDetailVO vo);
     // ========== 수정 ==========
     void updatePrkDefPlceInfo(ParkingDetailVO vo);
     void updateOnstrPrklotInfo(ParkingDetailVO vo);
@@ -48,5 +49,5 @@ public interface PrkDefPlceInfoMapper {
     void updateBizPerPrklotPrgsSts(ParkingDetailVO vo);
 
     // ========== 상태 변경 ==========
-    int updateStatusToPending(List<String> manageNoList);
+    int updateStatusToPending(Map<String, Object> params);
 }

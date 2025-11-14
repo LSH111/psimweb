@@ -90,5 +90,5 @@ public interface PrkDefPlceInfoService {
     /**
      * 선택된 주차장 상태를 승인 대기로 변경
      */
-    int updateSelectedStatusToPending(List<String> manageNoList);
+    int updateSelectedStatusToPending(List<Map<String, Object>> parkingList);
 }

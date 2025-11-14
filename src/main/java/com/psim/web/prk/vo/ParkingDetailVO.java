@@ -1,6 +1,5 @@
 package com.psim.web.prk.vo;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 /**
@@ -42,7 +41,7 @@ public class ParkingDetailVO {
     private String mntnYn;             // 산여부
     private String liCd;               // 리코드
     private String roadaddr;           // 도로명주소
-    private String rnmadr;  // 도로명주소 필드 추가
+    private String rnmadr;             // 도로명주소 필드 추가
     /* ========================================
      * 행정구역 정보 (tb_co_ldong)
      * ======================================== */

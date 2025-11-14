@@ -1,10 +1,19 @@
 /* onparking.js — 노상주차장 상세 페이지 (주간/야간 기능 + 동적 코드) */
 
 // ========== 유틸 ==========
-const $  = (s)=>document.querySelector(s);
-const $$ = (s)=>Array.from(document.querySelectorAll(s));
-function params(){ const sp=new URLSearchParams(location.search); return new Proxy({}, {get:(_,k)=> sp.get(k)||''}); }
-function num(v){ const n=parseInt((v||'').toString().replace(/[^0-9]/g,''),10); return Number.isFinite(n)&&n>=0?n:0; }
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => Array.from(document.querySelectorAll(s));
+
+function params() {
+    const sp = new URLSearchParams(location.search);
+    return new Proxy({}, {get: (_, k) => sp.get(k) || ''});
+}
+
+function num(v) {
+    const n = parseInt((v || '').toString().replace(/[^0-9]/g, ''), 10);
+    return Number.isFinite(n) && n >= 0 ? n : 0;
+}
+
 const p = params();
 
 // ========== 🔥 행정구역 코드 로더 추가 ==========
@@ -410,43 +419,47 @@ const CodeLoader = {
 };
 
 // ========== 기본 필드 ==========
-const f_id=$('#f_id'), f_name=$('#f_name'), f_status=$('#f_status'), f_type=$('#f_type');
-const f_sido=$('#f_sido'), f_sigungu=$('#f_sigungu'), f_emd=$('#f_emd');
-const f_addrJ=$('#f_addr_jibun'), f_addrR=$('#f_addr_road');
-const f_lat=$('#f_lat'), f_lng=$('#f_lng');
-const v_id=$('#v_id'), v_name=$('#v_name'), v_addr=$('#v_addr');
+const f_id = $('#f_id'), f_name = $('#f_name'), f_status = $('#f_status'), f_type = $('#f_type');
+const f_sido = $('#f_sido'), f_sigungu = $('#f_sigungu'), f_emd = $('#f_emd');
+const f_addrJ = $('#f_addr_jibun'), f_addrR = $('#f_addr_road');
+const f_lat = $('#f_lat'), f_lng = $('#f_lng');
+const v_id = $('#v_id'), v_name = $('#v_name'), v_addr = $('#v_addr');
 
 // 🔥 샘플 데이터 제거 - URL 파라미터만 사용
-if (f_id)     f_id.value   = p.id || '';
-if (f_name)   f_name.value = p.name || '';
+if (f_id) f_id.value = p.id || '';
+if (f_name) f_name.value = p.name || '';
 if (f_status) f_status.value = p.status || '';
-if (f_type)   f_type.value = '노상';
-if (f_sido)   f_sido.value = p.sido || '';
-if (f_sigungu)f_sigungu.value = p.sigungu || '';
-if (f_emd)    f_emd.value  = p.emd || '';
-if (f_addrJ)  f_addrJ.value = p.jibun || p.addr || '';
-if (f_addrR)  f_addrR.value = p.road || '';
-if (v_id)     v_id.textContent = f_id?.value || '';
-if (v_name)   v_name.textContent = f_name?.value || '노상주차장 상세';
+if (f_type) f_type.value = '노상';
+if (f_sido) f_sido.value = p.sido || '';
+if (f_sigungu) f_sigungu.value = p.sigungu || '';
+if (f_emd) f_emd.value = p.emd || '';
+if (f_addrJ) f_addrJ.value = p.jibun || p.addr || '';
+if (f_addrR) f_addrR.value = p.road || '';
+if (v_id) v_id.textContent = f_id?.value || '';
+if (v_name) v_name.textContent = f_name?.value || '노상주차장 상세';
 updateHeaderAddr();
 
 // ========== 주소찾기 레이어 ==========
-const layer=$('#postcodeLayer'), container=$('#postcodeContainer');
-$('#btnFindAddr')?.addEventListener('click', ()=>{
-    if(!layer || !container) return;
-    layer.style.display='block';
-    container.innerHTML='';
+const layer = $('#postcodeLayer'), container = $('#postcodeContainer');
+$('#btnFindAddr')?.addEventListener('click', () => {
+    if (!layer || !container) return;
+    layer.style.display = 'block';
+    container.innerHTML = '';
     new daum.Postcode({
-        oncomplete(data){
+        oncomplete(data) {
             // 🔥 주소 파싱 및 자동 입력
             parseAndFillAddress(data);
             // 레이어 닫기
-            layer.style.display='none';
-        }, width:'100%', height:'100%'
+            layer.style.display = 'none';
+        }, width: '100%', height: '100%'
     }).embed(container);
 });
-$('#postcodeClose')?.addEventListener('click', ()=>{ if(layer) layer.style.display='none'; });
-layer?.addEventListener('click', (e)=>{ if(e.target===layer) layer.style.display='none'; });
+$('#postcodeClose')?.addEventListener('click', () => {
+    if (layer) layer.style.display = 'none';
+});
+layer?.addEventListener('click', (e) => {
+    if (e.target === layer) layer.style.display = 'none';
+});
 
 // ========== 🔥 주소 데이터 파싱 및 입력 함수 ==========
 async function parseAndFillAddress(data) {
@@ -644,149 +657,236 @@ async function parseAndFillAddress(data) {
 }
 
 // ========== 사진 업로드/좌표 ==========
-const inLib=$('#f_photo_lib'), inCam=$('#f_photo_cam');
-$('#btnPickFromLibrary')?.addEventListener('click', ()=> inLib?.click());
-$('#btnTakePhoto')?.addEventListener('click', ()=> inCam?.click());
-$('#btnUseGeolocation')?.addEventListener('click', async ()=>{
-    const c=await geoFromDevice(); if(c && f_lat && f_lng){ f_lat.value=c.lat.toFixed(6); f_lng.value=c.lng.toFixed(6); }
+const inLib = $('#f_photo_lib'), inCam = $('#f_photo_cam');
+$('#btnPickFromLibrary')?.addEventListener('click', () => inLib?.click());
+$('#btnTakePhoto')?.addEventListener('click', () => inCam?.click());
+$('#btnUseGeolocation')?.addEventListener('click', async () => {
+    const c = await geoFromDevice();
+    if (c && f_lat && f_lng) {
+        f_lat.value = c.lat.toFixed(6);
+        f_lng.value = c.lng.toFixed(6);
+    }
 });
-$('#btnClearPhoto')?.addEventListener('click', ()=>{
-    if(inLib) inLib.value=''; if(inCam) inCam.value='';
+$('#btnClearPhoto')?.addEventListener('click', () => {
+    if (inLib) inLib.value = '';
+    if (inCam) inCam.value = '';
     $('#preview')?.removeAttribute('src');
-    if (f_lat) f_lat.value=''; if (f_lng) f_lng.value='';
+    if (f_lat) f_lat.value = '';
+    if (f_lng) f_lng.value = '';
 });
-inLib?.addEventListener('change', (e)=> handleFiles(e.target.files, 'lib'));
-inCam?.addEventListener('change', (e)=> handleFiles(e.target.files, 'cam'));
+inLib?.addEventListener('change', (e) => handleFiles(e.target.files, 'lib'));
+inCam?.addEventListener('change', (e) => handleFiles(e.target.files, 'cam'));
 
-async function handleFiles(list, mode){
-    const file=list && list[0]; if(!file) return;
-    try{ $('#preview').src=URL.createObjectURL(file); }catch(_){}
-    if(mode==='cam'){
-        const c=await geoFromDeviceSilent();
-        if(c && f_lat && f_lng){ f_lat.value=c.lat.toFixed(6); f_lng.value=c.lng.toFixed(6); }
+async function handleFiles(list, mode) {
+    const file = list && list[0];
+    if (!file) return;
+    try {
+        $('#preview').src = URL.createObjectURL(file);
+    } catch (_) {
+    }
+    if (mode === 'cam') {
+        const c = await geoFromDeviceSilent();
+        if (c && f_lat && f_lng) {
+            f_lat.value = c.lat.toFixed(6);
+            f_lng.value = c.lng.toFixed(6);
+        }
         return;
     }
-    try{
-        let coords=null;
-        if(window.exifr){
-            try{
-                const g=await exifr.gps(file);
-                if(g && typeof g.latitude==='number' && typeof g.longitude==='number') coords={lat:g.latitude,lng:g.longitude};
-            }catch(_){}
+    try {
+        let coords = null;
+        if (window.exifr) {
+            try {
+                const g = await exifr.gps(file);
+                if (g && typeof g.latitude === 'number' && typeof g.longitude === 'number') coords = {
+                    lat: g.latitude,
+                    lng: g.longitude
+                };
+            } catch (_) {
+            }
         }
-        if(!coords && (/jpe?g$/i.test(file.name) || file.type==='image/jpeg')){
-            try{ coords=await readJpegGpsSafe(file); }catch(_){}
+        if (!coords && (/jpe?g$/i.test(file.name) || file.type === 'image/jpeg')) {
+            try {
+                coords = await readJpegGpsSafe(file);
+            } catch (_) {
+            }
         }
-        if(coords && f_lat && f_lng){ f_lat.value=Number(coords.lat).toFixed(6); f_lng.value=Number(coords.lng).toFixed(6); }
-    }catch(err){ console.error(err); }
-}
-
-async function geoFromDeviceSilent(){
-    if(!('geolocation' in navigator) || !isSecureContext) return null;
-    try{
-        const p=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true, timeout:8000, maximumAge:0}));
-        return {lat:p.coords.latitude, lng:p.coords.longitude};
-    }catch(_){
-        try{
-            const p=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:false, timeout:12000, maximumAge:0}));
-            return {lat:p.coords.latitude, lng:p.coords.longitude};
-        }catch(__){ return null; }
+        if (coords && f_lat && f_lng) {
+            f_lat.value = Number(coords.lat).toFixed(6);
+            f_lng.value = Number(coords.lng).toFixed(6);
+        }
+    } catch (err) {
+        console.error(err);
     }
 }
-async function geoFromDevice(){
-    if(!('geolocation' in navigator)) { alert('이 브라우저는 위치 기능을 지원하지 않습니다.'); return null; }
-    if(!isSecureContext) { alert('HTTPS 또는 http://localhost 에서만 위치 사용 가능'); return null; }
-    try{
-        const p=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true, timeout:8000, maximumAge:0}));
-        return {lat:p.coords.latitude, lng:p.coords.longitude};
-    }catch(e1){
-        try{
-            const p=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:false, timeout:12000, maximumAge:0}));
-            return {lat:p.coords.latitude, lng:p.coords.longitude};
-        }catch(e2){ alert('위치 확인 실패'); return null; }
+
+async function geoFromDeviceSilent() {
+    if (!('geolocation' in navigator) || !isSecureContext) return null;
+    try {
+        const p = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, {
+            enableHighAccuracy: true,
+            timeout: 8000,
+            maximumAge: 0
+        }));
+        return {lat: p.coords.latitude, lng: p.coords.longitude};
+    } catch (_) {
+        try {
+            const p = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, {
+                enableHighAccuracy: false,
+                timeout: 12000,
+                maximumAge: 0
+            }));
+            return {lat: p.coords.latitude, lng: p.coords.longitude};
+        } catch (__) {
+            return null;
+        }
+    }
+}
+
+async function geoFromDevice() {
+    if (!('geolocation' in navigator)) {
+        alert('이 브라우저는 위치 기능을 지원하지 않습니다.');
+        return null;
+    }
+    if (!isSecureContext) {
+        alert('HTTPS 또는 http://localhost 에서만 위치 사용 가능');
+        return null;
+    }
+    try {
+        const p = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, {
+            enableHighAccuracy: true,
+            timeout: 8000,
+            maximumAge: 0
+        }));
+        return {lat: p.coords.latitude, lng: p.coords.longitude};
+    } catch (e1) {
+        try {
+            const p = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, {
+                enableHighAccuracy: false,
+                timeout: 12000,
+                maximumAge: 0
+            }));
+            return {lat: p.coords.latitude, lng: p.coords.longitude};
+        } catch (e2) {
+            alert('위치 확인 실패');
+            return null;
+        }
     }
 }
 
 // ========== JPEG EXIF 보조 파서 ==========
-function u16(v,o,le){ return v.getUint16(o, !!le); }
-function u32(v,o,le){ return v.getUint32(o, !!le); }
-async function readJpegGpsSafe(file){
-    const buf=await file.arrayBuffer(); const v=new DataView(buf);
-    if(v.byteLength<4 || v.getUint16(0)!==0xFFD8) return null;
-    let off=2;
-    while(off+4<=v.byteLength){
-        const marker=v.getUint16(off); off+=2;
-        if((marker&0xFFF0)!==0xFFE0) break;
-        const size=v.getUint16(off); off+=2;
-        const next=off+size-2; if(next>v.byteLength) break;
-        if(marker===0xFFE1){
-            if(off+6<=v.byteLength && v.getUint32(off)===0x45786966){
-                const c=parseExifForGps(v,off+6); if(c) return c;
+function u16(v, o, le) {
+    return v.getUint16(o, !!le);
+}
+
+function u32(v, o, le) {
+    return v.getUint32(o, !!le);
+}
+
+async function readJpegGpsSafe(file) {
+    const buf = await file.arrayBuffer();
+    const v = new DataView(buf);
+    if (v.byteLength < 4 || v.getUint16(0) !== 0xFFD8) return null;
+    let off = 2;
+    while (off + 4 <= v.byteLength) {
+        const marker = v.getUint16(off);
+        off += 2;
+        if ((marker & 0xFFF0) !== 0xFFE0) break;
+        const size = v.getUint16(off);
+        off += 2;
+        const next = off + size - 2;
+        if (next > v.byteLength) break;
+        if (marker === 0xFFE1) {
+            if (off + 6 <= v.byteLength && v.getUint32(off) === 0x45786966) {
+                const c = parseExifForGps(v, off + 6);
+                if (c) return c;
             }
         }
-        off=next;
+        off = next;
     }
     return null;
-    function parseExifForGps(view,tiff){
-        if(tiff+8>view.byteLength) return null;
-        const endian=view.getUint16(tiff), le=endian===0x4949; if(!le && endian!==0x4D4D) return null;
-        const ifd0=tiff+u32(view,tiff+4,le); if(!rng(ifd0,2)) return null;
-        const n=u16(view,ifd0,le); let gpsPtr=0;
-        for(let i=0;i<n;i++){
-            const e=ifd0+2+i*12; if(!rng(e,12)) return null;
-            const tag=u16(view,e,le);
-            if(tag===0x8825){ gpsPtr=tiff+u32(view,e+8,le); break; }
+
+    function parseExifForGps(view, tiff) {
+        if (tiff + 8 > view.byteLength) return null;
+        const endian = view.getUint16(tiff), le = endian === 0x4949;
+        if (!le && endian !== 0x4D4D) return null;
+        const ifd0 = tiff + u32(view, tiff + 4, le);
+        if (!rng(ifd0, 2)) return null;
+        const n = u16(view, ifd0, le);
+        let gpsPtr = 0;
+        for (let i = 0; i < n; i++) {
+            const e = ifd0 + 2 + i * 12;
+            if (!rng(e, 12)) return null;
+            const tag = u16(view, e, le);
+            if (tag === 0x8825) {
+                gpsPtr = tiff + u32(view, e + 8, le);
+                break;
+            }
         }
-        if(!gpsPtr || !rng(gpsPtr,2)) return null;
-        const m=u16(view,gpsPtr,le); let latRef='N',lonRef='E',lat=null,lon=null;
-        for(let i=0;i<m;i++){
-            const e=gpsPtr+2+i*12; if(!rng(e,12)) break;
-            const tag=u16(view,e,le), type=u16(view,e+2,le), cnt=u32(view,e+4,le);
-            const ofsRel=u32(view,e+8,le); const ptr=(cnt<=4)?(e+8):(tiff+ofsRel);
-            if((tag===0x0001||tag===0x0003)&&type===2&&cnt>=2){
-                if(rng(ptr,1)){
-                    const ch=String.fromCharCode(view.getUint8(ptr));
-                    if(tag===0x0001)latRef=ch; if(tag===0x0003)lonRef=ch;
+        if (!gpsPtr || !rng(gpsPtr, 2)) return null;
+        const m = u16(view, gpsPtr, le);
+        let latRef = 'N', lonRef = 'E', lat = null, lon = null;
+        for (let i = 0; i < m; i++) {
+            const e = gpsPtr + 2 + i * 12;
+            if (!rng(e, 12)) break;
+            const tag = u16(view, e, le), type = u16(view, e + 2, le), cnt = u32(view, e + 4, le);
+            const ofsRel = u32(view, e + 8, le);
+            const ptr = (cnt <= 4) ? (e + 8) : (tiff + ofsRel);
+            if ((tag === 0x0001 || tag === 0x0003) && type === 2 && cnt >= 2) {
+                if (rng(ptr, 1)) {
+                    const ch = String.fromCharCode(view.getUint8(ptr));
+                    if (tag === 0x0001) latRef = ch;
+                    if (tag === 0x0003) lonRef = ch;
                 }
             }
-            if((tag===0x0002||tag===0x0004)&&type===5&&cnt===3){
-                const p=tiff+ofsRel; if(!rng(p,24)) continue;
-                const d=u32(view,p,le), m2=u32(view,p+8,le), s=u32(view,p+16,le);
-                const dd=(d/(u32(view,p+4,le)||1)), mm=(m2/(u32(view,p+12,le)||1)), ss=(s/(u32(view,p+20,le)||1));
-                const dec=dd + (mm/60) + (ss/3600);
-                if(tag===0x0002) lat=dec; else if(tag===0x0004) lon=dec;
+            if ((tag === 0x0002 || tag === 0x0004) && type === 5 && cnt === 3) {
+                const p = tiff + ofsRel;
+                if (!rng(p, 24)) continue;
+                const d = u32(view, p, le), m2 = u32(view, p + 8, le), s = u32(view, p + 16, le);
+                const dd = (d / (u32(view, p + 4, le) || 1)), mm = (m2 / (u32(view, p + 12, le) || 1)),
+                    ss = (s / (u32(view, p + 20, le) || 1));
+                const dec = dd + (mm / 60) + (ss / 3600);
+                if (tag === 0x0002) lat = dec; else if (tag === 0x0004) lon = dec;
             }
         }
-        if(lat!=null&&lon!=null){ if(latRef==='S')lat=-lat; if(lonRef==='W')lon=-lon; return {lat,lng:lon}; }
+        if (lat != null && lon != null) {
+            if (latRef === 'S') lat = -lat;
+            if (lonRef === 'W') lon = -lon;
+            return {lat, lng: lon};
+        }
         return null;
     }
-    function rng(s,l){ return s>=0 && (s+(l||0))<=v.byteLength; }
+
+    function rng(s, l) {
+        return s >= 0 && (s + (l || 0)) <= v.byteLength;
+    }
 }
 
 // ========== 면수 합계/검증 ==========
 const totalInput = $('#f_totalStalls');
-const ctlTotal   = $('#ctl_total');
+const ctlTotal = $('#ctl_total');
 const normalInput = $('#f_st_normal');
-const disInput   = $('#f_st_dis');
+const disInput = $('#f_st_dis');
 const smallInput = $('#f_st_small');
 const greenInput = $('#f_st_green');
-const pregInput  = $('#f_st_preg');
-const msgEl      = $('#stallsMsg');
+const pregInput = $('#f_st_preg');
+const msgEl = $('#stallsMsg');
 
 if (totalInput) totalInput.readOnly = true;
 
-function detailSum(){
-    return num(normalInput?.value)+num(disInput?.value)+num(smallInput?.value)+num(greenInput?.value)+num(pregInput?.value);
+function detailSum() {
+    return num(normalInput?.value) + num(disInput?.value) + num(smallInput?.value) + num(greenInput?.value) + num(pregInput?.value);
 }
-function recompute(){
+
+function recompute() {
     const sum = detailSum();
     if (totalInput) totalInput.value = sum;
 }
-[normalInput, disInput, smallInput, greenInput, pregInput].forEach(el=> el?.addEventListener('input', recompute));
+
+[normalInput, disInput, smallInput, greenInput, pregInput].forEach(el => el?.addEventListener('input', recompute));
 recompute();
 
 // ========== 헤더 주소 ==========
-function updateHeaderAddr(){
+function updateHeaderAddr() {
     const sido = f_sido?.value?.trim() || '';
     const sigungu = f_sigungu?.value?.trim() || '';
     const emd = f_emd?.value?.trim() || '';
@@ -808,7 +908,7 @@ function updateHeaderAddr(){
 }
 
 // ========== 운영방식 & 요금 섹션 제어 ==========
-function syncFeeSections(){
+function syncFeeSections() {
     const dayResWrap = $('#day_res_fee_wrap');
     const dayNormalWrap = $('#day_normal_fee_wrap');
     const nightResWrap = $('#night_res_fee_wrap');
@@ -895,7 +995,7 @@ function setupDayNightSections() {
     }
 
     if (chkDay) {
-        chkDay.addEventListener('change', function() {
+        chkDay.addEventListener('change', function () {
             toggleSections(daySections, this.checked);
             checkOperationTypeVisibility();
             if (this.checked) syncFeeSections();
@@ -903,7 +1003,7 @@ function setupDayNightSections() {
     }
 
     if (chkNight) {
-        chkNight.addEventListener('change', function() {
+        chkNight.addEventListener('change', function () {
             toggleSections(nightSections, this.checked);
             checkOperationTypeVisibility();
             if (this.checked) syncFeeSections();
@@ -919,7 +1019,7 @@ function setupTimeOperationEvents(timeType) {
     const weekdayTimeInputs = $(`#${timeType}_weekday_time_inputs`);
 
     if (weekdayGroup && weekdayTimeInputs) {
-        weekdayGroup.addEventListener('change', function(e) {
+        weekdayGroup.addEventListener('change', function (e) {
             if (e.target.name === `${timeType}WeekdayOperation`) {
                 // ✅ codeCd 값으로 비교: '02' = 시간제운영
                 weekdayTimeInputs.style.display =
@@ -932,7 +1032,7 @@ function setupTimeOperationEvents(timeType) {
     const saturdayTimeInputs = $(`#${timeType}_saturday_time_inputs`);
 
     if (saturdayGroup && saturdayTimeInputs) {
-        saturdayGroup.addEventListener('change', function(e) {
+        saturdayGroup.addEventListener('change', function (e) {
             if (e.target.name === `${timeType}SaturdayOperation`) {
                 saturdayTimeInputs.style.display =
                     e.target.value === '02' ? 'block' : 'none';
@@ -944,7 +1044,7 @@ function setupTimeOperationEvents(timeType) {
     const holidayTimeInputs = $(`#${timeType}_holiday_time_inputs`);
 
     if (holidayGroup && holidayTimeInputs) {
-        holidayGroup.addEventListener('change', function(e) {
+        holidayGroup.addEventListener('change', function (e) {
             if (e.target.name === `${timeType}HolidayOperation`) {
                 holidayTimeInputs.style.display =
                     e.target.value === '02' ? 'block' : 'none';
@@ -989,6 +1089,7 @@ function generateLdongCd() {
     }
     return ldongCd;
 }
+
 // ========== 데이터 수집 함수들 ==========
 function collectPayMethods(timeType) {
     const payChecks = Array.from(document.querySelectorAll(`input[name="${timeType}PayMethod"]`));
@@ -1093,6 +1194,7 @@ function formatTime(hour, minute) {
     const m = String(minute || 0).padStart(2, '0');
     return h + m;
 }
+
 // 🔥 운영 타입을 PRK_004 코드로 변환 (Fallback용)
 function operationTypeToCode(operationType) {
     // 🔥 PRK_004 코드가 로드된 경우 사용
@@ -1291,7 +1393,7 @@ function setupSignToggle() {
         const value = (checkedSign.value || '').trim().toLowerCase();
         const isVisible = value === 'y' || value === '있음' || value === 'yes' || value === '1';
         signPhotoWrap.style.display = isVisible ? 'block' : 'none';
-        console.log('🔧 초기 표지판 상태:', { value: checkedSign.value, visible: isVisible });
+        console.log('🔧 초기 표지판 상태:', {value: checkedSign.value, visible: isVisible});
     } else {
         // 체크된 라디오가 없으면 기본적으로 숨김
         signPhotoWrap.style.display = 'none';
@@ -1785,14 +1887,14 @@ function displayPhotoInfo(containerId, photoData) {
     `;
 
     // 🔥 클릭 이벤트 - 한 번만 등록
-    infoDiv.onclick = function(e) {
+    infoDiv.onclick = function (e) {
         e.stopPropagation();
         const url = `/prk/photo?prkPlceInfoSn=${photoData.prkplceinfosn}&prkImgId=${photoData.prkimgid}&seqNo=${photoData.seqno}`;
         window.open(url, '_blank');
     };
 
     // 🔥 마우스 이벤트 - 한 번만 등록
-    infoDiv.onmouseenter = function(e) {
+    infoDiv.onmouseenter = function (e) {
         infoDiv.style.background = '#f3f4f6';
         infoDiv.style.borderColor = '#d1d5db';
         ImagePreview.showWithDelay(
@@ -1805,11 +1907,11 @@ function displayPhotoInfo(containerId, photoData) {
         );
     };
 
-    infoDiv.onmousemove = function(e) {
+    infoDiv.onmousemove = function (e) {
         ImagePreview.updatePosition(e);
     };
 
-    infoDiv.onmouseleave = function() {
+    infoDiv.onmouseleave = function () {
         infoDiv.style.background = '#f9fafb';
         infoDiv.style.borderColor = '#e5e7eb';
         ImagePreview.hide();
@@ -2240,7 +2342,7 @@ async function bindDataToForm(data) {
             slope_yes.checked = true;
 
             // 🔥 change 이벤트 트리거하여 입력 영역 표시
-            slope_yes.dispatchEvent(new Event('change', { bubbles: true }));
+            slope_yes.dispatchEvent(new Event('change', {bubbles: true}));
 
             // 🔥 sixleCnt → f_slope_start, sixgtCnt → f_slope_end
             const f_slope_start = document.getElementById('f_slope_start');
@@ -2256,7 +2358,7 @@ async function bindDataToForm(data) {
             slope_no.checked = true;
 
             // 🔥 change 이벤트 트리거
-            slope_no.dispatchEvent(new Event('change', { bubbles: true }));
+            slope_no.dispatchEvent(new Event('change', {bubbles: true}));
         }
     }
 
@@ -2435,7 +2537,7 @@ function bindOperationTime(timeType, dayType, operTmCd, startTime, endTime) {
     if (radioButton) {
         radioButton.checked = true;
         // change 이벤트 트리거하여 시간 입력 필드 표시/숨김
-        radioButton.dispatchEvent(new Event('change', { bubbles: true }));
+        radioButton.dispatchEvent(new Event('change', {bubbles: true}));
     } else {
         console.warn(`⚠️ 라디오 버튼을 찾을 수 없음: ${radioName} = ${operTmCd}`);
     }
@@ -2557,10 +2659,10 @@ async function convertCoordToAddress(longitude, latitude) {
 }
 
 // 기기 위치로 좌표 설정 버튼 클릭 시 주소 및 행정구역도 함께 가져오기
-document.getElementById('btnUseGeolocation')?.addEventListener('click', async function() {
+document.getElementById('btnUseGeolocation')?.addEventListener('click', async function () {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-            async function(position) {
+            async function (position) {
                 const lat = position.coords.latitude.toFixed(6);
                 const lng = position.coords.longitude.toFixed(6);
 
@@ -2572,7 +2674,7 @@ document.getElementById('btnUseGeolocation')?.addEventListener('click', async fu
 
                 alert('현재 위치의 좌표, 주소, 우편번호, 행정구역 정보를 가져왔습니다.');
             },
-            function(error) {
+            function (error) {
                 console.error('위치 정보 가져오기 실패:', error);
                 alert('위치 정보를 가져올 수 없습니다.');
             }
@@ -3001,7 +3103,6 @@ function parseCurrency(value) {
 }
 
 
-
 // 🔥 운영방식 코드 변환
 function mapOperationType(type) {
     if (type === '01' || type.includes('일반노상')) return '01';
@@ -3032,7 +3133,7 @@ function joinCodes(arr) {
 }
 
 // ========== 초기화 ==========
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', async function () {
     // 🔥 1. URL에서 관리번호 확인하여 신규/조회 구분
     const prkPlceManageNo = p.id || f_id?.value;
     const isNewRecord = !prkPlceManageNo || prkPlceManageNo === '';
@@ -3061,7 +3162,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // 🔥 9. 전화번호 입력 필드에 자동 포맷팅 적용
     const f_mgr_tel = document.getElementById('f_mgr_tel');
     if (f_mgr_tel) {
-        f_mgr_tel.addEventListener('input', function(e) {
+        f_mgr_tel.addEventListener('input', function (e) {
             const cursorPosition = e.target.selectionStart;
             const oldValue = e.target.value;
             const formatted = formatPhoneNumber(oldValue);
@@ -3076,7 +3177,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
 
         // 포커스를 잃을 때도 포맷팅
-        f_mgr_tel.addEventListener('blur', function(e) {
+        f_mgr_tel.addEventListener('blur', function (e) {
             e.target.value = formatPhoneNumber(e.target.value);
         });
     }
@@ -3085,7 +3186,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     const btnSave = document.getElementById('btnSave');
     const btnSaveTop = document.getElementById('btnSaveTop');
     if (btnSave) {
-        btnSave.addEventListener('click', function(e) {
+        btnSave.addEventListener('click', function (e) {
             e.preventDefault(); // 폼 제출 방지
             doSave();
         });
@@ -3094,7 +3195,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     if (btnSaveTop) {
-        btnSaveTop.addEventListener('click', function(e) {
+        btnSaveTop.addEventListener('click', function (e) {
             e.preventDefault(); // 폼 제출 방지
             doSave();
         });
@@ -3124,7 +3225,7 @@ function mapPayloadToServerFormat(payload) {
     const sidoCd = f_sido?.value || null;
     const sigunguCd = f_sigungu?.value || null;
     const emdCd = f_emd?.value || null;
-    // 🔥 2. 필수 검증 - offparking.js 방식과 동일하게 간소화
+    // 🔥 2. 필수 검증 - 간소화
     if (!emdCd) {
         console.error('❌ 읍면동코드가 선택되지 않았습니다');
         alert('읍면동을 선택해주세요.');

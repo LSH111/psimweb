@@ -1,17 +1,19 @@
-
 /* buildparking.js — 부설주차장 상세 페이지 */
 
 // ========== 유틸 ==========
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
+
 function params() {
     const sp = new URLSearchParams(location.search);
     return new Proxy({}, {get: (_, k) => sp.get(k) || ''});
 }
+
 function num(v) {
     const n = parseInt((v || '').toString().replace(/[^0-9]/g, ''), 10);
     return Number.isFinite(n) && n >= 0 ? n : 0;
 }
+
 const p = params();
 
 // 🔥 숫자를 한국 통화 형식으로 포맷팅
@@ -379,7 +381,7 @@ const CodeLoader = {
         // PRK_015: 급지구분
         if (groups['PRK_015']) {
             this.populateSelect('#f_grade', groups['PRK_015'].codes);
-            }
+        }
 
         // PRK_003: 부제시행여부
         if (groups['PRK_003']) {
@@ -848,7 +850,8 @@ async function readJpegGpsSafe(file) {
                 const p = tiff + ofsRel;
                 if (!rng(p, 24)) continue;
                 const d = u32(view, p, le), m2 = u32(view, p + 8, le), s = u32(view, p + 16, le);
-                const dd = (d / (u32(view, p + 4, le) || 1)), mm = (m2 / (u32(view, p + 12, le) || 1)), ss = (s / (u32(view, p + 20, le) || 1));
+                const dd = (d / (u32(view, p + 4, le) || 1)), mm = (m2 / (u32(view, p + 12, le) || 1)),
+                    ss = (s / (u32(view, p + 20, le) || 1));
                 const dec = dd + (mm / 60) + (ss / 3600);
                 if (tag === 0x0002) lat = dec; else if (tag === 0x0004) lon = dec;
             }
@@ -1893,10 +1896,10 @@ async function convertCoordToAddress(longitude, latitude) {
 }
 
 // 기기 위치로 좌표 설정 버튼 클릭 시 주소 및 행정구역도 함께 가져오기
-document.getElementById('btnUseGeolocation')?.addEventListener('click', async function() {
+document.getElementById('btnUseGeolocation')?.addEventListener('click', async function () {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-            async function(position) {
+            async function (position) {
                 const lat = position.coords.latitude.toFixed(6);
                 const lng = position.coords.longitude.toFixed(6);
 
@@ -1908,7 +1911,7 @@ document.getElementById('btnUseGeolocation')?.addEventListener('click', async fu
 
                 alert('현재 위치의 좌표, 주소, 우편번호, 행정구역 정보를 가져왔습니다.');
             },
-            function(error) {
+            function (error) {
                 console.error('위치 정보 가져오기 실패:', error);
                 alert('위치 정보를 가져올 수 없습니다.');
             }
@@ -1951,11 +1954,9 @@ async function doSave() {
         }
 
         const payload = buildPayload();
+        // 🔥 관리번호가 비어 있으면 신규 등록으로 처리 (저장 막지 않음)
+        const isNewRecord = !payload.id || payload.id.trim() === '';
 
-        if (!payload.id) {
-            alert('주차장 관리번호가 없습니다. 데이터를 다시 조회해주세요.');
-            return;
-        }
 
         const serverData = mapPayloadToServerFormat(payload);
 

@@ -389,99 +389,195 @@ public class PrkDefPlceInfoController {
             @RequestPart(value = "barrierPhoto", required = false) MultipartFile barrierPhoto,
             @RequestPart(value = "exitAlarmPhoto", required = false) MultipartFile exitAlarmPhoto,
             @RequestPart(value = "entrancePhoto", required = false) MultipartFile entrancePhoto,
-            HttpServletRequest request) {
+            HttpServletRequest request,
+            HttpSession session) {
 
         Map<String, Object> response = new HashMap<>();
 
         try {
+            log.info("🔵 노외주차장 저장 요청 시작");
+            log.info("📄 parkingData JSON: {}", parkingDataJson);
+            log.info("📸 mainPhoto: {}", mainPhoto != null ? mainPhoto.getOriginalFilename() : "없음");
+            log.info("📸 signPhoto: {}", signPhoto != null ? signPhoto.getOriginalFilename() : "없음");
+
+            // 🔥 세션에서 로그인 사용자 정보 확인
+            CoUserVO loginUser = (CoUserVO) session.getAttribute("loginUser");
+            if (loginUser == null) {
+                log.error("❌ 로그인 정보가 없습니다.");
+                response.put("success", false);
+                response.put("message", "로그인 정보가 없습니다.");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+
+            @SuppressWarnings("unchecked")
+            List<String> userBizList = (List<String>) session.getAttribute("userBizList");
+            if (userBizList == null || userBizList.isEmpty()) {
+                log.error("❌ 사업관리번호 정보가 없습니다.");
+                response.put("success", false);
+                response.put("message", "사업관리번호 정보가 없습니다.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+
             ObjectMapper objectMapper = new ObjectMapper();
             ParkingDetailVO parkingData = objectMapper.readValue(parkingDataJson, ParkingDetailVO.class);
 
             String prkPlceManageNo = parkingData.getPrkPlceManageNo();
             boolean isNewRecord = (prkPlceManageNo == null || prkPlceManageNo.trim().isEmpty());
 
-            if (isNewRecord) {
-                log.info("🆕 노외주차장 신규 등록");
+            // 🔥 사용자 정보 설정
+            String userId = loginUser.getUserId();
+            String clientIp = getClientIp(request);
+            parkingData.setUpdusrId(userId);
+            parkingData.setUpdusrIpAddr(clientIp);
 
-                // 1. 주차장 관리번호 생성 (4개 파라미터 전달)
-                String zipCode = parkingData.getZip() != null ? parkingData.getZip() : "";
-                String prkplceSe = "1"; // 관리주체(소유주체) - 공영=1, 민영=2, 기타=9
-                String operMbyCd = parkingData.getOperMbyCd() != null ? parkingData.getOperMbyCd() : "1"; // 운영주체 - 직영=1, 위탁=2, 기타=9
-                String prkPlceType = "2"; // 주차장유형 - 노외=2
+            if (isNewRecord) {
+                log.info("🆕 노외주차장 신규 등록 시작");
+
+                String zipCode = parkingData.getZip();
+                String operMbyCd = parkingData.getOperMbyCd();
+
+                if (zipCode == null || zipCode.trim().isEmpty()) {
+                    log.error("❌ 우편번호(zipCode)가 비어있습니다.");
+                    throw new IllegalArgumentException("우편번호는 필수 항목입니다.");
+                }
+
+                if (operMbyCd == null || operMbyCd.trim().isEmpty()) {
+                    log.warn("⚠️ 운영주체(operMbyCd)가 비어있어 기본값(1:직영)으로 설정합니다.");
+                    operMbyCd = "1";
+                }
+
+                String prkplceSe = "1";  // 관리주체(소유주체)
+                String prkPlceType = "2"; // 주차장유형 - 노외
+
+                log.info("📝 관리번호 생성 파라미터 - zipCode: {}, prkplceSe: {}, operMbyCd: {}, prkPlceType: {}",
+                        zipCode, prkplceSe, operMbyCd, prkPlceType);
 
                 String newManageNo = prkDefPlceInfoService.generatePrkPlceManageNo(
                         zipCode, prkplceSe, operMbyCd, prkPlceType
                 );
+
+                if (newManageNo == null || newManageNo.trim().isEmpty()) {
+                    log.error("❌ DB 함수에서 null 또는 빈 관리번호가 반환되었습니다.");
+                    throw new RuntimeException("주차장 관리번호 생성에 실패했습니다. DB 함수를 확인하세요.");
+                }
+
                 parkingData.setPrkPlceManageNo(newManageNo);
                 log.info("✅ 생성된 주차장관리번호: {}", newManageNo);
 
-                // 2. 사업별주차관리번호 생성
                 String bizPerPrkMngNo = "BP" + System.currentTimeMillis();
                 parkingData.setBizPerPrkMngNo(bizPerPrkMngNo);
                 log.info("✅ 사업별주차관리번호: {}", bizPerPrkMngNo);
 
-                // 3. 사업관리번호 설정
-                HttpSession session = request.getSession(false);
-                String prkBizMngNo = (session != null && session.getAttribute("prkBizMngNo") != null)
-                        ? session.getAttribute("prkBizMngNo").toString()
-                        : "BIZ2025001";
+                String prkBizMngNo = userBizList.get(0);
                 parkingData.setPrkBizMngNo(prkBizMngNo);
                 log.info("✅ 사업관리번호: {}", prkBizMngNo);
 
-                // 4. 사용자 정보
-                String userId = (session != null && session.getAttribute("userId") != null)
-                        ? session.getAttribute("userId").toString()
-                        : "SYSTEM";
-                String clientIp = getClientIp(request);
-
-                parkingData.setUpdusrId(userId);
-                parkingData.setUpdusrIpAddr(clientIp);
-
-                // 5. 행정구역 코드 (읍면동)
                 String ldongCd = parkingData.getEmdCd();
                 parkingData.setLdongCd(ldongCd);
 
-                // INSERT 실행
+                log.info("✅ 사용자정보 설정 완료 - userId: {}, IP: {}", userId, clientIp);
+            } else {
+                log.info("🔄 노외주차장 수정 시작 - 관리번호: {}", prkPlceManageNo);
+                log.info("✅ 사용자정보 설정 완료 - userId: {}, IP: {}", userId, clientIp);
+            }
+
+            // 🔥 핵심: DB 저장을 한 번에 처리하고 즉시 SN 확보
+            Integer prkPlceInfoSn = null;
+
+            if (isNewRecord) {
+                // 신규 등록 - INSERT 후 바로 VO에서 SN 가져오기
+                log.info("🔄 신규 등록 DB INSERT 실행");
                 prkDefPlceInfoService.insertOffstreetParking(parkingData);
-                log.info("✅ DB INSERT 완료");
+                prkPlceInfoSn = parkingData.getPrkPlceInfoSn();
+                log.info("✅ DB INSERT 완료 - prkPlceInfoSn: {}", prkPlceInfoSn);
 
             } else {
-                log.info("🔄 노외주차장 수정: {}", prkPlceManageNo);
+                // 수정 모드 - 기존 데이터에서 SN 조회 후 UPDATE
+                log.info("🔍 기존 prkPlceInfoSn 조회 - 관리번호: {}", prkPlceManageNo);
+                ParkingDetailVO existingData = prkDefPlceInfoService.getOffstreetParkingDetail(prkPlceManageNo);
+                log.info("existingData.prkPlceInfoSn = {}", existingData != null ? existingData.getPrkPlceInfoSn() : null);
+                if (existingData != null) {
+                    prkPlceInfoSn = existingData.getPrkPlceInfoSn();
+                    parkingData.setPrkPlceInfoSn(prkPlceInfoSn);
+                    log.info("✅ 기존 prkPlceInfoSn 획득: {}", prkPlceInfoSn);
+                } else {
+                    log.error("❌ 기존 데이터를 찾을 수 없습니다: {}", prkPlceManageNo);
+
+                    response.put("success", false);
+                    response.put("message", "수정할 주차장 정보를 찾을 수 없습니다. 주차장 관리번호: " + prkPlceManageNo);
+                    response.put("errorCode", "DATA_NOT_FOUND");
+                    response.put("prkPlceManageNo", prkPlceManageNo);
+
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                }
+
+                log.info("🔄 DB UPDATE 실행");
                 prkDefPlceInfoService.updateOffstreetParking(parkingData);
+                log.info("✅ DB UPDATE 완료");
             }
 
-            Integer prkPlceInfoSn = parkingData.getPrkPlceInfoSn();
+            // 🔥 파일 업로드 (prkPlceInfoSn 확보 후 - 별도 예외 처리)
+            if (prkPlceInfoSn != null && prkPlceInfoSn > 0) {
+                try {
+                    if (mainPhoto != null && !mainPhoto.isEmpty()) {
+                        log.info("📸 현장 사진 저장 시작: {}", mainPhoto.getOriginalFilename());
+                        attchPicService.uploadAndSaveFile(prkPlceInfoSn, "OFF_MAIN", mainPhoto);
+                        log.info("✅ 현장 사진 저장 완료");
+                    }
 
-            // 파일 저장
-            if (mainPhoto != null && !mainPhoto.isEmpty()) {
-                attchPicService.uploadAndSaveFile(prkPlceInfoSn, "OFF_MAIN", mainPhoto);
-            }
-            if (signPhoto != null && !signPhoto.isEmpty()) {
-                attchPicService.uploadAndSaveFile(prkPlceInfoSn, "OFF_SIGN", signPhoto);
-            }
-            if (ticketPhoto != null && !ticketPhoto.isEmpty()) {
-                attchPicService.uploadAndSaveFile(prkPlceInfoSn, "OFF_TICKET", ticketPhoto);
-            }
-            if (barrierPhoto != null && !barrierPhoto.isEmpty()) {
-                attchPicService.uploadAndSaveFile(prkPlceInfoSn, "OFF_BARRIER", barrierPhoto);
-            }
-            if (exitAlarmPhoto != null && !exitAlarmPhoto.isEmpty()) {
-                attchPicService.uploadAndSaveFile(prkPlceInfoSn, "OFF_EXIT_ALARM", exitAlarmPhoto);
-            }
-            if (entrancePhoto != null && !entrancePhoto.isEmpty()) {
-                attchPicService.uploadAndSaveFile(prkPlceInfoSn, "OFF_ENTRANCE", entrancePhoto);
+                    if (signPhoto != null && !signPhoto.isEmpty()) {
+                        log.info("📸 표지판 사진 저장 시작: {}", signPhoto.getOriginalFilename());
+                        attchPicService.uploadAndSaveFile(prkPlceInfoSn, "OFF_SIGN", signPhoto);
+                        log.info("✅ 표지판 사진 저장 완료");
+                    }
+
+                    if (ticketPhoto != null && !ticketPhoto.isEmpty()) {
+                        log.info("📸 발권기 사진 저장 시작: {}", ticketPhoto.getOriginalFilename());
+                        attchPicService.uploadAndSaveFile(prkPlceInfoSn, "OFF_TICKET", ticketPhoto);
+                        log.info("✅ 발권기 사진 저장 완료");
+                    }
+
+                    if (barrierPhoto != null && !barrierPhoto.isEmpty()) {
+                        log.info("📸 차단기 사진 저장 시작: {}", barrierPhoto.getOriginalFilename());
+                        attchPicService.uploadAndSaveFile(prkPlceInfoSn, "OFF_BARRIER", barrierPhoto);
+                        log.info("✅ 차단기 사진 저장 완료");
+                    }
+
+                    if (exitAlarmPhoto != null && !exitAlarmPhoto.isEmpty()) {
+                        log.info("📸 출차알람 사진 저장 시작: {}", exitAlarmPhoto.getOriginalFilename());
+                        attchPicService.uploadAndSaveFile(prkPlceInfoSn, "OFF_EXIT_ALARM", exitAlarmPhoto);
+                        log.info("✅ 출차알람 사진 저장 완료");
+                    }
+
+                    if (entrancePhoto != null && !entrancePhoto.isEmpty()) {
+                        log.info("📸 입구 사진 저장 시작: {}", entrancePhoto.getOriginalFilename());
+                        attchPicService.uploadAndSaveFile(prkPlceInfoSn, "OFF_ENTRANCE", entrancePhoto);
+                        log.info("✅ 입구 사진 저장 완료");
+                    }
+                } catch (Exception fileException) {
+                    log.error("⚠️ 파일 저장 실패 (DB는 성공): {}", fileException.getMessage());
+                    // 파일 저장 실패는 경고만 표시 - 전체 작업은 성공으로 간주
+                }
+            } else {
+                log.warn("⚠️ prkPlceInfoSn이 유효하지 않아 파일 저장을 건너뜁니다: {}", prkPlceInfoSn);
             }
 
             response.put("success", true);
             response.put("message", isNewRecord ? "신규 등록되었습니다." : "수정되었습니다.");
             response.put("prkPlceManageNo", parkingData.getPrkPlceManageNo());
 
-            log.info("✅ 노외주차장 저장 완료");
+            log.info("✅✅✅ 노외주차장 저장 완료");
 
             return ResponseEntity.ok(response);
 
+        } catch (IllegalArgumentException e) {
+            log.error("❌ 입력값 검증 실패: {}", e.getMessage());
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+
         } catch (Exception e) {
-            log.error("❌ 노외주차장 저장 실패", e);
+            log.error("❌❌❌ 노외주차장 저장 실패", e);
             response.put("success", false);
             response.put("message", "저장 중 오류가 발생했습니다: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
@@ -757,17 +853,17 @@ public class PrkDefPlceInfoController {
 
         try {
             @SuppressWarnings("unchecked")
-            List<String> manageNoList = (List<String>) request.get("manageNoList");
+            List<Map<String, Object>> parkingList = (List<Map<String, Object>>) request.get("parkingList");
 
-            if (manageNoList == null || manageNoList.isEmpty()) {
+            if (parkingList == null || parkingList.isEmpty()) {
                 response.put("success", false);
                 response.put("message", "선택된 주차장이 없습니다.");
                 return response;
             }
 
-            log.info("🔄 선택된 {}개 주차장 상태를 승인 대기로 변경", manageNoList.size());
+            log.info("🔄 선택된 {}개 주차장 상태를 승인 대기로 변경", parkingList.size());
 
-            int updatedCount = prkDefPlceInfoService.updateSelectedStatusToPending(manageNoList);
+            int updatedCount = prkDefPlceInfoService.updateSelectedStatusToPending(parkingList);
 
             response.put("success", true);
             response.put("message", updatedCount + "개의 주차장 상태가 승인 대기로 변경되었습니다.");
