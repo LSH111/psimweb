@@ -325,9 +325,42 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
     @Transactional
     public void insertBuildParking(ParkingDetailVO vo) {
         try {
-            log.info("🆕 부설주차장 INSERT: {}", vo.getPrkPlceManageNo());
-            prkDefPlceInfoMapper.insertBuildParking(vo);
-            log.info("✅ 부설주차장 INSERT 완료 - SN: {}", vo.getPrkPlceInfoSn());
+            log.info("🆕 부설주차장 INSERT 시작 - 관리번호: {}", vo.getPrkPlceManageNo());
+
+            // 🔵 STEP 0: prkPlceInfoSn 생성
+            log.info("🔵 [부설주차장 STEP 0/4] prkPlceInfoSn 생성 시작");
+            Integer newSn = prkDefPlceInfoMapper.generateParkingInfoSn(vo.getPrkPlceManageNo());
+            vo.setPrkPlceInfoSn(newSn);
+
+            if (vo.getPrkPlceInfoSn() == null || vo.getPrkPlceInfoSn() <= 0) {
+                log.error("❌ prkPlceInfoSn이 생성되지 않았습니다: {}", vo.getPrkPlceInfoSn());
+                throw new RuntimeException("주차장 일련번호 생성 실패");
+            }
+            log.info("✅ [STEP 0/4] prkPlceInfoSn 생성 완료: {}", newSn);
+
+            // 🔵 STEP 1: 기본 정보 INSERT (tb_prk_def_plce_info)
+            log.info("🔵 [STEP 1/4] tb_prk_def_plce_info INSERT 시작");
+            prkDefPlceInfoMapper.insertPrkDefPlceInfo(vo);
+            log.info("✅ [STEP 1/4] tb_prk_def_plce_info INSERT 완료");
+
+            // 🔵 STEP 2: 사업별 주차장 정보 INSERT (tb_biz_per_prklot_info)
+            log.info("🔵 [STEP 2/4] tb_biz_per_prklot_info INSERT 시작");
+            prkDefPlceInfoMapper.insertBizPerPrklotInfo(vo);
+            log.info("✅ [STEP 2/4] tb_biz_per_prklot_info INSERT 완료");
+
+            // 🔵 STEP 3: 부설주차장 기본 정보 INSERT (tb_atch_prklot_info)
+            log.info("🔵 [STEP 3/4] tb_atch_prklot_info INSERT 시작");
+            prkDefPlceInfoMapper.insertAtchPrklotInfo(vo);
+            log.info("✅ [STEP 3/4] tb_atch_prklot_info INSERT 완료");
+
+            // 🔵 STEP 4: 부설주차장 운영 정보 INSERT (tb_atch_prklot_oper_info)
+            log.info("🔵 [STEP 4/4] tb_atch_prklot_oper_info INSERT 시작");
+            prkDefPlceInfoMapper.insertAtchPrklotOperInfo(vo);
+            log.info("✅ [STEP 4/4] tb_atch_prklot_oper_info INSERT 완료");
+
+            log.info("🎉🎉🎉 부설주차장 4단계 INSERT 모두 성공 - prkPlceManageNo={}, prkPlceInfoSn={}",
+                    vo.getPrkPlceManageNo(), vo.getPrkPlceInfoSn());
+
         } catch (Exception e) {
             log.error("❌ 부설주차장 INSERT 실패", e);
             throw new RuntimeException("부설주차장 등록 실패", e);
