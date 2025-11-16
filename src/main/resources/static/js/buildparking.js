@@ -1954,18 +1954,14 @@ async function doSave() {
         }
 
         const payload = buildPayload();
-        // 🔥 관리번호가 비어 있으면 신규 등록으로 처리 (저장 막지 않음)
+        // 🔥 관리번호가 비어 있으면 신규 등록으로 처리 (onparking.js 와 동일한 개념)
         const isNewRecord = !payload.id || payload.id.trim() === '';
-
 
         const serverData = mapPayloadToServerFormat(payload);
 
         console.log('📤 전송 데이터:', serverData);
 
-        // 🔥 FormData 생성
         const formData = new FormData();
-
-        // JSON 데이터를 Blob으로 추가
         formData.append('parkingData', new Blob([JSON.stringify(serverData)], {
             type: 'application/json'
         }));
@@ -2054,7 +2050,8 @@ async function doSave() {
         const result = await response.json();
 
         if (result.success) {
-            alert('저장되었습니다.');
+            // 🔥 onparking.js 처럼 신규/수정에 따라 메시지만 분기
+            alert(isNewRecord ? '신규 등록되었습니다.' : '수정되었습니다.');
 
             setTimeout(() => {
                 window.location.href = '/prk/parkinglist';
