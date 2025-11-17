@@ -72,13 +72,10 @@ const RegionCodeLoader = {
             statusSelect.innerHTML = '<option value="">선택</option>';
             if (result.success && result.data) {
                 result.data.forEach(item => {
-                    // 🔥 codeCd가 "10"인 항목만 추가
-                    if (item.codeCd === '10') {
-                        const option = document.createElement('option');
-                        option.value = item.codeCd;
-                        option.textContent = item.codeNm;
-                        statusSelect.appendChild(option);
-                    }
+                    const option = document.createElement('option');
+                    option.value = item.codeCd;
+                    option.textContent = item.codeNm;
+                    statusSelect.appendChild(option);
                 });
                 console.log('✅ 진행상태 로드 완료:', result.data.length);
             }
@@ -416,7 +413,7 @@ const CodeLoader = {
             }
         }
 
-        // PRK_008: 요금정산방식  
+        // PRK_008: 요금정산방식
         if (groups['PRK_008']) {
             this.populateCheckboxGroup('#settle_group', 'settleMethod', groups['PRK_008'].codes);
         }
@@ -496,14 +493,14 @@ async function parseAndFillAddress(data) {
     try {
         console.log('📝 주소 파싱 시작', data);
 
-        // 🔥 1. 우편번호
+        // 1. 우편번호
         const f_zip = document.getElementById('f_zip');
         if (f_zip && data.zonecode) {
             f_zip.value = data.zonecode;
             console.log('✅ 우편번호:', data.zonecode);
         }
 
-        // 🔥 2. 지번주소 / 도로명주소 먼저 입력
+        // 2. 지번주소 / 도로명주소 먼저 입력
         if (f_addrJ && data.jibunAddress) {
             f_addrJ.value = data.jibunAddress;
             console.log('✅ 지번주소:', data.jibunAddress);
@@ -515,45 +512,48 @@ async function parseAndFillAddress(data) {
             console.log('✅ 도로명주소:', roadAddr);
         }
 
-        // 🔥 3. 시도/시군구/읍면동 코드 매핑용 객체
+        // 3. 시도/시군구/읍면동 코드 매핑용 객체
         const regionMap = {
-            sido: data.sido,          // "충청북도"
-            sigungu: data.sigungu,    // "영동군"
-            bname: data.bname,        // "황간면"
-            bname1: data.bname1       // 법정동명
+            sido: data.sido,
+            sigungu: data.sigungu,
+            bname: data.bname,
+            bname1: data.bname1,
+            bname2: data.bname2
         };
-
         console.log('🗺️ 행정구역 정보:', regionMap);
 
-        // 🔥 4. 시도 선택 - 텍스트로 매칭
+        // 4. 시도 선택 - 축약형을 정식 명칭으로 변환하여 매칭
         if (regionMap.sido) {
             const sidoSelect = $('#f_sido');
             if (sidoSelect) {
-                // 옵션 중에서 텍스트가 포함된 것 찾기
+                const sidoMap = {
+                    '서울': '서울특별시', '부산': '부산광역시', '대구': '대구광역시',
+                    '인천': '인천광역시', '광주': '광주광역시', '대전': '대전광역시',
+                    '울산': '울산광역시', '세종': '세종특별자치시', '경기': '경기도',
+                    '강원': '강원특별자치도', '충북': '충청북도', '충남': '충청남도',
+                    '전북': '전북특별자치도', '전남': '전라남도', '경북': '경상북도',
+                    '경남': '경상남도', '제주': '제주특별자치도'
+                };
+                const fullSidoName = sidoMap[regionMap.sido] || regionMap.sido;
                 const sidoOption = Array.from(sidoSelect.options).find(
-                    opt => opt.textContent.trim() === regionMap.sido
+                    opt => opt.textContent.trim() === fullSidoName
                 );
 
                 if (sidoOption) {
                     sidoSelect.value = sidoOption.value;
-                    console.log('✅ 시도 선택:', regionMap.sido, '→', sidoOption.value);
-
-                    // change 이벤트 발생시켜 시군구 로드
+                    console.log('✅ 시도 선택:', fullSidoName, '→', sidoOption.value);
                     sidoSelect.dispatchEvent(new Event('change'));
-
-                    // 시군구 로드 대기
                     await new Promise(resolve => setTimeout(resolve, 500));
                 } else {
-                    console.warn('⚠️ 시도를 찾을 수 없음:', regionMap.sido);
+                    console.warn('⚠️ 시도를 찾을 수 없음:', fullSidoName);
                 }
             }
         }
 
-        // 🔥 5. 시군구 선택 - 텍스트로 매칭
+        // 5. 시군구 선택 - 텍스트로 매칭
         if (regionMap.sigungu) {
             const sigunguSelect = $('#f_sigungu');
             if (sigunguSelect) {
-                // 옵션 중에서 텍스트가 포함된 것 찾기
                 const sigunguOption = Array.from(sigunguSelect.options).find(
                     opt => opt.textContent.trim().includes(regionMap.sigungu)
                 );
@@ -561,11 +561,7 @@ async function parseAndFillAddress(data) {
                 if (sigunguOption) {
                     sigunguSelect.value = sigunguOption.value;
                     console.log('✅ 시군구 선택:', regionMap.sigungu, '→', sigunguOption.value);
-
-                    // change 이벤트 발생시켜 읍면동 로드
                     sigunguSelect.dispatchEvent(new Event('change'));
-
-                    // 읍면동 로드 대기
                     await new Promise(resolve => setTimeout(resolve, 500));
                 } else {
                     console.warn('⚠️ 시군구를 찾을 수 없음:', regionMap.sigungu);
@@ -573,38 +569,42 @@ async function parseAndFillAddress(data) {
             }
         }
 
-        // 🔥 6. 읍면동 선택 - 텍스트로 매칭
-        if (regionMap.bname) {
+        // 6. 읍면동 선택 - bname 또는 bname1 사용
+        const emdTargetName = regionMap.bname1 || (regionMap.bname ? regionMap.bname.split(' ')[0] : '');
+        if (emdTargetName) {
             const emdSelect = $('#f_emd');
             if (emdSelect) {
-                // 옵션 중에서 텍스트가 포함된 것 찾기
-                const emdOption = Array.from(emdSelect.options).find(
-                    opt => opt.textContent.trim().includes(regionMap.bname)
+                const emdOption = Array.from(emdSelect.options).find(opt =>
+                    opt.textContent.trim() === emdTargetName
                 );
 
                 if (emdOption) {
                     emdSelect.value = emdOption.value;
-                    console.log('✅ 읍면동 선택:', regionMap.bname, '→', emdOption.value);
-
-                    // change 이벤트 발생
+                    console.log('✅ 읍면동 선택:', emdTargetName, '→', emdOption.value);
                     emdSelect.dispatchEvent(new Event('change'));
                 } else {
-                    console.warn('⚠️ 읍면동을 찾을 수 없음:', regionMap.bname);
+                    console.warn('⚠️ 읍면동을 찾을 수 없음:', emdTargetName);
                 }
             }
         }
 
-        // 🔥 7. 리 입력 (리가 있는 경우)
+        // 7. 리 입력 - bname2 또는 bname에서 추출
         const riInput = $('#f_ri');
-        if (riInput && data.bname1) {
-            // bname1에 "리"가 포함되어 있으면 리 입력
-            if (data.bname1.includes('리')) {
-                riInput.value = data.bname1;
-                console.log('✅ 리 입력:', data.bname1);
+        if (riInput) {
+            riInput.value = ''; // 초기화
+            if (regionMap.bname2 && regionMap.bname2.endsWith('리')) {
+                riInput.value = regionMap.bname2;
+            } else if (regionMap.bname && regionMap.bname.includes(' ')) {
+                const parts = regionMap.bname.split(' ');
+                const riPart = parts.find(p => p.endsWith('리'));
+                if (riPart) {
+                    riInput.value = riPart;
+                }
             }
+            if (riInput.value) console.log('✅ 리 입력:', riInput.value);
         }
 
-        // 🔥 8. 산 여부 판단
+        // 8. 산 여부 판단
         const isMountain = data.jibunAddress && data.jibunAddress.includes('산');
         const mountainRadios = document.querySelectorAll('input[name="mountainYn"]');
         mountainRadios.forEach(radio => {
@@ -614,35 +614,40 @@ async function parseAndFillAddress(data) {
         });
         console.log('✅ 산 여부:', isMountain ? '산' : '일반');
 
-        // 🔥 9. 본번/부번 파싱
+        // 9. 본번/부번 파싱
+        const jibunAddress = data.jibunAddress || '';
         let mainNum = '';
         let subNum = '';
 
-        // 지번 주소에서 번지 추출 (예: "123-45" 또는 "123")
-        const jibunMatch = data.jibunAddress.match(/(\d+)-(\d+)/);
-        if (jibunMatch) {
-            mainNum = jibunMatch[1];
-            subNum = jibunMatch[2];
+        const mountainPattern = /산\s*(\d+)/;
+        const mountainMatch = jibunAddress.match(mountainPattern);
+
+        if (mountainMatch) {
+            mainNum = mountainMatch[1];
         } else {
-            const jibunMatchSingle = data.jibunAddress.match(/\s(\d+)$/);
-            if (jibunMatchSingle) {
-                mainNum = jibunMatchSingle[1];
+            // "123-45" 또는 "123" 형식, 공백이나 문자열 끝으로 끝나는 경우
+            const addressPattern = /(\d+)(?:-(\d+))?(?=\s|$)/;
+            const addressMatch = jibunAddress.match(addressPattern);
+
+            if (addressMatch) {
+                mainNum = addressMatch[1];
+                subNum = addressMatch[2] || '';
             }
         }
 
         const mainNumInput = $('#f_mainNum');
         const subNumInput = $('#f_subNum');
 
-        if (mainNumInput && mainNum) {
+        if (mainNumInput) {
             mainNumInput.value = mainNum;
             console.log('✅ 본번:', mainNum);
         }
-        if (subNumInput && subNum) {
+        if (subNumInput) {
             subNumInput.value = subNum;
             console.log('✅ 부번:', subNum);
         }
 
-        // 🔥 10. 건물명 입력
+        // 10. 건물명 입력
         const buildingNameInput = $('#f_buildingName');
         if (buildingNameInput && data.buildingName) {
             buildingNameInput.value = data.buildingName;
@@ -1947,121 +1952,109 @@ async function handlePhotoWithGPS(file) {
 // ========== 저장 함수 수정 ==========
 async function doSave() {
     try {
+        console.log('🚀 저장 프로세스 시작');
+
         const validationErrors = validateRequiredFields();
         if (validationErrors.length > 0) {
             alert('다음 항목을 입력해주세요:\n\n' + validationErrors.join('\n'));
+            console.warn('❌ 유효성 검사 실패:', validationErrors);
             return;
         }
+        console.log('✅ 유효성 검사 통과');
+
 
         const payload = buildPayload();
-        // 🔥 관리번호가 비어 있으면 신규 등록으로 처리 (onparking.js 와 동일한 개념)
+        console.log('📝 생성된 Payload:', payload);
+
         const isNewRecord = !payload.id || payload.id.trim() === '';
+        console.log(isNewRecord ? '✨ 신규 등록 모드' : `✏️ 수정 모드 (ID: ${payload.id})`);
+
 
         const serverData = mapPayloadToServerFormat(payload);
 
-        console.log('📤 전송 데이터:', serverData);
+        // 🔥 신규 등록 시 주차장관리번호를 보내지 않아야 서버에서 자동 생성됩니다. (onparking.js 참조)
+        if (isNewRecord) {
+            delete serverData.prkPlceManageNo;
+            console.log('🗑️ 신규 등록이므로 prkPlceManageNo 필드 제거');
+        }
+
+        console.log('📤 서버 전송 데이터:', serverData);
+
 
         const formData = new FormData();
         formData.append('parkingData', new Blob([JSON.stringify(serverData)], {
             type: 'application/json'
         }));
 
-        // 🔥 현장 사진
-        const mainPhotoLib = document.getElementById('f_photo_lib');
-        const mainPhotoCam = document.getElementById('f_photo_cam');
+        // 🔥 사진 파일들을 FormData에 추가 (onparking.js 형식)
+        const photoInputs = {
+            mainPhoto: ['f_photo_lib', 'f_photo_cam'],
+            signPhoto: ['f_sign_photo_lib', 'f_sign_photo_cam'],
+            ticketPhoto: ['f_ticket_photo_lib', 'f_ticket_photo_cam'],
+            barrierPhoto: ['f_barrier_photo_lib', 'f_barrier_photo_cam'],
+            exitAlarmPhoto: ['f_exit_alarm_photo_lib', 'f_exit_alarm_photo_cam'],
+            entrancePhoto: ['f_entrance_photo_lib', 'f_entrance_photo_cam']
+        };
 
-        if (mainPhotoLib && mainPhotoLib.files && mainPhotoLib.files.length > 0) {
-            formData.append('mainPhoto', mainPhotoLib.files[0]);
-            console.log('📸 현장 사진 추가:', mainPhotoLib.files[0].name);
-        } else if (mainPhotoCam && mainPhotoCam.files && mainPhotoCam.files.length > 0) {
-            formData.append('mainPhoto', mainPhotoCam.files[0]);
-            console.log('📸 현장 사진 추가:', mainPhotoCam.files[0].name);
+        for (const [key, ids] of Object.entries(photoInputs)) {
+            const libInput = document.getElementById(ids[0]);
+            const camInput = document.getElementById(ids[1]);
+
+            if (libInput && libInput.files.length > 0) {
+                formData.append(key, libInput.files[0]);
+                console.log(`📸 사진 추가 (${key}):`, libInput.files[0].name);
+            } else if (camInput && camInput.files.length > 0) {
+                formData.append(key, camInput.files[0]);
+                console.log(`📸 사진 추가 (${key}):`, camInput.files[0].name);
+            }
         }
 
-        // 🔥 표지판 사진
-        const signPhotoLib = document.getElementById('f_sign_photo_lib');
-        const signPhotoCam = document.getElementById('f_sign_photo_cam');
 
-        if (signPhotoLib && signPhotoLib.files && signPhotoLib.files.length > 0) {
-            formData.append('signPhoto', signPhotoLib.files[0]);
-            console.log('📸 표지판 사진 추가:', signPhotoLib.files[0].name);
-        } else if (signPhotoCam && signPhotoCam.files && signPhotoCam.files.length > 0) {
-            formData.append('signPhoto', signPhotoCam.files[0]);
-            console.log('📸 표지판 사진 추가:', signPhotoCam.files[0].name);
-        }
+        console.log('📡 서버에 데이터 전송 시작...');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => {
+            controller.abort();
+            console.error('⏰ 요청 시간 초과');
+        }, 30000);
 
-        // 🔥 발권기 사진
-        const ticketPhotoLib = document.getElementById('f_ticket_photo_lib');
-        const ticketPhotoCam = document.getElementById('f_ticket_photo_cam');
-
-        if (ticketPhotoLib && ticketPhotoLib.files && ticketPhotoLib.files.length > 0) {
-            formData.append('ticketPhoto', ticketPhotoLib.files[0]);
-            console.log('📸 발권기 사진 추가:', ticketPhotoLib.files[0].name);
-        } else if (ticketPhotoCam && ticketPhotoCam.files && ticketPhotoCam.files.length > 0) {
-            formData.append('ticketPhoto', ticketPhotoCam.files[0]);
-            console.log('📸 발권기 사진 추가:', ticketPhotoCam.files[0].name);
-        }
-
-        // 🔥 차단기 사진
-        const barrierPhotoLib = document.getElementById('f_barrier_photo_lib');
-        const barrierPhotoCam = document.getElementById('f_barrier_photo_cam');
-
-        if (barrierPhotoLib && barrierPhotoLib.files && barrierPhotoLib.files.length > 0) {
-            formData.append('barrierPhoto', barrierPhotoLib.files[0]);
-            console.log('📸 차단기 사진 추가:', barrierPhotoLib.files[0].name);
-        } else if (barrierPhotoCam && barrierPhotoCam.files && barrierPhotoCam.files.length > 0) {
-            formData.append('barrierPhoto', barrierPhotoCam.files[0]);
-            console.log('📸 차단기 사진 추가:', barrierPhotoCam.files[0].name);
-        }
-
-        // 🔥 출차알람 사진
-        const exitAlarmPhotoLib = document.getElementById('f_exit_alarm_photo_lib');
-        const exitAlarmPhotoCam = document.getElementById('f_exit_alarm_photo_cam');
-
-        if (exitAlarmPhotoLib && exitAlarmPhotoLib.files && exitAlarmPhotoLib.files.length > 0) {
-            formData.append('exitAlarmPhoto', exitAlarmPhotoLib.files[0]);
-            console.log('📸 출차알람 사진 추가:', exitAlarmPhotoLib.files[0].name);
-        } else if (exitAlarmPhotoCam && exitAlarmPhotoCam.files && exitAlarmPhotoCam.files.length > 0) {
-            formData.append('exitAlarmPhoto', exitAlarmPhotoCam.files[0]);
-            console.log('📸 출차알람 사진 추가:', exitAlarmPhotoCam.files[0].name);
-        }
-
-        // 🔥 주차장 입구 사진
-        const entrancePhotoLib = document.getElementById('f_entrance_photo_lib');
-        const entrancePhotoCam = document.getElementById('f_entrance_photo_cam');
-
-        if (entrancePhotoLib && entrancePhotoLib.files && entrancePhotoLib.files.length > 0) {
-            formData.append('entrancePhoto', entrancePhotoLib.files[0]);
-            console.log('📸 입구 사진 추가:', entrancePhotoLib.files[0].name);
-        } else if (entrancePhotoCam && entrancePhotoCam.files && entrancePhotoCam.files.length > 0) {
-            formData.append('entrancePhoto', entrancePhotoCam.files[0]);
-            console.log('📸 입구 사진 추가:', entrancePhotoCam.files[0].name);
-        }
 
         const response = await fetch('/prk/buildparking-update', {
             method: 'POST',
-            body: formData
+            body: formData,
+            signal: controller.signal
         });
 
+        clearTimeout(timeoutId);
+
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            const errorText = await response.text();
+            console.error('❌ 서버 에러 응답:', {status: response.status, body: errorText});
+            throw new Error(`HTTP ${response.status}: ${response.statusText}\n${errorText}`);
         }
 
         const result = await response.json();
+        console.log('✅ 서버 응답:', result);
+
 
         if (result.success) {
-            // 🔥 onparking.js 처럼 신규/수정에 따라 메시지만 분기
             alert(isNewRecord ? '신규 등록되었습니다.' : '수정되었습니다.');
-
             setTimeout(() => {
-                window.location.href = '/prk/parkinglist';
-            }, 1500);
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({type: 'navigate', url: '/prk/parkinglist'}, '*');
+                } else {
+                    location.href = '/prk/parkinglist';
+                }
+            }, 500);
         } else {
             alert('❌ 저장 실패: ' + (result.message || '알 수 없는 오류'));
         }
     } catch (error) {
-        console.error('❌ 저장 중 오류:', error);
-        alert('저장 중 오류가 발생했습니다: ' + error.message);
+        console.error('💥 저장 프로세스 중 예외 발생:', error);
+        if (error.name === 'AbortError') {
+            alert('⏰ 서버 응답 시간이 초과되었습니다. 네트워크 연결을 확인하고 다시 시도해주세요.');
+        } else {
+            alert('저장 중 오류가 발생했습니다. 개발자 콘솔을 확인해주세요.');
+        }
     }
 }
 
@@ -2104,6 +2097,15 @@ function mapPayloadToServerFormat(payload) {
 
         // 🔥 우편번호 추가
         zip: document.getElementById('f_zip')?.value || null,
+
+        /* ==========  지번 정보 ========== */
+        bdnbr: document.getElementById('f_buildingName')?.value || null,
+        lnmMnno: document.getElementById('f_mainNum')?.value || null,
+        lnmSbno: document.getElementById('f_subNum')?.value || null,
+        mntnYn: document.querySelector('input[name="mountainYn"]:checked')?.value || 'N',
+        liCd: document.getElementById('f_ri')?.value || null,
+        rnmadr: document.getElementById('f_addr_road')?.value || null,
+
 
         totPrkCnt: payload.totalStalls,
         disabPrkCnt: payload.stalls.disabled,
@@ -2184,33 +2186,76 @@ function validateRequiredFields() {
 document.addEventListener('DOMContentLoaded', async function () {
     console.log('=== 부설주차장 페이지 초기화 시작 ===');
 
-    // 🔥 1. 행정구역 코드 로드 (가장 먼저 실행)
-    await RegionCodeLoader.loadProgressStatus();
-    await RegionCodeLoader.loadSidoList();
-    RegionCodeLoader.setupEventListeners();
+    try {
+        console.log('Step 1: 초기화 시작');
+        const isNewRecord = !p.id;
 
-    // 2. 동적 코드 로드
-    await CodeLoader.applyAllDynamicCodes();
+        console.log('Step 2: 공통 코드 로드 시작');
+        await RegionCodeLoader.loadProgressStatus();
+        console.log('Step 2a: 진행상태 로드 완료');
 
-    // 3. 나머지 설정
-    setupMechPrklotOperToggle();
-    setupOperationEntityToggle();
-    setupTimeOperationEvents('weekday');
-    setupTimeOperationEvents('saturday');
-    setupTimeOperationEvents('holiday');
-    setupSignToggle();
-    setupFacilityPhotoToggles();
-    setupEntrancePhotoEvents();
-    setupPreInspectionEvents();
-    setupPedestrianSafetyEvents();
-    setupPeakTimeValidation();
+        await RegionCodeLoader.loadSidoList();
+        console.log('Step 2b: 시도 목록 로드 완료');
 
-    // 4. 서버 데이터 로드
-    await loadParkingDetailFromServer();
+        RegionCodeLoader.setupEventListeners();
+        console.log('Step 2c: 행정구역 리스너 설정 완료');
 
-    // 5. 저장 버튼
-    $('#btnSave')?.addEventListener('click', doSave);
-    $('#btnSaveTop')?.addEventListener('click', doSave);
+        await CodeLoader.applyAllDynamicCodes();
+        console.log('Step 2d: 동적 코드 적용 완료');
 
-    console.log('=== 부설주차장 페이지 초기화 완료 ===');
+        console.log('Step 3: UI 이벤트 리스너 설정 시작');
+        setupMechPrklotOperToggle();
+        setupOperationEntityToggle();
+        setupTimeOperationEvents('weekday');
+        setupTimeOperationEvents('saturday');
+        setupTimeOperationEvents('holiday');
+        setupSignToggle();
+        setupFacilityPhotoToggles();
+        setupEntrancePhotoEvents();
+        setupPreInspectionEvents();
+        setupPedestrianSafetyEvents();
+        setupPeakTimeValidation();
+        console.log('Step 3a: UI 이벤트 리스너 설정 완료');
+
+        console.log('Step 4: 저장 버튼 이벤트 리스너 등록');
+        const btnSave = document.getElementById('btnSave');
+        const btnSaveTop = document.getElementById('btnSaveTop');
+
+        if (btnSave) {
+            btnSave.addEventListener('click', function (e) {
+                e.preventDefault();
+                doSave();
+            });
+        } else {
+            console.error('❌ btnSave 요소를 찾을 수 없습니다!');
+        }
+
+        if (btnSaveTop) {
+            btnSaveTop.addEventListener('click', function (e) {
+                e.preventDefault();
+                doSave();
+            });
+        } else {
+            console.error('❌ btnSaveTop 요소를 찾을 수 없습니다!');
+        }
+        console.log('Step 4a: 저장 버튼 이벤트 리스너 등록 완료');
+
+        console.log(`Step 5: 모드 분기 처리 (isNewRecord: ${isNewRecord})`);
+        if (isNewRecord) {
+            console.log('✨ 신규 등록 모드입니다.');
+            if (f_status) {
+                f_status.value = '10'; // '조사중' 코드
+            }
+        } else {
+            console.log(`✏️ 수정 모드입니다. (ID: ${p.id})`);
+            await loadParkingDetailFromServer();
+        }
+        console.log('Step 5a: 모드 분기 처리 완료');
+
+        console.log('=== 부설주차장 페이지 초기화 완료 ===');
+
+    } catch (error) {
+        console.error('❌ 페이지 초기화 중 심각한 오류 발생:', error);
+        alert('페이지 초기화 중 오류가 발생했습니다. 개발자 콘솔을 확인해주세요.');
+    }
 });

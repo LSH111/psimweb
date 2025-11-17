@@ -3215,8 +3215,15 @@ document.addEventListener('DOMContentLoaded', async function () {
 });
 
 
+/* <<<<<<<<<<<<<<  ✨ Windsurf Command 🌟 >>>>>>>>>>>>>>>> */
+/**
+ * Maps the payload data to the server format.
+ * @param {Object} payload The payload data from the client.
+ * @returns {Object} The server format data.
+ */
 // ========== 🔥 서버 데이터 매핑 함수 완전 수정 ==========
 function mapPayloadToServerFormat(payload) {
+    // Get the select values for administrative districts
     // 🔥 1. 행정구역 코드 먼저 가져오기 (select의 value)
     const f_sido = document.getElementById('f_sido');
     const f_sigungu = document.getElementById('f_sigungu');
@@ -3225,12 +3232,19 @@ function mapPayloadToServerFormat(payload) {
     const sidoCd = f_sido?.value || null;
     const sigunguCd = f_sigungu?.value || null;
     const emdCd = f_emd?.value || null;
+
+    // Check if the administrative districts are selected
     // 🔥 2. 필수 검증 - 간소화
     if (!emdCd) {
+        console.error('The administrative districts are not selected.');
+        alert('Please select the administrative districts.');
+        throw new Error('Administrative districts are not selected.');
         console.error('❌ 읍면동코드가 선택되지 않았습니다');
         alert('읍면동을 선택해주세요.');
         throw new Error('읍면동 미선택');
     }
+
+    // Get the business management number
     // 🔥 3. 법정동코드는 emdCd를 그대로 사용 (DB에서 처리)
     const ldongCd = generateLdongCd();
     // 🔥 4. 세션에서 prkBizMngNo 가져오기 (신규 등록 시)
@@ -3238,11 +3252,13 @@ function mapPayloadToServerFormat(payload) {
     const prkBizMngNo = isNewRecord ? null : loadedBizMngNo;
 
     const serverData = {
+        /* ========== Basic Information ========== */
         /* ========== 기본 정보 ========== */
         prkPlceManageNo: payload.id || null,
         prkplceNm: payload.name || '',
         prgsStsCd: payload.status || '10',
         prkPlceType: '1',
+        ldongCd: generateLdongCd(),  // Use the administrative districts code directly
         ldongCd: ldongCd,  // 🔥 읍면동 코드를 그대로 사용
         zip: document.getElementById('f_zip')?.value || null,
         dtadd: document.getElementById('f_addr_jibun')?.value || null,
@@ -3250,6 +3266,9 @@ function mapPayloadToServerFormat(payload) {
         prkPlceLat: document.getElementById('f_lat')?.value || null,
         prkPlceLon: document.getElementById('f_lng')?.value || null,
 
+        /* ========== Administrative Districts ========== */
+        sidoCd: sidoCd,      // City code
+        sigunguCd: sigunguCd,  // County code
         /* ========== 🔥 행정구역 - 직접 매핑 ========== */
         sidoCd: sidoCd,      // 🔥 시도코드
         sigunguCd: sigunguCd,  // 🔥 시군구코드
@@ -3342,13 +3361,6 @@ function mapPayloadToServerFormat(payload) {
         antislpFcltyYn: document.getElementById('antislp_facility_chk')?.checked ? 'Y' : 'N',
         slpCtnGuidSignYn: document.getElementById('slp_guide_sign_chk')?.checked ? 'Y' : 'N',
 
-        /* ========== 🔥 지번 정보 ========== */
-        bdnbr: document.getElementById('f_buildingName')?.value || null,
-        lnmMnno: document.getElementById('f_mainNum')?.value || null,
-        lnmSbno: document.getElementById('f_subNum')?.value || null,
-        mntnYn: document.querySelector('input[name="mountainYn"]:checked')?.value || 'N',
-        liCd: document.getElementById('f_ri')?.value || null,
-
         /* ========== 비고 ========== */
         partclrMatter: document.getElementById('f_partclr_matter')?.value || null
     };
@@ -3395,3 +3407,5 @@ function mapPayloadToServerFormat(payload) {
 
     return serverData;
 }
+
+/* <<<<<<<<<<  f9b55eca-5d2f-40ce-801b-3f11c06eb43f  >>>>>>>>>>> */

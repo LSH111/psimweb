@@ -48,14 +48,26 @@ public class PrkDefPlceInfoController {
             @RequestParam(value = "type", required = false) String parkingType,
             Model model) {
 
-        // 🔥 상세보기 파라미터가 있으면 모델에 추가
-        if (openDetailId != null && !openDetailId.isEmpty()) {
-            model.addAttribute("openDetailId", openDetailId);
-            model.addAttribute("parkingType", parkingType);
-            log.info("🔍 상세보기 요청: ID={}, Type={}", openDetailId, parkingType);
+        // 🔥 null pointer check
+        if (openDetailId == null || parkingType == null) {
+            log.warn("⚠️ openDetailId or parkingType is null");
+            return "prk/parking-list";
         }
 
-        return "prk/parking-list";
+        try {
+            // 🔥 상세보기 파라미터가 있으면 모델에 추가
+            if (openDetailId != null && !openDetailId.isEmpty()) {
+                model.addAttribute("openDetailId", openDetailId);
+                model.addAttribute("parkingType", parkingType);
+                log.info("🔍 상세보기 요청: ID={}, Type={}", openDetailId, parkingType);
+            }
+
+            return "prk/parking-list";
+        } catch (Exception e) {
+            log.error("❌ parkingList() error: {}", e.getMessage());
+            e.printStackTrace();
+            return "error";
+        }
     }
 
     // AJAX로 주차장 목록 데이터 조회 (페이징 제거)
@@ -63,84 +75,33 @@ public class PrkDefPlceInfoController {
     @ResponseBody
     public Map<String, Object> getParkingData(@RequestParam Map<String, Object> params, HttpSession session) {
         Map<String, Object> result = new HashMap<>();
-        // 🔥 세션에서 userBizList 가져와서 params에 추가
+        log.info("🔍 주차장 데이터 조회 시작 - params: {}", params);
+
+        // 🔥 세션에서 userBizList 가져와서 params에 추가 
         List<String> userBizList = (List<String>) session.getAttribute("userBizList");
         if (userBizList != null && !userBizList.isEmpty()) {
             params.put("userBizList", userBizList);
+            log.info("✅ userBizList 추가: {}", userBizList);
+        } else {
+            log.warn("⚠️ userBizList가 비어있습니다");
         }
-        try {
-            // 페이징 관련 파라미터 제거
-            // offset, limit 파라미터를 전달하지 않음
 
+        try {
+            log.info("🔄 서비스 호출 시작");
             List<ParkingListVO> list = prkDefPlceInfoService.getParkingList(params);
-            int totalCount = list.size(); // 전체 목록의 크기가 총 개수
+            int totalCount = list.size();
 
             result.put("list", list);
             result.put("totalCount", totalCount);
             result.put("success", true);
 
-        } catch (Exception e) {
-            e.printStackTrace(); // 디버깅을 위해 추가
-            result.put("success", false);
-            result.put("message", "데이터 조회 중 오류가 발생했습니다: " + e.getMessage());
-            result.put("list", new ArrayList<>());
-            result.put("totalCount", 0);
-        }
-
-        return result;
-    }
-
-    /**
-     * 노상주차장 상세 조회
-     */
-    @GetMapping("/onparking-detail")
-    @ResponseBody
-    public Map<String, Object> getOnstreetParkingDetail(@RequestParam String prkPlceManageNo) {
-        Map<String, Object> result = new HashMap<>();
-        try {
-            log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-            log.info("🔍 노상주차장 상세 조회 요청");
-            log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-            log.info("📋 요청 파라미터: prkPlceManageNo={}", prkPlceManageNo);
-
-            // 🔥 파라미터 검증 추가
-            if (prkPlceManageNo == null || prkPlceManageNo.trim().isEmpty()) {
-                log.error("❌ 주차장 관리번호가 비어있습니다.");
-                result.put("success", false);
-                result.put("message", "주차장 관리번호가 필요합니다.");
-                return result;
-            }
-
-            log.info("🔄 Service 호출 시작");
-            ParkingDetailVO detail = prkDefPlceInfoService.getOnstreetParkingDetail(prkPlceManageNo);
-            log.info("✅ Service 호출 완료");
-
-            if (detail != null) {
-                log.info("✅ 데이터 조회 성공");
-                log.info("📦 조회된 데이터 요약:");
-                log.info("   - prkPlceManageNo: {}", detail.getPrkPlceManageNo());
-                log.info("   - prkplceNm: {}", detail.getPrkplceNm());
-                log.info("   - sidoCd: {}", detail.getSidoCd());
-                log.info("   - sigunguCd: {}", detail.getSigunguCd());
-                log.info("   - emdCd: {}", detail.getEmdCd());
-
-                result.put("success", true);
-                result.put("data", detail);
-            } else {
-                log.warn("⚠️ 조회된 데이터가 없습니다: {}", prkPlceManageNo);
-                result.put("success", false);
-                result.put("message", "주차장 정보를 찾을 수 없습니다.");
-            }
-
-            log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            log.info("✅ 데이터 조회 완료 - 총 {}건", totalCount);
 
         } catch (Exception e) {
-            log.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-            log.error("❌❌❌ 노상주차장 상세 조회 실패");
-            log.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            log.error("❌ 데이터 조회 실패", e);
+            // 🔥 상세 스택트레이스 로깅
             log.error("예외 타입: {}", e.getClass().getName());
             log.error("예외 메시지: {}", e.getMessage());
-            log.error("상세 스택:", e);
 
             // 🔥 원인 추적
             Throwable cause = e.getCause();
@@ -150,13 +111,9 @@ public class PrkDefPlceInfoController {
             }
 
             result.put("success", false);
-            result.put("message", "조회 중 오류가 발생했습니다: " + e.getMessage());
-
-            // 🔥 개발 환경에서만 상세 에러 반환
-            if (log.isDebugEnabled()) {
-                result.put("error", e.getClass().getName());
-                result.put("stackTrace", e.getStackTrace()[0].toString());
-            }
+            result.put("message", "데이터 조회 중 오류가 발생했습니다: " + e.getMessage());
+            result.put("list", new ArrayList<>());
+            result.put("totalCount", 0);
         }
 
         return result;
@@ -446,7 +403,7 @@ public class PrkDefPlceInfoController {
                     operMbyCd = "1";
                 }
 
-                String prkplceSe = "1";  // 관리주체(소유주체)
+                String prkplceSe = parkingData.getPrkplceSe();  // 관리주체(소유주체)
                 String prkPlceType = "2"; // 주차장유형 - 노외
 
                 log.info("📝 관리번호 생성 파라미터 - zipCode: {}, prkplceSe: {}, operMbyCd: {}, prkPlceType: {}",
@@ -683,7 +640,7 @@ public class PrkDefPlceInfoController {
                 }
 
                 // 2. 관리번호 생성 파라미터
-                String prkplceSe = "1";  // 관리주체(소유주체) - 공영=1, 민영=2, 기타=9
+                String prkplceSe = parkingData.getPrkplceSe();  // 관리주체(소유주체) - 공영=1, 민영=2, 기타=9
                 String prkPlceType = "3"; // 주차장유형 - 부설=3
 
                 log.info("📝 관리번호 생성 파라미터 - zipCode: {}, prkplceSe: {}, operMbyCd: {}, prkPlceType: {}",

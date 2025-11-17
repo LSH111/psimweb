@@ -3,8 +3,8 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>부설주차장 상세</title>
 
     <!-- 공통 CSS -->
@@ -38,8 +38,12 @@
         <div class="card section-card">
             <h2 class="section-header">📋 기본정보</h2>
             <div class="grid">
-                <div><label for="f_id">주차장관리번호</label><div class="ctl"><input id="f_id" class="mono" type="text" readonly /></div></div>
-                <div><label for="f_name">주차장명</label><div class="ctl"><input id="f_name" type="text" placeholder="예) 상암DMC 복합" /></div></div>
+                <div><label for="f_id">주차장관리번호</label>
+                    <div class="ctl"><input id="f_id" class="mono" type="text" readonly/></div>
+                </div>
+                <div><label for="f_name">주차장명</label>
+                    <div class="ctl"><input id="f_name" type="text" placeholder="예) 상암DMC 복합"/></div>
+                </div>
                 <!-- 🔥 진행상태를 select로 변경 -->
                 <div>
                     <label for="f_status">진행상태</label>
@@ -50,7 +54,9 @@
                         </select>
                     </div>
                 </div>
-                <div><label for="f_type">주차장구분</label><div class="ctl"><input id="f_type" type="text" value="부설" readonly /></div></div>
+                <div><label for="f_type">주차장구분</label>
+                    <div class="ctl"><input id="f_type" type="text" value="부설" readonly/></div>
+                </div>
                 <!-- 🔥 시도/시군구/읍면동을 select로 변경 -->
                 <div>
                     <label for="f_sido">시도</label>
@@ -77,13 +83,13 @@
                     </div>
                 </div>
                 <!-- 🔥 우편번호 hidden 필드 추가 -->
-                <input type="hidden" id="f_zip" />
+                <input type="hidden" id="f_zip"/>
 
                 <!-- 🔥 리(里) 추가 -->
                 <div>
                     <label for="f_ri">리(里)</label>
                     <div class="ctl">
-                        <input id="f_ri" type="text" placeholder="예) 상리" />
+                        <input id="f_ri" type="text" placeholder="예) 상리"/>
                     </div>
                 </div>
 
@@ -91,8 +97,8 @@
                 <div style="grid-column:1/-1">
                     <label>산 여부</label>
                     <div class="radio-group">
-                        <label><input type="radio" name="mountainYn" value="N" checked /> <span>일반</span></label>
-                        <label><input type="radio" name="mountainYn" value="Y" /> <span>산</span></label>
+                        <label><input type="radio" name="mountainYn" value="N" checked/> <span>일반</span></label>
+                        <label><input type="radio" name="mountainYn" value="Y"/> <span>산</span></label>
                     </div>
                 </div>
 
@@ -100,13 +106,13 @@
                 <div>
                     <label for="f_mainNum">본번</label>
                     <div class="ctl">
-                        <input id="f_mainNum" type="number" min="0" placeholder="예) 123" inputmode="numeric" />
+                        <input id="f_mainNum" type="number" min="0" placeholder="예) 123" inputmode="numeric"/>
                     </div>
                 </div>
                 <div>
                     <label for="f_subNum">부번</label>
                     <div class="ctl">
-                        <input id="f_subNum" type="number" min="0" placeholder="예) 45" inputmode="numeric" />
+                        <input id="f_subNum" type="number" min="0" placeholder="예) 45" inputmode="numeric"/>
                     </div>
                 </div>
 
@@ -114,18 +120,20 @@
                 <div style="grid-column:1/-1">
                     <label for="f_buildingName">건물명 (선택)</label>
                     <div class="ctl">
-                        <input id="f_buildingName" type="text" placeholder="예) 타워팰리스" />
+                        <input id="f_buildingName" type="text" placeholder="예) 타워팰리스"/>
                     </div>
                 </div>
 
                 <!-- 주소: 지번/도로명 + 주소찾기 -->
                 <div style="grid-column:1/-1">
                     <label for="f_addr_jibun">지번 주소</label>
-                    <div class="ctl"><input id="f_addr_jibun" type="text" placeholder="예) 서울 마포구 연남동 123-45" readonly /></div>
+                    <div class="ctl"><input id="f_addr_jibun" type="text" placeholder="예) 서울 마포구 연남동 123-45" readonly/>
+                    </div>
                 </div>
                 <div style="grid-column:1/-1">
                     <label for="f_addr_road">도로명 주소</label>
-                    <div class="ctl"><input id="f_addr_road" type="text" placeholder="예) 서울 마포구 연남로 123" readonly /></div>
+                    <div class="ctl"><input id="f_addr_road" type="text" placeholder="예) 서울 마포구 연남로 123" readonly/>
+                    </div>
                 </div>
                 <div style="grid-column:1/-1">
                     <button type="button" class="btn light" id="btnFindAddr">🔍 주소찾기</button>
@@ -142,8 +150,10 @@
                 <div style="grid-column:1/-1">
                     <label>사진 업로드</label>
                     <div class="photo-upload-zone">
-                        <input id="f_photo_lib" type="file" accept="image/*,image/heic,image/heif" style="display:none" />
-                        <input id="f_photo_cam" type="file" accept="image/*" capture="environment" style="display:none" />
+                        <input id="f_photo_lib" type="file" accept="image/*,image/heic,image/heif"
+                               style="display:none"/>
+                        <input id="f_photo_cam" type="file" accept="image/*" capture="environment"
+                               style="display:none"/>
                         <div class="file-upload-buttons">
                             <button type="button" class="btn light" id="btnPickFromLibrary">📁 사진첩에서 선택</button>
                             <button type="button" class="btn ghost" id="btnTakePhoto">📷 카메라 촬영</button>
@@ -188,14 +198,20 @@
 
                             <div class="upload-actions">
                                 <button type="button" class="btn-cancel" id="btn-upload-cancel">취소</button>
-                                <button type="button" class="btn-complete" id="btn-upload-complete" style="display: none;">완료</button>
+                                <button type="button" class="btn-complete" id="btn-upload-complete"
+                                        style="display: none;">완료
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div style="grid-column:1/-1"><img id="preview" class="thumb" alt="사진 미리보기" /></div>
-                <div><label for="f_lat">위도</label><div class="ctl"><input id="f_lat" class="mono" inputmode="decimal" /></div></div>
-                <div><label for="f_lng">경도</label><div class="ctl"><input id="f_lng" class="mono" inputmode="decimal" /></div></div>
+                <div style="grid-column:1/-1"><img id="preview" class="thumb" alt="사진 미리보기"/></div>
+                <div><label for="f_lat">위도</label>
+                    <div class="ctl"><input id="f_lat" class="mono" inputmode="decimal"/></div>
+                </div>
+                <div><label for="f_lng">경도</label>
+                    <div class="ctl"><input id="f_lng" class="mono" inputmode="decimal"/></div>
+                </div>
             </div>
         </div>
     </section>
@@ -219,13 +235,13 @@
                         <div>
                             <label for="f_permit_date">허가일자</label>
                             <div class="ctl">
-                                <input id="f_permit_date" type="date" />
+                                <input id="f_permit_date" type="date"/>
                             </div>
                         </div>
                         <div>
                             <label for="f_inspection_date">사용검사일자</label>
                             <div class="ctl">
-                                <input id="f_inspection_date" type="date" />
+                                <input id="f_inspection_date" type="date"/>
                             </div>
                         </div>
                     </div>
@@ -237,14 +253,16 @@
                         <div>
                             <label for="f_site_area">대지면적</label>
                             <div class="ctl">
-                                <input id="f_site_area" type="number" min="0" step="0.01" inputmode="decimal" placeholder="예) 1000.50" />
+                                <input id="f_site_area" type="number" min="0" step="0.01" inputmode="decimal"
+                                       placeholder="예) 1000.50"/>
                                 <span class="suffix">m²</span>
                             </div>
                         </div>
                         <div>
                             <label for="f_total_floor_area">연면적</label>
                             <div class="ctl">
-                                <input id="f_total_floor_area" type="number" min="0" step="0.01" inputmode="decimal" placeholder="예) 5000.75" />
+                                <input id="f_total_floor_area" type="number" min="0" step="0.01" inputmode="decimal"
+                                       placeholder="예) 5000.75"/>
                                 <span class="suffix">m²</span>
                             </div>
                         </div>
@@ -255,7 +273,7 @@
                     <h3 class="subsection-title">주차면수</h3>
                     <label for="f_totalStalls">총 주차면수</label>
                     <div id="ctl_total" class="ctl" style="width: 180px;">
-                        <input id="f_totalStalls" type="number" min="0" inputmode="numeric" placeholder="예) 120" />
+                        <input id="f_totalStalls" type="number" min="0" inputmode="numeric" placeholder="예) 120"/>
                         <span class="suffix">면</span>
                     </div>
                     <div id="stallsMsg" class="help" style="margin-top:4px"></div>
@@ -263,35 +281,35 @@
                         <div class="stall-item">
                             <label>일반</label>
                             <div class="ctl">
-                                <input id="f_st_normal" type="number" min="0" inputmode="numeric" />
+                                <input id="f_st_normal" type="number" min="0" inputmode="numeric"/>
                                 <span class="suffix">면</span>
                             </div>
                         </div>
                         <div class="stall-item">
                             <label>장애인</label>
                             <div class="ctl">
-                                <input id="f_st_dis" type="number" min="0" inputmode="numeric" />
+                                <input id="f_st_dis" type="number" min="0" inputmode="numeric"/>
                                 <span class="suffix">면</span>
                             </div>
                         </div>
                         <div class="stall-item">
                             <label>경차</label>
                             <div class="ctl">
-                                <input id="f_st_small" type="number" min="0" inputmode="numeric" />
+                                <input id="f_st_small" type="number" min="0" inputmode="numeric"/>
                                 <span class="suffix">면</span>
                             </div>
                         </div>
                         <div class="stall-item">
                             <label>친환경</label>
                             <div class="ctl">
-                                <input id="f_st_green" type="number" min="0" inputmode="numeric" />
+                                <input id="f_st_green" type="number" min="0" inputmode="numeric"/>
                                 <span class="suffix">면</span>
                             </div>
                         </div>
                         <div class="stall-item">
                             <label>임산부</label>
                             <div class="ctl">
-                                <input id="f_st_preg" type="number" min="0" inputmode="numeric" />
+                                <input id="f_st_preg" type="number" min="0" inputmode="numeric"/>
                                 <span class="suffix">면</span>
                             </div>
                         </div>
@@ -322,7 +340,7 @@
                     <div id="mech_prklot_oper_input_wrap" style="display: none; margin-top: 12px;">
                         <label for="f_mech_prklot_oper_value">작동여부 상세</label>
                         <div class="ctl" style="max-width: 400px;">
-                            <input id="f_mech_prklot_oper_value" type="text" placeholder="작동여부 상세 정보 입력" />
+                            <input id="f_mech_prklot_oper_value" type="text" placeholder="작동여부 상세 정보 입력"/>
                         </div>
                     </div>
                 </div>
@@ -339,9 +357,9 @@
                 <div class="subsection">
                     <h3 class="subsection-title">전체 규모</h3>
                     <div class="scale-input-group">
-                        <input type="number" id="f_total_floors" min="0" placeholder="예) 5" inputmode="numeric" />
+                        <input type="number" id="f_total_floors" min="0" placeholder="예) 5" inputmode="numeric"/>
                         <span>층</span>
-                        <input type="number" id="f_total_scale_area" min="0" placeholder="예) 3000" inputmode="numeric" />
+                        <input type="number" id="f_total_scale_area" min="0" placeholder="예) 3000" inputmode="numeric"/>
                         <span>㎡</span>
                     </div>
                 </div>
@@ -353,22 +371,28 @@
                         <div class="facility-row">
                             <span class="facility-label">지상실</span>
                             <div class="facility-inputs">
-                                <input type="number" id="f_indoor_ground_floors" min="0" placeholder="층" inputmode="numeric" />
+                                <input type="number" id="f_indoor_ground_floors" min="0" placeholder="층"
+                                       inputmode="numeric"/>
                                 <span>층 (</span>
-                                <input type="number" id="f_indoor_ground_area" min="0" placeholder="㎡" inputmode="numeric" />
+                                <input type="number" id="f_indoor_ground_area" min="0" placeholder="㎡"
+                                       inputmode="numeric"/>
                                 <span>㎡</span>
-                                <input type="number" id="f_indoor_ground_spaces" min="0" placeholder="대" inputmode="numeric" />
+                                <input type="number" id="f_indoor_ground_spaces" min="0" placeholder="대"
+                                       inputmode="numeric"/>
                                 <span>대 )</span>
                             </div>
                         </div>
                         <div class="facility-row">
                             <span class="facility-label">기계식</span>
                             <div class="facility-inputs">
-                                <input type="number" id="f_indoor_mechanical_floors" min="0" placeholder="층" inputmode="numeric" />
+                                <input type="number" id="f_indoor_mechanical_floors" min="0" placeholder="층"
+                                       inputmode="numeric"/>
                                 <span>층 (</span>
-                                <input type="number" id="f_indoor_mechanical_area" min="0" placeholder="㎡" inputmode="numeric" />
+                                <input type="number" id="f_indoor_mechanical_area" min="0" placeholder="㎡"
+                                       inputmode="numeric"/>
                                 <span>㎡</span>
-                                <input type="number" id="f_indoor_mechanical_spaces" min="0" placeholder="대" inputmode="numeric" />
+                                <input type="number" id="f_indoor_mechanical_spaces" min="0" placeholder="대"
+                                       inputmode="numeric"/>
                                 <span>대 )</span>
                             </div>
                         </div>
@@ -382,22 +406,28 @@
                         <div class="facility-row">
                             <span class="facility-label">지상실</span>
                             <div class="facility-inputs">
-                                <input type="number" id="f_outdoor_ground_floors" min="0" placeholder="층" inputmode="numeric" />
+                                <input type="number" id="f_outdoor_ground_floors" min="0" placeholder="층"
+                                       inputmode="numeric"/>
                                 <span>층 (</span>
-                                <input type="number" id="f_outdoor_ground_area" min="0" placeholder="㎡" inputmode="numeric" />
+                                <input type="number" id="f_outdoor_ground_area" min="0" placeholder="㎡"
+                                       inputmode="numeric"/>
                                 <span>㎡</span>
-                                <input type="number" id="f_outdoor_ground_spaces" min="0" placeholder="대" inputmode="numeric" />
+                                <input type="number" id="f_outdoor_ground_spaces" min="0" placeholder="대"
+                                       inputmode="numeric"/>
                                 <span>대 )</span>
                             </div>
                         </div>
                         <div class="facility-row">
                             <span class="facility-label">기계식</span>
                             <div class="facility-inputs">
-                                <input type="number" id="f_outdoor_mechanical_floors" min="0" placeholder="층" inputmode="numeric" />
+                                <input type="number" id="f_outdoor_mechanical_floors" min="0" placeholder="층"
+                                       inputmode="numeric"/>
                                 <span>층 (</span>
-                                <input type="number" id="f_outdoor_mechanical_area" min="0" placeholder="㎡" inputmode="numeric" />
+                                <input type="number" id="f_outdoor_mechanical_area" min="0" placeholder="㎡"
+                                       inputmode="numeric"/>
                                 <span>㎡</span>
-                                <input type="number" id="f_outdoor_mechanical_spaces" min="0" placeholder="대" inputmode="numeric" />
+                                <input type="number" id="f_outdoor_mechanical_spaces" min="0" placeholder="대"
+                                       inputmode="numeric"/>
                                 <span>대 )</span>
                             </div>
                         </div>
@@ -408,11 +438,12 @@
                 <div class="subsection">
                     <h3 class="subsection-title">운영주체</h3>
                     <div class="radio-group" id="operation_entity_group">
-                        <label><input type="radio" name="operationEntity" value="시운영" checked /> <span>시운영</span></label>
-                        <label><input type="radio" name="operationEntity" value="구(군)운영" /> <span>구(군)운영</span></label>
-                        <label><input type="radio" name="operationEntity" value="공단직영" /> <span>공단직영</span></label>
-                        <label><input type="radio" name="operationEntity" value="민간위탁" id="operation_private" /> <span>민간위탁</span></label>
-                        <label><input type="radio" name="operationEntity" value="민간직영" id="operation_private_direct" /> <span>민간직영</span></label>
+                        <label><input type="radio" name="operationEntity" value="시운영" checked/> <span>시운영</span></label>
+                        <label><input type="radio" name="operationEntity" value="구(군)운영"/> <span>구(군)운영</span></label>
+                        <label><input type="radio" name="operationEntity" value="공단직영"/> <span>공단직영</span></label>
+                        <label><input type="radio" name="operationEntity" value="민간위탁" id="operation_private"/> <span>민간위탁</span></label>
+                        <label><input type="radio" name="operationEntity" value="민간직영" id="operation_private_direct"/>
+                            <span>민간직영</span></label>
                     </div>
                 </div>
 
@@ -450,13 +481,13 @@
                         <div>
                             <label for="f_management_agency">관리기관명</label>
                             <div class="ctl">
-                                <input id="f_management_agency" type="text" placeholder="관리기관명 입력" />
+                                <input id="f_management_agency" type="text" placeholder="관리기관명 입력"/>
                             </div>
                         </div>
                         <div>
                             <label for="f_management_tel">관리기관 전화번호</label>
                             <div class="ctl" style="max-width: 250px;">
-                                <input id="f_management_tel" type="text" placeholder="예) 02-1234-5678" inputmode="tel" />
+                                <input id="f_management_tel" type="text" placeholder="예) 02-1234-5678" inputmode="tel"/>
                             </div>
                         </div>
                     </div>
@@ -491,14 +522,18 @@
                         <div class="highlight-input-area">
                             <div class="time-input-group">
                                 <span class="time-label">운영시간:</span>
-                                <input type="number" id="weekday_start_hour" min="0" max="23" placeholder="시" class="time-input" />
+                                <input type="number" id="weekday_start_hour" min="0" max="23" placeholder="시"
+                                       class="time-input"/>
                                 <span class="time-unit">시</span>
-                                <input type="number" id="weekday_start_min" min="0" max="59" placeholder="분" class="time-input" />
+                                <input type="number" id="weekday_start_min" min="0" max="59" placeholder="분"
+                                       class="time-input"/>
                                 <span class="time-unit">분</span>
                                 <span class="time-separator">~</span>
-                                <input type="number" id="weekday_end_hour" min="0" max="23" placeholder="시" class="time-input" />
+                                <input type="number" id="weekday_end_hour" min="0" max="23" placeholder="시"
+                                       class="time-input"/>
                                 <span class="time-unit">시</span>
-                                <input type="number" id="weekday_end_min" min="0" max="59" placeholder="분" class="time-input" />
+                                <input type="number" id="weekday_end_min" min="0" max="59" placeholder="분"
+                                       class="time-input"/>
                                 <span class="time-unit">분</span>
                             </div>
                             <div class="input-guide">평일 운영시간을 입력해주세요 (24시간 형식)</div>
@@ -517,14 +552,18 @@
                         <div class="highlight-input-area">
                             <div class="time-input-group">
                                 <span class="time-label">운영시간:</span>
-                                <input type="number" id="saturday_start_hour" min="0" max="23" placeholder="시" class="time-input" />
+                                <input type="number" id="saturday_start_hour" min="0" max="23" placeholder="시"
+                                       class="time-input"/>
                                 <span class="time-unit">시</span>
-                                <input type="number" id="saturday_start_min" min="0" max="59" placeholder="분" class="time-input" />
+                                <input type="number" id="saturday_start_min" min="0" max="59" placeholder="분"
+                                       class="time-input"/>
                                 <span class="time-unit">분</span>
                                 <span class="time-separator">~</span>
-                                <input type="number" id="saturday_end_hour" min="0" max="23" placeholder="시" class="time-input" />
+                                <input type="number" id="saturday_end_hour" min="0" max="23" placeholder="시"
+                                       class="time-input"/>
                                 <span class="time-unit">시</span>
-                                <input type="number" id="saturday_end_min" min="0" max="59" placeholder="분" class="time-input" />
+                                <input type="number" id="saturday_end_min" min="0" max="59" placeholder="분"
+                                       class="time-input"/>
                                 <span class="time-unit">분</span>
                             </div>
                             <div class="input-guide">토요일 운영시간을 입력해주세요 (24시간 형식)</div>
@@ -543,14 +582,18 @@
                         <div class="highlight-input-area">
                             <div class="time-input-group">
                                 <span class="time-label">운영시간:</span>
-                                <input type="number" id="holiday_start_hour" min="0" max="23" placeholder="시" class="time-input" />
+                                <input type="number" id="holiday_start_hour" min="0" max="23" placeholder="시"
+                                       class="time-input"/>
                                 <span class="time-unit">시</span>
-                                <input type="number" id="holiday_start_min" min="0" max="59" placeholder="분" class="time-input" />
+                                <input type="number" id="holiday_start_min" min="0" max="59" placeholder="분"
+                                       class="time-input"/>
                                 <span class="time-unit">분</span>
                                 <span class="time-separator">~</span>
-                                <input type="number" id="holiday_end_hour" min="0" max="23" placeholder="시" class="time-input" />
+                                <input type="number" id="holiday_end_hour" min="0" max="23" placeholder="시"
+                                       class="time-input"/>
                                 <span class="time-unit">시</span>
-                                <input type="number" id="holiday_end_min" min="0" max="59" placeholder="분" class="time-input" />
+                                <input type="number" id="holiday_end_min" min="0" max="59" placeholder="분"
+                                       class="time-input"/>
                                 <span class="time-unit">분</span>
                             </div>
                             <div class="input-guide">공휴일 운영시간을 입력해주세요 (24시간 형식)</div>
@@ -571,15 +614,18 @@
                     <div class="fee-group">
                         <div class="fee-item">
                             <label for="f_day_res_all">전일</label>
-                            <div class="ctl"><input id="f_day_res_all" type="text" inputmode="numeric" placeholder="예) 5000"/><span class="suffix">원</span></div>
+                            <div class="ctl"><input id="f_day_res_all" type="text" inputmode="numeric"
+                                                    placeholder="예) 5000"/><span class="suffix">원</span></div>
                         </div>
                         <div class="fee-item">
                             <label for="f_day_res_day">주간</label>
-                            <div class="ctl"><input id="f_day_res_day" type="text" inputmode="numeric" placeholder="예) 3000"/><span class="suffix">원</span></div>
+                            <div class="ctl"><input id="f_day_res_day" type="text" inputmode="numeric"
+                                                    placeholder="예) 3000"/><span class="suffix">원</span></div>
                         </div>
                         <div class="fee-item">
                             <label for="f_day_res_full">상근</label>
-                            <div class="ctl"><input id="f_day_res_full" type="text" inputmode="numeric" placeholder="예) 4000"/><span class="suffix">원</span></div>
+                            <div class="ctl"><input id="f_day_res_full" type="text" inputmode="numeric"
+                                                    placeholder="예) 4000"/><span class="suffix">원</span></div>
                         </div>
                     </div>
                 </div>
@@ -589,27 +635,33 @@
                     <div class="fee-group">
                         <div class="fee-item">
                             <label for="f_fee_first30">최초 30분</label>
-                            <div class="ctl"><input id="f_fee_first30" type="text" inputmode="numeric" placeholder="예) 1000"/><span class="suffix">원</span></div>
+                            <div class="ctl"><input id="f_fee_first30" type="text" inputmode="numeric"
+                                                    placeholder="예) 1000"/><span class="suffix">원</span></div>
                         </div>
                         <div class="fee-item">
                             <label for="f_fee_per10">매 10분</label>
-                            <div class="ctl"><input id="f_day_fee_per10" type="text" inputmode="numeric" placeholder="예) 300"/><span class="suffix">원</span></div>
+                            <div class="ctl"><input id="f_day_fee_per10" type="text" inputmode="numeric"
+                                                    placeholder="예) 300"/><span class="suffix">원</span></div>
                         </div>
                         <div class="fee-item">
                             <label for="f_fee_per60">1시간</label>
-                            <div class="ctl"><input id="f_day_fee_per60" type="text" inputmode="numeric" placeholder="예) 2000"/><span class="suffix">원</span></div>
+                            <div class="ctl"><input id="f_day_fee_per60" type="text" inputmode="numeric"
+                                                    placeholder="예) 2000"/><span class="suffix">원</span></div>
                         </div>
                         <div class="fee-item">
                             <label for="f_fee_daily">전일(일)</label>
-                            <div class="ctl"><input id="f_fee_daily" type="text" inputmode="numeric" placeholder="예) 10000"/><span class="suffix">원</span></div>
+                            <div class="ctl"><input id="f_fee_daily" type="text" inputmode="numeric"
+                                                    placeholder="예) 10000"/><span class="suffix">원</span></div>
                         </div>
                         <div class="fee-item">
                             <label for="f_fee_monthly">월정기권</label>
-                            <div class="ctl"><input id="f_fee_monthly" type="text" inputmode="numeric" placeholder="예) 120000"/><span class="suffix">원</span></div>
+                            <div class="ctl"><input id="f_fee_monthly" type="text" inputmode="numeric"
+                                                    placeholder="예) 120000"/><span class="suffix">원</span></div>
                         </div>
                         <div class="fee-item">
                             <label for="f_fee_halfyear">반기권</label>
-                            <div class="ctl"><input id="f_fee_halfyear" type="text" inputmode="numeric" placeholder="예) 600000"/><span class="suffix">원</span></div>
+                            <div class="ctl"><input id="f_fee_halfyear" type="text" inputmode="numeric"
+                                                    placeholder="예) 600000"/><span class="suffix">원</span></div>
                         </div>
                     </div>
                 </div>
@@ -642,22 +694,25 @@
                 <div class="subsection">
                     <h3 class="subsection-title">주차장표지판 유무</h3>
                     <div class="radio-group" id="parking_sign_group">
-                        <label><input type="radio" name="parkingSign" value="Y" id="sign_yes" /> <span>있음</span></label>
-                        <label><input type="radio" name="parkingSign" value="N" id="sign_no" checked /> <span>없음</span></label>
+                        <label><input type="radio" name="parkingSign" value="Y" id="sign_yes"/> <span>있음</span></label>
+                        <label><input type="radio" name="parkingSign" value="N" id="sign_no" checked/>
+                            <span>없음</span></label>
                     </div>
                 </div>
 
                 <div id="sign_photo_wrap" style="display:none;">
                     <label>표지판 사진</label>
                     <div class="photo-upload-zone">
-                        <input id="f_sign_photo_lib" type="file" accept="image/*,image/heic,image/heif" style="display:none" />
-                        <input id="f_sign_photo_cam" type="file" accept="image/*" capture="environment" style="display:none" />
+                        <input id="f_sign_photo_lib" type="file" accept="image/*,image/heic,image/heif"
+                               style="display:none"/>
+                        <input id="f_sign_photo_cam" type="file" accept="image/*" capture="environment"
+                               style="display:none"/>
                         <div class="file-upload-buttons">
                             <button type="button" class="btn light" id="btnSignPhotoLibrary">📁 사진첩</button>
                             <button type="button" class="btn ghost" id="btnSignPhotoCamera">📷 촬영</button>
                             <button type="button" class="btn ghost" id="btnClearSignPhoto">🗑️ 초기화</button>
                         </div>
-                        <img id="sign_preview" class="thumb" alt="표지판 사진" style="display:none;" />
+                        <img id="sign_preview" class="thumb" alt="표지판 사진" style="display:none;"/>
                     </div>
                 </div>
 
@@ -665,22 +720,26 @@
                 <div class="subsection">
                     <h3 class="subsection-title">발권기 유무</h3>
                     <div class="radio-group" id="ticket_machine_group">
-                        <label><input type="radio" name="ticketMachine" value="Y" id="ticket_yes" /> <span>있음</span></label>
-                        <label><input type="radio" name="ticketMachine" value="N" id="ticket_no" checked /> <span>없음</span></label>
+                        <label><input type="radio" name="ticketMachine" value="Y" id="ticket_yes"/>
+                            <span>있음</span></label>
+                        <label><input type="radio" name="ticketMachine" value="N" id="ticket_no" checked/>
+                            <span>없음</span></label>
                     </div>
                 </div>
 
                 <div id="ticket_photo_wrap" style="display:none;">
                     <label>발권기 사진</label>
                     <div class="photo-upload-zone">
-                        <input id="f_ticket_photo_lib" type="file" accept="image/*,image/heic,image/heif" style="display:none" />
-                        <input id="f_ticket_photo_cam" type="file" accept="image/*" capture="environment" style="display:none" />
+                        <input id="f_ticket_photo_lib" type="file" accept="image/*,image/heic,image/heif"
+                               style="display:none"/>
+                        <input id="f_ticket_photo_cam" type="file" accept="image/*" capture="environment"
+                               style="display:none"/>
                         <div class="file-upload-buttons">
                             <button type="button" class="btn light" id="btnTicketPhotoLibrary">📁 사진첩</button>
                             <button type="button" class="btn ghost" id="btnTicketPhotoCamera">📷 촬영</button>
                             <button type="button" class="btn ghost" id="btnClearTicketPhoto">🗑️ 초기화</button>
                         </div>
-                        <img id="ticket_preview" class="thumb" alt="발권기 사진" style="display:none;" />
+                        <img id="ticket_preview" class="thumb" alt="발권기 사진" style="display:none;"/>
                     </div>
                 </div>
 
@@ -688,22 +747,25 @@
                 <div class="subsection">
                     <h3 class="subsection-title">차단기 유무</h3>
                     <div class="radio-group" id="barrier_group">
-                        <label><input type="radio" name="barrier" value="Y" id="barrier_yes" /> <span>있음</span></label>
-                        <label><input type="radio" name="barrier" value="N" id="barrier_no" checked /> <span>없음</span></label>
+                        <label><input type="radio" name="barrier" value="Y" id="barrier_yes"/> <span>있음</span></label>
+                        <label><input type="radio" name="barrier" value="N" id="barrier_no" checked/>
+                            <span>없음</span></label>
                     </div>
                 </div>
 
                 <div id="barrier_photo_wrap" style="display:none;">
                     <label>차단기 사진</label>
                     <div class="photo-upload-zone">
-                        <input id="f_barrier_photo_lib" type="file" accept="image/*,image/heic,image/heif" style="display:none" />
-                        <input id="f_barrier_photo_cam" type="file" accept="image/*" capture="environment" style="display:none" />
+                        <input id="f_barrier_photo_lib" type="file" accept="image/*,image/heic,image/heif"
+                               style="display:none"/>
+                        <input id="f_barrier_photo_cam" type="file" accept="image/*" capture="environment"
+                               style="display:none"/>
                         <div class="file-upload-buttons">
                             <button type="button" class="btn light" id="btnBarrierPhotoLibrary">📁 사진첩</button>
                             <button type="button" class="btn ghost" id="btnBarrierPhotoCamera">📷 촬영</button>
                             <button type="button" class="btn ghost" id="btnClearBarrierPhoto">🗑️ 초기화</button>
                         </div>
-                        <img id="barrier_preview" class="thumb" alt="차단기 사진" style="display:none;" />
+                        <img id="barrier_preview" class="thumb" alt="차단기 사진" style="display:none;"/>
                     </div>
                 </div>
 
@@ -719,22 +781,25 @@
                 <div class="subsection">
                     <h3 class="subsection-title">출차알람 유무</h3>
                     <div class="radio-group" id="alarm_group">
-                        <label><input type="radio" name="alarm" value="Y" id="alarm_yes" /> <span>있음</span></label>
-                        <label><input type="radio" name="alarm" value="N" id="alarm_no" checked /> <span>없음</span></label>
+                        <label><input type="radio" name="alarm" value="Y" id="alarm_yes"/> <span>있음</span></label>
+                        <label><input type="radio" name="alarm" value="N" id="alarm_no" checked/>
+                            <span>없음</span></label>
                     </div>
                 </div>
 
                 <div id="exit_alarm_photo_wrap" style="display:none;">
                     <label>출차알람 사진</label>
                     <div class="photo-upload-zone">
-                        <input id="f_exit_alarm_photo_lib" type="file" accept="image/*,image/heic,image/heif" style="display:none" />
-                        <input id="f_exit_alarm_photo_cam" type="file" accept="image/*" capture="environment" style="display:none" />
+                        <input id="f_exit_alarm_photo_lib" type="file" accept="image/*,image/heic,image/heif"
+                               style="display:none"/>
+                        <input id="f_exit_alarm_photo_cam" type="file" accept="image/*" capture="environment"
+                               style="display:none"/>
                         <div class="file-upload-buttons">
                             <button type="button" class="btn light" id="btnExitAlarmPhotoLibrary">📁 사진첩</button>
                             <button type="button" class="btn ghost" id="btnExitAlarmPhotoCamera">📷 촬영</button>
                             <button type="button" class="btn ghost" id="btnClearExitAlarmPhoto">🗑️ 초기화</button>
                         </div>
-                        <img id="exit_alarm_preview" class="thumb" alt="출차알람 사진" style="display:none;" />
+                        <img id="exit_alarm_preview" class="thumb" alt="출차알람 사진" style="display:none;"/>
                     </div>
                 </div>
             </div>
@@ -752,17 +817,19 @@
                     <div class="peak-time-group">
                         <span class="peak-label">첨두시간대:</span>
                         <div class="ctl">
-                            <input id="f_peak_day_start" type="number" min="7" max="20" placeholder="07" inputmode="numeric" />
+                            <input id="f_peak_day_start" type="number" min="7" max="20" placeholder="07"
+                                   inputmode="numeric"/>
                             <span class="suffix">시</span>
                         </div>
                         <span>~</span>
                         <div class="ctl">
-                            <input id="f_peak_day_end" type="number" min="7" max="20" placeholder="20" inputmode="numeric" />
+                            <input id="f_peak_day_end" type="number" min="7" max="20" placeholder="20"
+                                   inputmode="numeric"/>
                             <span class="suffix">시</span>
                         </div>
                         <span class="peak-label">주차대수:</span>
                         <div class="ctl">
-                            <input id="f_peak_day_count" type="number" min="0" placeholder="예) 80" inputmode="numeric" />
+                            <input id="f_peak_day_count" type="number" min="0" placeholder="예) 80" inputmode="numeric"/>
                             <span class="suffix">대</span>
                         </div>
                     </div>
@@ -774,17 +841,20 @@
                     <div class="peak-time-group">
                         <span class="peak-label">첨두시간대:</span>
                         <div class="ctl">
-                            <input id="f_peak_night_start" type="number" min="20" max="23" placeholder="20" inputmode="numeric" />
+                            <input id="f_peak_night_start" type="number" min="20" max="23" placeholder="20"
+                                   inputmode="numeric"/>
                             <span class="suffix">시</span>
                         </div>
                         <span>~</span>
                         <div class="ctl">
-                            <input id="f_peak_night_end" type="number" min="0" max="7" placeholder="07" inputmode="numeric" />
+                            <input id="f_peak_night_end" type="number" min="0" max="7" placeholder="07"
+                                   inputmode="numeric"/>
                             <span class="suffix">시</span>
                         </div>
                         <span class="peak-label">주차대수:</span>
                         <div class="ctl">
-                            <input id="f_peak_night_count" type="number" min="0" placeholder="예) 100" inputmode="numeric" />
+                            <input id="f_peak_night_count" type="number" min="0" placeholder="예) 100"
+                                   inputmode="numeric"/>
                             <span class="suffix">대</span>
                         </div>
                     </div>
@@ -800,19 +870,25 @@
             <div style="grid-column:1/-1">
                 <label>주차장 입구 사진</label>
                 <div class="photo-upload-zone">
-                    <input id="f_entrance_photo_lib" type="file" accept="image/*,image/heic,image/heif" style="display:none" />
-                    <input id="f_entrance_photo_cam" type="file" accept="image/*" capture="environment" style="display:none" />
+                    <input id="f_entrance_photo_lib" type="file" accept="image/*,image/heic,image/heif"
+                           style="display:none"/>
+                    <input id="f_entrance_photo_cam" type="file" accept="image/*" capture="environment"
+                           style="display:none"/>
                     <div class="file-upload-buttons">
                         <button type="button" class="btn light" id="btnEntrancePhotoLibrary">📁 사진첩</button>
                         <button type="button" class="btn ghost" id="btnEntrancePhotoCamera">📷 촬영</button>
                         <button type="button" class="btn ghost" id="btnClearEntrancePhoto">🗑️ 초기화</button>
                     </div>
-                    <img id="entrance_preview" class="thumb" alt="입구 사진" style="display:none;" />
+                    <img id="entrance_preview" class="thumb" alt="입구 사진" style="display:none;"/>
                 </div>
             </div>
 
-            <div><label for="f_entrance_lat">위도</label><div class="ctl"><input id="f_entrance_lat" class="mono" inputmode="decimal" readonly /></div></div>
-            <div><label for="f_entrance_lng">경도</label><div class="ctl"><input id="f_entrance_lng" class="mono" inputmode="decimal" readonly /></div></div>
+            <div><label for="f_entrance_lat">위도</label>
+                <div class="ctl"><input id="f_entrance_lat" class="mono" inputmode="decimal" readonly/></div>
+            </div>
+            <div><label for="f_entrance_lng">경도</label>
+                <div class="ctl"><input id="f_entrance_lng" class="mono" inputmode="decimal" readonly/></div>
+            </div>
         </div>
     </section>
 
@@ -825,8 +901,8 @@
                 <div class="subsection">
                     <h3 class="subsection-title">2층 이상 건축물 주차장여부</h3>
                     <div class="radio-group" id="elevator_group">
-                        <label><input type="radio" name="buildingFloor" value="1층" checked /> <span>1층</span></label>
-                        <label><input type="radio" name="buildingFloor" value="2층이상" /> <span>2층 이상</span></label>
+                        <label><input type="radio" name="buildingFloor" value="1층" checked/> <span>1층</span></label>
+                        <label><input type="radio" name="buildingFloor" value="2층이상"/> <span>2층 이상</span></label>
                     </div>
                 </div>
 
@@ -834,8 +910,8 @@
                 <div id="fall_prevention_wrap" style="display:none;" class="subsection">
                     <h3 class="subsection-title">추락방지시설 유무</h3>
                     <div class="radio-group" id="fall_prevention_group">
-                        <label><input type="radio" name="fallPrevention" value="Y" /> <span>있음</span></label>
-                        <label><input type="radio" name="fallPrevention" value="N" /> <span>없음</span></label>
+                        <label><input type="radio" name="fallPrevention" value="Y"/> <span>있음</span></label>
+                        <label><input type="radio" name="fallPrevention" value="N"/> <span>없음</span></label>
                     </div>
                 </div>
 
@@ -843,8 +919,9 @@
                 <div class="subsection">
                     <h3 class="subsection-title">경사 여부</h3>
                     <div class="radio-group" id="slope_group">
-                        <label><input type="radio" name="slope" value="Y" id="slope_yes" /> <span>있음</span></label>
-                        <label><input type="radio" name="slope" value="N" id="slope_no" checked /> <span>없음</span></label>
+                        <label><input type="radio" name="slope" value="Y" id="slope_yes"/> <span>있음</span></label>
+                        <label><input type="radio" name="slope" value="N" id="slope_no" checked/>
+                            <span>없음</span></label>
                     </div>
                 </div>
 
@@ -852,33 +929,37 @@
                 <div class="subsection">
                     <h3 class="subsection-title">안전시설</h3>
                     <div class="check-group" id="safety_group">
-                        <label><input type="checkbox" name="safetyFacility" value="Y" id="antislp_facility_chk" /> <span>미끄럼 방지시설</span></label>
-                        <label><input type="checkbox" name="safetyFacility" value="Y" id="slp_guide_sign_chk" /> <span>미끄럼 주의 안내표지판</span></label>
+                        <label><input type="checkbox" name="safetyFacility" value="Y" id="antislp_facility_chk"/> <span>미끄럼 방지시설</span></label>
+                        <label><input type="checkbox" name="safetyFacility" value="Y" id="slp_guide_sign_chk"/> <span>미끄럼 주의 안내표지판</span></label>
                     </div>
                 </div>
 
                 <!-- 보행안전시설 -->
-                <div id="pedestrian_safety_wrap" class="pedestrian-safety-section" style="opacity: 0.5; pointer-events: none;">
+                <div id="pedestrian_safety_wrap" class="pedestrian-safety-section"
+                     style="opacity: 0.5; pointer-events: none;">
                     <h3 class="subsection-title">보행안전시설 <span class="help">(총 주차면수 400면 이상인 경우만 입력 가능)</span></h3>
                     <div class="pedestrian-safety-grid">
                         <div class="safety-item">
                             <span>과속방지턱</span>
                             <div class="ctl">
-                                <input id="f_speed_bump_count" type="number" min="0" placeholder="0" inputmode="numeric" disabled />
+                                <input id="f_speed_bump_count" type="number" min="0" placeholder="0" inputmode="numeric"
+                                       disabled/>
                                 <span class="suffix">개</span>
                             </div>
                         </div>
                         <div class="safety-item">
                             <span>원산차선</span>
                             <div class="ctl">
-                                <input id="f_crosswalk_count" type="number" min="0" placeholder="0" inputmode="numeric" disabled />
+                                <input id="f_crosswalk_count" type="number" min="0" placeholder="0" inputmode="numeric"
+                                       disabled/>
                                 <span class="suffix">개</span>
                             </div>
                         </div>
                         <div class="safety-item">
                             <span>횡단보도</span>
                             <div class="ctl">
-                                <input id="f_pedestrian_crossing_count" type="number" min="0" placeholder="0" inputmode="numeric" disabled />
+                                <input id="f_pedestrian_crossing_count" type="number" min="0" placeholder="0"
+                                       inputmode="numeric" disabled/>
                                 <span class="suffix">개</span>
                             </div>
                         </div>
@@ -897,32 +978,32 @@
                     <div class="subsection">
                         <h3 class="subsection-title">안내문 유무</h3>
                         <div class="radio-group" id="announcement_group">
-                            <label><input type="radio" name="announcement" value="Y" /> <span>있음</span></label>
-                            <label><input type="radio" name="announcement" value="N" /> <span>없음</span></label>
+                            <label><input type="radio" name="announcement" value="Y"/> <span>있음</span></label>
+                            <label><input type="radio" name="announcement" value="N"/> <span>없음</span></label>
                         </div>
                     </div>
 
                     <div class="subsection">
                         <h3 class="subsection-title">안전검사 유무</h3>
                         <div class="radio-group" id="safety_check_group">
-                            <label><input type="radio" name="safetyCheck" value="Y" /> <span>있음</span></label>
-                            <label><input type="radio" name="safetyCheck" value="N" checked /> <span>없음</span></label>
+                            <label><input type="radio" name="safetyCheck" value="Y"/> <span>있음</span></label>
+                            <label><input type="radio" name="safetyCheck" value="N" checked/> <span>없음</span></label>
                         </div>
                     </div>
 
                     <div class="subsection">
                         <h3 class="subsection-title">관리인 유무</h3>
                         <div class="radio-group" id="manager_group">
-                            <label><input type="radio" name="manager" value="Y" /> <span>있음</span></label>
-                            <label><input type="radio" name="manager" value="N" checked /> <span>없음</span></label>
+                            <label><input type="radio" name="manager" value="Y"/> <span>있음</span></label>
+                            <label><input type="radio" name="manager" value="N" checked/> <span>없음</span></label>
                         </div>
                     </div>
 
                     <div class="subsection">
                         <h3 class="subsection-title">관리자 유무</h3>
                         <div class="radio-group" id="admin_group">
-                            <label><input type="radio" name="admin" value="Y" /> <span>있음</span></label>
-                            <label><input type="radio" name="admin" value="N" checked /> <span>없음</span></label>
+                            <label><input type="radio" name="admin" value="Y"/> <span>있음</span></label>
+                            <label><input type="radio" name="admin" value="N" checked/> <span>없음</span></label>
                         </div>
                     </div>
                 </div>
@@ -952,6 +1033,13 @@
 
 </div>
 
+<!-- 주소찾기 레이어 -->
+<div id="postcodeLayer" role="dialog" aria-modal="true" aria-label="주소 검색">
+    <div id="postcodeWrap">
+        <button id="postcodeClose" class="btn light" type="button">닫기</button>
+        <div id="postcodeContainer"></div>
+    </div>
+</div>
 <!-- 페이지 전용 JS -->
 <script src="${pageContext.request.contextPath}/static/js/buildparking.js"></script>
 </body>

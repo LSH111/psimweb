@@ -316,7 +316,8 @@ public class ParkingDetailVO {
 
     // 급지
     private String alZon;                   // 급지
-
+    private String charGrdCd;               // 급지 코드 (추가)
+    private String chaGrdCd;
     /* ========================================
      * 기타 공통 정보
      * ======================================== */

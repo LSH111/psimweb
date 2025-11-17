@@ -17,18 +17,18 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class PrkUsageStatusServiceImpl implements PrkUsageStatusService {
-    
+
     private final PrkUsageStatusMapper mapper;
-    
+
     @Override
     public List<PrkUsageStatusVO> getUsageStatusList(PrkUsageStatusVO vo) {
         // offset 계산
         vo.setOffset((vo.getPage() - 1) * vo.getPageSize());
-        
+
         // 총 개수 조회
         //int totalCount = mapper.selectUsageStatusCount(vo);
         //vo.setTotalCount(totalCount);
-        
+
         // 목록 조회
         return mapper.selectUsageStatusList(vo);
     }
@@ -37,19 +37,19 @@ public class PrkUsageStatusServiceImpl implements PrkUsageStatusService {
     public PrkUsageStatusVO getUsageStatusDetail(PrkUsageStatusVO vo) {
         return mapper.selectUsageStatusDetail(vo);
     }
-    
+
     @Override
     @Transactional
     public int insertUsageStatus(PrkUsageStatusVO vo) {
         return mapper.insertUsageStatus(vo);
     }
-    
+
     @Override
     @Transactional
     public int updateUsageStatus(PrkUsageStatusVO vo) {
         return mapper.updateUsageStatus(vo);
     }
-    
+
     @Override
     @Transactional
     public int deleteUsageStatus(PrkUsageStatusVO vo) {

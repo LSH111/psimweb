@@ -2742,6 +2742,14 @@ function mapPayloadToServerFormat(payload) {
         emdCd: payload.emdCd,
         ldongCd: generateLdongCd(),
 
+        /* ========== 🔥 지번 정보 ========== */
+        bdnbr: document.getElementById('f_buildingName')?.value || null,
+        lnmMnno: document.getElementById('f_mainNum')?.value || null,
+        lnmSbno: document.getElementById('f_subNum')?.value || null,
+        mntnYn: document.querySelector('input[name="mountainYn"]:checked')?.value || 'N',
+        liCd: document.getElementById('f_ri')?.value || null,
+        rnmadr: document.getElementById('f_addr_road')?.value || null,
+
         // 주차면수
         totPrkCnt: num(totalInput?.value),
         disabPrkCnt: num(disInput?.value),
