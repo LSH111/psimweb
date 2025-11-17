@@ -698,7 +698,7 @@
              , tapoi.prklot_entr_lat                            as prklotEntrLat
              , tapoi.prklot_entr_lon                            as prklotEntrLon
              -- 🔥 급지 정보 추가
-             , tapoi.chrg_grd_cd                                as chrgGrdCd
+             , tapoi.al_zon                                     as chrgGrdCd
              -- 기타 정보
              , tapoi.pbl_open_yn                                as pblOpenYn
              , tapoi.prklot_info_prvsn_cnst_yn                  as prklotInfoPrvsnCnstYn
@@ -781,7 +781,7 @@
           , spd_bump_qty         = #{spdBumpQty}
           , stop_line_qty        = #{stopLineQty}
           , crswlk_qty           = #{crswlkQty}
-          , chrg_grd_cd          = #{chrgGrdCd}
+          , al_zon               = #{chrgGrdCd}
           , partclr_matter       = #{partclrMatter}
           , updt_dt              = NOW()
           , updusr_id            = #{updusrId}

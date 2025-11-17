@@ -375,6 +375,11 @@ const CodeLoader = {
             return;
         }
 
+        // PRK_001: 관리주체(소유주체) - (공영/민영 등)
+        if (groups['PRK_001']) {
+            this.populateRadioGroup('#owner_type_group', 'ownerType', groups['PRK_001'].codes);
+        }
+
         // PRK_015: 급지구분
         if (groups['PRK_015']) {
             this.populateSelect('#f_grade', groups['PRK_015'].codes);
@@ -1954,6 +1959,13 @@ async function doSave() {
     try {
         console.log('🚀 저장 프로세스 시작');
 
+        const ownerTypeCode = document.querySelector('input[name="parkingType"]:checked')?.value;
+        if (!ownerTypeCode) {
+            alert('관리주체(소유주체)를 선택해주세요.');
+            // 저장 버튼 비활성화 등 UI 처리 로직이 있다면 여기서 복구해주는 것이 좋습니다.
+            return; // 저장 프로세스를 중단합니다.
+        }
+
         const validationErrors = validateRequiredFields();
         if (validationErrors.length > 0) {
             alert('다음 항목을 입력해주세요:\n\n' + validationErrors.join('\n'));
@@ -2112,6 +2124,8 @@ function mapPayloadToServerFormat(payload) {
         compactPrkCnt: payload.stalls.compact,
         ecoPrkCnt: payload.stalls.eco,
         pregnantPrkCnt: payload.stalls.pregnant,
+
+        prkplceSe: document.querySelector('input[name="parkingType"]:checked')?.value,
 
         operMbyCd: document.querySelector('input[name="operationEntity"]:checked')?.value,
         mgrOrg: $('#f_management_agency')?.value,
