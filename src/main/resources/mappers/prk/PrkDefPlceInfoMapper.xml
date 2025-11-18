@@ -245,20 +245,20 @@
              , topoi.wk_fee_pay_mthd_othr                       as wkFeePayMthdOthr
              , topoi.nt_fee_pay_mthd_othr                       as ntFeePayMthdOthr
         FROM cpk.tb_prk_def_plce_info tpdpi
-                 INNER JOIN cpk.tb_onstr_prklot_info topi
-                            ON tpdpi.prk_plce_manage_no = topi.prk_plce_manage_no
-                                AND tpdpi.prk_plce_info_sn = topi.prk_plce_info_sn
-                 INNER JOIN cpk.tb_onstr_prklot_oper_info topoi
-                            ON topi.prk_plce_manage_no = topoi.prk_plce_manage_no
-                                AND topi.prk_plce_info_sn = topoi.prk_plce_info_sn
+                 LEFT JOIN cpk.tb_onstr_prklot_info topi
+                           ON tpdpi.prk_plce_manage_no = topi.prk_plce_manage_no
+                               AND tpdpi.prk_plce_info_sn = topi.prk_plce_info_sn
+                 LEFT JOIN cpk.tb_onstr_prklot_oper_info topoi
+                           ON topi.prk_plce_manage_no = topoi.prk_plce_manage_no
+                               AND topi.prk_plce_info_sn = topoi.prk_plce_info_sn
                  LEFT JOIN cpk.tb_co_ldong tcl
                            ON tpdpi.ldong_cd = tcl.ldong_cd
-                 INNER JOIN cpk.tb_biz_per_prklot_info tbppi
-                            ON tpdpi.prk_plce_manage_no = tbppi.prk_plce_manage_no
-                                AND tpdpi.prk_plce_info_sn = tbppi.prk_plce_info_sn
-                 INNER JOIN cpk.tb_prk_srvy_biz_info tpsbi
-                            ON tbppi.prk_biz_mng_no = tpsbi.prk_biz_mng_no
-                                AND tpsbi.use_yn = 'Y'
+                 LEFT JOIN cpk.tb_biz_per_prklot_info tbppi
+                           ON tpdpi.prk_plce_manage_no = tbppi.prk_plce_manage_no
+                               AND tpdpi.prk_plce_info_sn = tbppi.prk_plce_info_sn
+                 LEFT JOIN cpk.tb_prk_srvy_biz_info tpsbi
+                           ON tbppi.prk_biz_mng_no = tpsbi.prk_biz_mng_no
+                               AND tpsbi.use_yn = 'Y'
         WHERE tpdpi.prk_plce_manage_no = #{prkPlceManageNo}
     </select>
 
