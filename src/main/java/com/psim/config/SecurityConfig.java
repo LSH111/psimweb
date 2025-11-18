@@ -34,6 +34,14 @@ public class SecurityConfig {
                         .anyRequest().authenticated()      // 그 외 모든 요청은 인증된 사용자만 접근 가능
                 )
 
+                // 🔥 X-Frame-Options 헤더 설정을 추가합니다.
+                // 기본값인 DENY 대신, 같은 출처(same-origin)의 프레임 로딩을 허용합니다.
+                .headers(headers -> headers
+                        .frameOptions(frameOptions -> frameOptions
+                                .sameOrigin()
+                        )
+                )
+
                 // .formLogin() 설정을 제거합니다.
                 // 대신, 인증이 필요한 페이지에 미인증 사용자가 접근했을 때 로그인 페이지("/")로 보내도록 설정합니다.
                 // 이 부분이 AuthFilter의 리다이렉트 로직을 대체합니다.

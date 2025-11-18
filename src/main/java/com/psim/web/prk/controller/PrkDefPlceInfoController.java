@@ -120,6 +120,35 @@ public class PrkDefPlceInfoController {
     }
 
     /**
+     * 🔥 [신규 추가] 노상주차장 상세 조회
+     */
+    @GetMapping("/onparking-detail")
+    @ResponseBody
+    public Map<String, Object> getOnstreetParkingDetail(@RequestParam String prkPlceManageNo) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            log.info("=== 노상주차장 상세 조회 요청: {} ===", prkPlceManageNo);
+
+            ParkingDetailVO detail = prkDefPlceInfoService.getOnstreetParkingDetail(prkPlceManageNo);
+
+            if (detail != null) {
+                result.put("success", true);
+                result.put("data", detail);
+                log.info("✅ 노상주차장 상세 조회 성공");
+            } else {
+                result.put("success", false);
+                result.put("message", "주차장 정보를 찾을 수 없습니다.");
+                log.warn("⚠️ 데이터 없음: {}", prkPlceManageNo);
+            }
+        } catch (Exception e) {
+            log.error("❌ 노상주차장 상세 조회 실패", e);
+            result.put("success", false);
+            result.put("message", "조회 중 오류가 발생했습니다: " + e.getMessage());
+        }
+        return result;
+    }
+
+    /**
      * 🔥 노상주차장 정보 저장/수정 (파일 업로드 포함) - 수정
      */
     @PostMapping("/onparking-update")
