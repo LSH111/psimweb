@@ -9,6 +9,12 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * @deprecated 2025-11-18부로 사용되지 않음.
+ * 모든 인증 로직은 com.psim.config.AuthInterceptor로 이전되었습니다.
+ * 이 파일은 기록 참조용으로만 보관하며, web.xml에 등록해서는 안 됩니다.
+ */
+@Deprecated
 public class AuthFilter implements Filter {
 
     // 정확 매칭

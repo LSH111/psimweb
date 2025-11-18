@@ -3,15 +3,22 @@ package com.psim.web.cmm.controller;
 import com.psim.web.cmm.service.LoginService;
 import com.psim.web.cmm.vo.CoUserVO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
 import java.util.List;
+
 
 @Controller
 @RequiredArgsConstructor
@@ -41,7 +48,8 @@ public class LoginController {
     @PostMapping("/login")
     public String login(@RequestParam("userId") String userId,
                         @RequestParam("password") String password,
-                        HttpSession session,
+                        //HttpSession session,
+                        HttpServletRequest request,
                         RedirectAttributes redirectAttributes) {
 
         System.out.println("🔐 로그인 시도: userId=" + userId);
@@ -60,8 +68,21 @@ public class LoginController {
             redirectAttributes.addFlashAttribute("finalErr", "아이디 또는 비밀번호가 일치하지 않습니다.");
             return "redirect:/";
         }
+        // 1. 세션 고정 공격 방지를 위해 기존 세션을 무효화하고 새로운 세션을 생성합니다.
+        HttpSession oldSession = request.getSession(false);
+        if (oldSession != null) {
+            oldSession.invalidate();
+        }
+        HttpSession session = request.getSession(true);
 
-        // 기존 세션 설정
+
+        // 2. Spring Security와 수동으로 통합하기 위해 Authentication 객체를 생성하고 SecurityContext에 저장합니다.
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER")); // 기본 권한 부여
+        Authentication authentication = new UsernamePasswordAuthenticationToken(loginUser, null, authorities);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // 3. 새로운 세션에 인증 정보를 설정합니다.
         establishAuthenticatedSession(session, loginUser);
 
         // 🔥 사업관리번호 목록 조회 및 세션 저장 (강화된 로그)
