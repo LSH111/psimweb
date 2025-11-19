@@ -21,6 +21,7 @@
     <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 </head>
 <body>
+<div id="toast-container"></div>
 <div class="wrap">
     <header class="card head">
         <div class="title" id="v_name">노상주차장 상세</div>
@@ -698,7 +699,8 @@
                 <label>주차장 표지판</label>
                 <div class="radio-group" id="sign_group">
                     <label><input type="radio" name="parkingSign" value="Y" id="sign_yes"/> <span>있음</span></label>
-                    <label><input type="radio" name="parkingSign" value="N" id="sign_no" checked/> <span>없음</span></label>
+                    <label><input type="radio" name="parkingSign" value="N" id="sign_no" checked/>
+                        <span>없음</span></label>
                 </div>
             </div>
 

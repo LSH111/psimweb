@@ -135,16 +135,22 @@
 
     <update id="updateParkingStatus" parameterType="map">
         UPDATE cpk.tb_biz_per_prklot_info
-        SET prgs_sts_cd = #{prgsStsCd}
+        SET prgs_sts_cd    = #{prgsStsCd},
+            updt_dt        = NOW(),
+            updusr_id      = #{updusrId},
+            updusr_ip_addr = #{updusrIpAddr}
         WHERE prk_plce_manage_no = #{prkPlceManageNo}
           AND prk_plce_info_sn = #{prkPlceInfoSn}
     </update>
 
     <update id="updateSelectedParking" parameterType="map">
         UPDATE cpk.tb_prk_def_plce_info
-        SET prkplce_nm = #{prkplceNm},
-            zip        = #{zip},
-            dtadd      = #{dtadd}
+        SET prkplce_nm     = #{prkplceNm},
+            zip            = #{zip},
+            dtadd          = #{dtadd},
+            updt_dt        = NOW(),
+            updusr_id      = #{updusrId},
+            updusr_ip_addr = #{updusrIpAddr}
         WHERE prk_plce_manage_no = #{prkPlceManageNo}
           AND prk_plce_info_sn = #{prkPlceInfoSn}
     </update>
@@ -1174,7 +1180,7 @@
                                               updusr_ip_addr)
         VALUES (#{prkPlceInfoSn},
                 #{prkPlceManageNo},
-                '1',
+                #{prkPlceType},
                 #{prkplceNm},
                 #{sidoCd},
                 #{sigunguCd},

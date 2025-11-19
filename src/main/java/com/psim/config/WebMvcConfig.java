@@ -1,9 +1,7 @@
 package com.psim.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewResolverRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -37,14 +35,14 @@ public class WebMvcConfig implements WebMvcConfigurer {
     }
 
     // 파일 업로드 설정
-    @Bean
-    public CommonsMultipartResolver multipartResolver() {
-        CommonsMultipartResolver resolver = new CommonsMultipartResolver();
-        resolver.setMaxUploadSize(52428800); // 50MB
-        resolver.setMaxInMemorySize(1048576); // 1MB
-        resolver.setDefaultEncoding("UTF-8");
-        return resolver;
-    }
+//    @Bean
+//    public CommonsMultipartResolver multipartResolver() {
+//        CommonsMultipartResolver resolver = new CommonsMultipartResolver();
+//        resolver.setMaxUploadSize(52428800); // 50MB
+//        resolver.setMaxInMemorySize(1048576); // 1MB
+//        resolver.setDefaultEncoding("UTF-8");
+//        return resolver;
+//    }
 
 //    @Override
 //    public void addInterceptors(InterceptorRegistry registry) {

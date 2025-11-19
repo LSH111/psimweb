@@ -21,6 +21,7 @@
     <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 </head>
 <body>
+<div id="toast-container"></div>
 <div class="wrap">
     <header class="card head">
         <div class="title" id="v_name">노외주차장 상세</div>

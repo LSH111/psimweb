@@ -571,6 +571,106 @@ layer?.addEventListener('click', (e) => {
     if (e.target === layer) layer.style.display = 'none';
 });
 
+// ========== 🔥 공통 유효성 검증 모듈 ==========
+const FormValidator = {
+    // 에러가 발생한 첫 번째 요소를 저장 (스크롤 이동용)
+    firstErrorElement: null,
+
+    /**
+     * 초기화: 이전 에러 스타일 모두 제거
+     */
+    reset() {
+        this.firstErrorElement = null;
+        document.querySelectorAll('.input-error').forEach(el => {
+            el.classList.remove('input-error', 'shake-element');
+        });
+    },
+
+    /**
+     * 단일 필드 검증 (Input, Select)
+     * @param {string} selector - CSS 선택자 (예: '#f_name')
+     * @param {string} message - 에러 메시지
+     * @returns {boolean} - 유효하면 true, 아니면 false
+     */
+    check(selector, message) {
+        const el = document.querySelector(selector);
+        // 요소가 없거나 값이 비어있으면 에러 처리
+        if (!el || !el.value || el.value.trim() === '') {
+            this.showError(el, message);
+            return false;
+        }
+        return true;
+    },
+
+    /**
+     * 라디오 버튼 그룹 검증
+     * @param {string} name - input name 속성 (예: 'own')
+     * @param {string} message - 에러 메시지
+     * @returns {boolean}
+     */
+    checkRadio(name, message) {
+        const checked = document.querySelector(`input[name="${name}"]:checked`);
+        if (!checked) {
+            // 라디오 그룹은 부모 요소나 첫 번째 라디오 버튼에 시각적 효과를 줄 수 있음
+            const firstRadio = document.querySelector(`input[name="${name}"]`);
+            // 보통 라디오 버튼은 부모 div(.radio-group)에 테두리를 주는 것이 좋음
+            const container = firstRadio ? firstRadio.closest('.radio-group') || firstRadio.parentElement : null;
+            this.showError(container || firstRadio, message);
+            return false;
+        }
+        return true;
+    },
+
+    /**
+     * 에러 표시 및 포커스 저장 로직
+     */
+    showError(element, message) {
+        if (!element) return;
+
+        // 1. 빨간 테두리 및 흔들림 효과 추가
+        element.classList.add('input-error', 'shake-element');
+
+        // 2. 애니메이션 후 shake 클래스 제거 (재실행 가능하도록)
+        setTimeout(() => element.classList.remove('shake-element'), 500);
+
+        // 3. 첫 번째 에러만 기록 (스크롤 이동 및 토스트 메시지용)
+        if (!this.firstErrorElement) {
+            this.firstErrorElement = element;
+
+            // 토스트 메시지 표시
+            this.showToast(message);
+
+            // 해당 위치로 스크롤 및 포커스
+            element.scrollIntoView({behavior: 'smooth', block: 'center'});
+            if (element.tagName !== 'DIV') element.focus();
+        }
+    },
+
+    /**
+     * 토스트 메시지 출력 UI
+     */
+    showToast(message) {
+        const container = document.getElementById('toast-container');
+        if (!container) {
+            alert(message); // 컨테이너 없으면 fallback
+            return;
+        }
+
+        const toast = document.createElement('div');
+        toast.className = 'toast-message warning';
+        toast.innerHTML = `<span>⚠️</span> ${message}`;
+
+        container.appendChild(toast);
+
+        // 3초 후 제거
+        setTimeout(() => {
+            toast.style.transition = 'opacity 0.5s';
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 500);
+        }, 3000);
+    }
+};
+
 // ========== 🔥 주소 데이터 파싱 및 입력 함수 ==========
 async function parseAndFillAddress(data) {
     try {
@@ -1554,43 +1654,58 @@ function formatTime(hour, minute) {
     return h + m;
 }
 
-// ========== 🔥 법정동코드 생성 함수 (onparking.js 동일 로직) ==========
+// ========== 🔥 법정동코드 생성 함수 개선 (수정됨) ==========
 function generateLdongCd() {
-    const emdCd = $('#f_emd')?.value;  // 읍면동 select에서 선택된 값
-    if (!emdCd) {
+    const f_sigungu = document.getElementById('f_sigungu');
+    const f_emd = document.getElementById('f_emd');
+
+    // 1. 필수값 체크
+    if (!f_sigungu || !f_sigungu.value) {
+        console.error('❌ 시군구가 선택되지 않았습니다.');
+        return null;
+    }
+    if (!f_emd || !f_emd.value) {
         console.warn('⚠️ 읍면동이 선택되지 않았습니다.');
         return null;
     }
 
-    // 1) 이미 10자리 숫자면 그대로 사용
-    if (emdCd.length === 10 && /^\d{10}$/.test(emdCd)) {
+    const sigunguCd = f_sigungu.value; // 예: "47150" (5자리)
+    const emdCd = f_emd.value;         // 예: "120" (3자리) 또는 "12000" (5자리)
+
+    // 2. 이미 10자리인 경우 (드물지만 방어 코드)
+    if (emdCd.length === 10) {
         return emdCd;
     }
 
-    // 2) 3자리 또는 5자리인 경우 시군구코드와 조합
-    const sigunguCd = $('#f_sigungu')?.value;
-    if (!sigunguCd) {
-        console.error('❌ 시군구코드가 없습니다.');
+    // 3. 법정동코드 조합 로직 (표준: 시군구5 + 읍면동3 + 리2 = 총 10자리)
+    // 시군구 코드는 무조건 5자리여야 함
+    if (sigunguCd.length !== 5) {
+        console.error('❌ 시군구 코드가 5자리가 아닙니다:', sigunguCd);
         return null;
     }
 
-    let ldongCd;
+    let ldongCd = '';
+
     if (emdCd.length === 3) {
-        // 예) "47150" + "120" + "00" = "4715012000"
+        // 읍면동이 3자리인 경우 (예: 120) -> 뒤에 리(00)을 붙여 10자리 완성
+        // 조합: 47150 + 120 + 00 = 4715012000
         ldongCd = sigunguCd + emdCd + '00';
     } else if (emdCd.length === 5) {
-        // 예) "47150" + "12000" = "4715012000"
+        // 읍면동이 5자리인 경우 (예: 12000) -> 그대로 조합
+        // 조합: 47150 + 12000 = 4715012000
         ldongCd = sigunguCd + emdCd;
     } else {
-        console.error('❌ 예상치 못한 읍면동 코드 길이:', emdCd.length, emdCd);
+        console.error('❌ 읍면동 코드 길이 오류:', emdCd);
         return null;
     }
 
-    // 최종 검증
-    if (ldongCd.length !== 10 || !/^\d{10}$/.test(ldongCd)) {
-        console.error('❌ 생성된 법정동코드가 잘못되었습니다:', ldongCd);
+    // 4. 최종 검증
+    if (ldongCd.length !== 10) {
+        console.error('❌ 생성된 법정동코드 길이가 10자리가 아닙니다:', ldongCd);
         return null;
     }
+
+    console.log(`✅ 법정동코드 생성: ${sigunguCd} + ${emdCd} => ${ldongCd}`);
     return ldongCd;
 }
 
@@ -3206,6 +3321,56 @@ document.addEventListener('DOMContentLoaded', async function () {
 async function doSave() {
     console.log('🚀🚀🚀 doSave 함수 시작! 🚀🚀🚀');
 
+    // 1. 🔥 검증 초기화 (이전 에러 상태 제거)
+    FormValidator.reset();
+
+    // 2. 🔥 필수 항목 검증 (순서대로 체크, 실패 시 false 반환하지만 계속 진행하지 않고 중단하려면 && 연산자 활용 또는 if문 나열)
+    // 모든 필드를 다 체크해서 빨간불을 켜고 싶다면 아래처럼 변수에 누적합니다.
+    let isValid = true;
+
+    // --- (A) 기본 정보 검증 ---
+    isValid = FormValidator.check('#f_name', '주차장명을 입력해주세요') && isValid;
+    isValid = FormValidator.check('#f_status', '진행상태를 선택해주세요') && isValid;
+
+    // --- (B) 행정구역 검증 ---
+    isValid = FormValidator.check('#f_sido', '시도를 선택해주세요') && isValid;
+    isValid = FormValidator.check('#f_sigungu', '시군구를 선택해주세요') && isValid;
+    isValid = FormValidator.check('#f_emd', '읍면동을 선택해주세요') && isValid;
+
+    // --- (C) 필수 숫자형 데이터 ---
+    isValid = FormValidator.check('#f_totalStalls', '총 주차면수를 입력해주세요') && isValid;
+
+    // --- (D) 라디오 버튼 그룹 검증 ---
+    isValid = FormValidator.checkRadio('own', '운영주체를 선택해주세요') && isValid;
+    isValid = FormValidator.checkRadio('opType', '운영방식을 선택해주세요') && isValid;
+
+    // --- (E) 조건부 검증 (예: 민간위탁일 때 업체명 필수) ---
+    const ownRadio = document.querySelector('input[name="own"]:checked');
+    if (ownRadio && ownRadio.value.includes('민간')) {
+        isValid = FormValidator.check('#f_own_company', '위탁 업체명을 입력해주세요') && isValid;
+    }
+
+    // --- (F) 관리기관 정보 ---
+    isValid = FormValidator.check('#f_mgr_name', '관리기관명을 입력해주세요') && isValid;
+    isValid = FormValidator.check('#f_mgr_tel', '관리기관 전화번호를 입력해주세요') && isValid;
+    isValid = FormValidator.check('#f_oddEven', '부제 시행 여부를 선택해주세요') && isValid;
+
+    // --- (G) 주간/야간 체크 여부 ---
+    const isDay = document.querySelector('#chk_day').checked;
+    const isNight = document.querySelector('#chk_night').checked;
+    if (!isDay && !isNight) {
+        // 체크박스는 그룹 컨테이너를 찾아서 에러 표시
+        const timeGroup = document.querySelector('#chk_day').closest('.check-group') || document.querySelector('#chk_day').parentElement;
+        FormValidator.showError(timeGroup, '주간 또는 야간 운영시간을 최소 하나 선택해주세요');
+        isValid = false;
+    }
+
+    // 3. 🔥 유효성 검사 실패 시 중단
+    if (!isValid) {
+        console.warn('❌ 유효성 검사 실패: 필수 입력 항목 누락');
+        return; // 저장 중단
+    }
+
     try {
         console.log('1️⃣ 필수 입력 검증 시작');
         const validationErrors = validateRequiredFields();
@@ -3302,5 +3467,40 @@ async function doSave() {
     } catch (error) {
         console.error('❌ 저장 중 오류:', error);
         alert('저장 중 오류가 발생했습니다: ' + error.message);
+    }
+}
+
+/**
+ * 🔥 저장 성공 후 페이지 처리 공통 함수
+ * @param {string} fallbackUrl - 부모 창이 없을 때 이동할 목록 페이지 URL
+ */
+function handlePostSave(fallbackUrl) {
+    // 1. 알림 표시
+    alert('저장이 완료되었습니다.');
+
+    // 2. 부모 창(Opener)이 존재하는지 확인 (새 탭/팝업으로 열린 경우)
+    if (window.opener && !window.opener.closed) {
+        try {
+            // 부모 창에 reloadList 함수가 있으면 실행
+            if (typeof window.opener.reloadList === 'function') {
+                window.opener.reloadList();
+            } else {
+                // 함수가 없으면 단순히 부모 창 새로고침
+                window.opener.location.reload();
+            }
+
+            // 부모 창으로 포커스 이동 (브라우저 정책에 따라 제한될 수 있음)
+            window.opener.focus();
+
+        } catch (e) {
+            console.warn('부모 창 제어 중 오류 (Cross-Origin 등):', e);
+        } finally {
+            // 현재 창 닫기
+            window.close();
+        }
+    }
+    // 3. 부모 창이 없는 경우 (그냥 페이지 이동으로 들어온 경우)
+    else {
+        location.href = fallbackUrl;
     }
 }

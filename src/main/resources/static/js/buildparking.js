@@ -2273,3 +2273,38 @@ document.addEventListener('DOMContentLoaded', async function () {
         alert('페이지 초기화 중 오류가 발생했습니다. 개발자 콘솔을 확인해주세요.');
     }
 });
+
+/**
+ * 🔥 저장 성공 후 페이지 처리 공통 함수
+ * @param {string} fallbackUrl - 부모 창이 없을 때 이동할 목록 페이지 URL
+ */
+function handlePostSave(fallbackUrl) {
+    // 1. 알림 표시
+    alert('저장이 완료되었습니다.');
+
+    // 2. 부모 창(Opener)이 존재하는지 확인 (새 탭/팝업으로 열린 경우)
+    if (window.opener && !window.opener.closed) {
+        try {
+            // 부모 창에 reloadList 함수가 있으면 실행
+            if (typeof window.opener.reloadList === 'function') {
+                window.opener.reloadList();
+            } else {
+                // 함수가 없으면 단순히 부모 창 새로고침
+                window.opener.location.reload();
+            }
+
+            // 부모 창으로 포커스 이동 (브라우저 정책에 따라 제한될 수 있음)
+            window.opener.focus();
+
+        } catch (e) {
+            console.warn('부모 창 제어 중 오류 (Cross-Origin 등):', e);
+        } finally {
+            // 현재 창 닫기
+            window.close();
+        }
+    }
+    // 3. 부모 창이 없는 경우 (그냥 페이지 이동으로 들어온 경우)
+    else {
+        location.href = fallbackUrl;
+    }
+}
