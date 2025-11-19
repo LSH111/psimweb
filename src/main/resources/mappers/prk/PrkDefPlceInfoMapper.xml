@@ -1177,7 +1177,8 @@
                                               rgst_ip_addr,
                                               updt_dt,
                                               updusr_id,
-                                              updusr_ip_addr)
+                                              updusr_ip_addr,
+                                              closed_yn)
         VALUES (#{prkPlceInfoSn},
                 #{prkPlceManageNo},
                 #{prkPlceType},
@@ -1201,7 +1202,8 @@
                 #{updusrIpAddr},
                 NOW(),
                 #{updusrId},
-                #{updusrIpAddr})
+                #{updusrIpAddr},
+                'N')
     </insert>
 
     <!-- 🔥 [STEP 2/4] 사업별 주차장 정보 INSERT -->
@@ -1268,6 +1270,23 @@
                 NOW(),
                 #{updusrId},
                 #{updusrIpAddr})
+            /* PK 충돌(중복) 발생 시 UPDATE로 전환 */
+            ON CONFLICT (prk_plce_manage_no, prk_plce_info_sn)
+            DO
+        UPDATE SET
+            tot_prk_cnt = EXCLUDED.tot_prk_cnt,
+            disab_prk_cnt = EXCLUDED.disab_prk_cnt,
+            compact_prk_cnt = EXCLUDED.compact_prk_cnt,
+            eco_prk_cnt = EXCLUDED.eco_prk_cnt,
+            pregnant_prk_cnt = EXCLUDED.pregnant_prk_cnt,
+            prk_oper_mthd_cd = EXCLUDED.prk_oper_mthd_cd,
+            oper_mby_cd = EXCLUDED.oper_mby_cd,
+            mgr_org = EXCLUDED.mgr_org,
+            mgr_org_tel_no = EXCLUDED.mgr_org_tel_no,
+            subordn_opertn_cd = EXCLUDED.subordn_opertn_cd,
+            updt_dt = NOW(),
+            updusr_id = EXCLUDED.updusr_id,
+            updusr_ip_addr = EXCLUDED.updusr_ip_addr
     </insert>
 
     <!-- 🔥 [STEP 4/4] 노상주차장 운영 정보 INSERT -->

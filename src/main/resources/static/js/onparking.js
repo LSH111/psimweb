@@ -420,17 +420,28 @@ const CodeLoader = {
 
 // ========== 🔥 공통 유효성 검증 모듈 ==========
 const FormValidator = {
-    // 에러가 발생한 첫 번째 요소를 저장 (스크롤 이동용)
     firstErrorElement: null,
 
     /**
-     * 초기화: 이전 에러 스타일 모두 제거
+     * [수정됨] UI 에러 스타일만 안전하게 제거
+     * 값(value)은 절대 건드리지 않음
      */
-    reset() {
+    clearErrorStyles() {
         this.firstErrorElement = null;
-        document.querySelectorAll('.input-error').forEach(el => {
-            el.classList.remove('input-error', 'shake-element');
-        });
+
+        // 1. 에러 클래스가 붙은 요소들 찾기
+        const errorElements = document.querySelectorAll('.input-error');
+
+        // 2. 호환성 높은 반복문 사용 (Array.from 의존성 제거)
+        for (let i = 0; i < errorElements.length; i++) {
+            errorElements[i].classList.remove('input-error', 'shake-element');
+        }
+
+        // 3. 토스트 메시지가 떠있다면 제거 (선택사항)
+        const toast = document.getElementById('toast-container');
+        if (toast) toast.innerHTML = '';
+
+        console.log('🧹 유효성 UI 초기화 완료 (값은 유지됨)');
     },
 
     /**
@@ -515,6 +526,11 @@ const FormValidator = {
             toast.style.opacity = '0';
             setTimeout(() => toast.remove(), 500);
         }, 3000);
+    },
+
+    // 호환성을 위해 reset을 호출해도 clearErrorStyles가 실행되도록 연결
+    reset() {
+        this.clearErrorStyles();
     }
 };
 
@@ -1352,6 +1368,7 @@ function buildPayload() {
     const f_emd = document.getElementById('f_emd');
     // 🔥 법정동코드 생성
     const ldongCd = generateLdongCd();
+    console.log("!!!!!!!ldongCd : ", ldongCd);
 
     if (!ldongCd) {
         console.error('❌ 법정동코드 생성 실패');
@@ -3042,141 +3059,109 @@ function validateRequiredFields() {
 }
 
 async function doSave() {
-
     console.log('🚀 저장 프로세스 시작');
 
-    // 1. 🔥 검증 초기화 (이전 에러 상태 제거)
-    FormValidator.reset();
-
-    // 2. 🔥 필수 항목 검증 (순서대로 체크, 실패 시 false 반환하지만 계속 진행하지 않고 중단하려면 && 연산자 활용 또는 if문 나열)
-    // 모든 필드를 다 체크해서 빨간불을 켜고 싶다면 아래처럼 변수에 누적합니다.
-    let isValid = true;
-
-    // --- (A) 기본 정보 검증 ---
-    isValid = FormValidator.check('#f_name', '주차장명을 입력해주세요') && isValid;
-    isValid = FormValidator.check('#f_status', '진행상태를 선택해주세요') && isValid;
-
-    // --- (B) 행정구역 검증 ---
-    isValid = FormValidator.check('#f_sido', '시도를 선택해주세요') && isValid;
-    isValid = FormValidator.check('#f_sigungu', '시군구를 선택해주세요') && isValid;
-    isValid = FormValidator.check('#f_emd', '읍면동을 선택해주세요') && isValid;
-
-    // --- (C) 필수 숫자형 데이터 ---
-    isValid = FormValidator.check('#f_totalStalls', '총 주차면수를 입력해주세요') && isValid;
-
-    // --- (D) 라디오 버튼 그룹 검증 ---
-    isValid = FormValidator.checkRadio('own', '운영주체를 선택해주세요') && isValid;
-    isValid = FormValidator.checkRadio('opType', '운영방식을 선택해주세요') && isValid;
-
-    // --- (E) 조건부 검증 (예: 민간위탁일 때 업체명 필수) ---
-    const ownRadio = document.querySelector('input[name="own"]:checked');
-    if (ownRadio && ownRadio.value.includes('민간')) {
-        isValid = FormValidator.check('#f_own_company', '위탁 업체명을 입력해주세요') && isValid;
-    }
-
-    // --- (F) 관리기관 정보 ---
-    isValid = FormValidator.check('#f_mgr_name', '관리기관명을 입력해주세요') && isValid;
-    isValid = FormValidator.check('#f_mgr_tel', '관리기관 전화번호를 입력해주세요') && isValid;
-    isValid = FormValidator.check('#f_oddEven', '부제 시행 여부를 선택해주세요') && isValid;
-
-    // --- (G) 주간/야간 체크 여부 ---
-    const isDay = document.querySelector('#chk_day').checked;
-    const isNight = document.querySelector('#chk_night').checked;
-    if (!isDay && !isNight) {
-        // 체크박스는 그룹 컨테이너를 찾아서 에러 표시
-        const timeGroup = document.querySelector('#chk_day').closest('.check-group') || document.querySelector('#chk_day').parentElement;
-        FormValidator.showError(timeGroup, '주간 또는 야간 운영시간을 최소 하나 선택해주세요');
-        isValid = false;
-    }
-
-    // 3. 🔥 유효성 검사 실패 시 중단
-    if (!isValid) {
-        console.warn('❌ 유효성 검사 실패: 필수 입력 항목 누락');
-        return; // 저장 중단
-    }
-
+    // 🔥 try 블록을 함수 시작 시점으로 이동하여 모든 에러를 포착
     try {
-        // 1. 필수 입력 검증
+        // 1. 🔥 검증 초기화 (이전 에러 상태 제거)
+        FormValidator.clearErrorStyles();
+
+        // 2. 🔥 필수 항목 검증 (순서대로 체크)
+        let isValid = true;
+
+        // --- (A) 기본 정보 검증 ---
+        isValid = FormValidator.check('#f_name', '주차장명을 입력해주세요') && isValid;
+        isValid = FormValidator.check('#f_status', '진행상태를 선택해주세요') && isValid;
+
+        // --- (B) 행정구역 검증 ---
+        isValid = FormValidator.check('#f_sido', '시도를 선택해주세요') && isValid;
+        isValid = FormValidator.check('#f_sigungu', '시군구를 선택해주세요') && isValid;
+        isValid = FormValidator.check('#f_emd', '읍면동을 선택해주세요') && isValid;
+
+        // --- (C) 필수 숫자형 데이터 ---
+        isValid = FormValidator.check('#f_totalStalls', '총 주차면수를 입력해주세요') && isValid;
+
+        // --- (D) 라디오 버튼 그룹 검증 ---
+        isValid = FormValidator.checkRadio('own', '운영주체를 선택해주세요') && isValid;
+        isValid = FormValidator.checkRadio('opType', '운영방식을 선택해주세요') && isValid;
+
+        // --- (E) 조건부 검증 (예: 민간위탁일 때 업체명 필수) ---
+        const ownRadio = document.querySelector('input[name="own"]:checked');
+        if (ownRadio && ownRadio.value.includes('민간')) {
+            isValid = FormValidator.check('#f_own_company', '위탁 업체명을 입력해주세요') && isValid;
+        }
+
+        // --- (F) 관리기관 정보 ---
+        isValid = FormValidator.check('#f_mgr_name', '관리기관명을 입력해주세요') && isValid;
+        isValid = FormValidator.check('#f_mgr_tel', '관리기관 전화번호를 입력해주세요') && isValid;
+        isValid = FormValidator.check('#f_oddEven', '부제 시행 여부를 선택해주세요') && isValid;
+
+        // --- (G) 주간/야간 체크 여부 ---
+        const isDay = document.querySelector('#chk_day').checked;
+        const isNight = document.querySelector('#chk_night').checked;
+        if (!isDay && !isNight) {
+            const timeGroup = document.querySelector('#chk_day').closest('.check-group') || document.querySelector('#chk_day').parentElement;
+            FormValidator.showError(timeGroup, '주간 또는 야간 운영시간을 최소 하나 선택해주세요');
+            isValid = false;
+        }
+
+        // 3. 🔥 유효성 검사 실패 시 중단
+        if (!isValid) {
+            console.warn('❌ 유효성 검사 실패: 필수 입력 항목 누락');
+            alert('필수 입력 항목을 확인해주세요. (붉은색 표시 항목)');
+            return;
+        }
+
+        // 4. 상세 비즈니스 로직 검증
         const validationErrors = validateRequiredFields();
         if (validationErrors.length > 0) {
             alert('다음 항목을 입력해주세요:\n\n' + validationErrors.join('\n'));
             return;
         }
 
-        // 2. Payload 생성
+        // 5. Payload 생성
         const payload = buildPayload();
         const isNewRecord = !payload.id || payload.id.trim() === '';
 
-        // 3. 서버 데이터 포맷 변환
+        // 6. 서버 데이터 포맷 변환
         const serverData = mapPayloadToServerFormat(payload);
 
-        if (!serverData.prkplceNm) {
-            throw new Error('주차장명이 비어있습니다');
-        }
-        if (!serverData.zip) {
-            throw new Error('우편번호가 비어있습니다');
-        }
-        if (serverData.totPrkCnt === 0) {
-            throw new Error('주차면수가 0입니다');
-        }
+        // 🔥 법정동코드 디버깅 로그
+        console.log('📦 전송 데이터 확인 (법정동코드):', serverData.ldongCd);
+
+        if (!serverData.prkplceNm) throw new Error('주차장명이 비어있습니다');
+        if (!serverData.zip) throw new Error('우편번호가 비어있습니다');
+        if (serverData.totPrkCnt === 0) throw new Error('주차면수가 0입니다');
 
         // 신규 등록 시 주차장관리번호 제거
         if (isNewRecord) {
             delete serverData.prkPlceManageNo;
         }
 
-        // 4. FormData 생성
+        // 7. FormData 생성
         const formData = new FormData();
         formData.append('parkingData', new Blob([JSON.stringify(serverData)], {
             type: 'application/json'
         }));
 
-        // 🔥 5. 현장 사진 추가 - 수정된 부분
+        // 🔥 사진 추가 로직...
         const mainPhotoLib = document.getElementById('f_photo_lib');
         const mainPhotoCam = document.getElementById('f_photo_cam');
-
-        let hasMainPhoto = false;
-
-        // 사진첩에서 선택한 파일 확인
         if (mainPhotoLib && mainPhotoLib.files && mainPhotoLib.files.length > 0) {
             formData.append('mainPhoto', mainPhotoLib.files[0]);
-            hasMainPhoto = true;
-        }
-        // 카메라로 촬영한 파일 확인 (사진첩 파일이 없을 때만)
-        else if (mainPhotoCam && mainPhotoCam.files && mainPhotoCam.files.length > 0) {
+        } else if (mainPhotoCam && mainPhotoCam.files && mainPhotoCam.files.length > 0) {
             formData.append('mainPhoto', mainPhotoCam.files[0]);
-            hasMainPhoto = true;
         }
 
-        if (!hasMainPhoto) {
-        }
-
-        // 🔥 6. 표지판 사진 추가 - 수정된 부분
         const signPhotoLib = document.getElementById('f_sign_photo_lib');
         const signPhotoCam = document.getElementById('f_sign_photo_cam');
-
-        let hasSignPhoto = false;
-
         if (signPhotoLib && signPhotoLib.files && signPhotoLib.files.length > 0) {
             formData.append('signPhoto', signPhotoLib.files[0]);
-            hasSignPhoto = true;
         } else if (signPhotoCam && signPhotoCam.files && signPhotoCam.files.length > 0) {
             formData.append('signPhoto', signPhotoCam.files[0]);
-            hasSignPhoto = true;
         }
 
-        if (!hasSignPhoto) {
-        }
-
-        // 🔥 7. FormData 내용 확인 (디버깅용)
-        for (let [key, value] of formData.entries()) {
-            if (value instanceof File) {
-            } else if (value instanceof Blob) {
-            } else {
-            }
-        }
-
-        // 🔥 8. 타임아웃 설정 (30초)
+        // 8. 전송
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
             controller.abort();
@@ -3188,70 +3173,22 @@ async function doSave() {
             response = await fetch('/prk/onparking-update', {
                 method: 'POST',
                 body: formData,
-                signal: controller.signal  // 🔥 타임아웃 시그널 추가
+                signal: controller.signal
             });
-
-            clearTimeout(timeoutId);  // 🔥 타임아웃 해제
-
+            clearTimeout(timeoutId);
         } catch (fetchError) {
             clearTimeout(timeoutId);
-
-            console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            console.error('❌ fetch 호출 실패');
-            console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            console.error('에러 타입:', fetchError.name);
-            console.error('에러 메시지:', fetchError.message);
-            console.error('스택:', fetchError.stack);
-            console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-
-            if (fetchError.name === 'AbortError') {
-                alert('⏰ 서버 응답 시간이 초과되었습니다.\n\n네트워크 상태를 확인하거나 잠시 후 다시 시도해주세요.');
-            } else if (fetchError.name === 'TypeError') {
-                alert('🌐 네트워크 오류가 발생했습니다.\n\n' +
-                    '• 인터넷 연결을 확인해주세요.\n' +
-                    '• 서버가 실행 중인지 확인해주세요.\n' +
-                    '• 브라우저 콘솔에서 상세 오류를 확인하세요.');
-            } else {
-                alert('❌ 요청 전송 실패:\n\n' + fetchError.message);
-            }
-
             throw fetchError;
         }
 
         // 9. 응답 처리
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('❌ 서버 에러 응답:', {
-                status: response.status,
-                statusText: response.statusText,
-                body: errorText
-            });
             throw new Error(`HTTP ${response.status}: ${response.statusText}\n\n${errorText}`);
         }
         const result = await response.json();
         if (result.success) {
-            // [수정] 공통 후처리 로직 적용
-            // 기존 setTimeout 및 postMessage 로직 제거하고 아래 코드로 대체
-
-            // 알림 메시지
-            const msg = isNewRecord ? '신규 등록되었습니다.' : '수정되었습니다.';
-            alert(msg);
-
-            // 1. 부모 창(Opener)이 있는 경우 (새 탭/팝업)
-            if (window.opener && !window.opener.closed) {
-                console.log('🔄 부모 창 목록 갱신 시도');
-                if (typeof window.opener.reloadList === 'function') {
-                    window.opener.reloadList();
-                } else {
-                    window.opener.location.reload();
-                }
-                window.close(); // 탭 닫기
-            }
-            // 2. 부모 창이 없는 경우 (현재 창에서 이동)
-            else {
-                console.log('➡️ 목록 페이지로 이동');
-                location.href = '/prk/parkinglist';
-            }
+            handlePostSave(isNewRecord ? '/prk/parkinglist' : '/prk/parkinglist');
         } else {
             console.error('❌ 저장 실패:', result.message);
             alert('저장 실패: ' + result.message);
@@ -3261,14 +3198,13 @@ async function doSave() {
         console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         console.error('❌ doSave 함수 예외 발생');
         console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        console.error('예외 타입:', error.name);
         console.error('예외 메시지:', error.message);
-        console.error('예외 스택:', error.stack);
-        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.error('스택:', error.stack);
 
-        // 이미 alert가 표시되지 않았다면
-        if (error.name !== 'AbortError' && error.name !== 'TypeError') {
-            alert('저장 중 오류: ' + error.message);
+        if (error.name === 'AbortError') {
+            alert('⏰ 서버 응답 시간이 초과되었습니다.');
+        } else {
+            alert('저장 중 오류가 발생했습니다:\n' + error.message);
         }
     }
 }
@@ -3404,7 +3340,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 // ========== 🔥 서버 데이터 매핑 함수 완전 수정 ==========
 function mapPayloadToServerFormat(payload) {
     // Get the select values for administrative districts
-    // 🔥 1. 행정구역 코드 먼저 가져오기 (select의 value)
+    // 🔥 1. 행정구역 코드 가져오기
     const f_sido = document.getElementById('f_sido');
     const f_sigungu = document.getElementById('f_sigungu');
     const f_emd = document.getElementById('f_emd');
@@ -3413,32 +3349,46 @@ function mapPayloadToServerFormat(payload) {
     const sigunguCd = f_sigungu?.value || null;
     const emdCd = f_emd?.value || null;
 
-    // Check if the administrative districts are selected
-    // 🔥 2. 필수 검증 - 간소화
-    if (!emdCd) {
-        console.error('The administrative districts are not selected.');
-        alert('Please select the administrative districts.');
-        throw new Error('Administrative districts are not selected.');
-        console.error('❌ 읍면동코드가 선택되지 않았습니다');
-        alert('읍면동을 선택해주세요.');
-        throw new Error('읍면동 미선택');
+    // 🔥 2. 법정동코드(ldongCd) 명시적 생성
+    // 기존: emdCd만 사용하여 DB에 120만 들어감
+    // 수정: generateLdongCd()를 호출하거나 직접 조합하여 10자리 코드 생성
+    let ldongCd = null;
+    if (sigunguCd && emdCd) {
+        if (emdCd.length === 3) {
+            // 시군구(5) + 읍면동(3) + 리(00) = 10자리
+            ldongCd = sigunguCd + emdCd + '00';
+        } else if (emdCd.length === 5) {
+            // 시군구(5) + 읍면동(5) = 10자리 (경우에 따라 다름)
+            ldongCd = sigunguCd + emdCd;
+        } else if (emdCd.length === 10) {
+            ldongCd = emdCd;
+        } else {
+            // 기본 조합 시도
+            ldongCd = sigunguCd + emdCd.padEnd(5, '0');
+        }
     }
 
-    // Get the business management number
-    // 🔥 3. 법정동코드는 emdCd를 그대로 사용 (DB에서 처리)
-    const ldongCd = generateLdongCd();
-    // 🔥 4. 세션에서 prkBizMngNo 가져오기 (신규 등록 시)
+    if (!ldongCd || ldongCd.length !== 10) {
+        console.warn('⚠️ 법정동코드 생성 실패 또는 길이 오류:', ldongCd);
+        // 실패 시 payload에 있는 값을 사용해봅니다 (buildPayload에서 생성했었다면)
+        ldongCd = payload.ldongCd || ldongCd;
+    }
+
+    console.log(`🛠️ 법정동코드 매핑: 시군구(${sigunguCd}) + 읍면동(${emdCd}) => ldongCd(${ldongCd})`);
+
     const isNewRecord = !payload.id || payload.id.trim() === '';
     const prkBizMngNo = isNewRecord ? null : loadedBizMngNo;
 
     const serverData = {
         /* ========== Basic Information ========== */
-        /* ========== 기본 정보 ========== */
         prkPlceManageNo: payload.id || null,
         prkplceNm: payload.name || '',
         prgsStsCd: payload.status || '10',
         prkPlceType: '1',
-        ldongCd: generateLdongCd(),  // Use the administrative districts code directly
+
+        // 🔥 수정: 명시적으로 생성한 10자리 ldongCd 사용
+        ldongCd: ldongCd,
+
         zip: document.getElementById('f_zip')?.value || null,
         dtadd: document.getElementById('f_addr_jibun')?.value || null,
         rnmadr: document.getElementById('f_addr_road')?.value || null,
@@ -3446,32 +3396,29 @@ function mapPayloadToServerFormat(payload) {
         prkPlceLon: document.getElementById('f_lng')?.value || null,
 
         /* ========== 🔥 행정구역 - 직접 매핑 ========== */
-        sidoCd: sidoCd,      // 🔥 시도코드
-        sigunguCd: sigunguCd,  // 🔥 시군구코드
-        emdCd: emdCd,        // 🔥 읍면동코드
+        sidoCd: sidoCd,
+        sigunguCd: sigunguCd,
+        emdCd: emdCd,
 
         /* ========== 🔥 사업관리번호 추가 ========== */
         prkBizMngNo: prkBizMngNo,
 
-        /* ========== 주차면수 ========== */
+        // ... 나머지 데이터 매핑 (기존 코드 유지) ...
         totPrkCnt: num(totalInput?.value) || 0,
         disabPrkCnt: num(disInput?.value) || 0,
         compactPrkCnt: num(smallInput?.value) || 0,
         ecoPrkCnt: num(greenInput?.value) || 0,
         pregnantPrkCnt: num(pregInput?.value) || 0,
 
-        /* ========== 운영 정보 ========== */
         prkOperMthdCd: payload.operationType || null,
         operMbyCd: document.querySelector('input[name="own"]:checked')?.value || null,
         mgrOrg: document.getElementById('f_mgr_name')?.value || null,
         mgrOrgTelNo: document.getElementById('f_mgr_tel')?.value || null,
         subordnOpertnCd: document.getElementById('f_oddEven')?.value || null,
 
-        /* ========== 시간대 ========== */
         dyntDvCd: payload.times.day && payload.times.night ? '03' :
             payload.times.day ? '01' : '02',
 
-        /* ========== 주간 정보 ========== */
         wkZon: document.getElementById('f_day_grade')?.value || null,
         wkFeeAplyCd: document.getElementById('f_day_feeType')?.value || null,
         wkResDayFee: parseCurrency(document.getElementById('f_day_res_all')?.value),
@@ -3487,7 +3434,6 @@ function mapPayloadToServerFormat(payload) {
         wkFeeStlmtMthdCd: collectSettleMethods('day').join(',') || null,
         wkFeePayMthdOthr: document.getElementById('day_pay_etc_input')?.value || null,
 
-        /* ========== 야간 정보 ========== */
         ntZon: document.getElementById('f_night_grade')?.value || null,
         ntFeeAplyCd: document.getElementById('f_night_feeType')?.value || null,
         ntResDayFee: parseCurrency(document.getElementById('f_night_res_all')?.value),
@@ -3503,7 +3449,6 @@ function mapPayloadToServerFormat(payload) {
         ntFeeStlmtMthdCd: collectSettleMethods('night').join(',') || null,
         ntFeePayMthdOthr: document.getElementById('night_pay_etc_input')?.value || null,
 
-        /* ========== 운영시간 (주간) ========== */
         wkWkdyOperTmCd: null,
         wkWkdyOperStarTm: null,
         wkWkdyOperEndTm: null,
@@ -3514,7 +3459,6 @@ function mapPayloadToServerFormat(payload) {
         wkHldyOperStarTm: null,
         wkHldyOperEndTm: null,
 
-        /* ========== 운영시간 (야간) ========== */
         ntWkdyOperTmCd: null,
         ntWkdyOperStarTm: null,
         ntWkdyOperEndTm: null,
@@ -3525,23 +3469,16 @@ function mapPayloadToServerFormat(payload) {
         ntHldyOperStarTm: null,
         ntHldyOperEndTm: null,
 
-        /* ========== 주차 시설 ========== */
         prklotSignYn: document.querySelector('input[name="parkingSign"]:checked')?.value || 'N',
-
-        /* ========== 🔥 경사구간 정보 ========== */
         slpSecYn: document.getElementById('slope_yes')?.checked ? 'Y' : 'N',
         sixleCnt: document.getElementById('slope_yes')?.checked ? num(document.getElementById('f_slope_start')?.value) : null,
         sixgtCnt: document.getElementById('slope_yes')?.checked ? num(document.getElementById('f_slope_end')?.value) : null,
-
-        /* ========== 🔥 안전시설 정보 ========== */
         antislpFcltyYn: document.getElementById('antislp_facility_chk')?.checked ? 'Y' : 'N',
         slpCtnGuidSignYn: document.getElementById('slp_guide_sign_chk')?.checked ? 'Y' : 'N',
-
-        /* ========== 비고 ========== */
         partclrMatter: document.getElementById('f_partclr_matter')?.value || null
     };
 
-    // 🔥 주간 운영시간 바인딩
+    // ... existing code (운영시간 바인딩 부분) ...
     if (payload.times.day && payload.day?.operatingHours) {
         const dayHours = payload.day.operatingHours;
         serverData.wkWkdyOperTmCd = dayHours.weekday?.code || null;
@@ -3561,7 +3498,6 @@ function mapPayloadToServerFormat(payload) {
         }
     }
 
-    // 🔥 야간 운영시간 바인딩
     if (payload.times.night && payload.night?.operatingHours) {
         const nightHours = payload.night.operatingHours;
         serverData.ntWkdyOperTmCd = nightHours.weekday?.code || null;

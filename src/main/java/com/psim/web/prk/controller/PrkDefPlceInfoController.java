@@ -458,8 +458,8 @@ public class PrkDefPlceInfoController {
                 parkingData.setPrkBizMngNo(prkBizMngNo);
                 log.info("✅ 사업관리번호: {}", prkBizMngNo);
 
-                String ldongCd = parkingData.getEmdCd();
-                parkingData.setLdongCd(ldongCd);
+                //String ldongCd = parkingData.getEmdCd();
+                //parkingData.setLdongCd(ldongCd);
 
                 log.info("✅ 사용자정보 설정 완료 - userId: {}, IP: {}", userId, clientIp);
             } else {
@@ -698,8 +698,8 @@ public class PrkDefPlceInfoController {
                 log.info("✅ 사업관리번호: {}", prkBizMngNo);
 
                 // 5. 행정구역 코드 (읍면동 → ldongCd)
-                String ldongCd = parkingData.getEmdCd();
-                parkingData.setLdongCd(ldongCd);
+                //String ldongCd = parkingData.getEmdCd();
+                //parkingData.setLdongCd(ldongCd);
 
                 log.info("✅ 사용자정보 설정 완료 - userId: {}, IP: {}", userId, clientIp);
             } else {
