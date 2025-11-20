@@ -30,16 +30,16 @@ class KakaoLocalServiceImplMockTest {
     RestTemplate restTemplate;
 
     @InjectMocks
-    KakaoLocalServiceImpl service; // 필드 restTemplate를 Reflection으로 교체
+    KakaoLocalServiceImpl service;
 
-    private void injectRestTemplate() {
-        ReflectionTestUtils.setField(service, "restTemplate", restTemplate);
+    private void injectApiKey() {
+        ReflectionTestUtils.setField(service, "kakaoApiKey", "test-key");
     }
 
     @Test
     @DisplayName("좌표->주소 변환 성공 시 첫 document를 반환한다")
     void convertCoord2Address_success() {
-        injectRestTemplate();
+        injectApiKey();
         KakaoCoord2AddressResponse response = new KakaoCoord2AddressResponse();
         KakaoCoord2AddressResponse.Document doc = new KakaoCoord2AddressResponse.Document();
         response.setDocuments(Collections.singletonList(doc));
@@ -55,7 +55,7 @@ class KakaoLocalServiceImplMockTest {
     @Test
     @DisplayName("주소->좌표 변환 시 빈 결과를 허용한다")
     void convertAddress2Coord_emptyDocuments() {
-        injectRestTemplate();
+        injectApiKey();
         KakaoAddress2CoordResponse response = new KakaoAddress2CoordResponse();
         response.setDocuments(Collections.emptyList());
 
@@ -69,7 +69,7 @@ class KakaoLocalServiceImplMockTest {
     @Test
     @DisplayName("좌표->행정구역 변환 시 RestTemplate 예외를 래핑한다")
     void convertCoord2Region_exception() {
-        injectRestTemplate();
+        injectApiKey();
         when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(KakaoCoord2RegionResponse.class)))
                 .thenThrow(new RuntimeException("HTTP 500"));
 

@@ -15,6 +15,7 @@ function num(v) {
 }
 
 const p = params();
+const serverStatusValue = (document.body?.dataset?.status || document.getElementById('statusCode')?.value || '').trim();
 
 // 🔥 숫자를 한국 통화 형식으로 포맷팅
 function formatCurrency(value) {
@@ -1751,31 +1752,30 @@ async function populateFormWithData(data) {
     // 특이사항
     if ($('#f_partclr_matter')) $('#f_partclr_matter').value = data.partclrMatter || '';
 
-    // 🔥 진행상태 확인 후 ReadOnly 처리
-    const isApproved = (data.prgsStsCd === '승인' || data.prgsStsCd === 'APPROVED');
-
-    if (isApproved) {
-        console.log('🔒 승인 상태 → 전체 필드 ReadOnly 처리');
-        setAllFieldsReadOnly(true);
-
-        const btnSave = $('#btnSave');
-        const btnSaveTop = $('#btnSaveTop');
-        if (btnSave) btnSave.setAttribute('disabled', 'true');
-        if (btnSaveTop) btnSaveTop.setAttribute('disabled', 'true');
-    } else {
-        console.log('✏️ 편집 가능 상태');
-        setAllFieldsReadOnly(false);
-
-        const btnSave = $('#btnSave');
-        const btnSaveTop = $('#btnSaveTop');
-        if (btnSave) btnSave.removeAttribute('disabled');
-        if (btnSaveTop) btnSaveTop.removeAttribute('disabled');
-    }
+    // 🔥 진행상태 확인 후 ReadOnly 처리 (코드값 30=승인)
+    const statusValue = (data.prgsStsCd || $('#f_status')?.value || serverStatusValue || '').trim();
+    applyApprovalLock(statusValue);
 
     console.log('✅ 폼 데이터 채우기 완료');
 }
 
 // ========== 🔥 모든 필드를 ReadOnly로 설정하는 함수 ==========
+function isApprovedStatus(value) {
+    if (!value) return false;
+    const v = value.toString().trim();
+    return v === '30' || v === '승인' || v.toUpperCase() === 'APPROVED';
+}
+
+function applyApprovalLock(statusValue) {
+    const approved = isApprovedStatus(statusValue);
+    setAllFieldsReadOnly(approved);
+    const btnSave = $('#btnSave');
+    const btnSaveTop = $('#btnSaveTop');
+    if (btnSave) btnSave.disabled = approved;
+    if (btnSaveTop) btnSaveTop.disabled = approved;
+    return approved;
+}
+
 function setAllFieldsReadOnly(isReadOnly) {
     const inputs = $$('input[type="text"], input[type="number"], input[type="tel"], input[type="date"], textarea');
     inputs.forEach(input => {
@@ -2207,6 +2207,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     try {
         console.log('Step 1: 초기화 시작');
         const isNewRecord = !p.id;
+        if (serverStatusValue) {
+            applyApprovalLock(serverStatusValue);
+        }
 
         console.log('Step 2: 공통 코드 로드 시작');
         await RegionCodeLoader.loadProgressStatus();

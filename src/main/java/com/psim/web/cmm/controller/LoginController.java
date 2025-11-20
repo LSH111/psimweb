@@ -54,7 +54,7 @@ public class LoginController {
                         HttpServletRequest request,
                         RedirectAttributes redirectAttributes) {
 
-        System.out.println("🔐 로그인 시도: userId=" + userId);
+        System.out.println("🔐 로그인 시도");
 
         CoUserVO loginUser;
         try {
@@ -114,11 +114,11 @@ public class LoginController {
 
         // 🔥 세션 설정 검증 로그 강화
         System.out.println("🔍 세션 설정 확인:");
-        System.out.println("  - sessionId: " + session.getId());
+        System.out.println("  - sessionId: (masked)");
         System.out.println("  - LOGIN: " + session.getAttribute(SESSION_ATTR_LOGIN_FLAG));
-        System.out.println("  - userId: " + session.getAttribute("userId"));
-        System.out.println("  - loginUser: " + session.getAttribute(SESSION_ATTR_AUTHENTICATED_USER));
-        System.out.println("  - userBizList: " + session.getAttribute("userBizList")); // 🔥 추가
+        System.out.println("  - userId: (masked)");
+        System.out.println("  - loginUser: (masked)");
+        System.out.println("  - userBizList size: " + (session.getAttribute("userBizList") == null ? 0 : ((java.util.List<?>) session.getAttribute("userBizList")).size())); // 🔥 추가
 
         // 이전 페이지가 있으면 그곳으로, 없으면 index로
         String redirectUrl = (String) session.getAttribute("redirectAfterLogin");

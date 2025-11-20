@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class AttchPicMngInfoServiceImplMockTest {
@@ -42,6 +43,7 @@ class AttchPicMngInfoServiceImplMockTest {
     void uploadAndSaveFile_success() {
         when(multipartFile.isEmpty()).thenReturn(false);
         when(multipartFile.getOriginalFilename()).thenReturn("test.png");
+        when(multipartFile.getSize()).thenReturn(1024L);
         when(photoStorage.save(anyString(), eq(multipartFile)))
                 .thenReturn(new PhotoStorage.SaveResult("PRK/20250101", "uuid.png", "png"));
         when(mapper.selectMaxSeqNo(anyInt(), anyString())).thenReturn(1);
@@ -94,6 +96,8 @@ class AttchPicMngInfoServiceImplMockTest {
         when(file2.isEmpty()).thenReturn(false);
         when(file1.getOriginalFilename()).thenReturn("a.png");
         when(file2.getOriginalFilename()).thenReturn("b.jpg");
+        when(file1.getSize()).thenReturn(512L);
+        when(file2.getSize()).thenReturn(1024L);
         when(photoStorage.save(anyString(), any(MultipartFile.class)))
                 .thenReturn(new PhotoStorage.SaveResult("USG/20250101", "a.png", "png"))
                 .thenReturn(new PhotoStorage.SaveResult("USG/20250101", "b.jpg", "jpg"));
@@ -103,5 +107,38 @@ class AttchPicMngInfoServiceImplMockTest {
 
         assertThat(result).hasSize(2);
         verify(mapper, times(2)).insertAttchPicMngInfo(any(AttchPicMngInfoVO.class));
+    }
+
+    @Test
+    @DisplayName("허용되지 않은 확장자는 업로드를 거부한다")
+    void uploadAndSaveFile_invalidExtension() {
+        when(multipartFile.isEmpty()).thenReturn(false);
+        when(multipartFile.getOriginalFilename()).thenReturn("bad.exe");
+        when(multipartFile.getSize()).thenReturn(1024L);
+
+        assertThrows(IllegalArgumentException.class, () ->
+                service.uploadAndSaveFile(1, "MAIN", multipartFile));
+    }
+
+    @Test
+    @DisplayName("최대 크기를 초과한 파일은 업로드를 거부한다")
+    void uploadAndSaveFile_overSize() {
+        when(multipartFile.isEmpty()).thenReturn(false);
+        lenient().when(multipartFile.getOriginalFilename()).thenReturn("big.png");
+        when(multipartFile.getSize()).thenReturn(11 * 1024 * 1024L);
+
+        assertThrows(IllegalArgumentException.class, () ->
+                service.uploadAndSaveFile(1, "MAIN", multipartFile));
+    }
+
+    @Test
+    @DisplayName("경로 조작 입력이 포함된 prkImgId는 거부된다")
+    void uploadAndSaveFile_pathTraversal() {
+        when(multipartFile.isEmpty()).thenReturn(false);
+        when(multipartFile.getOriginalFilename()).thenReturn("test.png");
+        when(multipartFile.getSize()).thenReturn(1024L);
+
+        assertThrows(RuntimeException.class, () ->
+                service.uploadAndSaveFile(1, "../MAIN", multipartFile));
     }
 }

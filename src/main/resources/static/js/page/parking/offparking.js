@@ -13,6 +13,7 @@ function num(v) {
 }
 
 const p = params();
+const serverStatusValue = (document.body?.dataset?.status || document.getElementById('statusCode')?.value || '').trim();
 
 // 🔥 숫자를 한국 통화 형식으로 포맷팅
 function formatCurrency(value) {
@@ -2600,28 +2601,9 @@ async function populateFormWithData(data) {
     // 🔥 특이사항
     if ($('#f_partclr_matter')) $('#f_partclr_matter').value = data.partclrMatter || '';
 
-    // 🔥 2. 진행상태 확인 후 ReadOnly 처리
-    const isApproved = (data.prgsStsCd === '승인' || data.prgsStsCd === 'APPROVED');
-
-    if (isApproved) {
-        console.log('🔒 승인 상태 → 전체 필드 ReadOnly 처리');
-        setAllFieldsReadOnly(true);
-
-        // 저장 버튼 비활성화
-        const btnSave = $('#btnSave');
-        const btnSaveTop = $('#btnSaveTop');
-        if (btnSave) btnSave.setAttribute('disabled', 'true');
-        if (btnSaveTop) btnSaveTop.setAttribute('disabled', 'true');
-    } else {
-        console.log('✏️ 편집 가능 상태');
-        setAllFieldsReadOnly(false);
-
-        // 저장 버튼 활성화
-        const btnSave = $('#btnSave');
-        const btnSaveTop = $('#btnSaveTop');
-        if (btnSave) btnSave.removeAttribute('disabled');
-        if (btnSaveTop) btnSaveTop.removeAttribute('disabled');
-    }
+    // 🔥 2. 진행상태 확인 후 ReadOnly 처리 (코드값 30=승인)
+    const statusValue = (data.prgsStsCd || $('#f_status')?.value || serverStatusValue || '').trim();
+    applyApprovalLock(statusValue);
 
     // UI 업데이트
     setTimeout(() => {
@@ -2694,6 +2676,22 @@ function bindCheckboxes(name, codeString) {
 }
 
 // ========== 🔥 모든 필드를 ReadOnly로 설정하는 함수 ==========
+function isApprovedStatus(value) {
+    if (!value) return false;
+    const v = value.toString().trim();
+    return v === '30' || v === '승인' || v.toUpperCase() === 'APPROVED';
+}
+
+function applyApprovalLock(statusValue) {
+    const approved = isApprovedStatus(statusValue);
+    setAllFieldsReadOnly(approved);
+    const btnSave = $('#btnSave');
+    const btnSaveTop = $('#btnSaveTop');
+    if (btnSave) btnSave.disabled = approved;
+    if (btnSaveTop) btnSaveTop.disabled = approved;
+    return approved;
+}
+
 function setAllFieldsReadOnly(isReadOnly) {
     // 텍스트/숫자 입력 필드
     const inputs = $$('input[type="text"], input[type="number"], input[type="tel"], textarea');
@@ -3232,6 +3230,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     console.log('=== 노외주차장 페이지 초기화 시작 ===');
 
     try {
+        if (serverStatusValue) {
+            applyApprovalLock(serverStatusValue);
+        }
         // 1. 행정구역 코드 로드
         await RegionCodeLoader.loadProgressStatus();
         await RegionCodeLoader.loadSidoList();

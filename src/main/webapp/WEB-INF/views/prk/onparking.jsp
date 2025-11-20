@@ -19,8 +19,10 @@
     <!-- 외부 라이브러리 (EXIF / 다음 우편번호) -->
     <script src="https://cdn.jsdelivr.net/npm/exifr@7/dist/full.umd.js"></script>
     <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <c:set var="statusCode" value="${empty param.status ? '' : param.status}"/>
+    <c:set var="isApproved" value="${statusCode eq '30'}"/>
 </head>
-<body>
+<body data-status="${not empty statusCode ? statusCode : (empty param.status ? '' : param.status)}">
 <div id="toast-container"></div>
 <div class="wrap">
     <header class="card head">
@@ -30,9 +32,10 @@
         <span class="muted" id="v_addr"></span>
         <span class="actions" style="margin-left:auto">
         <button class="btn" onclick="window.print()">인쇄</button>
-        <button class="btn" id="btnSaveTop">저장</button>
+        <button class="btn" id="btnSaveTop" <c:if test="${isApproved}">disabled="disabled"</c:if>>저장</button>
       </span>
     </header>
+    <input type="hidden" id="statusCode" value="${not empty statusCode ? statusCode : (empty param.status ? '' : param.status)}"/>
     <section class="row">
         <!-- 기본정보 -->
         <div class="card">
@@ -781,7 +784,7 @@
     <!-- 저장 버튼 섹션 -->
     <section class="card">
         <div class="actions" style="justify-content: center;">
-            <button class="btn btn-save" id="btnSave">💾 저장하기</button>
+            <button class="btn btn-save" id="btnSave" <c:if test="${isApproved}">disabled="disabled"</c:if>>💾 저장하기</button>
         </div>
     </section>
 </div>

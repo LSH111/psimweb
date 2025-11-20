@@ -15,6 +15,7 @@ function num(v) {
 }
 
 const p = params();
+const serverStatusValue = (document.body?.dataset?.status || document.getElementById('statusCode')?.value || '').trim();
 
 // ========== 🔥 행정구역 코드 로더 추가 ==========
 const RegionCodeLoader = {
@@ -2545,26 +2546,9 @@ async function bindDataToForm(data) {
         bindOperationTime('night', 'holiday', data.ntHldyOperTmCd, data.ntHldyOperStarTm, data.ntHldyOperEndTm);
     }
 
-    // 🔥 2. 진행상태 확인 후 ReadOnly 처리
-    const isApproved = (data.prgsStsCd === '승인' || data.prgsStsCd === 'APPROVED');
-
-    if (isApproved) {
-        setAllFieldsReadOnly(true);
-
-        // 저장 버튼 비활성화
-        const btnSave = document.getElementById('btnSave');
-        const btnSaveTop = document.getElementById('btnSaveTop');
-        if (btnSave) btnSave.setAttribute('disabled', 'true');
-        if (btnSaveTop) btnSaveTop.setAttribute('disabled', 'true');
-    } else {
-        setAllFieldsReadOnly(false);
-
-        // 저장 버튼 활성화
-        const btnSave = document.getElementById('btnSave');
-        const btnSaveTop = document.getElementById('btnSaveTop');
-        if (btnSave) btnSave.removeAttribute('disabled');
-        if (btnSaveTop) btnSaveTop.removeAttribute('disabled');
-    }
+    // 🔥 2. 진행상태 확인 후 ReadOnly 처리 (코드값 30=승인)
+    const statusValue = (data.prgsStsCd || f_status?.value || serverStatusValue || '').trim();
+    applyApprovalLock(statusValue);
 
     // 헤더 업데이트
     if (v_id) v_id.textContent = data.prkPlceManageNo || '';
@@ -2591,6 +2575,22 @@ async function bindDataToForm(data) {
 }
 
 // ========== 🔥 모든 필드를 ReadOnly로 설정하는 함수 ==========
+function isApprovedStatus(value) {
+    if (!value) return false;
+    const v = value.toString().trim();
+    return v === '30' || v === '승인' || v.toUpperCase() === 'APPROVED';
+}
+
+function applyApprovalLock(statusValue) {
+    const approved = isApprovedStatus(statusValue);
+    setAllFieldsReadOnly(approved);
+    const btnSave = document.getElementById('btnSave');
+    const btnSaveTop = document.getElementById('btnSaveTop');
+    if (btnSave) btnSave.disabled = approved;
+    if (btnSaveTop) btnSaveTop.disabled = approved;
+    return approved;
+}
+
 function setAllFieldsReadOnly(isReadOnly) {
     // 🔥 1. 텍스트/숫자 입력 필드
     const inputs = $$('input[type="text"], input[type="number"], input[type="tel"], textarea');
@@ -3263,6 +3263,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     // 🔥 1. URL에서 관리번호 확인하여 신규/조회 구분
     const prkPlceManageNo = p.id || f_id?.value;
     const isNewRecord = !prkPlceManageNo || prkPlceManageNo === '';
+    if (serverStatusValue) {
+        applyApprovalLock(serverStatusValue);
+    }
     // 🔥 2. 진행상태 로드 (모든 상태 표시)
     await RegionCodeLoader.loadProgressStatus();
     // 3. 행정구역 코드 로드

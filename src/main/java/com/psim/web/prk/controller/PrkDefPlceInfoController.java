@@ -1065,17 +1065,20 @@ public class PrkDefPlceInfoController {
     }
 
     @GetMapping("/onparking")
-    public String onParking() {
+    public String onParking(@RequestParam(value = "status", required = false) String status, org.springframework.ui.Model model) {
+        model.addAttribute("statusCode", status);
         return "prk/onparking";
     }
 
     @GetMapping("/offparking")
-    public String offParking() {
+    public String offParking(@RequestParam(value = "status", required = false) String status, org.springframework.ui.Model model) {
+        model.addAttribute("statusCode", status);
         return "prk/offparking";
     }
 
     @GetMapping("/buildparking")
-    public String buildParking() {
+    public String buildParking(@RequestParam(value = "status", required = false) String status, org.springframework.ui.Model model) {
+        model.addAttribute("statusCode", status);
         return "prk/buildparking";
     }
 }
