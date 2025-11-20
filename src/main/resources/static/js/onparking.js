@@ -1003,9 +1003,17 @@ recompute();
 
 // ========== 헤더 주소 ==========
 function updateHeaderAddr() {
-    const sido = f_sido?.value?.trim() || '';
-    const sigungu = f_sigungu?.value?.trim() || '';
-    const emd = f_emd?.value?.trim() || '';
+    // 선택된 옵션의 텍스트(이름)를 가져오는 헬퍼 함수
+    const getSelectedText = (el) => {
+        if (!el || !el.value) return '';
+        // value가 있는 경우(선택된 경우)에만 텍스트 가져오기
+        const option = el.options[el.selectedIndex];
+        return option ? option.textContent.trim() : '';
+    };
+
+    const sido = getSelectedText(f_sido);
+    const sigungu = getSelectedText(f_sigungu);
+    const emd = getSelectedText(f_emd);
     const j = f_addrJ?.value?.trim() || '';
     const r = f_addrR?.value?.trim() || '';
 
@@ -3394,6 +3402,13 @@ function mapPayloadToServerFormat(payload) {
         rnmadr: document.getElementById('f_addr_road')?.value || null,
         prkPlceLat: document.getElementById('f_lat')?.value || null,
         prkPlceLon: document.getElementById('f_lng')?.value || null,
+
+        // 🔥 [수정] 누락된 필드 추가 (건물번호, 본번, 부번, 산여부, 리)
+        bdnbr: document.getElementById('f_bdnbr')?.value || null,
+        lnmMnno: document.getElementById('f_mainNum')?.value || null,
+        lnmSbno: document.getElementById('f_subNum')?.value || null,
+        mntnYn: document.querySelector('input[name="mountainYn"]:checked')?.value || 'N',
+        liCd: document.getElementById('f_ri')?.value || null,
 
         /* ========== 🔥 행정구역 - 직접 매핑 ========== */
         sidoCd: sidoCd,

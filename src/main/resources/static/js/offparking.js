@@ -1182,8 +1182,13 @@ function updateHeaderAddr() {
     const j = f_addrJ?.value?.trim() || '';
     const r = f_addrR?.value?.trim() || '';
 
+    // 행정구역 조합
     const adminArea = [sido, sigungu, emd].filter(Boolean).join(' ');
+
+    // 주소 조합
     const address = [j, r].filter(Boolean).join(' / ');
+
+    // 최종 표시: 행정구역 + 주소
     const fullAddress = [adminArea, address].filter(Boolean).join(' · ');
 
     if (v_addr) {
@@ -2851,19 +2856,31 @@ function mapPayloadToServerFormat(payload) {
         prkPlceManageNo: payload.id,
         prkplceNm: payload.name,
         prgsStsCd: payload.status,
+        prkPlceType: '2', // 노외주차장 구분 코드
 
         sidoCd: payload.sidoCd,
         sigunguCd: payload.sigunguCd,
         emdCd: payload.emdCd,
         ldongCd: generateLdongCd(),
 
-        /* ========== 🔥 지번 정보 ========== */
+        /* ========== 🔥 지번 및 주소 정보 (화면 ID와 매핑 확인) ========== */
+        // 화면의 '건물명'을 bdnbr(건물번호/명) 필드에 매핑
         bdnbr: document.getElementById('f_buildingName')?.value || null,
+        // 본번
         lnmMnno: document.getElementById('f_mainNum')?.value || null,
+        // 부번
         lnmSbno: document.getElementById('f_subNum')?.value || null,
+        // 산 여부
         mntnYn: document.querySelector('input[name="mountainYn"]:checked')?.value || 'N',
+        // 리(里)
         liCd: document.getElementById('f_ri')?.value || null,
+        // 도로명 주소
         rnmadr: document.getElementById('f_addr_road')?.value || null,
+
+        // 🔥 [추가] 누락되었던 지번 주소 및 메인 좌표 매핑
+        dtadd: document.getElementById('f_addr_jibun')?.value || null,
+        prkPlceLat: document.getElementById('f_lat')?.value || null,
+        prkPlceLon: document.getElementById('f_lng')?.value || null,
 
         // 주차면수
         totPrkCnt: num(totalInput?.value),

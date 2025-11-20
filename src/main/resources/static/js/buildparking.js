@@ -909,8 +909,13 @@ function updateHeaderAddr() {
     const j = f_addrJ?.value?.trim() || '';
     const r = f_addrR?.value?.trim() || '';
 
+    // 행정구역 조합
     const adminArea = [sido, sigungu, emd].filter(Boolean).join(' ');
+
+    // 주소 조합
     const address = [j, r].filter(Boolean).join(' / ');
+
+    // 최종 표시: 행정구역 + 주소
     const fullAddress = [adminArea, address].filter(Boolean).join(' · ');
 
     if (v_addr) {
@@ -2117,8 +2122,7 @@ function mapPayloadToServerFormat(payload) {
         mntnYn: document.querySelector('input[name="mountainYn"]:checked')?.value || 'N',
         liCd: document.getElementById('f_ri')?.value || null,
         rnmadr: document.getElementById('f_addr_road')?.value || null,
-
-
+        
         totPrkCnt: payload.totalStalls,
         disabPrkCnt: payload.stalls.disabled,
         compactPrkCnt: payload.stalls.compact,
