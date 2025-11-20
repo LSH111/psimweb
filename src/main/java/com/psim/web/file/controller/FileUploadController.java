@@ -1,23 +1,27 @@
 package com.psim.web.file.controller;
 
+import com.psim.media.storage.PhotoStorage;
 import com.psim.web.file.service.AttchPicMngInfoService;
 import com.psim.web.file.vo.AttchPicMngInfoVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 파일 업로드 통합 컨트롤러
@@ -30,9 +34,7 @@ import java.util.*;
 public class FileUploadController {
 
     private final AttchPicMngInfoService attchPicService;
-    
-    @Value("${file.upload.path:/upload/parking}")
-    private String uploadBasePath;
+    private final PhotoStorage photoStorage;
 
     /**
      * 🔥 단일 파일 업로드
@@ -238,12 +240,9 @@ public class FileUploadController {
             }
 
             // 실제 파일 경로
-            String filePath = uploadBasePath + "/" + fileInfo.getFilePath() + "/" + fileInfo.getFileNm();
-            Path path = Paths.get(filePath);
-            Resource resource = new UrlResource(path.toUri());
-
-            if (!resource.exists() || !resource.isReadable()) {
-                log.warn("⚠️ 파일을 읽을 수 없습니다: {}", filePath);
+            Resource resource = photoStorage.loadAsResource(fileInfo.getFilePath(), fileInfo.getFileNm());
+            if (resource == null) {
+                log.warn("⚠️ 파일을 읽을 수 없습니다: {}/{}", fileInfo.getFilePath(), fileInfo.getFileNm());
                 return ResponseEntity.notFound().build();
             }
 

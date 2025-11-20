@@ -15,7 +15,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Service
 public class KakaoLocalServiceImpl implements KakaoLocalService {
 
-    @Value("${kakao.api.key:9e769fbf1ccdb874ffffc371a19e12d8}")
+    @Value("${kakao.api.key:}")
     private String kakaoApiKey;
 
     private static final String COORD_TO_ADDRESS_URL = "https://dapi.kakao.com/v2/local/geo/coord2address.json";

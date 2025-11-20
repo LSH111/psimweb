@@ -1041,6 +1041,11 @@
     </div>
 </div>
 <!-- 페이지 전용 JS -->
-<script src="${pageContext.request.contextPath}/static/js/buildparking.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/common/dom-utils.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/common/format-utils.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/common/code-api.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/component/toast.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/component/modal.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/page/parking/buildparking.js"></script>
 </body>
 </html>

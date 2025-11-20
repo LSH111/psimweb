@@ -157,7 +157,15 @@
 <!-- 🔥 Footer 영역 -->
 <jsp:include page="/WEB-INF/views/fragments/footer.jsp"/>
 
-<script defer src="${pageContext.request.contextPath}/static/js/parking-list.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/common/dom-utils.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/common/format-utils.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/common/download.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/common/code-api.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/component/toast.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/component/modal.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/component/pager.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/component/tabs.js"></script>
+<script defer src="${pageContext.request.contextPath}/static/js/page/parking-list.js"></script>
 
 </body>
 </html>

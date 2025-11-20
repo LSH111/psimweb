@@ -1,6 +1,7 @@
 package com.psim.web.prk.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.psim.media.storage.PhotoStorage;
 import com.psim.web.cmm.vo.CoUserVO;
 import com.psim.web.file.service.AttchPicMngInfoService;
 import com.psim.web.prk.service.PrkDefPlceInfoService;
@@ -9,7 +10,6 @@ import com.psim.web.prk.vo.ParkingListVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -21,8 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +35,7 @@ public class PrkDefPlceInfoController {
 
     private final PrkDefPlceInfoService prkDefPlceInfoService;
     private final AttchPicMngInfoService attchPicService; // 🔥 추가
+    private final PhotoStorage photoStorage;
 
     /*@GetMapping("/parkinglist")
     public String parkingList() {
@@ -989,23 +988,21 @@ public class PrkDefPlceInfoController {
             }
 
             // 🔥 파일 경로에서 실제 파일 읽기
-            String uploadBasePath = "/Users/isihyeong/upload/psim"; // 실제 업로드 경로
-            String filePath = uploadBasePath + "/" + photoInfo.get("filepath") + "/" + photoInfo.get("filename");
+            String relativePath = (String) photoInfo.get("filepath");
+            String storedFileName = (String) photoInfo.get("filename");
+            Resource resource = photoStorage.loadAsResource(relativePath, storedFileName);
 
-            Path path = Paths.get(filePath);
-            Resource resource = new UrlResource(path.toUri());
-
-            if (!resource.exists() || !resource.isReadable()) {
-                log.warn("⚠️ 파일을 읽을 수 없습니다: {}", filePath);
+            if (resource == null) {
+                log.warn("⚠️ 파일을 읽을 수 없습니다: {}/{}", relativePath, storedFileName);
                 return ResponseEntity.notFound().build();
             }
 
             String contentType = (String) photoInfo.get("contentType");
-            String fileName = (String) photoInfo.get("fileName");
+            String displayFileName = (String) photoInfo.get("fileName");
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.parseMediaType(contentType));
-            headers.setContentDispositionFormData("inline", fileName);
+            headers.setContentDispositionFormData("inline", displayFileName);
 
             log.info("✅ 이미지 반환 완료");
 
@@ -1039,23 +1036,21 @@ public class PrkDefPlceInfoController {
             }
 
             // 🔥 파일 경로에서 실제 파일 읽기
-            String uploadBasePath = "/upload/parking";
-            String filePath = uploadBasePath + "/" + photoInfo.get("filePath") + "/" + photoInfo.get("fileName");
+            String relativePath = (String) photoInfo.get("filePath");
+            String fileName = (String) photoInfo.get("fileName");
+            Resource resource = photoStorage.loadAsResource(relativePath, fileName);
 
-            Path path = Paths.get(filePath);
-            Resource resource = new UrlResource(path.toUri());
-
-            if (!resource.exists() || !resource.isReadable()) {
-                log.warn("⚠️ 파일을 읽을 수 없습니다: {}", filePath);
+            if (resource == null) {
+                log.warn("⚠️ 파일을 읽을 수 없습니다: {}/{}", relativePath, fileName);
                 return ResponseEntity.notFound().build();
             }
 
             String contentType = (String) photoInfo.get("contentType");
-            String fileName = (String) photoInfo.get("fileName");
+            String displayFileName = (String) photoInfo.get("fileName");
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.parseMediaType(contentType));
-            headers.setContentDispositionFormData("inline", fileName);
+            headers.setContentDispositionFormData("inline", displayFileName);
 
             log.info("✅ 이용실태 이미지 반환 완료");
 
