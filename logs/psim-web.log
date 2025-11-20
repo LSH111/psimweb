@@ -11646,3 +11646,987 @@ java.lang.RuntimeException: HTTP 500
                 PSIMHikariPool - Shutdown initiated...
 2025-11-20 17:41:33.962 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource
                 PSIMHikariPool - Shutdown completed.
+2025-11-20 17:56:14.630 [main] DEBUG org.apache.ibatis.logging.LogFactory
+                Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2025-11-20 17:56:14.633 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'coCodeMapper' and 'com.psim.web.cmm.mapper.CoCodeMapper' mapperInterface
+2025-11-20 17:56:14.634 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'coCodeMapper'.
+2025-11-20 17:56:14.634 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'coUserMapper' and 'com.psim.web.cmm.mapper.CoUserMapper' mapperInterface
+2025-11-20 17:56:14.634 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'coUserMapper'.
+2025-11-20 17:56:14.635 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'indexMapper' and 'com.psim.web.cmm.mapper.IndexMapper' mapperInterface
+2025-11-20 17:56:14.635 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'indexMapper'.
+2025-11-20 17:56:14.635 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'loginMapper' and 'com.psim.web.cmm.mapper.LoginMapper' mapperInterface
+2025-11-20 17:56:14.636 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'loginMapper'.
+2025-11-20 17:56:14.636 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkDefPlceInfoMapper' and 'com.psim.web.prk.mapper.PrkDefPlceInfoMapper' mapperInterface
+2025-11-20 17:56:14.636 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkDefPlceInfoMapper'.
+2025-11-20 17:56:14.636 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkUsageStatusMapper' and 'com.psim.web.prk.mapper.PrkUsageStatusMapper' mapperInterface
+2025-11-20 17:56:14.636 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkUsageStatusMapper'.
+2025-11-20 17:56:14.636 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'attchPicMngInfoMapper' and 'com.psim.web.file.mapper.AttchPicMngInfoMapper' mapperInterface
+2025-11-20 17:56:14.636 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'attchPicMngInfoMapper'.
+2025-11-20 17:56:14.765 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터소스 초기화 시작
+2025-11-20 17:56:14.768 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 드라이버 로드 성공: org.postgresql.Driver
+2025-11-20 17:56:14.769 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 설정 검증 완료: URL=jdbc:postgresql://localhost:5432/postgres, Driver=org.postgresql.Driver, User=postgres
+2025-11-20 17:56:14.770 [main] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Starting...
+2025-11-20 17:56:14.820 [main] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Start completed.
+2025-11-20 17:56:14.826 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 연결 테스트 성공: jdbc:postgresql://localhost:5432/postgres
+2025-11-20 17:56:14.827 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 연결 풀이 성공적으로 설정되었습니다. Pool: PSIMHikariPool, Max: 10, Min: 5
+2025-11-20 17:56:14.994 [main] INFO  com.psim.config.MyBatisConfig
+                매퍼 XML 파일 7개를 로드했습니다.
+2025-11-20 17:56:15.058 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/CoCodeMapper.xml]'
+2025-11-20 17:56:15.069 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/CoUserMapper.xml]'
+2025-11-20 17:56:15.073 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/IndexMapper.xml]'
+2025-11-20 17:56:15.077 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/LoginMapper.xml]'
+2025-11-20 17:56:15.086 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/file/AttchPicMngInfoMapper.xml]'
+2025-11-20 17:56:15.103 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/prk/PrkDefPlceInfoMapper.xml]'
+2025-11-20 17:56:15.109 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/prk/PrkUsageStatusMapper.xml]'
+2025-11-20 17:56:15.123 [main] DEBUG org.apache.ibatis.logging.LogFactory
+                Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2025-11-20 17:56:15.166 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 트랜잭션 관리자가 설정되었습니다.
+2025-11-20 17:56:15.684 [scheduling-1] INFO  c.p.c.DatabaseMonitoringConfig$DatabasePoolMonitor
+                DB Pool Status - Active: 0, Idle: 5, Total: 5, Waiting: 0
+2025-11-20 17:56:15.843 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Creating a new SqlSession
+2025-11-20 17:56:15.845 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@28f05b0c] was not registered for synchronization because synchronization is not active
+2025-11-20 17:56:15.850 [main] DEBUG o.m.s.t.SpringManagedTransaction
+                JDBC Connection [HikariProxyConnection@557331894 wrapping org.postgresql.jdbc.PgConnection@6fff46bf] will not be managed by Spring
+2025-11-20 17:56:15.851 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                ==>  Preparing: SELECT user_id AS userId, user_pw AS userPw, user_nm AS userNm, mbtlnum as mbtlnum, sigungu_cd AS sigunguCd, LEFT(TRIM(sigungu_cd), 2) AS sidoCd FROM cpk.tb_co_user WHERE user_id = ?
+2025-11-20 17:56:15.855 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                ==> Parameters: roadmap999(String)
+2025-11-20 17:56:15.862 [main] TRACE c.p.w.c.m.LoginMapper.findUserById
+                <==    Columns: userid, userpw, usernm, mbtlnum, sigungucd, sidocd
+2025-11-20 17:56:15.862 [main] TRACE c.p.w.c.m.LoginMapper.findUserById
+                <==        Row: roadmap999, s63Vy3W29hkvZ5i0vh+VxiByuU2LxfY62qtbIQYo9r8=, 김조사원, 01095439191, 27200, 27
+2025-11-20 17:56:15.863 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                <==      Total: 1
+2025-11-20 17:56:15.863 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@28f05b0c]
+2025-11-20 17:56:15.869 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Creating a new SqlSession
+2025-11-20 17:56:15.869 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@7e31d53b] was not registered for synchronization because synchronization is not active
+2025-11-20 17:56:15.870 [main] DEBUG o.m.s.t.SpringManagedTransaction
+                JDBC Connection [HikariProxyConnection@1759046479 wrapping org.postgresql.jdbc.PgConnection@6fff46bf] will not be managed by Spring
+2025-11-20 17:56:15.870 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                ==>  Preparing: SELECT user_id AS userId, user_pw AS userPw, user_nm AS userNm, mbtlnum as mbtlnum, sigungu_cd AS sigunguCd, LEFT(TRIM(sigungu_cd), 2) AS sidoCd FROM cpk.tb_co_user WHERE user_id = ?
+2025-11-20 17:56:15.870 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                ==> Parameters: roadmap999(String)
+2025-11-20 17:56:15.871 [main] TRACE c.p.w.c.m.LoginMapper.findUserById
+                <==    Columns: userid, userpw, usernm, mbtlnum, sigungucd, sidocd
+2025-11-20 17:56:15.871 [main] TRACE c.p.w.c.m.LoginMapper.findUserById
+                <==        Row: roadmap999, s63Vy3W29hkvZ5i0vh+VxiByuU2LxfY62qtbIQYo9r8=, 김조사원, 01095439191, 27200, 27
+2025-11-20 17:56:15.871 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                <==      Total: 1
+2025-11-20 17:56:15.871 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@7e31d53b]
+2025-11-20 17:56:15.872 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Creating a new SqlSession
+2025-11-20 17:56:15.872 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@69fe7090] was not registered for synchronization because synchronization is not active
+2025-11-20 17:56:15.872 [main] DEBUG o.m.s.t.SpringManagedTransaction
+                JDBC Connection [HikariProxyConnection@1694609669 wrapping org.postgresql.jdbc.PgConnection@6fff46bf] will not be managed by Spring
+2025-11-20 17:56:15.872 [main] DEBUG c.p.w.c.m.L.selectUserBizList
+                ==>  Preparing: SELECT DISTINCT bpp.prk_biz_mng_no FROM cpk.tb_biz_per_prklot_info bpp INNER JOIN cpk.tb_prk_srvy_biz_info psb ON bpp.prk_biz_mng_no = psb.prk_biz_mng_no WHERE bpp.srvy_id = ? AND psb.use_yn = 'Y' ORDER BY bpp.prk_biz_mng_no
+2025-11-20 17:56:15.873 [main] DEBUG c.p.w.c.m.L.selectUserBizList
+                ==> Parameters: roadmap999(String)
+2025-11-20 17:56:15.876 [main] TRACE c.p.w.c.m.L.selectUserBizList
+                <==    Columns: prk_biz_mng_no
+2025-11-20 17:56:15.876 [main] TRACE c.p.w.c.m.L.selectUserBizList
+                <==        Row: 2025-대구남구-0001
+2025-11-20 17:56:15.876 [main] DEBUG c.p.w.c.m.L.selectUserBizList
+                <==      Total: 1
+2025-11-20 17:56:15.876 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@69fe7090]
+2025-11-20 17:56:16.061 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'coCodeMapper' and 'com.psim.web.cmm.mapper.CoCodeMapper' mapperInterface
+2025-11-20 17:56:16.061 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'coCodeMapper'.
+2025-11-20 17:56:16.061 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'coUserMapper' and 'com.psim.web.cmm.mapper.CoUserMapper' mapperInterface
+2025-11-20 17:56:16.061 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'coUserMapper'.
+2025-11-20 17:56:16.061 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'indexMapper' and 'com.psim.web.cmm.mapper.IndexMapper' mapperInterface
+2025-11-20 17:56:16.061 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'indexMapper'.
+2025-11-20 17:56:16.062 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'loginMapper' and 'com.psim.web.cmm.mapper.LoginMapper' mapperInterface
+2025-11-20 17:56:16.062 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'loginMapper'.
+2025-11-20 17:56:16.062 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkDefPlceInfoMapper' and 'com.psim.web.prk.mapper.PrkDefPlceInfoMapper' mapperInterface
+2025-11-20 17:56:16.062 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkDefPlceInfoMapper'.
+2025-11-20 17:56:16.062 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkUsageStatusMapper' and 'com.psim.web.prk.mapper.PrkUsageStatusMapper' mapperInterface
+2025-11-20 17:56:16.062 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkUsageStatusMapper'.
+2025-11-20 17:56:16.062 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'attchPicMngInfoMapper' and 'com.psim.web.file.mapper.AttchPicMngInfoMapper' mapperInterface
+2025-11-20 17:56:16.062 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'attchPicMngInfoMapper'.
+2025-11-20 17:56:16.087 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터소스 초기화 시작
+2025-11-20 17:56:16.087 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 드라이버 로드 성공: org.postgresql.Driver
+2025-11-20 17:56:16.087 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 설정 검증 완료: URL=jdbc:postgresql://localhost:5432/postgres, Driver=org.postgresql.Driver, User=postgres
+2025-11-20 17:56:16.087 [main] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Starting...
+2025-11-20 17:56:16.093 [main] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Start completed.
+2025-11-20 17:56:16.093 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 연결 테스트 성공: jdbc:postgresql://localhost:5432/postgres
+2025-11-20 17:56:16.093 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 연결 풀이 성공적으로 설정되었습니다. Pool: PSIMHikariPool, Max: 10, Min: 5
+2025-11-20 17:56:16.147 [main] INFO  com.psim.config.MyBatisConfig
+                매퍼 XML 파일 7개를 로드했습니다.
+2025-11-20 17:56:16.151 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/CoCodeMapper.xml]'
+2025-11-20 17:56:16.154 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/CoUserMapper.xml]'
+2025-11-20 17:56:16.157 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/IndexMapper.xml]'
+2025-11-20 17:56:16.159 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/LoginMapper.xml]'
+2025-11-20 17:56:16.163 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/file/AttchPicMngInfoMapper.xml]'
+2025-11-20 17:56:16.170 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/prk/PrkDefPlceInfoMapper.xml]'
+2025-11-20 17:56:16.173 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/prk/PrkUsageStatusMapper.xml]'
+2025-11-20 17:56:16.179 [main] DEBUG org.apache.ibatis.logging.LogFactory
+                Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2025-11-20 17:56:16.194 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 트랜잭션 관리자가 설정되었습니다.
+2025-11-20 17:56:16.547 [scheduling-1] INFO  c.p.c.DatabaseMonitoringConfig$DatabasePoolMonitor
+                DB Pool Status - Active: 0, Idle: 5, Total: 5, Waiting: 0
+2025-11-20 17:56:16.554 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Creating a new SqlSession
+2025-11-20 17:56:16.554 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Registering transaction synchronization for SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3b2c8bda]
+2025-11-20 17:56:16.555 [main] DEBUG o.m.s.t.SpringManagedTransaction
+                JDBC Connection [HikariProxyConnection@459482178 wrapping org.postgresql.jdbc.PgConnection@1a819901] will be managed by Spring
+2025-11-20 17:56:16.555 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                ==>  Preparing: SELECT user_id AS userId, user_pw AS userPw, user_nm AS userNm, mbtlnum as mbtlnum, sigungu_cd AS sigunguCd, LEFT(TRIM(sigungu_cd), 2) AS sidoCd FROM cpk.tb_co_user WHERE user_id = ?
+2025-11-20 17:56:16.555 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                ==> Parameters: roadmap999(String)
+2025-11-20 17:56:16.559 [main] TRACE c.p.w.c.m.LoginMapper.findUserById
+                <==    Columns: userid, userpw, usernm, mbtlnum, sigungucd, sidocd
+2025-11-20 17:56:16.559 [main] TRACE c.p.w.c.m.LoginMapper.findUserById
+                <==        Row: roadmap999, s63Vy3W29hkvZ5i0vh+VxiByuU2LxfY62qtbIQYo9r8=, 김조사원, 01095439191, 27200, 27
+2025-11-20 17:56:16.559 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                <==      Total: 1
+2025-11-20 17:56:16.560 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3b2c8bda]
+2025-11-20 17:56:16.563 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Transaction synchronization deregistering SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3b2c8bda]
+2025-11-20 17:56:16.563 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Transaction synchronization closing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3b2c8bda]
+2025-11-20 17:56:16.565 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Creating a new SqlSession
+2025-11-20 17:56:16.565 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Registering transaction synchronization for SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@54f373d4]
+2025-11-20 17:56:16.565 [main] DEBUG o.m.s.t.SpringManagedTransaction
+                JDBC Connection [HikariProxyConnection@378838522 wrapping org.postgresql.jdbc.PgConnection@1a819901] will be managed by Spring
+2025-11-20 17:56:16.565 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                ==>  Preparing: SELECT user_id AS userId, user_pw AS userPw, user_nm AS userNm, mbtlnum as mbtlnum, sigungu_cd AS sigunguCd, LEFT(TRIM(sigungu_cd), 2) AS sidoCd FROM cpk.tb_co_user WHERE user_id = ?
+2025-11-20 17:56:16.565 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                ==> Parameters: roadmap999(String)
+2025-11-20 17:56:16.566 [main] TRACE c.p.w.c.m.LoginMapper.findUserById
+                <==    Columns: userid, userpw, usernm, mbtlnum, sigungucd, sidocd
+2025-11-20 17:56:16.566 [main] TRACE c.p.w.c.m.LoginMapper.findUserById
+                <==        Row: roadmap999, s63Vy3W29hkvZ5i0vh+VxiByuU2LxfY62qtbIQYo9r8=, 김조사원, 01095439191, 27200, 27
+2025-11-20 17:56:16.566 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                <==      Total: 1
+2025-11-20 17:56:16.566 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@54f373d4]
+2025-11-20 17:56:16.568 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@54f373d4] from current transaction
+2025-11-20 17:56:16.568 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@54f373d4]
+2025-11-20 17:56:16.568 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@54f373d4] from current transaction
+2025-11-20 17:56:16.568 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@54f373d4]
+2025-11-20 17:56:16.568 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@54f373d4] from current transaction
+2025-11-20 17:56:16.568 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@54f373d4]
+2025-11-20 17:56:16.568 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@54f373d4] from current transaction
+2025-11-20 17:56:16.568 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@54f373d4]
+2025-11-20 17:56:16.571 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Transaction synchronization deregistering SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@54f373d4]
+2025-11-20 17:56:16.571 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Transaction synchronization closing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@54f373d4]
+2025-11-20 17:56:17.416 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'coCodeMapper' and 'com.psim.web.cmm.mapper.CoCodeMapper' mapperInterface
+2025-11-20 17:56:17.416 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'coCodeMapper'.
+2025-11-20 17:56:17.416 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'coUserMapper' and 'com.psim.web.cmm.mapper.CoUserMapper' mapperInterface
+2025-11-20 17:56:17.416 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'coUserMapper'.
+2025-11-20 17:56:17.416 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'indexMapper' and 'com.psim.web.cmm.mapper.IndexMapper' mapperInterface
+2025-11-20 17:56:17.416 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'indexMapper'.
+2025-11-20 17:56:17.416 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'loginMapper' and 'com.psim.web.cmm.mapper.LoginMapper' mapperInterface
+2025-11-20 17:56:17.416 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'loginMapper'.
+2025-11-20 17:56:17.416 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkDefPlceInfoMapper' and 'com.psim.web.prk.mapper.PrkDefPlceInfoMapper' mapperInterface
+2025-11-20 17:56:17.416 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkDefPlceInfoMapper'.
+2025-11-20 17:56:17.417 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkUsageStatusMapper' and 'com.psim.web.prk.mapper.PrkUsageStatusMapper' mapperInterface
+2025-11-20 17:56:17.417 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkUsageStatusMapper'.
+2025-11-20 17:56:17.417 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'attchPicMngInfoMapper' and 'com.psim.web.file.mapper.AttchPicMngInfoMapper' mapperInterface
+2025-11-20 17:56:17.417 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'attchPicMngInfoMapper'.
+2025-11-20 17:56:17.454 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터소스 초기화 시작
+2025-11-20 17:56:17.454 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 드라이버 로드 성공: org.postgresql.Driver
+2025-11-20 17:56:17.454 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 설정 검증 완료: URL=jdbc:postgresql://localhost:5432/postgres, Driver=org.postgresql.Driver, User=postgres
+2025-11-20 17:56:17.454 [main] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Starting...
+2025-11-20 17:56:17.459 [main] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Start completed.
+2025-11-20 17:56:17.460 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 연결 테스트 성공: jdbc:postgresql://localhost:5432/postgres
+2025-11-20 17:56:17.460 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 연결 풀이 성공적으로 설정되었습니다. Pool: PSIMHikariPool, Max: 10, Min: 5
+2025-11-20 17:56:17.514 [main] INFO  com.psim.config.MyBatisConfig
+                매퍼 XML 파일 7개를 로드했습니다.
+2025-11-20 17:56:17.517 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/CoCodeMapper.xml]'
+2025-11-20 17:56:17.519 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/CoUserMapper.xml]'
+2025-11-20 17:56:17.521 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/IndexMapper.xml]'
+2025-11-20 17:56:17.523 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/LoginMapper.xml]'
+2025-11-20 17:56:17.525 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/file/AttchPicMngInfoMapper.xml]'
+2025-11-20 17:56:17.530 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/prk/PrkDefPlceInfoMapper.xml]'
+2025-11-20 17:56:17.533 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/prk/PrkUsageStatusMapper.xml]'
+2025-11-20 17:56:17.539 [main] DEBUG org.apache.ibatis.logging.LogFactory
+                Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2025-11-20 17:56:17.550 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 트랜잭션 관리자가 설정되었습니다.
+2025-11-20 17:56:17.728 [scheduling-1] INFO  c.p.c.DatabaseMonitoringConfig$DatabasePoolMonitor
+                DB Pool Status - Active: 0, Idle: 5, Total: 5, Waiting: 0
+2025-11-20 17:56:17.763 [main] INFO  c.p.w.f.s.i.AttchPicMngInfoServiceImpl
+                📸 파일 저장 시작: cmplSn=CMPL, seqNo=1, fileName=a.png
+2025-11-20 17:56:17.763 [main] INFO  c.p.w.f.s.i.AttchPicMngInfoServiceImpl
+                ✅ 파일 저장 완료: a.png
+2025-11-20 17:56:17.763 [main] INFO  c.p.w.f.s.i.AttchPicMngInfoServiceImpl
+                📸 파일 저장 시작: cmplSn=CMPL, seqNo=2, fileName=b.jpg
+2025-11-20 17:56:17.763 [main] INFO  c.p.w.f.s.i.AttchPicMngInfoServiceImpl
+                ✅ 파일 저장 완료: b.jpg
+2025-11-20 17:56:17.768 [main] INFO  c.p.w.f.s.i.AttchPicMngInfoServiceImpl
+                ✅ 파일 저장 완료: uuid.png
+2025-11-20 17:56:17.769 [main] INFO  c.p.w.f.s.i.AttchPicMngInfoServiceImpl
+                📷 사진 파일 조회 (주차장) - prkPlceInfoSn: 1, prkImgId: MAIN, seqNo: 1
+2025-11-20 17:56:17.769 [main] INFO  c.p.w.f.s.i.AttchPicMngInfoServiceImpl
+                ✅ 사진 파일 조회 완료 - 파일명: a.png
+2025-11-20 17:56:17.778 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Creating a new SqlSession
+2025-11-20 17:56:17.778 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@4a773f08] was not registered for synchronization because synchronization is not active
+2025-11-20 17:56:17.778 [main] DEBUG o.m.s.t.SpringManagedTransaction
+                JDBC Connection [HikariProxyConnection@1085805965 wrapping org.postgresql.jdbc.PgConnection@6fff46bf] will not be managed by Spring
+2025-11-20 17:56:17.778 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                ==>  Preparing: SELECT user_id AS userId, user_pw AS userPw, user_nm AS userNm, mbtlnum as mbtlnum, sigungu_cd AS sigunguCd, LEFT(TRIM(sigungu_cd), 2) AS sidoCd FROM cpk.tb_co_user WHERE user_id = ?
+2025-11-20 17:56:17.778 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                ==> Parameters: roadmap999(String)
+2025-11-20 17:56:17.779 [main] TRACE c.p.w.c.m.LoginMapper.findUserById
+                <==    Columns: userid, userpw, usernm, mbtlnum, sigungucd, sidocd
+2025-11-20 17:56:17.779 [main] TRACE c.p.w.c.m.LoginMapper.findUserById
+                <==        Row: roadmap999, s63Vy3W29hkvZ5i0vh+VxiByuU2LxfY62qtbIQYo9r8=, 김조사원, 01095439191, 27200, 27
+2025-11-20 17:56:17.779 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                <==      Total: 1
+2025-11-20 17:56:17.779 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@4a773f08]
+2025-11-20 17:56:17.779 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Creating a new SqlSession
+2025-11-20 17:56:17.779 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@24e7087a] was not registered for synchronization because synchronization is not active
+2025-11-20 17:56:17.779 [main] DEBUG o.m.s.t.SpringManagedTransaction
+                JDBC Connection [HikariProxyConnection@1538514663 wrapping org.postgresql.jdbc.PgConnection@6fff46bf] will not be managed by Spring
+2025-11-20 17:56:17.780 [main] DEBUG c.p.w.c.m.L.selectUserBizList
+                ==>  Preparing: SELECT DISTINCT bpp.prk_biz_mng_no FROM cpk.tb_biz_per_prklot_info bpp INNER JOIN cpk.tb_prk_srvy_biz_info psb ON bpp.prk_biz_mng_no = psb.prk_biz_mng_no WHERE bpp.srvy_id = ? AND psb.use_yn = 'Y' ORDER BY bpp.prk_biz_mng_no
+2025-11-20 17:56:17.780 [main] DEBUG c.p.w.c.m.L.selectUserBizList
+                ==> Parameters: roadmap999(String)
+2025-11-20 17:56:17.780 [main] TRACE c.p.w.c.m.L.selectUserBizList
+                <==    Columns: prk_biz_mng_no
+2025-11-20 17:56:17.780 [main] TRACE c.p.w.c.m.L.selectUserBizList
+                <==        Row: 2025-대구남구-0001
+2025-11-20 17:56:17.781 [main] DEBUG c.p.w.c.m.L.selectUserBizList
+                <==      Total: 1
+2025-11-20 17:56:17.781 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@24e7087a]
+2025-11-20 17:56:17.786 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Creating a new SqlSession
+2025-11-20 17:56:17.786 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@531299d3] was not registered for synchronization because synchronization is not active
+2025-11-20 17:56:17.786 [main] DEBUG o.m.s.t.SpringManagedTransaction
+                JDBC Connection [HikariProxyConnection@881300604 wrapping org.postgresql.jdbc.PgConnection@6fff46bf] will not be managed by Spring
+2025-11-20 17:56:17.786 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                ==>  Preparing: SELECT user_id AS userId, user_pw AS userPw, user_nm AS userNm, mbtlnum as mbtlnum, sigungu_cd AS sigunguCd, LEFT(TRIM(sigungu_cd), 2) AS sidoCd FROM cpk.tb_co_user WHERE user_id = ?
+2025-11-20 17:56:17.786 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                ==> Parameters: roadmap999(String)
+2025-11-20 17:56:17.787 [main] TRACE c.p.w.c.m.LoginMapper.findUserById
+                <==    Columns: userid, userpw, usernm, mbtlnum, sigungucd, sidocd
+2025-11-20 17:56:17.787 [main] TRACE c.p.w.c.m.LoginMapper.findUserById
+                <==        Row: roadmap999, s63Vy3W29hkvZ5i0vh+VxiByuU2LxfY62qtbIQYo9r8=, 김조사원, 01095439191, 27200, 27
+2025-11-20 17:56:17.787 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                <==      Total: 1
+2025-11-20 17:56:17.787 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@531299d3]
+2025-11-20 17:56:17.787 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Creating a new SqlSession
+2025-11-20 17:56:17.787 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@7ea039b4] was not registered for synchronization because synchronization is not active
+2025-11-20 17:56:17.787 [main] DEBUG o.m.s.t.SpringManagedTransaction
+                JDBC Connection [HikariProxyConnection@451900456 wrapping org.postgresql.jdbc.PgConnection@6fff46bf] will not be managed by Spring
+2025-11-20 17:56:17.787 [main] DEBUG c.p.w.c.m.L.selectUserBizList
+                ==>  Preparing: SELECT DISTINCT bpp.prk_biz_mng_no FROM cpk.tb_biz_per_prklot_info bpp INNER JOIN cpk.tb_prk_srvy_biz_info psb ON bpp.prk_biz_mng_no = psb.prk_biz_mng_no WHERE bpp.srvy_id = ? AND psb.use_yn = 'Y' ORDER BY bpp.prk_biz_mng_no
+2025-11-20 17:56:17.788 [main] DEBUG c.p.w.c.m.L.selectUserBizList
+                ==> Parameters: roadmap999(String)
+2025-11-20 17:56:17.788 [main] TRACE c.p.w.c.m.L.selectUserBizList
+                <==    Columns: prk_biz_mng_no
+2025-11-20 17:56:17.788 [main] TRACE c.p.w.c.m.L.selectUserBizList
+                <==        Row: 2025-대구남구-0001
+2025-11-20 17:56:17.788 [main] DEBUG c.p.w.c.m.L.selectUserBizList
+                <==      Total: 1
+2025-11-20 17:56:17.788 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@7ea039b4]
+2025-11-20 17:56:17.789 [main] WARN  c.p.w.p.c.PrkDefPlceInfoController
+                ⚠️ openDetailId or parkingType is null
+2025-11-20 17:56:17.795 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Creating a new SqlSession
+2025-11-20 17:56:17.795 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@443ac5b8] was not registered for synchronization because synchronization is not active
+2025-11-20 17:56:17.795 [main] DEBUG o.m.s.t.SpringManagedTransaction
+                JDBC Connection [HikariProxyConnection@309135464 wrapping org.postgresql.jdbc.PgConnection@6fff46bf] will not be managed by Spring
+2025-11-20 17:56:17.795 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                ==>  Preparing: SELECT user_id AS userId, user_pw AS userPw, user_nm AS userNm, mbtlnum as mbtlnum, sigungu_cd AS sigunguCd, LEFT(TRIM(sigungu_cd), 2) AS sidoCd FROM cpk.tb_co_user WHERE user_id = ?
+2025-11-20 17:56:17.795 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                ==> Parameters: roadmap999(String)
+2025-11-20 17:56:17.796 [main] TRACE c.p.w.c.m.LoginMapper.findUserById
+                <==    Columns: userid, userpw, usernm, mbtlnum, sigungucd, sidocd
+2025-11-20 17:56:17.796 [main] TRACE c.p.w.c.m.LoginMapper.findUserById
+                <==        Row: roadmap999, s63Vy3W29hkvZ5i0vh+VxiByuU2LxfY62qtbIQYo9r8=, 김조사원, 01095439191, 27200, 27
+2025-11-20 17:56:17.796 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                <==      Total: 1
+2025-11-20 17:56:17.796 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@443ac5b8]
+2025-11-20 17:56:17.796 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Creating a new SqlSession
+2025-11-20 17:56:17.796 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19e5e110] was not registered for synchronization because synchronization is not active
+2025-11-20 17:56:17.796 [main] DEBUG o.m.s.t.SpringManagedTransaction
+                JDBC Connection [HikariProxyConnection@506027903 wrapping org.postgresql.jdbc.PgConnection@6fff46bf] will not be managed by Spring
+2025-11-20 17:56:17.796 [main] DEBUG c.p.w.c.m.L.selectUserBizList
+                ==>  Preparing: SELECT DISTINCT bpp.prk_biz_mng_no FROM cpk.tb_biz_per_prklot_info bpp INNER JOIN cpk.tb_prk_srvy_biz_info psb ON bpp.prk_biz_mng_no = psb.prk_biz_mng_no WHERE bpp.srvy_id = ? AND psb.use_yn = 'Y' ORDER BY bpp.prk_biz_mng_no
+2025-11-20 17:56:17.797 [main] DEBUG c.p.w.c.m.L.selectUserBizList
+                ==> Parameters: roadmap999(String)
+2025-11-20 17:56:17.797 [main] TRACE c.p.w.c.m.L.selectUserBizList
+                <==    Columns: prk_biz_mng_no
+2025-11-20 17:56:17.797 [main] TRACE c.p.w.c.m.L.selectUserBizList
+                <==        Row: 2025-대구남구-0001
+2025-11-20 17:56:17.797 [main] DEBUG c.p.w.c.m.L.selectUserBizList
+                <==      Total: 1
+2025-11-20 17:56:17.797 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19e5e110]
+2025-11-20 17:56:17.800 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Creating a new SqlSession
+2025-11-20 17:56:17.800 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@24f2608b] was not registered for synchronization because synchronization is not active
+2025-11-20 17:56:17.800 [main] DEBUG o.m.s.t.SpringManagedTransaction
+                JDBC Connection [HikariProxyConnection@313124964 wrapping org.postgresql.jdbc.PgConnection@6fff46bf] will not be managed by Spring
+2025-11-20 17:56:17.800 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                ==>  Preparing: SELECT user_id AS userId, user_pw AS userPw, user_nm AS userNm, mbtlnum as mbtlnum, sigungu_cd AS sigunguCd, LEFT(TRIM(sigungu_cd), 2) AS sidoCd FROM cpk.tb_co_user WHERE user_id = ?
+2025-11-20 17:56:17.800 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                ==> Parameters: roadmap999(String)
+2025-11-20 17:56:17.801 [main] TRACE c.p.w.c.m.LoginMapper.findUserById
+                <==    Columns: userid, userpw, usernm, mbtlnum, sigungucd, sidocd
+2025-11-20 17:56:17.801 [main] TRACE c.p.w.c.m.LoginMapper.findUserById
+                <==        Row: roadmap999, s63Vy3W29hkvZ5i0vh+VxiByuU2LxfY62qtbIQYo9r8=, 김조사원, 01095439191, 27200, 27
+2025-11-20 17:56:17.801 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                <==      Total: 1
+2025-11-20 17:56:17.801 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@24f2608b]
+2025-11-20 17:56:17.801 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Creating a new SqlSession
+2025-11-20 17:56:17.801 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@462f8fe9] was not registered for synchronization because synchronization is not active
+2025-11-20 17:56:17.801 [main] DEBUG o.m.s.t.SpringManagedTransaction
+                JDBC Connection [HikariProxyConnection@1013957837 wrapping org.postgresql.jdbc.PgConnection@6fff46bf] will not be managed by Spring
+2025-11-20 17:56:17.801 [main] DEBUG c.p.w.c.m.L.selectUserBizList
+                ==>  Preparing: SELECT DISTINCT bpp.prk_biz_mng_no FROM cpk.tb_biz_per_prklot_info bpp INNER JOIN cpk.tb_prk_srvy_biz_info psb ON bpp.prk_biz_mng_no = psb.prk_biz_mng_no WHERE bpp.srvy_id = ? AND psb.use_yn = 'Y' ORDER BY bpp.prk_biz_mng_no
+2025-11-20 17:56:17.801 [main] DEBUG c.p.w.c.m.L.selectUserBizList
+                ==> Parameters: roadmap999(String)
+2025-11-20 17:56:17.802 [main] TRACE c.p.w.c.m.L.selectUserBizList
+                <==    Columns: prk_biz_mng_no
+2025-11-20 17:56:17.802 [main] TRACE c.p.w.c.m.L.selectUserBizList
+                <==        Row: 2025-대구남구-0001
+2025-11-20 17:56:17.802 [main] DEBUG c.p.w.c.m.L.selectUserBizList
+                <==      Total: 1
+2025-11-20 17:56:17.802 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@462f8fe9]
+2025-11-20 17:56:17.804 [main] INFO  c.p.w.p.c.PrkDefPlceInfoController
+                🔍 주차장 데이터 조회 시작 - params: {}
+2025-11-20 17:56:17.804 [main] INFO  c.p.w.p.c.PrkDefPlceInfoController
+                ✅ userBizList 추가: [2025-대구남구-0001]
+2025-11-20 17:56:17.804 [main] INFO  c.p.w.p.c.PrkDefPlceInfoController
+                🔄 서비스 호출 시작
+2025-11-20 17:56:17.806 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                주차장 목록 조회 - 파라미터: {userBizList=[2025-대구남구-0001]}
+2025-11-20 17:56:17.806 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Creating a new SqlSession
+2025-11-20 17:56:17.806 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@2e785b28] was not registered for synchronization because synchronization is not active
+2025-11-20 17:56:17.818 [main] DEBUG o.m.s.t.SpringManagedTransaction
+                JDBC Connection [HikariProxyConnection@706331499 wrapping org.postgresql.jdbc.PgConnection@6fff46bf] will not be managed by Spring
+2025-11-20 17:56:17.818 [main] DEBUG c.p.w.p.m.P.selectParkingList
+                ==>  Preparing: SELECT cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsCd, tcl.sido_cd as sidoCd, tcl.sido_nm as sidoNm, tcl.sigungu_cd as sigunguCd, tcl.sigungu_nm as sigunguNm, tcl.emd_cd as emdCd, tcl.lgal_emd_nm as lgalEmdNm, tpdpi.zip as zip, tpdpi.dtadd as dtadd, tcu.user_nm as userNm, cpk.FN_GET_CODE_NM(tpdpi.prk_plce_type, 'P_PRKPLCE_SE') as prkPlceType, tpdpi.prkplce_nm as prkplceNm, tbppi.biz_per_prk_mng_no as bizPerPrkMngNo, tbppi.prk_biz_mng_no as prkBizMngNo, tbppi.prk_plce_manage_no as prkPlceManageNo, tbppi.prk_plce_info_sn as prkPlceInfoSn FROM cpk.tb_prk_def_plce_info tpdpi LEFT JOIN cpk.tb_co_ldong tcl ON tpdpi.ldong_cd = tcl.ldong_cd LEFT JOIN cpk.tb_biz_per_prklot_info tbppi ON tpdpi.prk_plce_manage_no = tbppi.prk_plce_manage_no AND tpdpi.prk_plce_info_sn = tbppi.prk_plce_info_sn LEFT JOIN cpk.tb_co_user tcu ON tbppi.srvy_id = tcu.user_id AND tcl.use_yn = 'Y' AND tbppi.prk_biz_mng_no IN ( ? ) ORDER BY tpdpi.prkplce_nm ASC
+2025-11-20 17:56:17.819 [main] DEBUG c.p.w.p.m.P.selectParkingList
+                ==> Parameters: 2025-대구남구-0001(String)
+2025-11-20 17:56:17.843 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==    Columns: prgsstscd, sidocd, sidonm, sigungucd, sigungunm, emdcd, lgalemdnm, zip, dtadd, usernm, prkplcetype, prkplcenm, bizperprkmngno, prkbizmngno, prkplcemanageno, prkplceinfosn
+2025-11-20 17:56:17.843 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 조사중, 47, 경상북도, 47150, 김천시, 120, 율곡동, 39660, 경북 김천시 율곡동 1121, null, 노상, test, BP1763530710270, 2025-대구남구-0001, 39660-19199-00001-00-1, 418
+2025-11-20 17:56:17.844 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 102, 봉덕동, , 711-1, null, 부설, 新 대근주택, 117, 2025-대구남구-0006, 42446-29391-00096-00-1, 255
+2025-11-20 17:56:17.844 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 작성전, 27, 대구광역시, 27290, 달서구, 113, 감삼동, , 163-1, null, 노상, 감삼교회 인근, 25, 2025-대구달서-0001, 42643-11191-00001-00-1, 163
+2025-11-20 17:56:17.844 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 작성전, 27, 대구광역시, 27290, 달서구, 113, 감삼동, , 203-6, null, 노외, 감삼동마을공영주차장, 26, 2025-대구달서-0001, 42651-11291-00001-00-1, 164
+2025-11-20 17:56:17.844 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 103, 대명동, , , null, 노상, 남대구등기소앞주차장, 279, 2025-대구남구-0007, 42474-11191-00002-00-1, 417
+2025-11-20 17:56:17.844 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 승인, 27, 대구광역시, 27200, 남구, 103, 대명동, , 810-2, 김조사원, 노상, 남대구등기소앞주차장, 21, 2025-대구남구-0001, 42474-11191-00002-00-1, 159
+2025-11-20 17:56:17.844 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 승인대기, 27, 대구광역시, 27200, 남구, 103, 대명동, , 3029-42, null, 부설, 노블캐슬, 28, 2025-대구남구-0002, 63036-29391-00116-00-1, 166
+2025-11-20 17:56:17.845 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 103, 대명동, , 794-4, null, 노외, 대명1동공영주차장, 36, 2025-대구남구-0006, 42470-11191-00001-00-1, 174
+2025-11-20 17:56:17.845 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 승인대기, 27, 대구광역시, 27200, 남구, 103, 대명동, , 2277-2, 김조사원, 노외, 대명시장공영주차장, 22, 2025-대구남구-0001, 42400-11291-00001-00-1, 160
+2025-11-20 17:56:17.845 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 103, 대명동, , 2277-2, null, 노외, 대명시장공영주차장, 278, 2025-대구달서-0005, 42400-11291-00001-00-1, 416
+2025-11-20 17:56:17.845 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 102, 봉덕동, , 750-3, null, 노상, 봉덕1동 봉덕북길 노상공영주차장, 31, 2025-대구남구-0006, 42441-11191-00001-00-1, 169
+2025-11-20 17:56:17.845 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 102, 봉덕동, , 540-1, null, 노상, 봉덕2동 주민센터 앞 노상공영주차장, 33, 2025-대구남구-0006, 42442-11191-00001-00-1, 171
+2025-11-20 17:56:17.845 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 승인, 27, 대구광역시, 27200, 남구, 102, 봉덕동, , 1002-83, null, 노외, 봉덕공영주차장, 24, 2025-대구남구-0002, 42442-11291-00001-00-1, 162
+2025-11-20 17:56:17.845 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 102, 봉덕동, , 983-5, null, 부설, 봉덕동 983-5 제2종근린생활시설 (주식회사 서영개발 대표 서상기), 262, 2025-대구남구-0006, 42445-29391-00021-00-1, 400
+2025-11-20 17:56:17.845 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: null, null, null, null, null, null, null, 101010, 123, null, 노상, 부천주차장, null, null, null, null
+2025-11-20 17:56:17.845 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 103, 대명동, , 2152-5, null, 노외, 양지로공영주차장, 37, 2025-대구남구-0006, 42455-11291-00001-00-1, 175
+2025-11-20 17:56:17.846 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 승인, 27, 대구광역시, 27200, 남구, 103, 대명동, , 552-3, 김조사원, 부설, 에이플러스 명작, 27, 2025-대구남구-0001, 10021-29391-00107-00-1, 165
+2025-11-20 17:56:17.847 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 103, 대명동, , , null, 노상, 영대병원정문 노상공영주차장, 277, 2025-대구남구-0006, 42417-11191-00001-00-1, 415
+2025-11-20 17:56:17.847 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 작성전, 27, 대구광역시, 27290, 달서구, 121, 월암동, , 910-6, null, 부설, 오성금속, 29, 2025-대구달서-0001, 32841-29391-00022-00-1, 167
+2025-11-20 17:56:17.847 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 반려, 27, 대구광역시, 27200, 남구, 102, 봉덕동, , 543-5, null, 노상, 이천동 복개로 노상공영주차장, 23, 2025-대구남구-0002, 42438-11191-00001-00-1, 161
+2025-11-20 17:56:17.847 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 102, 봉덕동, , , null, 노상, 이천동 복개로 노상공영주차장, 276, 2025-대구남구-0006, 42438-11191-00001-00-1, 414
+2025-11-20 17:56:17.847 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: null, null, null, null, null, null, null, 225807, 1111, null, 노상, 테스트노상주차장, null, null, null, null
+2025-11-20 17:56:17.847 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: null, null, null, null, null, null, null, 225807, 0123, null, 노상, 횡성석미모닝파크, 2, 2025-강원횡성-0001, 23108-29391-00032-00-1, 4
+2025-11-20 17:56:17.847 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: null, null, null, null, null, null, null, 225807, 1111, null, 노상, 횡성주차장, null, null, null, null
+2025-11-20 17:56:17.847 [main] DEBUG c.p.w.p.m.P.selectParkingList
+                <==      Total: 24
+2025-11-20 17:56:17.847 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@2e785b28]
+2025-11-20 17:56:17.847 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                ✅ 주차장 목록 조회 완료: 24건
+2025-11-20 17:56:17.847 [main] INFO  c.p.w.p.c.PrkDefPlceInfoController
+                ✅ 데이터 조회 완료 - 총 24건
+2025-11-20 17:56:17.907 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Creating a new SqlSession
+2025-11-20 17:56:17.907 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@230d013b] was not registered for synchronization because synchronization is not active
+2025-11-20 17:56:17.908 [main] DEBUG o.m.s.t.SpringManagedTransaction
+                JDBC Connection [HikariProxyConnection@1847745588 wrapping org.postgresql.jdbc.PgConnection@6fff46bf] will not be managed by Spring
+2025-11-20 17:56:17.908 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                ==>  Preparing: SELECT user_id AS userId, user_pw AS userPw, user_nm AS userNm, mbtlnum as mbtlnum, sigungu_cd AS sigunguCd, LEFT(TRIM(sigungu_cd), 2) AS sidoCd FROM cpk.tb_co_user WHERE user_id = ?
+2025-11-20 17:56:17.908 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                ==> Parameters: roadmap999(String)
+2025-11-20 17:56:17.909 [main] TRACE c.p.w.c.m.LoginMapper.findUserById
+                <==    Columns: userid, userpw, usernm, mbtlnum, sigungucd, sidocd
+2025-11-20 17:56:17.909 [main] TRACE c.p.w.c.m.LoginMapper.findUserById
+                <==        Row: roadmap999, s63Vy3W29hkvZ5i0vh+VxiByuU2LxfY62qtbIQYo9r8=, 김조사원, 01095439191, 27200, 27
+2025-11-20 17:56:17.909 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                <==      Total: 1
+2025-11-20 17:56:17.909 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@230d013b]
+2025-11-20 17:56:17.909 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Creating a new SqlSession
+2025-11-20 17:56:17.909 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@69c0bae6] was not registered for synchronization because synchronization is not active
+2025-11-20 17:56:17.909 [main] DEBUG o.m.s.t.SpringManagedTransaction
+                JDBC Connection [HikariProxyConnection@571435580 wrapping org.postgresql.jdbc.PgConnection@6fff46bf] will not be managed by Spring
+2025-11-20 17:56:17.909 [main] DEBUG c.p.w.c.m.L.selectUserBizList
+                ==>  Preparing: SELECT DISTINCT bpp.prk_biz_mng_no FROM cpk.tb_biz_per_prklot_info bpp INNER JOIN cpk.tb_prk_srvy_biz_info psb ON bpp.prk_biz_mng_no = psb.prk_biz_mng_no WHERE bpp.srvy_id = ? AND psb.use_yn = 'Y' ORDER BY bpp.prk_biz_mng_no
+2025-11-20 17:56:17.909 [main] DEBUG c.p.w.c.m.L.selectUserBizList
+                ==> Parameters: roadmap999(String)
+2025-11-20 17:56:17.910 [main] TRACE c.p.w.c.m.L.selectUserBizList
+                <==    Columns: prk_biz_mng_no
+2025-11-20 17:56:17.910 [main] TRACE c.p.w.c.m.L.selectUserBizList
+                <==        Row: 2025-대구남구-0001
+2025-11-20 17:56:17.910 [main] DEBUG c.p.w.c.m.L.selectUserBizList
+                <==      Total: 1
+2025-11-20 17:56:17.910 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@69c0bae6]
+2025-11-20 17:56:17.912 [main] INFO  c.p.w.p.c.PrkUsageStatusController
+                💾 이용실태 저장 시작 - 차량번호: 11가1111
+2025-11-20 17:56:17.913 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Creating a new SqlSession
+2025-11-20 17:56:17.913 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Registering transaction synchronization for SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@7d2be319]
+2025-11-20 17:56:17.913 [main] DEBUG o.m.s.t.SpringManagedTransaction
+                JDBC Connection [HikariProxyConnection@771560827 wrapping org.postgresql.jdbc.PgConnection@6fff46bf] will be managed by Spring
+2025-11-20 17:56:17.913 [main] DEBUG c.p.w.p.m.P.insertUsageStatus
+                ==>  Preparing: INSERT INTO cpk.tb_prklot_cmpl_info ( cmpl_sn, prk_biz_mng_no, examin_dd, examin_timelge, srvy_id, srvy_tel, dynt_dv_cd, vhcle_no, vhcty_cd, law_gbn, law_cd, plce_lat, plce_lon, hd_inout_cd, vhcle_reg_yn, emd_cd, remark, reg_dt, rgst_id, rgst_ip_addr, updt_dt, updusr_id, updusr_ip_addr ) VALUES ( NEXTVAL('cpk.seq_prklot_cmpl_info'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, NOW(), ?, ? )
+2025-11-20 17:56:17.914 [main] DEBUG c.p.w.p.m.P.insertUsageStatus
+                ==> Parameters: 2025-대구남구-0001(String), 20240101(String), 1200(String), roadmap999(String), 01074996811(String), null, 11가1111(String), null, null, null, null, null, null, null, null, null, roadmap999(String), 127.0.0.1(String), roadmap999(String), 127.0.0.1(String)
+2025-11-20 17:56:17.916 [main] DEBUG c.p.w.p.m.P.insertUsageStatus
+                <==    Updates: 1
+2025-11-20 17:56:17.916 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@7d2be319]
+2025-11-20 17:56:17.917 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Transaction synchronization committing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@7d2be319]
+2025-11-20 17:56:17.917 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Transaction synchronization deregistering SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@7d2be319]
+2025-11-20 17:56:17.917 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Transaction synchronization closing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@7d2be319]
+2025-11-20 17:56:17.917 [main] INFO  c.p.w.p.c.PrkUsageStatusController
+                ✅ 이용실태 저장 완료 - cmpl_sn: 28
+2025-11-20 17:56:17.920 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Creating a new SqlSession
+2025-11-20 17:56:17.920 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@fb42c1c] was not registered for synchronization because synchronization is not active
+2025-11-20 17:56:17.920 [main] DEBUG o.m.s.t.SpringManagedTransaction
+                JDBC Connection [HikariProxyConnection@1323163740 wrapping org.postgresql.jdbc.PgConnection@6fff46bf] will not be managed by Spring
+2025-11-20 17:56:17.920 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                ==>  Preparing: SELECT user_id AS userId, user_pw AS userPw, user_nm AS userNm, mbtlnum as mbtlnum, sigungu_cd AS sigunguCd, LEFT(TRIM(sigungu_cd), 2) AS sidoCd FROM cpk.tb_co_user WHERE user_id = ?
+2025-11-20 17:56:17.920 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                ==> Parameters: roadmap999(String)
+2025-11-20 17:56:17.921 [main] TRACE c.p.w.c.m.LoginMapper.findUserById
+                <==    Columns: userid, userpw, usernm, mbtlnum, sigungucd, sidocd
+2025-11-20 17:56:17.921 [main] TRACE c.p.w.c.m.LoginMapper.findUserById
+                <==        Row: roadmap999, s63Vy3W29hkvZ5i0vh+VxiByuU2LxfY62qtbIQYo9r8=, 김조사원, 01095439191, 27200, 27
+2025-11-20 17:56:17.921 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                <==      Total: 1
+2025-11-20 17:56:17.921 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@fb42c1c]
+2025-11-20 17:56:17.921 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Creating a new SqlSession
+2025-11-20 17:56:17.921 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@2911db81] was not registered for synchronization because synchronization is not active
+2025-11-20 17:56:17.921 [main] DEBUG o.m.s.t.SpringManagedTransaction
+                JDBC Connection [HikariProxyConnection@2144211049 wrapping org.postgresql.jdbc.PgConnection@6fff46bf] will not be managed by Spring
+2025-11-20 17:56:17.921 [main] DEBUG c.p.w.c.m.L.selectUserBizList
+                ==>  Preparing: SELECT DISTINCT bpp.prk_biz_mng_no FROM cpk.tb_biz_per_prklot_info bpp INNER JOIN cpk.tb_prk_srvy_biz_info psb ON bpp.prk_biz_mng_no = psb.prk_biz_mng_no WHERE bpp.srvy_id = ? AND psb.use_yn = 'Y' ORDER BY bpp.prk_biz_mng_no
+2025-11-20 17:56:17.921 [main] DEBUG c.p.w.c.m.L.selectUserBizList
+                ==> Parameters: roadmap999(String)
+2025-11-20 17:56:17.922 [main] TRACE c.p.w.c.m.L.selectUserBizList
+                <==    Columns: prk_biz_mng_no
+2025-11-20 17:56:17.922 [main] TRACE c.p.w.c.m.L.selectUserBizList
+                <==        Row: 2025-대구남구-0001
+2025-11-20 17:56:17.922 [main] DEBUG c.p.w.c.m.L.selectUserBizList
+                <==      Total: 1
+2025-11-20 17:56:17.922 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@2911db81]
+2025-11-20 17:56:17.925 [main] INFO  c.p.w.p.c.PrkUsageStatusController
+                🔍 목록 조회 요청 - prkBizMngNo: null, searchVehicleNo: null, searchLawCd: null
+2025-11-20 17:56:17.925 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Creating a new SqlSession
+2025-11-20 17:56:17.925 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@627d5f1] was not registered for synchronization because synchronization is not active
+2025-11-20 17:56:17.926 [main] DEBUG o.m.s.t.SpringManagedTransaction
+                JDBC Connection [HikariProxyConnection@274720798 wrapping org.postgresql.jdbc.PgConnection@6fff46bf] will not be managed by Spring
+2025-11-20 17:56:17.926 [main] DEBUG c.p.w.p.m.P.selectUsageStatusList
+                ==>  Preparing: SELECT t.cmpl_sn, t.prk_biz_mng_no, TO_CHAR(t.examin_dd, 'YYYY-MM-DD') AS examin_dd, t.examin_timelge, t.srvy_id, t.srvy_tel, t.dynt_dv_cd, t.vhcle_no, t.vhcty_cd, t.law_gbn, t.law_cd, t.plce_lat, t.plce_lon, t.hd_inout_cd, t.vhcle_reg_yn, t.emd_cd, t.remark, t.reg_dt, t.rgst_id, -- 🔥 사업 정보에서 행정구역 코드 가져오기 b.sido_cd, b.sigungu_cd, -- 🔥 시도명 조회 cpk.FN_GET_CODE_NM(b.sido_cd, 'B0001') AS sido_nm, -- 🔥 시군구명 조회 cpk.FN_GET_CODE_NM(b.sigungu_cd, 'B0002') AS sigungu_nm, -- 🔥 읍면동명 조회 (sido_cd, sigungu_cd, emd_cd 사용) (SELECT lgal_emd_nm FROM cpk.tb_co_ldong WHERE sido_cd = b.sido_cd AND sigungu_cd = b.sigungu_cd AND emd_cd = t.emd_cd LIMIT 1) AS lgal_emd_nm, -- 🔥 코드명 변환 (SELECT code_nm FROM cpk.tb_co_code WHERE code_cd = t.vhcty_cd AND group_cd = 'VHCTY_CD' AND use_yn = 'Y') AS vhcty_nm, (SELECT code_nm FROM cpk.tb_co_code WHERE code_cd = t.dynt_dv_cd AND group_cd = 'DYNT_DV_CD' AND use_yn = 'Y') AS dynt_dv_nm, CASE WHEN t.law_cd = '1' THEN '적법' WHEN t.law_cd = '2' THEN '불법' ELSE '미정' END AS law_cd_nm, CASE WHEN t.vhcle_reg_yn = 'Y' THEN '등록' WHEN t.vhcle_reg_yn = 'N' THEN '미등록' ELSE '-' END AS vhcle_reg_yn_nm FROM cpk.tb_prklot_cmpl_info t -- 🔥 사업 정보 테이블 조인 INNER JOIN cpk.tb_prk_srvy_biz_info b ON t.prk_biz_mng_no = b.prk_biz_mng_no WHERE 1=1 ORDER BY t.examin_dd DESC, t.examin_timelge DESC
+2025-11-20 17:56:17.926 [main] DEBUG c.p.w.p.m.P.selectUsageStatusList
+                ==> Parameters: 
+2025-11-20 17:56:17.963 [main] TRACE c.p.w.p.m.P.selectUsageStatusList
+                <==    Columns: cmpl_sn, prk_biz_mng_no, examin_dd, examin_timelge, srvy_id, srvy_tel, dynt_dv_cd, vhcle_no, vhcty_cd, law_gbn, law_cd, plce_lat, plce_lon, hd_inout_cd, vhcle_reg_yn, emd_cd, remark, reg_dt, rgst_id, sido_cd, sigungu_cd, sido_nm, sigungu_nm, lgal_emd_nm, vhcty_nm, dynt_dv_nm, law_cd_nm, vhcle_reg_yn_nm
+2025-11-20 17:56:17.963 [main] TRACE c.p.w.p.m.P.selectUsageStatusList
+                <==        Row: 19, 2025-대구남구-0001, 2025-11-06, 01:22 ~ 23:11, 김조사원, 01095439191, null, 123가3456, 1, 1 , 1, 36.125706, 128.182739, null, null, 103, 적법해, 2025-11-06 16:22:35.416975, roadmap999, 27, 27200, 대구광역시, 남구, 대명동, null, null, 적법, -
+2025-11-20 17:56:17.964 [main] TRACE c.p.w.p.m.P.selectUsageStatusList
+                <==        Row: 18, 2025-대구남구-0001, 2025-11-05, 11:11 ~ 11:56, 김조사원, 01095439191, null, 123가4567, 1, 2 , 2, 36.125706, 128.182739, null, null, 103, ㅅㄷㄴㅅ, 2025-11-05 17:44:12.141253, roadmap999, 27, 27200, 대구광역시, 남구, 대명동, null, null, 불법, -
+2025-11-20 17:56:17.964 [main] TRACE c.p.w.p.m.P.selectUsageStatusList
+                <==        Row: 17, 2025-대구남구-0001, 2025-11-05, 01:11 ~ 22:22, 김조사원, 01095439191, null, 123가4567, 1, 2 , 2, 36.125706, 128.182739, null, null, 102, 김조사원, 2025-11-05 17:33:38.483214, roadmap999, 27, 27200, 대구광역시, 남구, 봉덕동, null, null, 불법, -
+2025-11-20 17:56:17.964 [main] TRACE c.p.w.p.m.P.selectUsageStatusList
+                <==        Row: 22, 2025-대구남구-0001, 2024-01-01, 1200, roadmap999, 01074996811, null, 11가1111, null, null, null, null, null, null, null, null, null, 2025-11-20 17:14:45.433711, roadmap999, 27, 27200, 대구광역시, 남구, null, null, null, 미정, -
+2025-11-20 17:56:17.964 [main] TRACE c.p.w.p.m.P.selectUsageStatusList
+                <==        Row: 23, 2025-대구남구-0001, 2024-01-01, 1200, roadmap999, 01074996811, null, 11가1111, null, null, null, null, null, null, null, null, null, 2025-11-20 17:37:17.939424, roadmap999, 27, 27200, 대구광역시, 남구, null, null, null, 미정, -
+2025-11-20 17:56:17.964 [main] TRACE c.p.w.p.m.P.selectUsageStatusList
+                <==        Row: 24, 2025-대구남구-0001, 2024-01-01, 1200, roadmap999, 01074996811, null, 11가1111, null, null, null, null, null, null, null, null, null, 2025-11-20 17:37:47.324551, roadmap999, 27, 27200, 대구광역시, 남구, null, null, null, 미정, -
+2025-11-20 17:56:17.964 [main] TRACE c.p.w.p.m.P.selectUsageStatusList
+                <==        Row: 25, 2025-대구남구-0001, 2024-01-01, 1200, roadmap999, 01074996811, null, 11가1111, null, null, null, null, null, null, null, null, null, 2025-11-20 17:39:14.59032, roadmap999, 27, 27200, 대구광역시, 남구, null, null, null, 미정, -
+2025-11-20 17:56:17.964 [main] TRACE c.p.w.p.m.P.selectUsageStatusList
+                <==        Row: 26, 2025-대구남구-0001, 2024-01-01, 1200, roadmap999, 01074996811, null, 11가1111, null, null, null, null, null, null, null, null, null, 2025-11-20 17:40:56.547022, roadmap999, 27, 27200, 대구광역시, 남구, null, null, null, 미정, -
+2025-11-20 17:56:17.964 [main] TRACE c.p.w.p.m.P.selectUsageStatusList
+                <==        Row: 27, 2025-대구남구-0001, 2024-01-01, 1200, roadmap999, 01074996811, null, 11가1111, null, null, null, null, null, null, null, null, null, 2025-11-20 17:41:33.379132, roadmap999, 27, 27200, 대구광역시, 남구, null, null, null, 미정, -
+2025-11-20 17:56:17.964 [main] TRACE c.p.w.p.m.P.selectUsageStatusList
+                <==        Row: 28, 2025-대구남구-0001, 2024-01-01, 1200, roadmap999, 01074996811, null, 11가1111, null, null, null, null, null, null, null, null, null, 2025-11-20 17:56:17.9148, roadmap999, 27, 27200, 대구광역시, 남구, null, null, null, 미정, -
+2025-11-20 17:56:17.964 [main] TRACE c.p.w.p.m.P.selectUsageStatusList
+                <==        Row: 20, 2025-대구남구-0001, 2024-01-01, 1200, roadmap999, 01074996811, null, 11가1111, null, null, null, null, null, null, null, null, null, 2025-11-20 16:37:42.60834, roadmap999, 27, 27200, 대구광역시, 남구, null, null, null, 미정, -
+2025-11-20 17:56:17.965 [main] TRACE c.p.w.p.m.P.selectUsageStatusList
+                <==        Row: 21, 2025-대구남구-0001, 2024-01-01, 1200, roadmap999, 01074996811, null, 11가1111, null, null, null, null, null, null, null, null, null, 2025-11-20 16:38:17.368231, roadmap999, 27, 27200, 대구광역시, 남구, null, null, null, 미정, -
+2025-11-20 17:56:17.965 [main] DEBUG c.p.w.p.m.P.selectUsageStatusList
+                <==      Total: 12
+2025-11-20 17:56:17.965 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@627d5f1]
+2025-11-20 17:56:17.965 [main] INFO  c.p.w.p.c.PrkUsageStatusController
+                ✅ 목록 조회 결과: 12건
+2025-11-20 17:56:17.965 [main] INFO  c.p.w.p.c.PrkUsageStatusController
+                📋 첫 번째 데이터: PrkUsageStatusVO(prkBizMngNo=2025-대구남구-0001, examinDd=2025-11-06, examinTimelge=01:22 ~ 23:11, srvyId=김조사원, srvyTel=01095439191, dyntDvCd=null, vhcleNo=123가3456, vhctyCd=1, lawGbn=1 , lawCd=1, plceLat=36.125706, plceLon=128.182739, hdInoutCd=null, vhcleRegYn=null, remark=적법해, regDt=2025-11-06 16:22:35.416975, rgstId=roadmap999, rgstIpAddr=null, updtDt=null, updusrId=null, updusrIpAddr=null, cmplSn=19, prkplceNm=null, sidoNm=대구광역시, sigunguNm=남구, lgalEmdNm=대명동, dtadd=null, vhctyNm=null, dyntDvNm=null, lawCdNm=적법, vhcleRegYnNm=-, sidoCd=27, sigunguCd=27200, emdCd=103, ri=null, searchYear=null, searchSidoCode=null, searchSigunguCode=null, searchEmdCode=null, searchLawCd=null, searchDyntDvCd=null, searchVehicNo=null, searchVehicleNo=null, searchStartDate=null, searchEndDate=null, usageId=null, statusCode=null, usageDt=null, page=1, pageSize=20, offset=0, totalCount=0)
+2025-11-20 17:56:17.973 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Creating a new SqlSession
+2025-11-20 17:56:17.973 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@37a0fc8c] was not registered for synchronization because synchronization is not active
+2025-11-20 17:56:17.973 [main] DEBUG o.m.s.t.SpringManagedTransaction
+                JDBC Connection [HikariProxyConnection@463716413 wrapping org.postgresql.jdbc.PgConnection@6fff46bf] will not be managed by Spring
+2025-11-20 17:56:17.973 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                ==>  Preparing: SELECT user_id AS userId, user_pw AS userPw, user_nm AS userNm, mbtlnum as mbtlnum, sigungu_cd AS sigunguCd, LEFT(TRIM(sigungu_cd), 2) AS sidoCd FROM cpk.tb_co_user WHERE user_id = ?
+2025-11-20 17:56:17.973 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                ==> Parameters: roadmap999(String)
+2025-11-20 17:56:17.974 [main] TRACE c.p.w.c.m.LoginMapper.findUserById
+                <==    Columns: userid, userpw, usernm, mbtlnum, sigungucd, sidocd
+2025-11-20 17:56:17.974 [main] TRACE c.p.w.c.m.LoginMapper.findUserById
+                <==        Row: roadmap999, s63Vy3W29hkvZ5i0vh+VxiByuU2LxfY62qtbIQYo9r8=, 김조사원, 01095439191, 27200, 27
+2025-11-20 17:56:17.974 [main] DEBUG c.p.w.c.m.LoginMapper.findUserById
+                <==      Total: 1
+2025-11-20 17:56:17.974 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@37a0fc8c]
+2025-11-20 17:56:17.974 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Creating a new SqlSession
+2025-11-20 17:56:17.974 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@9a37591] was not registered for synchronization because synchronization is not active
+2025-11-20 17:56:17.975 [main] DEBUG o.m.s.t.SpringManagedTransaction
+                JDBC Connection [HikariProxyConnection@1956382313 wrapping org.postgresql.jdbc.PgConnection@6fff46bf] will not be managed by Spring
+2025-11-20 17:56:17.975 [main] DEBUG c.p.w.c.m.L.selectUserBizList
+                ==>  Preparing: SELECT DISTINCT bpp.prk_biz_mng_no FROM cpk.tb_biz_per_prklot_info bpp INNER JOIN cpk.tb_prk_srvy_biz_info psb ON bpp.prk_biz_mng_no = psb.prk_biz_mng_no WHERE bpp.srvy_id = ? AND psb.use_yn = 'Y' ORDER BY bpp.prk_biz_mng_no
+2025-11-20 17:56:17.975 [main] DEBUG c.p.w.c.m.L.selectUserBizList
+                ==> Parameters: roadmap999(String)
+2025-11-20 17:56:17.976 [main] TRACE c.p.w.c.m.L.selectUserBizList
+                <==    Columns: prk_biz_mng_no
+2025-11-20 17:56:17.976 [main] TRACE c.p.w.c.m.L.selectUserBizList
+                <==        Row: 2025-대구남구-0001
+2025-11-20 17:56:17.976 [main] DEBUG c.p.w.c.m.L.selectUserBizList
+                <==      Total: 1
+2025-11-20 17:56:17.976 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@9a37591]
+2025-11-20 17:56:17.977 [main] INFO  c.p.w.p.c.PrkUsageStatusController
+                📋 세션 정보 전달 - prkBizMngNo: 2025-대구남구-0001, sigunguCd: 27200, sidoCd: 27, userName: 김조사원, userTel: 01095439191
+2025-11-20 17:56:17.985 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                노상주차장 상세 조회: NON_EXIST_MANAGE_NO
+2025-11-20 17:56:17.985 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Creating a new SqlSession
+2025-11-20 17:56:17.985 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Registering transaction synchronization for SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@38363e96]
+2025-11-20 17:56:17.985 [main] DEBUG o.m.s.t.SpringManagedTransaction
+                JDBC Connection [HikariProxyConnection@907904359 wrapping org.postgresql.jdbc.PgConnection@1a819901] will be managed by Spring
+2025-11-20 17:56:17.985 [main] DEBUG c.p.w.p.m.P.selectOnstreetParkingDetail
+                ==>  Preparing: SELECT cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsCd , tpsbi.prk_biz_mng_no as prkBizMngNo , tpsbi.biz_nm as bizNm , tpsbi.biz_yy as bizYy , tpsbi.biz_exc_st_dt as bizExcStDt , tpsbi.biz_exc_ed_dt as bizExcEdDt , tpdpi.prk_plce_manage_no as prkPlceManageNo , tpdpi.prk_plce_info_sn as prkPlceInfoSn , tpdpi.prkplce_nm as prkplceNm , tcl.sido_cd as sidoCd , tcl.sido_nm as sidoNm , tcl.sigungu_cd as sigunguCd , tcl.sigungu_nm as sigunguNm , tcl.emd_cd as emdCd , tcl.lgal_emd_nm as lgalEmdNm , tpdpi.zip as zip , tpdpi.dtadd as dtadd , tpdpi.roadaddr as rnmadr , tpdpi.prk_plce_lat as prkPlceLat , tpdpi.prk_plce_lon as prkPlceLon -- 🔥 누락된 필드 추가 , tpdpi.bdnbr as bdnbr , tpdpi.lnm_mnno as lnmMnno , tpdpi.lnm_sbno as lnmSbno , tpdpi.mntn_yn as mntnYn , tpdpi.li_cd as liCd , topi.tot_prk_cnt as totPrkCnt , topi.disab_prk_cnt as disabPrkCnt , topi.compact_prk_cnt as compactPrkCnt , topi.eco_prk_cnt as ecoPrkCnt , topi.pregnant_prk_cnt as pregnantPrkCnt , topi.prk_oper_mthd_cd as prkOperMthdCd , topi.oper_mby_cd as operMbyCd , topi.mgr_org as mgrOrg , topi.mgr_org_tel_no as mgrOrgTelNo , topi.subordn_opertn_cd as subordnOpertnCd , topoi.dynt_dv_cd as dyntDvCd , topoi.wk_zon as wkZon , topoi.wk_wkdy_oper_tm_cd as wkWkdyOperTmCd , topoi.wk_wkdy_oper_star_tm as wkWkdyOperStarTm , topoi.wk_wkdy_oper_end_tm as wkWkdyOperEndTm , topoi.wk_sat_oper_tm_cd as wkSatOperTmCd , topoi.wk_sat_oper_star_tm as wkSatOperStarTm , topoi.wk_sat_oper_end_tm as wkSatOperEndTm , topoi.wk_hldy_oper_tm_cd as wkHldyOperTmCd , topoi.wk_hldy_oper_star_tm as wkHldyOperStarTm , topoi.wk_hldy_oper_end_tm as wkHldyOperEndTm , topoi.nt_zon as ntZon , topoi.nt_wkdy_oper_tm_cd as ntWkdyOperTmCd , topoi.nt_wkdy_oper_star_tm as ntWkdyOperStarTm , topoi.nt_wkdy_oper_end_tm as ntWkdyOperEndTm , topoi.nt_sat_oper_tm_cd as ntSatOperTmCd , topoi.nt_sat_oper_star_tm as ntSatOperStarTm , topoi.nt_sat_oper_end_tm as ntSatOperEndTm , topoi.nt_hldy_oper_tm_cd as ntHldyOperTmCd , topoi.nt_hldy_oper_star_tm as ntHldyOperStarTm , topoi.nt_hldy_oper_end_tm as ntHldyOperEndTm , topoi.wk_fee_aply_cd as wkFeeAplyCd , topoi.wk_res_day_fee as wkResDayFee , topoi.wk_res_wk_fee as wkResWkFee , topoi.wk_res_ft_fee as wkResFtFee , topoi.wk_res_nt_fee as wkResNtFee , topoi.wk_gn_frst_30m_fee as wkGnFrst30mFee , topoi.wk_gn_int_10m_fee as wkGnInt10mFee , topoi.wk_gn_1h_fee as wkGn1hFee , topoi.wk_gn_day_fee as wkGnDayFee , topoi.wk_fee_mthd_cd as wkFeeMthdCd , topoi.wk_fee_stlmt_mthd_cd as wkFeeStlmtMthdCd , topoi.nt_fee_stlmt_mthd_cd as ntFeeStlmtMthdCd , topoi.nt_fee_aply_cd as ntFeeAplyCd , topoi.nt_res_day_fee as ntResDayFee , topoi.nt_res_wk_fee as ntResWkFee , topoi.nt_res_ft_fee as ntResFtFee , topoi.nt_res_nt_fee as ntResNtFee , topoi.nt_gn_frst_30m_fee as ntGnFrst30mFee , topoi.nt_gn_int_10m_fee as ntGnInt10mFee , topoi.nt_gn_1h_fee as ntGn1hFee , topoi.nt_gn_day_fee as ntGnDayFee , topoi.nt_fee_mthd_cd as ntFeeMthdCd , topoi.prklot_sign_yn as prklotSignYn , topoi.slp_sec_yn as slpSecYn , topoi.sixle_cnt as sixleCnt , topoi.sixgt_cnt as sixgtCnt , topoi.antislp_fclty_yn as antislpFcltyYn , topoi.slp_ctn_guid_sign_yn as slpCtnGuidSignYn , topoi.partclr_matter as partclrMatter , topoi.wk_fee_mnth_pass_prc as wkFeeMnthPassPrc , topoi.nt_fee_mnth_pass_prc as ntFeeMnthPassPrc , topoi.wk_fee_hfyr_pass_prc as wkFeeHfyrPassPrc , topoi.nt_fee_hfyr_pass_prc as ntFeeHfyrPassPrc , topoi.wk_fee_pay_mthd_othr as wkFeePayMthdOthr , topoi.nt_fee_pay_mthd_othr as ntFeePayMthdOthr FROM cpk.tb_prk_def_plce_info tpdpi LEFT JOIN cpk.tb_onstr_prklot_info topi ON tpdpi.prk_plce_manage_no = topi.prk_plce_manage_no AND tpdpi.prk_plce_info_sn = topi.prk_plce_info_sn LEFT JOIN cpk.tb_onstr_prklot_oper_info topoi ON topi.prk_plce_manage_no = topoi.prk_plce_manage_no AND topi.prk_plce_info_sn = topoi.prk_plce_info_sn LEFT JOIN cpk.tb_co_ldong tcl ON tpdpi.ldong_cd = tcl.ldong_cd LEFT JOIN cpk.tb_biz_per_prklot_info tbppi ON tpdpi.prk_plce_manage_no = tbppi.prk_plce_manage_no AND tpdpi.prk_plce_info_sn = tbppi.prk_plce_info_sn LEFT JOIN cpk.tb_prk_srvy_biz_info tpsbi ON tbppi.prk_biz_mng_no = tpsbi.prk_biz_mng_no AND tpsbi.use_yn = 'Y' WHERE tpdpi.prk_plce_manage_no = ?
+2025-11-20 17:56:17.986 [main] DEBUG c.p.w.p.m.P.selectOnstreetParkingDetail
+                ==> Parameters: NON_EXIST_MANAGE_NO(String)
+2025-11-20 17:56:17.992 [main] DEBUG c.p.w.p.m.P.selectOnstreetParkingDetail
+                <==      Total: 0
+2025-11-20 17:56:17.992 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@38363e96]
+2025-11-20 17:56:17.993 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Transaction synchronization deregistering SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@38363e96]
+2025-11-20 17:56:17.993 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Transaction synchronization closing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@38363e96]
+2025-11-20 17:56:17.995 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                지도용 주차장 목록 조회
+2025-11-20 17:56:17.995 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Creating a new SqlSession
+2025-11-20 17:56:17.995 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Registering transaction synchronization for SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3fd6dfbc]
+2025-11-20 17:56:17.995 [main] DEBUG o.m.s.t.SpringManagedTransaction
+                JDBC Connection [HikariProxyConnection@1076262627 wrapping org.postgresql.jdbc.PgConnection@1a819901] will be managed by Spring
+2025-11-20 17:56:17.995 [main] DEBUG c.p.w.p.m.P.selectParkingListForMap
+                ==>  Preparing: SELECT cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsCd, tcl.sido_cd as sidoCd, tcl.sido_nm as sidoNm, tcl.sigungu_cd as sigunguCd, tcl.sigungu_nm as sigunguNm, tcl.emd_cd as emdCd, tcl.lgal_emd_nm as lgalEmdNm, tpdpi.zip as zip, tpdpi.dtadd as dtadd, tcu.user_nm as userNm, cpk.FN_GET_CODE_NM(tpdpi.prk_plce_type, 'P_PRKPLCE_SE') as prkPlceType, tpdpi.prkplce_nm as prkplceNm, tbppi.biz_per_prk_mng_no as bizPerPrkMngNo, tbppi.prk_biz_mng_no as prkBizMngNo, tbppi.prk_plce_manage_no as prkPlceManageNo, tbppi.prk_plce_info_sn as prkPlceInfoSn, tpdpi.prk_plce_lat as prkPlceLat, tpdpi.prk_plce_lon as prkPlceLon FROM cpk.tb_prk_def_plce_info tpdpi LEFT JOIN cpk.tb_co_ldong tcl ON tpdpi.ldong_cd = tcl.ldong_cd LEFT JOIN cpk.tb_biz_per_prklot_info tbppi ON tpdpi.prk_plce_manage_no = tbppi.prk_plce_manage_no AND tpdpi.prk_plce_info_sn = tbppi.prk_plce_info_sn LEFT JOIN cpk.tb_co_user tcu ON tbppi.srvy_id = tcu.user_id WHERE tcl.use_yn = 'Y' AND tpdpi.prk_plce_lat IS NOT NULL AND tpdpi.prk_plce_lon IS NOT NULL AND tpdpi.prk_plce_lat != '' AND tpdpi.prk_plce_lon != '' ORDER BY tpdpi.prkplce_nm ASC
+2025-11-20 17:56:17.995 [main] DEBUG c.p.w.p.m.P.selectParkingListForMap
+                ==> Parameters: 
+2025-11-20 17:56:18.006 [main] TRACE c.p.w.p.m.P.selectParkingListForMap
+                <==    Columns: prgsstscd, sidocd, sidonm, sigungucd, sigungunm, emdcd, lgalemdnm, zip, dtadd, usernm, prkplcetype, prkplcenm, bizperprkmngno, prkbizmngno, prkplcemanageno, prkplceinfosn, prkplcelat, prkplcelon
+2025-11-20 17:56:18.006 [main] TRACE c.p.w.p.m.P.selectParkingListForMap
+                <==        Row: 조사중, 47, 경상북도, 47150, 김천시, 120, 율곡동, 39660, 경북 김천시 율곡동 1121, null, 노상, test, BP1763530710270, 2025-대구남구-0001, 39660-19199-00001-00-1, 418, 36.125706, 128.182739
+2025-11-20 17:56:18.007 [main] TRACE c.p.w.p.m.P.selectParkingListForMap
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 102, 봉덕동, , 711-1, 김조사원, 부설, 新 대근주택, 117, 2025-대구남구-0006, 42446-29391-00096-00-1, 255, 35.8429451165, 128.5954738144
+2025-11-20 17:56:18.007 [main] TRACE c.p.w.p.m.P.selectParkingListForMap
+                <==        Row: 작성전, 27, 대구광역시, 27290, 달서구, 113, 감삼동, , 163-1, 최조사원, 노상, 감삼교회 인근, 25, 2025-대구달서-0001, 42643-11191-00001-00-1, 163, 35.849222, 128.5406644
+2025-11-20 17:56:18.007 [main] TRACE c.p.w.p.m.P.selectParkingListForMap
+                <==        Row: 작성전, 27, 대구광역시, 27290, 달서구, 113, 감삼동, , 203-6, 최조사원, 노외, 감삼동마을공영주차장, 26, 2025-대구달서-0001, 42651-11291-00001-00-1, 164, 35.84694221, 128.5439076
+2025-11-20 17:56:18.008 [main] TRACE c.p.w.p.m.P.selectParkingListForMap
+                <==        Row: 승인, 27, 대구광역시, 27200, 남구, 103, 대명동, , 810-2, 김조사원, 노상, 남대구등기소앞주차장, 21, 2025-대구남구-0001, 42474-11191-00002-00-1, 159, 35.8396609588, 128.5752878018
+2025-11-20 17:56:18.008 [main] TRACE c.p.w.p.m.P.selectParkingListForMap
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 103, 대명동, , , 최조사원, 노상, 남대구등기소앞주차장, 279, 2025-대구남구-0007, 42474-11191-00002-00-1, 417, 35.8396609588, 128.5752878018
+2025-11-20 17:56:18.008 [main] TRACE c.p.w.p.m.P.selectParkingListForMap
+                <==        Row: 승인대기, 27, 대구광역시, 27200, 남구, 103, 대명동, , 3029-42, 이조사원, 부설, 노블캐슬, 28, 2025-대구남구-0002, 63036-29391-00116-00-1, 166, 35.8453447329, 128.5728634227
+2025-11-20 17:56:18.008 [main] TRACE c.p.w.p.m.P.selectParkingListForMap
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 103, 대명동, , 794-4, 최조사원, 노외, 대명1동공영주차장, 36, 2025-대구남구-0006, 42470-11191-00001-00-1, 174, 35.84093821, 128.577694
+2025-11-20 17:56:18.008 [main] TRACE c.p.w.p.m.P.selectParkingListForMap
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 103, 대명동, , 2277-2, 이조사원, 노외, 대명시장공영주차장, 278, 2025-대구달서-0005, 42400-11291-00001-00-1, 416, 35.85840069, 128.576429
+2025-11-20 17:56:18.008 [main] TRACE c.p.w.p.m.P.selectParkingListForMap
+                <==        Row: 승인대기, 27, 대구광역시, 27200, 남구, 103, 대명동, , 2277-2, 김조사원, 노외, 대명시장공영주차장, 22, 2025-대구남구-0001, 42400-11291-00001-00-1, 160, 35.85840069, 128.576429
+2025-11-20 17:56:18.008 [main] TRACE c.p.w.p.m.P.selectParkingListForMap
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 102, 봉덕동, , 750-3, 최조사원, 노상, 봉덕1동 봉덕북길 노상공영주차장, 31, 2025-대구남구-0006, 42441-11191-00001-00-1, 169, 35.8432165, 128.5983833
+2025-11-20 17:56:18.008 [main] TRACE c.p.w.p.m.P.selectParkingListForMap
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 102, 봉덕동, , 540-1, 최조사원, 노상, 봉덕2동 주민센터 앞 노상공영주차장, 33, 2025-대구남구-0006, 42442-11191-00001-00-1, 171, 35.844968, 128.5924992
+2025-11-20 17:56:18.008 [main] TRACE c.p.w.p.m.P.selectParkingListForMap
+                <==        Row: 승인, 27, 대구광역시, 27200, 남구, 102, 봉덕동, , 1002-83, 이조사원, 노외, 봉덕공영주차장, 24, 2025-대구남구-0002, 42442-11291-00001-00-1, 162, 35.84220154, 128.6017251
+2025-11-20 17:56:18.008 [main] TRACE c.p.w.p.m.P.selectParkingListForMap
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 102, 봉덕동, , 983-5, 최조사원, 부설, 봉덕동 983-5 제2종근린생활시설 (주식회사 서영개발 대표 서상기), 262, 2025-대구남구-0006, 42445-29391-00021-00-1, 400, 35.8448289569, 128.5928596748
+2025-11-20 17:56:18.008 [main] TRACE c.p.w.p.m.P.selectParkingListForMap
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 103, 대명동, , 2152-5, 최조사원, 노외, 양지로공영주차장, 37, 2025-대구남구-0006, 42455-11291-00001-00-1, 175, 35.8509827, 128.5787884
+2025-11-20 17:56:18.008 [main] TRACE c.p.w.p.m.P.selectParkingListForMap
+                <==        Row: 승인, 27, 대구광역시, 27200, 남구, 103, 대명동, , 552-3, 김조사원, 부설, 에이플러스 명작, 27, 2025-대구남구-0001, 10021-29391-00107-00-1, 165, 35.8314991194, 128.5734399522
+2025-11-20 17:56:18.008 [main] TRACE c.p.w.p.m.P.selectParkingListForMap
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 103, 대명동, , , 최조사원, 노상, 영대병원정문 노상공영주차장, 277, 2025-대구남구-0006, 42417-11191-00001-00-1, 415, 35.8462317, 128.589628
+2025-11-20 17:56:18.008 [main] TRACE c.p.w.p.m.P.selectParkingListForMap
+                <==        Row: 작성전, 27, 대구광역시, 27290, 달서구, 121, 월암동, , 910-6, 최조사원, 부설, 오성금속, 29, 2025-대구달서-0001, 32841-29391-00022-00-1, 167, 35.8281843685, 128.5037888519
+2025-11-20 17:56:18.008 [main] TRACE c.p.w.p.m.P.selectParkingListForMap
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 102, 봉덕동, , , 최조사원, 노상, 이천동 복개로 노상공영주차장, 276, 2025-대구남구-0006, 42438-11191-00001-00-1, 414, 35.8455454, 128.6007662
+2025-11-20 17:56:18.008 [main] TRACE c.p.w.p.m.P.selectParkingListForMap
+                <==        Row: 반려, 27, 대구광역시, 27200, 남구, 102, 봉덕동, , 543-5, 이조사원, 노상, 이천동 복개로 노상공영주차장, 23, 2025-대구남구-0002, 42438-11191-00001-00-1, 161, 35.8455454, 128.6007662
+2025-11-20 17:56:18.009 [main] DEBUG c.p.w.p.m.P.selectParkingListForMap
+                <==      Total: 20
+2025-11-20 17:56:18.009 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3fd6dfbc]
+2025-11-20 17:56:18.009 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Transaction synchronization deregistering SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3fd6dfbc]
+2025-11-20 17:56:18.009 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Transaction synchronization closing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3fd6dfbc]
+2025-11-20 17:56:18.011 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                주차장 목록 조회 - 파라미터: {}
+2025-11-20 17:56:18.011 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Creating a new SqlSession
+2025-11-20 17:56:18.011 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Registering transaction synchronization for SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@4d84688f]
+2025-11-20 17:56:18.011 [main] DEBUG o.m.s.t.SpringManagedTransaction
+                JDBC Connection [HikariProxyConnection@1934157662 wrapping org.postgresql.jdbc.PgConnection@1a819901] will be managed by Spring
+2025-11-20 17:56:18.011 [main] DEBUG c.p.w.p.m.P.selectParkingList
+                ==>  Preparing: SELECT cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsCd, tcl.sido_cd as sidoCd, tcl.sido_nm as sidoNm, tcl.sigungu_cd as sigunguCd, tcl.sigungu_nm as sigunguNm, tcl.emd_cd as emdCd, tcl.lgal_emd_nm as lgalEmdNm, tpdpi.zip as zip, tpdpi.dtadd as dtadd, tcu.user_nm as userNm, cpk.FN_GET_CODE_NM(tpdpi.prk_plce_type, 'P_PRKPLCE_SE') as prkPlceType, tpdpi.prkplce_nm as prkplceNm, tbppi.biz_per_prk_mng_no as bizPerPrkMngNo, tbppi.prk_biz_mng_no as prkBizMngNo, tbppi.prk_plce_manage_no as prkPlceManageNo, tbppi.prk_plce_info_sn as prkPlceInfoSn FROM cpk.tb_prk_def_plce_info tpdpi LEFT JOIN cpk.tb_co_ldong tcl ON tpdpi.ldong_cd = tcl.ldong_cd LEFT JOIN cpk.tb_biz_per_prklot_info tbppi ON tpdpi.prk_plce_manage_no = tbppi.prk_plce_manage_no AND tpdpi.prk_plce_info_sn = tbppi.prk_plce_info_sn LEFT JOIN cpk.tb_co_user tcu ON tbppi.srvy_id = tcu.user_id AND tcl.use_yn = 'Y' ORDER BY tpdpi.prkplce_nm ASC
+2025-11-20 17:56:18.011 [main] DEBUG c.p.w.p.m.P.selectParkingList
+                ==> Parameters: 
+2025-11-20 17:56:18.016 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==    Columns: prgsstscd, sidocd, sidonm, sigungucd, sigungunm, emdcd, lgalemdnm, zip, dtadd, usernm, prkplcetype, prkplcenm, bizperprkmngno, prkbizmngno, prkplcemanageno, prkplceinfosn
+2025-11-20 17:56:18.016 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 조사중, 47, 경상북도, 47150, 김천시, 120, 율곡동, 39660, 경북 김천시 율곡동 1121, null, 노상, test, BP1763530710270, 2025-대구남구-0001, 39660-19199-00001-00-1, 418
+2025-11-20 17:56:18.016 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 102, 봉덕동, , 711-1, 김조사원, 부설, 新 대근주택, 117, 2025-대구남구-0006, 42446-29391-00096-00-1, 255
+2025-11-20 17:56:18.016 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 작성전, 27, 대구광역시, 27290, 달서구, 113, 감삼동, , 163-1, 최조사원, 노상, 감삼교회 인근, 25, 2025-대구달서-0001, 42643-11191-00001-00-1, 163
+2025-11-20 17:56:18.016 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 작성전, 27, 대구광역시, 27290, 달서구, 113, 감삼동, , 203-6, 최조사원, 노외, 감삼동마을공영주차장, 26, 2025-대구달서-0001, 42651-11291-00001-00-1, 164
+2025-11-20 17:56:18.016 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 103, 대명동, , , 최조사원, 노상, 남대구등기소앞주차장, 279, 2025-대구남구-0007, 42474-11191-00002-00-1, 417
+2025-11-20 17:56:18.017 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 승인, 27, 대구광역시, 27200, 남구, 103, 대명동, , 810-2, 김조사원, 노상, 남대구등기소앞주차장, 21, 2025-대구남구-0001, 42474-11191-00002-00-1, 159
+2025-11-20 17:56:18.017 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 승인대기, 27, 대구광역시, 27200, 남구, 103, 대명동, , 3029-42, 이조사원, 부설, 노블캐슬, 28, 2025-대구남구-0002, 63036-29391-00116-00-1, 166
+2025-11-20 17:56:18.017 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 103, 대명동, , 794-4, 최조사원, 노외, 대명1동공영주차장, 36, 2025-대구남구-0006, 42470-11191-00001-00-1, 174
+2025-11-20 17:56:18.017 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 승인대기, 27, 대구광역시, 27200, 남구, 103, 대명동, , 2277-2, 김조사원, 노외, 대명시장공영주차장, 22, 2025-대구남구-0001, 42400-11291-00001-00-1, 160
+2025-11-20 17:56:18.017 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 103, 대명동, , 2277-2, 이조사원, 노외, 대명시장공영주차장, 278, 2025-대구달서-0005, 42400-11291-00001-00-1, 416
+2025-11-20 17:56:18.017 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 102, 봉덕동, , 750-3, 최조사원, 노상, 봉덕1동 봉덕북길 노상공영주차장, 31, 2025-대구남구-0006, 42441-11191-00001-00-1, 169
+2025-11-20 17:56:18.017 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 102, 봉덕동, , 540-1, 최조사원, 노상, 봉덕2동 주민센터 앞 노상공영주차장, 33, 2025-대구남구-0006, 42442-11191-00001-00-1, 171
+2025-11-20 17:56:18.017 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 승인, 27, 대구광역시, 27200, 남구, 102, 봉덕동, , 1002-83, 이조사원, 노외, 봉덕공영주차장, 24, 2025-대구남구-0002, 42442-11291-00001-00-1, 162
+2025-11-20 17:56:18.017 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 102, 봉덕동, , 983-5, 최조사원, 부설, 봉덕동 983-5 제2종근린생활시설 (주식회사 서영개발 대표 서상기), 262, 2025-대구남구-0006, 42445-29391-00021-00-1, 400
+2025-11-20 17:56:18.017 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: null, null, null, null, null, null, null, 101010, 123, null, 노상, 부천주차장, null, null, null, null
+2025-11-20 17:56:18.017 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 103, 대명동, , 2152-5, 최조사원, 노외, 양지로공영주차장, 37, 2025-대구남구-0006, 42455-11291-00001-00-1, 175
+2025-11-20 17:56:18.017 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 승인, 27, 대구광역시, 27200, 남구, 103, 대명동, , 552-3, 김조사원, 부설, 에이플러스 명작, 27, 2025-대구남구-0001, 10021-29391-00107-00-1, 165
+2025-11-20 17:56:18.017 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 103, 대명동, , , 최조사원, 노상, 영대병원정문 노상공영주차장, 277, 2025-대구남구-0006, 42417-11191-00001-00-1, 415
+2025-11-20 17:56:18.017 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 작성전, 27, 대구광역시, 27290, 달서구, 121, 월암동, , 910-6, 최조사원, 부설, 오성금속, 29, 2025-대구달서-0001, 32841-29391-00022-00-1, 167
+2025-11-20 17:56:18.017 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 반려, 27, 대구광역시, 27200, 남구, 102, 봉덕동, , 543-5, 이조사원, 노상, 이천동 복개로 노상공영주차장, 23, 2025-대구남구-0002, 42438-11191-00001-00-1, 161
+2025-11-20 17:56:18.017 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: 작성전, 27, 대구광역시, 27200, 남구, 102, 봉덕동, , , 최조사원, 노상, 이천동 복개로 노상공영주차장, 276, 2025-대구남구-0006, 42438-11191-00001-00-1, 414
+2025-11-20 17:56:18.017 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: null, null, null, null, null, null, null, 225807, 1111, null, 노상, 테스트노상주차장, null, null, null, null
+2025-11-20 17:56:18.017 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: null, null, null, null, null, null, null, 225807, 0123, null, 노상, 횡성석미모닝파크, 2, 2025-강원횡성-0001, 23108-29391-00032-00-1, 4
+2025-11-20 17:56:18.017 [main] TRACE c.p.w.p.m.P.selectParkingList
+                <==        Row: null, null, null, null, null, null, null, 225807, 1111, null, 노상, 횡성주차장, null, null, null, null
+2025-11-20 17:56:18.017 [main] DEBUG c.p.w.p.m.P.selectParkingList
+                <==      Total: 24
+2025-11-20 17:56:18.017 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@4d84688f]
+2025-11-20 17:56:18.017 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                ✅ 주차장 목록 조회 완료: 24건
+2025-11-20 17:56:18.018 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Transaction synchronization deregistering SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@4d84688f]
+2025-11-20 17:56:18.018 [main] DEBUG org.mybatis.spring.SqlSessionUtils
+                Transaction synchronization closing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@4d84688f]
+2025-11-20 17:56:18.030 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                주차장 목록 조회 - 파라미터: {}
+2025-11-20 17:56:18.031 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                ✅ 주차장 목록 조회 완료: 2건
+2025-11-20 17:56:18.031 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                🔄 노상주차장 UPDATE: MG-0001
+2025-11-20 17:56:18.031 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                ✅ 노상주차장 UPDATE 완료
+2025-11-20 17:56:18.032 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                노상주차장 상세 조회: MG-0001
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                🔵 [STEP 0/4] prkPlceInfoSn 생성 시작
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                ✅ [STEP 0/4] prkPlceInfoSn 생성 완료: 10
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                🔵 [STEP 1/4] tb_prk_def_plce_info INSERT 시작
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                📥 입력 데이터 검증:
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                   - prkPlceManageNo: MG-0001
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                   - prkplceNm: 테스트주차장
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                   - ldongCd: 11110
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                   - zip: 12345
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                   - dtadd: null
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                   - prkPlceLat: 37.1
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                   - prkPlceLon: 127.1
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                ✅ [STEP 1/4] tb_prk_def_plce_info INSERT 완료
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                🔵 [STEP 2/4] tb_biz_per_prklot_info INSERT 시작
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                📥 입력 데이터:
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                   - prkBizMngNo: BIZ-1
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                   - bizPerPrkMngNo: BP-1
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                   - prgsStsCd: 10
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                ✅ [STEP 2/4] tb_biz_per_prklot_info INSERT 완료
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                🔵 [STEP 3/4] tb_onstr_prklot_info INSERT 시작
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                📥 주차면수 데이터:
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                   - totPrkCnt: null
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                   - prkOperMthdCd: null
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                   - operMbyCd: 1
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                   - mgrOrg: null
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                   - mgrOrgTelNo: null
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                ✅ [STEP 3/4] tb_onstr_prklot_info INSERT 완료
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                🔵 [STEP 4/4] tb_onstr_prklot_oper_info INSERT 시작
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                📥 운영 정보 데이터 (주간):
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                   - dyntDvCd: null
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                   - wkZon: null
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                   - wkFeeAplyCd: null
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                   - wkFeeMthdCd: null
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                📥 운영 정보 데이터 (야간):
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                   - ntZon: null
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                   - ntFeeAplyCd: null
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                   - ntFeeMthdCd: null
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                ✅ [STEP 4/4] tb_onstr_prklot_oper_info INSERT 완료
+2025-11-20 17:56:18.033 [main] INFO  c.p.w.p.s.i.PrkDefPlceInfoServiceImpl
+                🎉🎉🎉 노상주차장 4단계 INSERT 모두 성공
+2025-11-20 17:56:18.396 [main] INFO  c.p.w.a.s.impl.KakaoLocalServiceImpl
+                주소->좌표 변환 성공: 경상북도 김천시 율곡동 1121 -> KakaoAddress2CoordResponse(meta=KakaoAddress2CoordResponse.Meta(total_count=0, pageable_count=0, is_end=true), documents=[])
+2025-11-20 17:56:18.463 [main] INFO  c.p.w.a.s.impl.KakaoLocalServiceImpl
+                주소->좌표 변환 성공: !@#$$%^&*() -> KakaoAddress2CoordResponse(meta=KakaoAddress2CoordResponse.Meta(total_count=0, pageable_count=0, is_end=true), documents=[])
+2025-11-20 17:56:18.536 [main] INFO  c.p.w.a.s.impl.KakaoLocalServiceImpl
+                좌표->주소 변환 성공: (127.1, 37.1) -> KakaoCoord2AddressResponse(meta=null, documents=[KakaoCoord2AddressResponse.Document(address=null, road_address=null)])
+2025-11-20 17:56:18.537 [main] INFO  c.p.w.a.s.impl.KakaoLocalServiceImpl
+                주소->좌표 변환 성공: unknown address -> KakaoAddress2CoordResponse(meta=null, documents=[])
+2025-11-20 17:56:18.544 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Shutdown initiated...
+2025-11-20 17:56:18.545 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Shutdown completed.
+2025-11-20 17:56:18.547 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Shutdown initiated...
+2025-11-20 17:56:18.548 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Shutdown completed.
+2025-11-20 17:56:18.550 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Shutdown initiated...
+2025-11-20 17:56:18.551 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Shutdown completed.

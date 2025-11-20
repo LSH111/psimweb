@@ -54,12 +54,21 @@
       return;
     }
 
-    const routeMap = {
-      '노상': '/prk/onparking',
-      '노외': '/prk/offparking',
-      '부설': '/prk/buildparking'
+    const type = (rec.type || '').trim();
+    const normalizeType = (t) => {
+      if (t === '01' || t === '노상') return 'on';
+      if (t === '02' || t === '노외') return 'off';
+      if (t === '03' || t === '부설') return 'build';
+      return null;
     };
-    const path = routeMap[rec.type];
+    const typeKey = normalizeType(type);
+
+    const pathMap = {
+      on: '/prk/onparking',
+      off: '/prk/offparking',
+      build: '/prk/buildparking'
+    };
+    const path = pathMap[typeKey];
 
     const btn = document.createElement('button');
     btn.className = 'tab-btn';
