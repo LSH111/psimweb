@@ -48,6 +48,8 @@ public class LoginController {
     @PostMapping("/login")
     public String login(@RequestParam("userId") String userId,
                         @RequestParam("password") String password,
+                        @RequestParam(value = "telNo", required = false) String telNo,
+                        @RequestParam(value = "certNo", required = false) String certNo,
                         //HttpSession session,
                         HttpServletRequest request,
                         RedirectAttributes redirectAttributes) {
@@ -56,7 +58,7 @@ public class LoginController {
 
         CoUserVO loginUser;
         try {
-            loginUser = loginService.login(userId, password);
+            loginUser = loginService.login(userId, password, telNo, certNo);
         } catch (Exception e) {
             System.err.println("❌ 로그인 처리 중 오류: " + e.getMessage());
             redirectAttributes.addFlashAttribute("finalErr", "인증 처리 중 오류가 발생했습니다.");

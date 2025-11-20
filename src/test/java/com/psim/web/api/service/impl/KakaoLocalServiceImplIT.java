@@ -29,7 +29,7 @@ class KakaoLocalServiceImplIT {
         Assumptions.assumeTrue(kakaoApiKey != null && !kakaoApiKey.trim().isEmpty(),
                 "kakao.api.key 가 설정되어 있지 않아 테스트를 건너뜁니다.");
 
-        KakaoAddress2CoordResponse response = kakaoLocalService.convertAddress2Coord("서울특별시 중구 세종대로 110");
+        KakaoAddress2CoordResponse response = kakaoLocalService.convertAddress2Coord("경상북도 김천시 율곡동 1121");
 
         assertThat(response).isNotNull();
         Assumptions.assumeTrue(response.getDocuments() != null && !response.getDocuments().isEmpty(),

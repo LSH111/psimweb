@@ -253,6 +253,13 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Security test helpers (MockMvc csrf, @WithMockUser 등) -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- MockMvc를 위한 Spring Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
