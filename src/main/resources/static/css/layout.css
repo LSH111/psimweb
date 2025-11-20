@@ -1,0 +1,94 @@
+/*.app-header, .app-footer { background:#161b22; border-bottom:1px solid #30363d; }
+.app-footer { border-top:1px solid #30363d; border-bottom:none; margin-top:24px; }*/
+.logo { font-weight:700; color:#fff; }
+.nav { display:flex; flex-wrap:wrap; gap:var(--gap); }
+.main { padding:16px 0; }
+.card { background:#0b1220; border:1px solid #233; border-radius:14px; padding:16px; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+.grid { display:grid; gap:var(--gap); grid-template-columns: repeat(12, 1fr); }
+@media (max-width: 1024px) { .grid { grid-template-columns: repeat(8, 1fr); } }
+@media (max-width: 768px) { .grid { grid-template-columns: repeat(4, 1fr); } }
+
+/* ===== 3등분 레이아웃 (Header / Content / Footer) - parking-list 전용 ===== */
+
+/* 전체 페이지를 Flexbox로 수직 배치 */
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+/* 🔥 1. Header 영역 */
+.app-header {
+    background: #161b22;
+    border-bottom: 1px solid #30363d;
+    flex-shrink: 0;
+}
+
+.app-footer {
+    background: #161b22;
+    border-top: 1px solid #30363d;
+    border-bottom: none;
+    flex-shrink: 0;
+}
+
+.header-content,
+.footer-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1rem 2rem;
+}
+
+.logo {
+    font-weight: 700;
+    color: #fff;
+}
+
+.nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gap, 1rem);
+}
+
+/* 🔥 2. Content 영역 (메인) */
+.main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 0;
+}
+
+/* 🔥 카드 스타일 */
+.card {
+    background: #0b1220;
+    border: 1px solid #233;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.2);
+}
+
+/* 🔥 그리드 시스템 */
+.grid {
+    display: grid;
+    gap: var(--gap, 1rem);
+    grid-template-columns: repeat(12, 1fr);
+}
+
+@media (max-width: 1024px) {
+    .grid {
+        grid-template-columns: repeat(8, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .header-content,
+    .footer-content {
+        padding: 0.75rem 1rem;
+    }
+}

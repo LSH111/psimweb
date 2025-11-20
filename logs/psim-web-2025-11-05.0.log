@@ -1,0 +1,568 @@
+2025-11-05 14:12:20.026 [main] DEBUG org.apache.ibatis.logging.LogFactory
+                Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2025-11-05 14:12:20.030 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'coCodeMapper' and 'com.psim.web.cmm.mapper.CoCodeMapper' mapperInterface
+2025-11-05 14:12:20.031 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'coCodeMapper'.
+2025-11-05 14:12:20.031 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'coUserMapper' and 'com.psim.web.cmm.mapper.CoUserMapper' mapperInterface
+2025-11-05 14:12:20.031 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'coUserMapper'.
+2025-11-05 14:12:20.031 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'indexMapper' and 'com.psim.web.cmm.mapper.IndexMapper' mapperInterface
+2025-11-05 14:12:20.031 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'indexMapper'.
+2025-11-05 14:12:20.031 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'loginMapper' and 'com.psim.web.cmm.mapper.LoginMapper' mapperInterface
+2025-11-05 14:12:20.032 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'loginMapper'.
+2025-11-05 14:12:20.032 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkApiInfoMapper' and 'com.psim.web.api.mapper.PrkApiInfoMapper' mapperInterface
+2025-11-05 14:12:20.032 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkApiInfoMapper'.
+2025-11-05 14:12:20.032 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkApiKeyInfoMapper' and 'com.psim.web.api.mapper.PrkApiKeyInfoMapper' mapperInterface
+2025-11-05 14:12:20.032 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkApiKeyInfoMapper'.
+2025-11-05 14:12:20.032 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkDefPlceInfoMapper' and 'com.psim.web.prk.mapper.PrkDefPlceInfoMapper' mapperInterface
+2025-11-05 14:12:20.032 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkDefPlceInfoMapper'.
+2025-11-05 14:12:20.032 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkUsageStatusMapper' and 'com.psim.web.prk.mapper.PrkUsageStatusMapper' mapperInterface
+2025-11-05 14:12:20.032 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkUsageStatusMapper'.
+2025-11-05 14:12:20.032 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'attchPicMngInfoMapper' and 'com.psim.web.file.mapper.AttchPicMngInfoMapper' mapperInterface
+2025-11-05 14:12:20.032 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'attchPicMngInfoMapper'.
+2025-11-05 14:12:20.345 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터소스 초기화 시작
+2025-11-05 14:12:20.348 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 드라이버 로드 성공: org.postgresql.Driver
+2025-11-05 14:12:20.348 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 설정 검증 완료: URL=jdbc:postgresql://localhost:5432/postgres, Driver=org.postgresql.Driver, User=postgres
+2025-11-05 14:12:20.349 [main] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Starting...
+2025-11-05 14:12:20.395 [main] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Start completed.
+2025-11-05 14:12:20.402 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 연결 테스트 성공: jdbc:postgresql://localhost:5432/postgres
+2025-11-05 14:12:20.403 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 연결 풀이 성공적으로 설정되었습니다. Pool: PSIMHikariPool, Max: 10, Min: 5
+2025-11-05 14:12:20.430 [main] INFO  com.psim.config.MyBatisConfig
+                매퍼 XML 파일 9개를 로드했습니다.
+2025-11-05 14:12:20.484 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/api/PrkApiInfoMapper.xml]'
+2025-11-05 14:12:20.489 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/api/PrkApiKeyInfoMapper.xml]'
+2025-11-05 14:12:20.496 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/CoCodeMapper.xml]'
+2025-11-05 14:12:20.503 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/CoUserMapper.xml]'
+2025-11-05 14:12:20.506 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/IndexMapper.xml]'
+2025-11-05 14:12:20.511 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/LoginMapper.xml]'
+2025-11-05 14:12:20.516 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/file/AttchPicMngInfoMapper.xml]'
+2025-11-05 14:12:20.529 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/prk/PrkDefPlceInfoMapper.xml]'
+2025-11-05 14:12:20.534 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/prk/PrkUsageStatusMapper.xml]'
+2025-11-05 14:12:20.554 [main] DEBUG org.apache.ibatis.logging.LogFactory
+                Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2025-11-05 14:12:20.598 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 트랜잭션 관리자가 설정되었습니다.
+2025-11-05 14:12:21.092 [scheduling-1] INFO  c.p.c.DatabaseMonitoringConfig$DatabasePoolMonitor
+                DB Pool Status - Active: 0, Idle: 5, Total: 5, Waiting: 0
+2025-11-05 14:12:21.273 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Shutdown initiated...
+2025-11-05 14:12:21.274 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Shutdown completed.
+2025-11-05 15:01:22.163 [main] DEBUG org.apache.ibatis.logging.LogFactory
+                Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2025-11-05 15:01:22.166 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'coCodeMapper' and 'com.psim.web.cmm.mapper.CoCodeMapper' mapperInterface
+2025-11-05 15:01:22.167 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'coCodeMapper'.
+2025-11-05 15:01:22.167 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'coUserMapper' and 'com.psim.web.cmm.mapper.CoUserMapper' mapperInterface
+2025-11-05 15:01:22.167 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'coUserMapper'.
+2025-11-05 15:01:22.167 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'indexMapper' and 'com.psim.web.cmm.mapper.IndexMapper' mapperInterface
+2025-11-05 15:01:22.167 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'indexMapper'.
+2025-11-05 15:01:22.167 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'loginMapper' and 'com.psim.web.cmm.mapper.LoginMapper' mapperInterface
+2025-11-05 15:01:22.168 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'loginMapper'.
+2025-11-05 15:01:22.168 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkApiInfoMapper' and 'com.psim.web.api.mapper.PrkApiInfoMapper' mapperInterface
+2025-11-05 15:01:22.168 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkApiInfoMapper'.
+2025-11-05 15:01:22.168 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkApiKeyInfoMapper' and 'com.psim.web.api.mapper.PrkApiKeyInfoMapper' mapperInterface
+2025-11-05 15:01:22.168 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkApiKeyInfoMapper'.
+2025-11-05 15:01:22.168 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkDefPlceInfoMapper' and 'com.psim.web.prk.mapper.PrkDefPlceInfoMapper' mapperInterface
+2025-11-05 15:01:22.168 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkDefPlceInfoMapper'.
+2025-11-05 15:01:22.168 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkUsageStatusMapper' and 'com.psim.web.prk.mapper.PrkUsageStatusMapper' mapperInterface
+2025-11-05 15:01:22.168 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkUsageStatusMapper'.
+2025-11-05 15:01:22.168 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'attchPicMngInfoMapper' and 'com.psim.web.file.mapper.AttchPicMngInfoMapper' mapperInterface
+2025-11-05 15:01:22.168 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'attchPicMngInfoMapper'.
+2025-11-05 15:01:22.294 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터소스 초기화 시작
+2025-11-05 15:01:22.299 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 드라이버 로드 성공: org.postgresql.Driver
+2025-11-05 15:01:22.300 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 설정 검증 완료: URL=jdbc:postgresql://localhost:5432/postgres, Driver=org.postgresql.Driver, User=postgres
+2025-11-05 15:01:22.301 [main] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Starting...
+2025-11-05 15:01:22.347 [main] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Start completed.
+2025-11-05 15:01:22.352 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 연결 테스트 성공: jdbc:postgresql://localhost:5432/postgres
+2025-11-05 15:01:22.354 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 연결 풀이 성공적으로 설정되었습니다. Pool: PSIMHikariPool, Max: 10, Min: 5
+2025-11-05 15:01:22.383 [main] INFO  com.psim.config.MyBatisConfig
+                매퍼 XML 파일 9개를 로드했습니다.
+2025-11-05 15:01:22.440 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/api/PrkApiInfoMapper.xml]'
+2025-11-05 15:01:22.446 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/api/PrkApiKeyInfoMapper.xml]'
+2025-11-05 15:01:22.455 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/CoCodeMapper.xml]'
+2025-11-05 15:01:22.462 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/CoUserMapper.xml]'
+2025-11-05 15:01:22.465 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/IndexMapper.xml]'
+2025-11-05 15:01:22.470 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/LoginMapper.xml]'
+2025-11-05 15:01:22.475 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/file/AttchPicMngInfoMapper.xml]'
+2025-11-05 15:01:22.491 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/prk/PrkDefPlceInfoMapper.xml]'
+2025-11-05 15:01:22.496 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/prk/PrkUsageStatusMapper.xml]'
+2025-11-05 15:01:22.516 [main] DEBUG org.apache.ibatis.logging.LogFactory
+                Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2025-11-05 15:01:22.563 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 트랜잭션 관리자가 설정되었습니다.
+2025-11-05 15:01:23.004 [scheduling-1] INFO  c.p.c.DatabaseMonitoringConfig$DatabasePoolMonitor
+                DB Pool Status - Active: 0, Idle: 5, Total: 5, Waiting: 0
+2025-11-05 15:01:23.234 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'coCodeMapper' and 'com.psim.web.cmm.mapper.CoCodeMapper' mapperInterface
+2025-11-05 15:01:23.234 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'coCodeMapper'.
+2025-11-05 15:01:23.234 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'coUserMapper' and 'com.psim.web.cmm.mapper.CoUserMapper' mapperInterface
+2025-11-05 15:01:23.234 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'coUserMapper'.
+2025-11-05 15:01:23.235 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'indexMapper' and 'com.psim.web.cmm.mapper.IndexMapper' mapperInterface
+2025-11-05 15:01:23.235 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'indexMapper'.
+2025-11-05 15:01:23.235 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'loginMapper' and 'com.psim.web.cmm.mapper.LoginMapper' mapperInterface
+2025-11-05 15:01:23.235 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'loginMapper'.
+2025-11-05 15:01:23.235 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkApiInfoMapper' and 'com.psim.web.api.mapper.PrkApiInfoMapper' mapperInterface
+2025-11-05 15:01:23.235 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkApiInfoMapper'.
+2025-11-05 15:01:23.235 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkApiKeyInfoMapper' and 'com.psim.web.api.mapper.PrkApiKeyInfoMapper' mapperInterface
+2025-11-05 15:01:23.235 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkApiKeyInfoMapper'.
+2025-11-05 15:01:23.235 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkDefPlceInfoMapper' and 'com.psim.web.prk.mapper.PrkDefPlceInfoMapper' mapperInterface
+2025-11-05 15:01:23.235 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkDefPlceInfoMapper'.
+2025-11-05 15:01:23.235 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkUsageStatusMapper' and 'com.psim.web.prk.mapper.PrkUsageStatusMapper' mapperInterface
+2025-11-05 15:01:23.235 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkUsageStatusMapper'.
+2025-11-05 15:01:23.235 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'attchPicMngInfoMapper' and 'com.psim.web.file.mapper.AttchPicMngInfoMapper' mapperInterface
+2025-11-05 15:01:23.235 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'attchPicMngInfoMapper'.
+2025-11-05 15:01:23.386 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터소스 초기화 시작
+2025-11-05 15:01:23.387 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 드라이버 로드 성공: org.postgresql.Driver
+2025-11-05 15:01:23.387 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 설정 검증 완료: URL=jdbc:postgresql://localhost:5432/postgres, Driver=org.postgresql.Driver, User=postgres
+2025-11-05 15:01:23.387 [main] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Starting...
+2025-11-05 15:01:23.393 [main] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Start completed.
+2025-11-05 15:01:23.393 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 연결 테스트 성공: jdbc:postgresql://localhost:5432/postgres
+2025-11-05 15:01:23.393 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 연결 풀이 성공적으로 설정되었습니다. Pool: PSIMHikariPool, Max: 10, Min: 5
+2025-11-05 15:01:23.401 [main] INFO  com.psim.config.MyBatisConfig
+                매퍼 XML 파일 9개를 로드했습니다.
+2025-11-05 15:01:23.405 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/api/PrkApiInfoMapper.xml]'
+2025-11-05 15:01:23.408 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/api/PrkApiKeyInfoMapper.xml]'
+2025-11-05 15:01:23.411 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/CoCodeMapper.xml]'
+2025-11-05 15:01:23.414 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/CoUserMapper.xml]'
+2025-11-05 15:01:23.416 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/IndexMapper.xml]'
+2025-11-05 15:01:23.418 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/LoginMapper.xml]'
+2025-11-05 15:01:23.422 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/file/AttchPicMngInfoMapper.xml]'
+2025-11-05 15:01:23.428 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/prk/PrkDefPlceInfoMapper.xml]'
+2025-11-05 15:01:23.431 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/prk/PrkUsageStatusMapper.xml]'
+2025-11-05 15:01:23.437 [main] DEBUG org.apache.ibatis.logging.LogFactory
+                Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2025-11-05 15:01:23.451 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 트랜잭션 관리자가 설정되었습니다.
+2025-11-05 15:01:23.661 [scheduling-1] INFO  c.p.c.DatabaseMonitoringConfig$DatabasePoolMonitor
+                DB Pool Status - Active: 0, Idle: 5, Total: 5, Waiting: 0
+2025-11-05 15:01:23.814 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Shutdown initiated...
+2025-11-05 15:01:23.815 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Shutdown completed.
+2025-11-05 15:01:23.817 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Shutdown initiated...
+2025-11-05 15:01:23.817 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Shutdown completed.
+2025-11-05 15:18:27.795 [main] DEBUG org.apache.ibatis.logging.LogFactory
+                Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2025-11-05 15:18:27.798 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'coCodeMapper' and 'com.psim.web.cmm.mapper.CoCodeMapper' mapperInterface
+2025-11-05 15:18:27.799 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'coCodeMapper'.
+2025-11-05 15:18:27.799 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'coUserMapper' and 'com.psim.web.cmm.mapper.CoUserMapper' mapperInterface
+2025-11-05 15:18:27.799 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'coUserMapper'.
+2025-11-05 15:18:27.799 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'indexMapper' and 'com.psim.web.cmm.mapper.IndexMapper' mapperInterface
+2025-11-05 15:18:27.799 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'indexMapper'.
+2025-11-05 15:18:27.799 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'loginMapper' and 'com.psim.web.cmm.mapper.LoginMapper' mapperInterface
+2025-11-05 15:18:27.800 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'loginMapper'.
+2025-11-05 15:18:27.800 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkApiInfoMapper' and 'com.psim.web.api.mapper.PrkApiInfoMapper' mapperInterface
+2025-11-05 15:18:27.800 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkApiInfoMapper'.
+2025-11-05 15:18:27.800 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkApiKeyInfoMapper' and 'com.psim.web.api.mapper.PrkApiKeyInfoMapper' mapperInterface
+2025-11-05 15:18:27.800 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkApiKeyInfoMapper'.
+2025-11-05 15:18:27.800 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkDefPlceInfoMapper' and 'com.psim.web.prk.mapper.PrkDefPlceInfoMapper' mapperInterface
+2025-11-05 15:18:27.800 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkDefPlceInfoMapper'.
+2025-11-05 15:18:27.800 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkUsageStatusMapper' and 'com.psim.web.prk.mapper.PrkUsageStatusMapper' mapperInterface
+2025-11-05 15:18:27.800 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkUsageStatusMapper'.
+2025-11-05 15:18:27.800 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'attchPicMngInfoMapper' and 'com.psim.web.file.mapper.AttchPicMngInfoMapper' mapperInterface
+2025-11-05 15:18:27.800 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'attchPicMngInfoMapper'.
+2025-11-05 15:18:27.911 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터소스 초기화 시작
+2025-11-05 15:18:27.914 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 드라이버 로드 성공: org.postgresql.Driver
+2025-11-05 15:18:27.914 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 설정 검증 완료: URL=jdbc:postgresql://localhost:5432/postgres, Driver=org.postgresql.Driver, User=postgres
+2025-11-05 15:18:27.917 [main] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Starting...
+2025-11-05 15:18:27.959 [main] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Start completed.
+2025-11-05 15:18:27.964 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 연결 테스트 성공: jdbc:postgresql://localhost:5432/postgres
+2025-11-05 15:18:27.966 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 연결 풀이 성공적으로 설정되었습니다. Pool: PSIMHikariPool, Max: 10, Min: 5
+2025-11-05 15:18:27.992 [main] INFO  com.psim.config.MyBatisConfig
+                매퍼 XML 파일 9개를 로드했습니다.
+2025-11-05 15:18:28.050 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/api/PrkApiInfoMapper.xml]'
+2025-11-05 15:18:28.056 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/api/PrkApiKeyInfoMapper.xml]'
+2025-11-05 15:18:28.065 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/CoCodeMapper.xml]'
+2025-11-05 15:18:28.074 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/CoUserMapper.xml]'
+2025-11-05 15:18:28.078 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/IndexMapper.xml]'
+2025-11-05 15:18:28.082 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/LoginMapper.xml]'
+2025-11-05 15:18:28.089 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/file/AttchPicMngInfoMapper.xml]'
+2025-11-05 15:18:28.105 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/prk/PrkDefPlceInfoMapper.xml]'
+2025-11-05 15:18:28.110 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/prk/PrkUsageStatusMapper.xml]'
+2025-11-05 15:18:28.130 [main] DEBUG org.apache.ibatis.logging.LogFactory
+                Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2025-11-05 15:18:28.175 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 트랜잭션 관리자가 설정되었습니다.
+2025-11-05 15:18:28.592 [scheduling-1] INFO  c.p.c.DatabaseMonitoringConfig$DatabasePoolMonitor
+                DB Pool Status - Active: 0, Idle: 5, Total: 5, Waiting: 0
+2025-11-05 15:18:28.805 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'coCodeMapper' and 'com.psim.web.cmm.mapper.CoCodeMapper' mapperInterface
+2025-11-05 15:18:28.805 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'coCodeMapper'.
+2025-11-05 15:18:28.805 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'coUserMapper' and 'com.psim.web.cmm.mapper.CoUserMapper' mapperInterface
+2025-11-05 15:18:28.805 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'coUserMapper'.
+2025-11-05 15:18:28.805 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'indexMapper' and 'com.psim.web.cmm.mapper.IndexMapper' mapperInterface
+2025-11-05 15:18:28.805 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'indexMapper'.
+2025-11-05 15:18:28.805 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'loginMapper' and 'com.psim.web.cmm.mapper.LoginMapper' mapperInterface
+2025-11-05 15:18:28.805 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'loginMapper'.
+2025-11-05 15:18:28.805 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkApiInfoMapper' and 'com.psim.web.api.mapper.PrkApiInfoMapper' mapperInterface
+2025-11-05 15:18:28.805 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkApiInfoMapper'.
+2025-11-05 15:18:28.805 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkApiKeyInfoMapper' and 'com.psim.web.api.mapper.PrkApiKeyInfoMapper' mapperInterface
+2025-11-05 15:18:28.805 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkApiKeyInfoMapper'.
+2025-11-05 15:18:28.805 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkDefPlceInfoMapper' and 'com.psim.web.prk.mapper.PrkDefPlceInfoMapper' mapperInterface
+2025-11-05 15:18:28.806 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkDefPlceInfoMapper'.
+2025-11-05 15:18:28.806 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkUsageStatusMapper' and 'com.psim.web.prk.mapper.PrkUsageStatusMapper' mapperInterface
+2025-11-05 15:18:28.806 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkUsageStatusMapper'.
+2025-11-05 15:18:28.806 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'attchPicMngInfoMapper' and 'com.psim.web.file.mapper.AttchPicMngInfoMapper' mapperInterface
+2025-11-05 15:18:28.806 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'attchPicMngInfoMapper'.
+2025-11-05 15:18:28.950 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터소스 초기화 시작
+2025-11-05 15:18:28.950 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 드라이버 로드 성공: org.postgresql.Driver
+2025-11-05 15:18:28.951 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 설정 검증 완료: URL=jdbc:postgresql://localhost:5432/postgres, Driver=org.postgresql.Driver, User=postgres
+2025-11-05 15:18:28.951 [main] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Starting...
+2025-11-05 15:18:28.957 [main] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Start completed.
+2025-11-05 15:18:28.957 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 연결 테스트 성공: jdbc:postgresql://localhost:5432/postgres
+2025-11-05 15:18:28.957 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 연결 풀이 성공적으로 설정되었습니다. Pool: PSIMHikariPool, Max: 10, Min: 5
+2025-11-05 15:18:28.966 [main] INFO  com.psim.config.MyBatisConfig
+                매퍼 XML 파일 9개를 로드했습니다.
+2025-11-05 15:18:28.969 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/api/PrkApiInfoMapper.xml]'
+2025-11-05 15:18:28.972 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/api/PrkApiKeyInfoMapper.xml]'
+2025-11-05 15:18:28.976 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/CoCodeMapper.xml]'
+2025-11-05 15:18:28.978 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/CoUserMapper.xml]'
+2025-11-05 15:18:28.980 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/IndexMapper.xml]'
+2025-11-05 15:18:28.983 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/LoginMapper.xml]'
+2025-11-05 15:18:28.985 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/file/AttchPicMngInfoMapper.xml]'
+2025-11-05 15:18:28.992 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/prk/PrkDefPlceInfoMapper.xml]'
+2025-11-05 15:18:28.994 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/prk/PrkUsageStatusMapper.xml]'
+2025-11-05 15:18:29.002 [main] DEBUG org.apache.ibatis.logging.LogFactory
+                Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2025-11-05 15:18:29.015 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 트랜잭션 관리자가 설정되었습니다.
+2025-11-05 15:18:29.203 [scheduling-1] INFO  c.p.c.DatabaseMonitoringConfig$DatabasePoolMonitor
+                DB Pool Status - Active: 0, Idle: 5, Total: 5, Waiting: 0
+2025-11-05 15:18:29.342 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Shutdown initiated...
+2025-11-05 15:18:29.343 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Shutdown completed.
+2025-11-05 15:18:29.345 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Shutdown initiated...
+2025-11-05 15:18:29.345 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Shutdown completed.
+2025-11-05 15:42:51.576 [main] DEBUG org.apache.ibatis.logging.LogFactory
+                Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2025-11-05 15:42:51.579 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'coCodeMapper' and 'com.psim.web.cmm.mapper.CoCodeMapper' mapperInterface
+2025-11-05 15:42:51.580 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'coCodeMapper'.
+2025-11-05 15:42:51.580 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'coUserMapper' and 'com.psim.web.cmm.mapper.CoUserMapper' mapperInterface
+2025-11-05 15:42:51.580 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'coUserMapper'.
+2025-11-05 15:42:51.580 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'indexMapper' and 'com.psim.web.cmm.mapper.IndexMapper' mapperInterface
+2025-11-05 15:42:51.580 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'indexMapper'.
+2025-11-05 15:42:51.580 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'loginMapper' and 'com.psim.web.cmm.mapper.LoginMapper' mapperInterface
+2025-11-05 15:42:51.580 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'loginMapper'.
+2025-11-05 15:42:51.580 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkApiInfoMapper' and 'com.psim.web.api.mapper.PrkApiInfoMapper' mapperInterface
+2025-11-05 15:42:51.580 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkApiInfoMapper'.
+2025-11-05 15:42:51.581 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkApiKeyInfoMapper' and 'com.psim.web.api.mapper.PrkApiKeyInfoMapper' mapperInterface
+2025-11-05 15:42:51.581 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkApiKeyInfoMapper'.
+2025-11-05 15:42:51.581 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkDefPlceInfoMapper' and 'com.psim.web.prk.mapper.PrkDefPlceInfoMapper' mapperInterface
+2025-11-05 15:42:51.581 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkDefPlceInfoMapper'.
+2025-11-05 15:42:51.581 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkUsageStatusMapper' and 'com.psim.web.prk.mapper.PrkUsageStatusMapper' mapperInterface
+2025-11-05 15:42:51.581 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkUsageStatusMapper'.
+2025-11-05 15:42:51.581 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'attchPicMngInfoMapper' and 'com.psim.web.file.mapper.AttchPicMngInfoMapper' mapperInterface
+2025-11-05 15:42:51.581 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'attchPicMngInfoMapper'.
+2025-11-05 15:42:51.695 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터소스 초기화 시작
+2025-11-05 15:42:51.699 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 드라이버 로드 성공: org.postgresql.Driver
+2025-11-05 15:42:51.699 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 설정 검증 완료: URL=jdbc:postgresql://localhost:5432/postgres, Driver=org.postgresql.Driver, User=postgres
+2025-11-05 15:42:51.700 [main] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Starting...
+2025-11-05 15:42:51.742 [main] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Start completed.
+2025-11-05 15:42:51.747 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 연결 테스트 성공: jdbc:postgresql://localhost:5432/postgres
+2025-11-05 15:42:51.749 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 연결 풀이 성공적으로 설정되었습니다. Pool: PSIMHikariPool, Max: 10, Min: 5
+2025-11-05 15:42:51.777 [main] INFO  com.psim.config.MyBatisConfig
+                매퍼 XML 파일 9개를 로드했습니다.
+2025-11-05 15:42:51.832 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/api/PrkApiInfoMapper.xml]'
+2025-11-05 15:42:51.838 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/api/PrkApiKeyInfoMapper.xml]'
+2025-11-05 15:42:51.847 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/CoCodeMapper.xml]'
+2025-11-05 15:42:51.855 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/CoUserMapper.xml]'
+2025-11-05 15:42:51.858 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/IndexMapper.xml]'
+2025-11-05 15:42:51.861 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/LoginMapper.xml]'
+2025-11-05 15:42:51.867 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/file/AttchPicMngInfoMapper.xml]'
+2025-11-05 15:42:51.883 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/prk/PrkDefPlceInfoMapper.xml]'
+2025-11-05 15:42:51.889 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/prk/PrkUsageStatusMapper.xml]'
+2025-11-05 15:42:51.908 [main] DEBUG org.apache.ibatis.logging.LogFactory
+                Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2025-11-05 15:42:51.957 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 트랜잭션 관리자가 설정되었습니다.
+2025-11-05 15:42:52.394 [scheduling-1] INFO  c.p.c.DatabaseMonitoringConfig$DatabasePoolMonitor
+                DB Pool Status - Active: 0, Idle: 5, Total: 5, Waiting: 0
+2025-11-05 15:42:52.605 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'coCodeMapper' and 'com.psim.web.cmm.mapper.CoCodeMapper' mapperInterface
+2025-11-05 15:42:52.605 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'coCodeMapper'.
+2025-11-05 15:42:52.605 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'coUserMapper' and 'com.psim.web.cmm.mapper.CoUserMapper' mapperInterface
+2025-11-05 15:42:52.605 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'coUserMapper'.
+2025-11-05 15:42:52.605 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'indexMapper' and 'com.psim.web.cmm.mapper.IndexMapper' mapperInterface
+2025-11-05 15:42:52.605 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'indexMapper'.
+2025-11-05 15:42:52.605 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'loginMapper' and 'com.psim.web.cmm.mapper.LoginMapper' mapperInterface
+2025-11-05 15:42:52.605 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'loginMapper'.
+2025-11-05 15:42:52.606 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkApiInfoMapper' and 'com.psim.web.api.mapper.PrkApiInfoMapper' mapperInterface
+2025-11-05 15:42:52.606 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkApiInfoMapper'.
+2025-11-05 15:42:52.606 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkApiKeyInfoMapper' and 'com.psim.web.api.mapper.PrkApiKeyInfoMapper' mapperInterface
+2025-11-05 15:42:52.606 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkApiKeyInfoMapper'.
+2025-11-05 15:42:52.606 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkDefPlceInfoMapper' and 'com.psim.web.prk.mapper.PrkDefPlceInfoMapper' mapperInterface
+2025-11-05 15:42:52.606 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkDefPlceInfoMapper'.
+2025-11-05 15:42:52.606 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'prkUsageStatusMapper' and 'com.psim.web.prk.mapper.PrkUsageStatusMapper' mapperInterface
+2025-11-05 15:42:52.606 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'prkUsageStatusMapper'.
+2025-11-05 15:42:52.606 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Creating MapperFactoryBean with name 'attchPicMngInfoMapper' and 'com.psim.web.file.mapper.AttchPicMngInfoMapper' mapperInterface
+2025-11-05 15:42:52.606 [main] DEBUG o.m.s.mapper.ClassPathMapperScanner
+                Enabling autowire by type for MapperFactoryBean with name 'attchPicMngInfoMapper'.
+2025-11-05 15:42:52.754 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터소스 초기화 시작
+2025-11-05 15:42:52.754 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 드라이버 로드 성공: org.postgresql.Driver
+2025-11-05 15:42:52.754 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 설정 검증 완료: URL=jdbc:postgresql://localhost:5432/postgres, Driver=org.postgresql.Driver, User=postgres
+2025-11-05 15:42:52.754 [main] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Starting...
+2025-11-05 15:42:52.761 [main] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Start completed.
+2025-11-05 15:42:52.761 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 연결 테스트 성공: jdbc:postgresql://localhost:5432/postgres
+2025-11-05 15:42:52.761 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 연결 풀이 성공적으로 설정되었습니다. Pool: PSIMHikariPool, Max: 10, Min: 5
+2025-11-05 15:42:52.771 [main] INFO  com.psim.config.MyBatisConfig
+                매퍼 XML 파일 9개를 로드했습니다.
+2025-11-05 15:42:52.774 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/api/PrkApiInfoMapper.xml]'
+2025-11-05 15:42:52.777 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/api/PrkApiKeyInfoMapper.xml]'
+2025-11-05 15:42:52.780 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/CoCodeMapper.xml]'
+2025-11-05 15:42:52.783 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/CoUserMapper.xml]'
+2025-11-05 15:42:52.785 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/IndexMapper.xml]'
+2025-11-05 15:42:52.787 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/cmm/LoginMapper.xml]'
+2025-11-05 15:42:52.789 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/file/AttchPicMngInfoMapper.xml]'
+2025-11-05 15:42:52.795 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/prk/PrkDefPlceInfoMapper.xml]'
+2025-11-05 15:42:52.797 [main] DEBUG o.m.spring.SqlSessionFactoryBean
+                Parsed mapper file: 'file [/Users/isihyeong/IdeaProjects/psim/target/classes/mappers/prk/PrkUsageStatusMapper.xml]'
+2025-11-05 15:42:52.803 [main] DEBUG org.apache.ibatis.logging.LogFactory
+                Logging initialized using 'class org.apache.ibatis.logging.slf4j.Slf4jImpl' adapter.
+2025-11-05 15:42:52.817 [main] INFO  com.psim.config.DatabaseConfig
+                PostgreSQL 데이터베이스 트랜잭션 관리자가 설정되었습니다.
+2025-11-05 15:42:53.025 [scheduling-1] INFO  c.p.c.DatabaseMonitoringConfig$DatabasePoolMonitor
+                DB Pool Status - Active: 0, Idle: 5, Total: 5, Waiting: 0
+2025-11-05 15:42:53.167 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Shutdown initiated...
+2025-11-05 15:42:53.167 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Shutdown completed.
+2025-11-05 15:42:53.169 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Shutdown initiated...
+2025-11-05 15:42:53.169 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource
+                PSIMHikariPool - Shutdown completed.
