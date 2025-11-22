@@ -122,29 +122,16 @@ public class PrkDefPlceInfoController {
      * 🔥 [신규 추가] 노상주차장 상세 조회
      */
     @GetMapping("/onparking-detail")
-    @ResponseBody
-    public Map<String, Object> getOnstreetParkingDetail(@RequestParam String prkPlceManageNo) {
-        Map<String, Object> result = new HashMap<>();
-        try {
-            log.info("=== 노상주차장 상세 조회 요청: {} ===", prkPlceManageNo);
+    public String getOnstreetParkingDetail(@RequestParam("prkPlceManageNo") String prkPlceManageNo,
+                                           @RequestParam("prkPlceInfoSn") Long prkPlceInfoSn,
+                                           @RequestParam(value = "status", required = false) String status,
+                                           Model model) {
+        log.info("=== 노상주차장 상세 조회 요청: {} / {} ===", prkPlceManageNo, prkPlceInfoSn);
+        ParkingDetailVO detail = prkDefPlceInfoService.getOnstreetParkingDetail(prkPlceManageNo, prkPlceInfoSn);
+        model.addAttribute("parking", detail);
+        model.addAttribute("statusCode", detail != null ? detail.getPrgsStsCd() : null);
 
-            ParkingDetailVO detail = prkDefPlceInfoService.getOnstreetParkingDetail(prkPlceManageNo);
-
-            if (detail != null) {
-                result.put("success", true);
-                result.put("data", detail);
-                log.info("✅ 노상주차장 상세 조회 성공");
-            } else {
-                result.put("success", false);
-                result.put("message", "주차장 정보를 찾을 수 없습니다.");
-                log.warn("⚠️ 데이터 없음: {}", prkPlceManageNo);
-            }
-        } catch (Exception e) {
-            log.error("❌ 노상주차장 상세 조회 실패", e);
-            result.put("success", false);
-            result.put("message", "조회 중 오류가 발생했습니다: " + e.getMessage());
-        }
-        return result;
+        return "prk/onparking";
     }
 
     /**
@@ -248,7 +235,7 @@ public class PrkDefPlceInfoController {
             }
 
             // 🔥 핵심 수정: DB 저장을 한 번에 처리하고 즉시 SN 확보
-            Integer prkPlceInfoSn = null;
+            Integer prkPlceInfoSn = parkingData.getPrkPlceInfoSn();
 
             if (isNewRecord) {
                 // 신규 등록 - INSERT 후 바로 VO에서 SN 가져오기
@@ -258,30 +245,21 @@ public class PrkDefPlceInfoController {
                 log.info("✅ DB INSERT 완료 - prkPlceInfoSn: {}", prkPlceInfoSn);
 
             } else {
-                // 수정 모드 - 기존 데이터에서 SN 조회 후 UPDATE
-                log.info("🔍 기존 prkPlceInfoSn 조회 - 관리번호: {}", prkPlceManageNo);
-                ParkingDetailVO existingData = prkDefPlceInfoService.getOnstreetParkingDetail(prkPlceManageNo);
+                // 수정 모드 - 전달된 SN 사용
+                log.info("🔍 기존 prkPlceInfoSn 확인 - 관리번호: {}", prkPlceManageNo);
 
-                if (existingData != null) {
-                    prkPlceInfoSn = existingData.getPrkPlceInfoSn();
-                    parkingData.setPrkPlceInfoSn(prkPlceInfoSn);
-                    log.info("✅ 기존 prkPlceInfoSn 획득: {}", prkPlceInfoSn);
-                } else {
-                    log.error("❌ 기존 데이터를 찾을 수 없습니다: {}", prkPlceManageNo);
-
-                    // 🔥 수정: 더 자세한 에러 정보 제공
+                if (prkPlceInfoSn == null) {
+                    log.error("❌ prkPlceInfoSn이 없습니다. 수정 불가 - 관리번호: {}", prkPlceManageNo);
                     response.put("success", false);
-                    response.put("message", "수정할 주차장 정보를 찾을 수 없습니다. 주차장 관리번호: " + prkPlceManageNo);
-                    response.put("errorCode", "DATA_NOT_FOUND");
+                    response.put("message", "수정하려면 prkPlceInfoSn이 필요합니다.");
+                    response.put("errorCode", "MISSING_INFO_SN");
                     response.put("prkPlceManageNo", prkPlceManageNo);
 
-                    log.error("💡 가능한 원인:");
-                    log.error("   1. 잘못된 주차장 관리번호");
-                    log.error("   2. 해당 사업에 속하지 않는 주차장");
-                    log.error("   3. 이미 삭제된 데이터");
-
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
                 }
+
+                parkingData.setPrkPlceInfoSn(prkPlceInfoSn);
+                log.info("✅ prkPlceInfoSn 확인 완료: {}", prkPlceInfoSn);
 
                 log.info("🔄 DB UPDATE 실행");
                 prkDefPlceInfoService.updateOnstreetParking(parkingData);
@@ -336,30 +314,16 @@ public class PrkDefPlceInfoController {
      * 🔥 노외주차장 상세 조회
      */
     @GetMapping("/offparking-detail")
-    @ResponseBody
-    public Map<String, Object> getOffstreetParkingDetail(@RequestParam String prkPlceManageNo) {
-        Map<String, Object> result = new HashMap<>();
-        try {
-            System.out.println("=== 노외주차장 상세 조회 요청: " + prkPlceManageNo + " ===");
+    public String getOffstreetParkingDetail(@RequestParam("prkPlceManageNo") String prkPlceManageNo,
+                                            @RequestParam("prkPlceInfoSn") Long prkPlceInfoSn,
+                                            @RequestParam(value = "status", required = false) String status,
+                                            Model model) {
+        log.info("=== 노외주차장 상세 조회 요청: {} / {} ===", prkPlceManageNo, prkPlceInfoSn);
+        ParkingDetailVO detail = prkDefPlceInfoService.getOffstreetParkingDetail(prkPlceManageNo, prkPlceInfoSn);
+        model.addAttribute("parking", detail);
+        model.addAttribute("statusCode", detail != null ? detail.getPrgsStsCd() : null);
 
-            ParkingDetailVO detail = prkDefPlceInfoService.getOffstreetParkingDetail(prkPlceManageNo);
-
-            if (detail != null) {
-                result.put("success", true);
-                result.put("data", detail);
-                System.out.println("✅ 노외주차장 상세 조회 성공");
-            } else {
-                result.put("success", false);
-                result.put("message", "주차장 정보를 찾을 수 없습니다.");
-                System.out.println("⚠️ 데이터 없음");
-            }
-        } catch (Exception e) {
-            System.err.println("❌ 노외주차장 상세 조회 실패: " + e.getMessage());
-            e.printStackTrace();
-            result.put("success", false);
-            result.put("message", "조회 중 오류가 발생했습니다: " + e.getMessage());
-        }
-        return result;
+        return "prk/offparking";
     }
 
     /**
@@ -467,7 +431,7 @@ public class PrkDefPlceInfoController {
             }
 
             // 🔥 핵심: DB 저장을 한 번에 처리하고 즉시 SN 확보
-            Integer prkPlceInfoSn = null;
+            Integer prkPlceInfoSn = parkingData.getPrkPlceInfoSn();
 
             if (isNewRecord) {
                 // 신규 등록 - INSERT 후 바로 VO에서 SN 가져오기
@@ -477,24 +441,22 @@ public class PrkDefPlceInfoController {
                 log.info("✅ DB INSERT 완료 - prkPlceInfoSn: {}", prkPlceInfoSn);
 
             } else {
-                // 수정 모드 - 기존 데이터에서 SN 조회 후 UPDATE
-                log.info("🔍 기존 prkPlceInfoSn 조회 - 관리번호: {}", prkPlceManageNo);
-                ParkingDetailVO existingData = prkDefPlceInfoService.getOffstreetParkingDetail(prkPlceManageNo);
-                log.info("existingData.prkPlceInfoSn = {}", existingData != null ? existingData.getPrkPlceInfoSn() : null);
-                if (existingData != null) {
-                    prkPlceInfoSn = existingData.getPrkPlceInfoSn();
-                    parkingData.setPrkPlceInfoSn(prkPlceInfoSn);
-                    log.info("✅ 기존 prkPlceInfoSn 획득: {}", prkPlceInfoSn);
-                } else {
-                    log.error("❌ 기존 데이터를 찾을 수 없습니다: {}", prkPlceManageNo);
+                // 수정 모드 - 전달된 SN 사용
+                log.info("🔍 기존 prkPlceInfoSn 확인 - 관리번호: {}", prkPlceManageNo);
+
+                if (prkPlceInfoSn == null) {
+                    log.error("❌ prkPlceInfoSn이 없습니다. 수정 불가 - 관리번호: {}", prkPlceManageNo);
 
                     response.put("success", false);
-                    response.put("message", "수정할 주차장 정보를 찾을 수 없습니다. 주차장 관리번호: " + prkPlceManageNo);
-                    response.put("errorCode", "DATA_NOT_FOUND");
+                    response.put("message", "수정하려면 prkPlceInfoSn이 필요합니다.");
+                    response.put("errorCode", "MISSING_INFO_SN");
                     response.put("prkPlceManageNo", prkPlceManageNo);
 
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
                 }
+
+                parkingData.setPrkPlceInfoSn(prkPlceInfoSn);
+                log.info("✅ prkPlceInfoSn 확인 완료: {}", prkPlceInfoSn);
 
                 log.info("🔄 DB UPDATE 실행");
                 prkDefPlceInfoService.updateOffstreetParking(parkingData);
@@ -573,30 +535,16 @@ public class PrkDefPlceInfoController {
      * 🔥 부설주차장 상세 조회
      */
     @GetMapping("/buildparking-detail")
-    @ResponseBody
-    public Map<String, Object> getBuildParkingDetail(@RequestParam String prkPlceManageNo) {
-        Map<String, Object> result = new HashMap<>();
-        try {
-            System.out.println("=== 부설주차장 상세 조회 요청: " + prkPlceManageNo + " ===");
+    public String getBuildParkingDetail(@RequestParam("prkPlceManageNo") String prkPlceManageNo,
+                                        @RequestParam("prkPlceInfoSn") Long prkPlceInfoSn,
+                                        @RequestParam(value = "status", required = false) String status,
+                                        Model model) {
+        log.info("=== 부설주차장 상세 조회 요청: {} / {} ===", prkPlceManageNo, prkPlceInfoSn);
+        ParkingDetailVO detail = prkDefPlceInfoService.getBuildParkingDetail(prkPlceManageNo, prkPlceInfoSn);
+        model.addAttribute("parking", detail);
+        model.addAttribute("statusCode", detail != null ? detail.getPrgsStsCd() : null);
 
-            ParkingDetailVO detail = prkDefPlceInfoService.getBuildParkingDetail(prkPlceManageNo);
-
-            if (detail != null) {
-                result.put("success", true);
-                result.put("data", detail);
-                System.out.println("✅ 부설주차장 상세 조회 성공");
-            } else {
-                result.put("success", false);
-                result.put("message", "주차장 정보를 찾을 수 없습니다.");
-                System.out.println("⚠️ 데이터 없음");
-            }
-        } catch (Exception e) {
-            System.err.println("❌ 부설주차장 상세 조회 실패: " + e.getMessage());
-            e.printStackTrace();
-            result.put("success", false);
-            result.put("message", "조회 중 오류가 발생했습니다: " + e.getMessage());
-        }
-        return result;
+        return "prk/buildparking";
     }
 
     /**
@@ -707,7 +655,7 @@ public class PrkDefPlceInfoController {
             }
 
             // 🔥 핵심: DB 저장을 한 번에 처리하고 prkPlceInfoSn 확보
-            Integer prkPlceInfoSn = null;
+            Integer prkPlceInfoSn = parkingData.getPrkPlceInfoSn();
 
             if (isNewRecord) {
                 // 신규 등록 - INSERT 후 VO 에서 SN 확인
@@ -717,24 +665,22 @@ public class PrkDefPlceInfoController {
                 log.info("✅ DB INSERT 완료 - prkPlceInfoSn: {}", prkPlceInfoSn);
 
             } else {
-                // 수정 모드 - 기존 상세에서 SN 조회 후 UPDATE
-                log.info("🔍 기존 prkPlceInfoSn 조회 - 관리번호: {}", prkPlceManageNo);
-                ParkingDetailVO existingData = prkDefPlceInfoService.getBuildParkingDetail(prkPlceManageNo);
+                // 수정 모드 - 전달된 SN 사용
+                log.info("🔍 기존 prkPlceInfoSn 확인 - 관리번호: {}", prkPlceManageNo);
 
-                if (existingData != null) {
-                    prkPlceInfoSn = existingData.getPrkPlceInfoSn();
-                    parkingData.setPrkPlceInfoSn(prkPlceInfoSn);
-                    log.info("✅ 기존 prkPlceInfoSn 획득: {}", prkPlceInfoSn);
-                } else {
-                    log.error("❌ 기존 데이터를 찾을 수 없습니다: {}", prkPlceManageNo);
+                if (prkPlceInfoSn == null) {
+                    log.error("❌ prkPlceInfoSn이 없습니다. 수정 불가 - 관리번호: {}", prkPlceManageNo);
 
                     response.put("success", false);
-                    response.put("message", "수정할 주차장 정보를 찾을 수 없습니다. 주차장 관리번호: " + prkPlceManageNo);
-                    response.put("errorCode", "DATA_NOT_FOUND");
+                    response.put("message", "수정하려면 prkPlceInfoSn이 필요합니다.");
+                    response.put("errorCode", "MISSING_INFO_SN");
                     response.put("prkPlceManageNo", prkPlceManageNo);
 
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
                 }
+
+                parkingData.setPrkPlceInfoSn(prkPlceInfoSn);
+                log.info("✅ prkPlceInfoSn 확인 완료: {}", prkPlceInfoSn);
 
                 log.info("🔄 DB UPDATE 실행");
                 prkDefPlceInfoService.updateBuildParking(parkingData);

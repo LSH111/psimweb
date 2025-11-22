@@ -904,9 +904,9 @@ recompute();
 
 // ========== 헤더 주소 ==========
 function updateHeaderAddr() {
-    const sido = f_sido?.value?.trim() || '';
-    const sigungu = f_sigungu?.value?.trim() || '';
-    const emd = f_emd?.value?.trim() || '';
+    const sido = f_sido?.selectedOptions?.[0]?.textContent?.trim() || '';
+    const sigungu = f_sigungu?.selectedOptions?.[0]?.textContent?.trim() || '';
+    const emd = f_emd?.selectedOptions?.[0]?.textContent?.trim() || '';
     const j = f_addrJ?.value?.trim() || '';
     const r = f_addrR?.value?.trim() || '';
 
@@ -1458,6 +1458,9 @@ function setupPeakTimeValidation() {
 // ========== 🔥 전역 변수로 사업관리번호, 정보일련번호 저장 ==========
 let loadedBizMngNo = null;
 let loadedPrkPlceInfoSn = null;
+let autoManagerAdminSet = false;
+let prevManagerValue = null;
+let prevAdminValue = null;
 
 // ========== 🔥 로딩 인디케이터 ==========
 const LoadingIndicator = {
@@ -1487,11 +1490,104 @@ const LoadingIndicator = {
     }
 };
 
+// 진행상태 select에 코드/명칭을 방어적으로 매핑
+function applyStatusSelect(selectEl, statusValue) {
+    if (!selectEl) return;
+    const val = (statusValue || '').trim();
+    if (!val) return;
+    selectEl.value = val;
+    if (selectEl.value === val) return;
+    const match = Array.from(selectEl.options || []).find(opt => opt.textContent.trim() === val);
+    if (match) selectEl.value = match.value;
+}
+
+// 전화번호 포맷팅 (off/onparking과 동일)
+function formatPhoneNumber(value) {
+    if (!value) return '';
+    const digits = value.replace(/[^0-9]/g, '');
+    if (digits.length <= 2) return digits;
+    if (digits.startsWith('02')) {
+        if (digits.length <= 5) return digits.replace(/^(\d{2})(\d+)/, '$1-$2');
+        if (digits.length <= 9) return digits.replace(/^(\d{2})(\d{3})(\d+)/, '$1-$2-$3');
+        return digits.replace(/^(\d{2})(\d{4})(\d+)/, '$1-$2-$3');
+    }
+    if (digits.length <= 7) return digits.replace(/^(\d{3})(\d+)/, '$1-$2');
+    if (digits.length <= 10) return digits.replace(/^(\d{3})(\d{3})(\d+)/, '$1-$2-$3');
+    return digits.replace(/^(\d{3})(\d{4})(\d+)/, '$1-$2-$3');
+}
+
+function applyPhoneFormat(input) {
+    if (!input) return;
+    input.addEventListener('input', function () {
+        const before = this.value;
+        const pos = this.selectionStart ?? before.length;
+        const formatted = formatPhoneNumber(before);
+        this.value = formatted;
+        const diff = formatted.length - before.length;
+        const newPos = pos + diff;
+        this.selectionStart = this.selectionEnd = Math.max(0, newPos);
+    });
+    input.addEventListener('blur', function () {
+        this.value = formatPhoneNumber(this.value);
+    });
+}
+
+function setRadioValue(name, value) {
+    if (!value) return;
+    const radio = document.querySelector(`input[name="${name}"][value="${value}"]`);
+    if (radio) {
+        radio.checked = true;
+        radio.dispatchEvent(new Event('change'));
+    }
+}
+
+function getMechanicalSpacesTotal() {
+    const ids = ['f_indoor_mechanical_spaces', 'f_outdoor_mechanical_spaces'];
+    return ids.map(id => {
+        const v = document.getElementById(id)?.value;
+        const n = parseInt((v || '').toString().replace(/[^0-9]/g, ''), 10);
+        return Number.isFinite(n) ? n : 0;
+    }).reduce((a, b) => a + b, 0);
+}
+
+function applyManagerAdminAutoRule() {
+    const total = getMechanicalSpacesTotal();
+    const mgrY = document.querySelector('input[name="manager"][value="Y"]');
+    const mgrN = document.querySelector('input[name="manager"][value="N"]');
+    const admY = document.querySelector('input[name="admin"][value="Y"]');
+    const admN = document.querySelector('input[name="admin"][value="N"]');
+    if (total >= 20 && mgrY && mgrN && admY && admN) {
+        if (mgrN.checked && admN.checked) {
+            prevManagerValue = mgrY.checked ? 'Y' : (mgrN.checked ? 'N' : null);
+            prevAdminValue = admY.checked ? 'Y' : (admN.checked ? 'N' : null);
+            autoManagerAdminSet = true;
+            mgrY.checked = true;
+            mgrY.dispatchEvent(new Event('change'));
+        } else {
+            autoManagerAdminSet = false;
+        }
+    } else if (autoManagerAdminSet) {
+        if (prevManagerValue) setRadioValue('manager', prevManagerValue);
+        if (prevAdminValue) setRadioValue('admin', prevAdminValue);
+        autoManagerAdminSet = false;
+    }
+}
+
+function bindMechanicalAutoRule() {
+    ['f_indoor_mechanical_spaces', 'f_outdoor_mechanical_spaces'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('change', () => applyManagerAdminAutoRule());
+            el.addEventListener('input', () => applyManagerAdminAutoRule());
+        }
+    });
+}
+
 // ========== 🔥 페이지 로드 시 서버에서 데이터 가져오기 ==========
 async function loadParkingDetailFromServer() {
-    const prkPlceManageNo = p.id;
+    const prkPlceManageNo = document.getElementById('prkPlceManageNo')?.value || p.id;
 
-    if (!prkPlceManageNo) {
+    if (!prkPlceManageNo && !window.initialParking) {
         console.warn('⚠️ 주차장 관리번호가 없습니다.');
         return;
     }
@@ -1499,18 +1595,12 @@ async function loadParkingDetailFromServer() {
     LoadingIndicator.show('주차장 정보를 불러오는 중...');
 
     try {
-        console.log('🔄 부설주차장 상세 정보 로드 시작:', prkPlceManageNo);
-
-        const response = await fetch(`/prk/buildparking-detail?prkPlceManageNo=${encodeURIComponent(prkPlceManageNo)}`);
-        const result = await response.json();
-
-        if (result.success && result.data) {
-            console.log('✅ 서버 데이터 로드 성공:', result.data);
-            await populateFormWithData(result.data);
-        } else {
-            console.error('❌ 서버 데이터 로드 실패:', result.message);
-            alert('주차장 정보를 불러오지 못했습니다: ' + (result.message || '알 수 없는 오류'));
+        if (window.initialParking) {
+            await populateFormWithData(window.initialParking);
+            return;
         }
+
+        console.warn('initialParking 데이터가 없어 서버 요청을 건너뜁니다.');
     } catch (error) {
         console.error('❌ 서버 통신 오류:', error);
         alert('서버와의 통신 중 오류가 발생했습니다.');
@@ -1538,10 +1628,7 @@ async function populateFormWithData(data) {
     if (f_id) f_id.value = data.prkPlceManageNo || '';
     if (f_name) f_name.value = data.prkplceNm || '';
     // 🔥 진행상태 바인딩 (select)
-    if (f_status && data.prgsStsCd) {
-        f_status.value = data.prgsStsCd;
-        console.log('✅ 진행상태 바인딩:', data.prgsStsCd);
-    }
+    applyStatusSelect($('#f_status'), data.prgsStsCd || data.prgsStsNm || $('#f_status')?.dataset?.defaultStatus || '');
     // 🔥 행정구역 바인딩 (select) - sidoCd, sigunguCd 사용
     if (data.sidoCd) {
         const f_sido = $('#f_sido');
@@ -1588,6 +1675,25 @@ async function populateFormWithData(data) {
     if (v_id) v_id.textContent = data.prkPlceManageNo || '';
     if (v_name) v_name.textContent = data.prkplceNm || '부설주차장 상세';
     updateHeaderAddr();
+    // 기계식 주차면 입력값 반영 (총면수 기반 자동 규칙 사용)
+    const indoorMech = document.getElementById('f_indoor_mechanical_spaces');
+    const outdoorMech = document.getElementById('f_outdoor_mechanical_spaces');
+    if (indoorMech) indoorMech.value = data.indrMechTotSpaceCnt ?? indoorMech.value ?? '';
+    if (outdoorMech) outdoorMech.value = data.outdrMechTotSpaceCnt ?? outdoorMech.value ?? '';
+
+    // 안내문 유무
+    setRadioValue('announcement', data.guidDocYn === 'Y' ? 'Y' : 'N');
+
+    // 관리인/관리자 유무
+    setRadioValue('manager', data.mgrYn === 'Y' ? 'Y' : 'N');
+    setRadioValue('admin', data.admYn === 'Y' ? 'Y' : 'N');
+
+    // 관리기관 전화번호 포맷팅
+    const mgrTelInput = document.getElementById('f_management_tel');
+    if (mgrTelInput) {
+        mgrTelInput.value = formatPhoneNumber(data.mgrOrgTelNo || mgrTelInput.value || '');
+    }
+    applyManagerAdminAutoRule();
 
     // 주차면수
     if (totalInput) totalInput.value = data.totPrkCnt || 0;
@@ -1612,10 +1718,10 @@ async function populateFormWithData(data) {
     }
 
     // 관리기관
-    const f_mgr_name = $('#f_management_agency');
-    const f_mgr_tel = $('#f_management_tel');
-    if (f_mgr_name) f_mgr_name.value = data.mgrOrg || '';
-    if (f_mgr_tel) f_mgr_tel.value = data.mgrOrgTelNo || '';
+   const f_mgr_name = $('#f_management_agency');
+   const f_mgr_tel = $('#f_management_tel');
+   if (f_mgr_name) f_mgr_name.value = data.mgrOrg || '';
+    if (f_mgr_tel) f_mgr_tel.value = formatPhoneNumber(data.mgrOrgTelNo || f_mgr_tel.value || '');
 
     // 부제시행여부
     const f_oddEven = $('#f_oddEven');
@@ -2206,7 +2312,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     try {
         console.log('Step 1: 초기화 시작');
-        const isNewRecord = !p.id;
+        const prkPlceManageNo = document.getElementById('prkPlceManageNo')?.value || p.id;
+        const isNewRecord = !prkPlceManageNo;
         if (serverStatusValue) {
             applyApprovalLock(serverStatusValue);
         }
@@ -2238,6 +2345,13 @@ document.addEventListener('DOMContentLoaded', async function () {
         setupPeakTimeValidation();
         console.log('Step 3a: UI 이벤트 리스너 설정 완료');
 
+        // 전화번호 포맷팅 적용
+    applyPhoneFormat(document.getElementById('f_management_tel'));
+
+    // 기계식 주차면수 기반 관리인/관리자 자동 규칙 바인딩
+    bindMechanicalAutoRule();
+    applyManagerAdminAutoRule();
+
         console.log('Step 4: 저장 버튼 이벤트 리스너 등록');
         const btnSave = document.getElementById('btnSave');
         const btnSaveTop = document.getElementById('btnSaveTop');
@@ -2268,7 +2382,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                 f_status.value = '10'; // '조사중' 코드
             }
         } else {
-            console.log(`✏️ 수정 모드입니다. (ID: ${p.id})`);
+            console.log(`✏️ 수정 모드입니다. (ID: ${prkPlceManageNo})`);
             await loadParkingDetailFromServer();
         }
         console.log('Step 5a: 모드 분기 처리 완료');

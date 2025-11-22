@@ -156,7 +156,7 @@
     </update>
 
     <!-- 노상주차장 상세 조회 쿼리 -->
-    <select id="selectOnstreetParkingDetail" parameterType="string"
+    <select id="selectOnstreetParkingDetail" parameterType="map"
             resultType="com.psim.web.prk.vo.ParkingDetailVO">
         SELECT cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsCd
              , tpsbi.prk_biz_mng_no                             as prkBizMngNo
@@ -266,6 +266,7 @@
                            ON tbppi.prk_biz_mng_no = tpsbi.prk_biz_mng_no
                                AND tpsbi.use_yn = 'Y'
         WHERE tpdpi.prk_plce_manage_no = #{prkPlceManageNo}
+          AND tpdpi.prk_plce_info_sn = #{prkPlceInfoSn}
     </select>
 
     <!-- 🔥 기본 정보 업데이트 (tb_prk_def_plce_info) -->
@@ -385,7 +386,7 @@
     </update>
 
     <!-- 🔥 노외주차장 상세 조회 쿼리 -->
-    <select id="selectOffstreetParkingDetail" parameterType="string" resultType="com.psim.web.prk.vo.ParkingDetailVO">
+    <select id="selectOffstreetParkingDetail" parameterType="map" resultType="com.psim.web.prk.vo.ParkingDetailVO">
         SELECT cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsCd
              , tpsbi.prk_biz_mng_no                             as prkBizMngNo
              , tpdpi.prk_plce_info_sn                           AS prkPlceInfoSn
@@ -500,6 +501,7 @@
                             ON tbppi.prk_biz_mng_no = tpsbi.prk_biz_mng_no
                                 AND tpsbi.use_yn = 'Y'
         WHERE tpdpi.prk_plce_manage_no = #{prkPlceManageNo}
+          AND tpdpi.prk_plce_info_sn = #{prkPlceInfoSn}
     </select>
 
     <!-- 🔥 노외주차장 정보 업데이트 (tb_offstr_prklot_info) -->
@@ -603,7 +605,7 @@
     </update>
 
     <!-- 🔥 부설주차장 상세 조회 쿼리 -->
-    <select id="selectBuildParkingDetail" parameterType="string" resultType="com.psim.web.prk.vo.ParkingDetailVO">
+    <select id="selectBuildParkingDetail" parameterType="map" resultType="com.psim.web.prk.vo.ParkingDetailVO">
         SELECT cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsCd
              , tbppi.prgs_sts_cd                                as prgsStsRawCd
              , tbppi.biz_per_prk_mng_no                         as bizPerPrkMngNo
@@ -742,6 +744,7 @@
                             ON tbppi.prk_biz_mng_no = tpsbi.prk_biz_mng_no
                                 AND tpsbi.use_yn = 'Y'
         WHERE tpdpi.prk_plce_manage_no = #{prkPlceManageNo}
+          AND tpdpi.prk_plce_info_sn = #{prkPlceInfoSn}
     </select>
 
     <!-- 🔥 부설주차장 정보 업데이트 (tb_atch_prklot_info) -->

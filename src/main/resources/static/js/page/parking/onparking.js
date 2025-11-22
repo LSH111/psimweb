@@ -1,4 +1,5 @@
 /* onparking.js — 노상주차장 상세 페이지 (주간/야간 기능 + 동적 코드) */
+// TODO: 운영 환경에서는 console.log/console.warn 로그를 축소하거나 로깅 레벨로 전환 필요.
 
 // ========== 유틸 ==========
 const $ = (s) => document.querySelector(s);
@@ -1684,7 +1685,7 @@ const LoadingIndicator = {
 
 // ========== 🔥 서버에서 상세 데이터 로드 ==========
 async function loadParkingDetail(prkPlceManageNo) {
-    if (!prkPlceManageNo) {
+    if (!prkPlceManageNo && !window.initialParking) {
         console.warn('⚠️ 주차장 관리번호가 없습니다.');
         return;
     }
@@ -1692,26 +1693,12 @@ async function loadParkingDetail(prkPlceManageNo) {
     LoadingIndicator.show('주차장 정보를 불러오는 중...');
 
     try {
-        const response = await fetch(`/prk/onparking-detail?prkPlceManageNo=${encodeURIComponent(prkPlceManageNo)}`);
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        if (window.initialParking) {
+            await bindDataToForm(window.initialParking);
+            return;
         }
 
-        const result = await response.json();
-        if (result.success && result.data) {
-            bindDataToForm(result.data);
-            // 🔥 핵심: 사진 정보 로드 호출 추가
-            if (result.data.prkPlceInfoSn) {
-                await loadAndDisplayPhotos(result.data.prkPlceInfoSn);
-            }
-        } else {
-            console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            console.error('❌ 데이터 로드 실패');
-            console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            console.error('실패 사유:', result.message);
-            console.error('요청한 관리번호:', prkPlceManageNo);
-            console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        }
+        console.warn('initialParking 데이터가 없어 서버 요청을 건너뜁니다.');
     } catch (error) {
         console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         console.error('❌ 데이터 로드 중 예외 발생');
@@ -3261,7 +3248,7 @@ function joinCodes(arr) {
 // ========== 초기화 ==========
 document.addEventListener('DOMContentLoaded', async function () {
     // 🔥 1. URL에서 관리번호 확인하여 신규/조회 구분
-    const prkPlceManageNo = p.id || f_id?.value;
+    const prkPlceManageNo = document.getElementById('prkPlceManageNo')?.value || p.id || f_id?.value;
     const isNewRecord = !prkPlceManageNo || prkPlceManageNo === '';
     if (serverStatusValue) {
         applyApprovalLock(serverStatusValue);

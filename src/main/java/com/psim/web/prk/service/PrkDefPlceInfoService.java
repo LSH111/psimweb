@@ -26,17 +26,17 @@ public interface PrkDefPlceInfoService {
     /**
      * 노상주차장 상세 조회
      */
-    ParkingDetailVO getOnstreetParkingDetail(String prkPlceManageNo);
+    ParkingDetailVO getOnstreetParkingDetail(String prkPlceManageNo, Long prkPlceInfoSn);
 
     /**
      * 노외주차장 상세 조회
      */
-    ParkingDetailVO getOffstreetParkingDetail(String prkPlceManageNo);
+    ParkingDetailVO getOffstreetParkingDetail(String prkPlceManageNo, Long prkPlceInfoSn);
 
     /**
      * 부설주차장 상세 조회
      */
-    ParkingDetailVO getBuildParkingDetail(String prkPlceManageNo);
+    ParkingDetailVO getBuildParkingDetail(String prkPlceManageNo, Long prkPlceInfoSn);
 
     // ========== 신규 등록 (INSERT) ==========
     /**

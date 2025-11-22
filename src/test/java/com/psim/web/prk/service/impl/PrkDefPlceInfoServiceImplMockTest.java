@@ -86,11 +86,11 @@ class PrkDefPlceInfoServiceImplMockTest {
     @DisplayName("상세 조회는 mapper 결과를 그대로 반환한다")
     void getOnstreetParkingDetail_returnsMapperValue() {
         ParkingDetailVO detail = sampleDetail();
-        when(mapper.selectOnstreetParkingDetail("MG-0001")).thenReturn(detail);
+        when(mapper.selectOnstreetParkingDetail("MG-0001", 1L)).thenReturn(detail);
 
-        ParkingDetailVO result = service.getOnstreetParkingDetail("MG-0001");
+        ParkingDetailVO result = service.getOnstreetParkingDetail("MG-0001", 1L);
 
         assertThat(result).isSameAs(detail);
-        verify(mapper).selectOnstreetParkingDetail(eq("MG-0001"));
+        verify(mapper).selectOnstreetParkingDetail(eq("MG-0001"), eq(1L));
     }
 }

@@ -4,29 +4,35 @@
 <html lang="ko">
 <head>
     <title>로그인</title>
+    <link rel="icon" href="${pageContext.request.contextPath}/static/favicon.ico"/>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/pages/ts_login.css"/>
+    <!-- KRDS Design System -->
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/krds/token/krds_tokens.css"/>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/krds/common/common.css"/>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/krds/component/component.css"/>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/krds/component/output.css"/>
 </head>
-<body>
-<main class="main container" role="main" aria-labelledby="title">
-    <div class="card">
-        <div class="header">
+<body class="krds-body">
+<main class="main container krds-container" role="main" aria-labelledby="title">
+    <div class="card krds-card">
+        <div class="header krds-header">
             <div class="logo" aria-hidden="true">TS</div>
             <div>
-                <h1 id="title">로그인</h1>
+                <h1 id="title" class="krds-title">로그인</h1>
                 <p class="sub">아이디 → 비밀번호 → (SMS)인증 → 로그인</p>
             </div>
         </div>
-<form id="loginForm" method="POST" action="<c:url value='/login'/>">
+<form id="loginForm" method="POST" action="<c:url value='/login'/>" class="krds-form">
             <!-- 1) 아이디 (오른쪽에 다음 버튼) -->
-            <section id="secId" class="step" aria-labelledby="step1-title">
+            <section id="secId" class="step krds-form__section" aria-labelledby="step1-title">
                 <h2 id="step1-title" class="sr-only">아이디 입력</h2>
-                <div class="field">
-                    <label for="loginId">아이디</label>
+                <div class="field krds-form__item">
+                    <label for="loginId" class="form-label">아이디</label>
                     <div class="control inline-actions">
-                        <input id="loginId" name="userId" class="input" type="text" autocomplete="username"
+                        <input id="loginId" name="userId" class="input form-input" type="text" autocomplete="username"
                                placeholder="아이디를 입력하세요" minlength="4" maxlength="32"
                                pattern="[A-Za-z0-9._\\-]{4,32}" required />
-                        <button id="nextIdBtn" class="btn" type="button">다음</button>
+                        <button id="nextIdBtn" class="btn btn-primary" type="button">다음</button>
                     </div>
                     <span class="hint">영문/숫자/.-_ 4~32자</span>
                 </div>
@@ -34,15 +40,15 @@
             </section>
 
             <!-- 2) 비밀번호 (아이디 아래에 펼침, 여기서는 검증하지 않음) -->
-            <section id="secPw" class="step hide" aria-labelledby="step2-title">
+            <section id="secPw" class="step hide krds-form__section" aria-labelledby="step2-title">
                 <h2 id="step2-title" class="sr-only">비밀번호 입력</h2>
-                <div class="field">
-                    <label for="password">비밀번호</label>
+                <div class="field krds-form__item">
+                    <label for="password" class="form-label">비밀번호</label>
                     <div class="control inline-actions">
-                        <input id="password" name="password" class="input" type="password" autocomplete="current-password"
+                        <input id="password" name="password" class="input form-input" type="password" autocomplete="current-password"
                                minlength="8" placeholder="••••••••" required />
                         <button class="link" type="button" id="togglePw" aria-label="비밀번호 표시 전환">표시</button>
-                        <button id="nextPwBtn" class="btn" type="button">다음</button>
+                        <button id="nextPwBtn" class="btn btn-secondary" type="button">다음</button>
                     </div>
                     <span class="hint">최소 8자 이상</span>
                 </div>
@@ -50,27 +56,27 @@
             </section>
 
             <!-- 3) 휴대폰 & OTP (비밀번호 아래에 펼침, OTP는 반드시 검증) -->
-            <section id="secPhone" class="step hide" aria-labelledby="step3-title">
+            <section id="secPhone" class="step hide krds-form__section" aria-labelledby="step3-title">
                 <h2 id="step3-title" class="sr-only">휴대폰 번호 입력</h2>
 
-                <div class="field">
-                    <label for="phone">인증 받을 휴대폰 번호</label>
+                <div class="field krds-form__item">
+                    <label for="phone" class="form-label">인증 받을 휴대폰 번호</label>
                     <div class="control inline-actions">
-                        <input id="phone" class="input mono" type="text" inputmode="numeric" maxlength="11"
+                        <input id="phone" class="input form-input mono" type="text" inputmode="numeric" maxlength="11"
                                placeholder="숫자만 입력 (예: 01012345678)" required />
-                        <button id="sendOtpBtn" class="btn" type="button">인증코드 전송</button>
+                        <button id="sendOtpBtn" class="btn btn-primary" type="button">인증코드 전송</button>
                     </div>
                     <span class="hint">숫자만 입력하세요. (하이픈은 서버 표시용 처리 권장)</span>
                 </div>
 
-                <div id="otpBox" class="field hide" aria-live="polite">
-                    <label for="otp">인증코드 (6자리)</label>
+                <div id="otpBox" class="field hide krds-form__item" aria-live="polite">
+                    <label for="otp" class="form-label">인증코드 (6자리)</label>
                     <div class="otp-grid">
                         <div class="control">
-                            <input id="otp" class="input mono" type="text" inputmode="numeric"
+                            <input id="otp" class="input form-input mono" type="text" inputmode="numeric"
                                    pattern="\\d{6}" maxlength="6" placeholder="______" aria-describedby="otpHint"/>
                         </div>
-                        <button id="resendBtn" class="link" type="button" disabled>재전송(60)</button>
+                        <button id="resendBtn" class="btn btn-secondary" type="button" disabled>재전송(60)</button>
                     </div>
                     <span id="otpHint" class="hint">유효시간 <span id="timer" class="mono">02:00</span></span>
                 </div>
@@ -80,11 +86,11 @@
             </section>
 
             <!-- 4) 최종 로그인 (OTP 성공해야 활성화) -->
-            <section id="secFinal" class="step hide" aria-labelledby="step4-title">
+            <section id="secFinal" class="step hide krds-form__section" aria-labelledby="step4-title">
                 <h2 id="step4-title" class="sr-only">최종 로그인</h2>
                 <div id="finalErr" class="error hide" aria-live="polite"></div>
                 <div class="row" style="justify-content:flex-end; margin-top:12px;">
-                    <button id="finalLoginBtn" class="btn" type="button" disabled>로그인</button>
+                    <button id="finalLoginBtn" class="btn btn-primary btn-lg" type="button" disabled>로그인</button>
                 </div>
             </section>
         </form>
@@ -265,5 +271,6 @@
         }
     });
 </script>
+<script src="${pageContext.request.contextPath}/static/js/krds/ui-script.js"></script>
 </body>
 </html>

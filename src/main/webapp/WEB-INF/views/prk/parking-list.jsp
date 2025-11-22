@@ -5,11 +5,17 @@
 <head>
     <jsp:include page="/WEB-INF/views/fragments/header.jsp"/>
     <title>주차장 목록</title>
+    <!-- KRDS Design System -->
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/krds/token/krds_tokens.css"/>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/krds/common/common.css"/>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/krds/component/component.css"/>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/krds/component/output.css"/>
     <!-- 🔥 URL 파라미터를 JavaScript 변수로 전달 -->
     <script>
         window.parkingDetailParams = {
             openDetailId: '<c:out value="${openDetailId}" default=""/>',
-            parkingType: '<c:out value="${parkingType}" default=""/>'
+            parkingType: '<c:out value="${parkingType}" default=""/>',
+            prkPlceInfoSn: '<c:out value="${param.prkPlceInfoSn}" default=""/>'
         };
 
         // 🔥 지도로 돌아가기 함수 (sessionStorage 유지)
@@ -28,14 +34,14 @@
     </script>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/pages/parking-list.css"/>
 </head>
-<body>
+<body class="krds-body">
 
 <!-- 🔥 Content 영역 -->
-<main class="app-content">
+<main class="app-content krds-container">
     <div class="container">
-        <div class="card">
+        <div class="card krds-card">
             <div class="wrap">
-                <h1 class="title">주차장 실태 관리 목록</h1>
+                <h1 class="title krds-title">주차장 실태 관리 목록</h1>
 
                 <!-- 검색 패널 -->
                 <section class="panel" aria-label="검색 조건">
@@ -46,76 +52,76 @@
                             <span>주차장 지도로 돌아가기</span>
                         </button>
                     </div>
-                    <form id="searchForm">
-                        <div class="filters">
-                            <div>
-                                <label for="sido">시도</label>
+                    <form id="searchForm" class="krds-form">
+                        <div class="filters krds-grid">
+                            <div class="krds-form__item">
+                                <label for="sido" class="form-label">시도</label>
                                 <div class="control">
-                                    <select id="sido" name="sido">
+                                    <select id="sido" name="sido" class="form-select">
                                         <option value="">전체</option>
                                     </select>
                                 </div>
                             </div>
                             <div>
-                                <label for="sigungu">시군구</label>
+                                <label for="sigungu" class="form-label">시군구</label>
                                 <div class="control">
-                                    <select id="sigungu" name="sigungu" disabled>
+                                    <select id="sigungu" name="sigungu" class="form-select" disabled>
                                         <option value="">전체</option>
                                     </select>
                                 </div>
                             </div>
                             <div>
-                                <label for="emd">읍면동</label>
+                                <label for="emd" class="form-label">읍면동</label>
                                 <div class="control">
-                                    <select id="emd" name="emd" disabled>
+                                    <select id="emd" name="emd" class="form-select" disabled>
                                         <option value="">전체</option>
                                     </select>
                                 </div>
                             </div>
                             <div>
-                                <label for="prkNm">주차장명</label>
+                                <label for="prkNm" class="form-label">주차장명</label>
                                 <div class="control">
-                                    <input id="prkNm" name="prkNm" type="text" placeholder="예) 중앙공영주차장"/>
+                                    <input id="prkNm" name="prkNm" type="text" class="form-input" placeholder="예) 중앙공영주차장"/>
                                 </div>
                             </div>
                             <div>
-                                <label for="prkType">주차장형태</label>
+                                <label for="prkType" class="form-label">주차장형태</label>
                                 <div class="control">
-                                    <select id="prkType" name="prkType">
+                                    <select id="prkType" name="prkType" class="form-select">
                                         <option value="">전체</option>
                                     </select>
                                 </div>
                             </div>
                             <div>
-                                <label for="status">진행상태</label>
+                                <label for="status" class="form-label">진행상태</label>
                                 <div class="control">
-                                    <select id="status" name="status">
+                                    <select id="status" name="status" class="form-select">
                                         <option value="">전체</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="span2">
-                                <label for="addr">상세주소</label>
+                                <label for="addr" class="form-label">상세주소</label>
                                 <div class="control">
-                                    <input id="addr" name="addr" type="text" placeholder="도로명/지번 등 일부를 입력"/>
+                                    <input id="addr" name="addr" type="text" class="form-input" placeholder="도로명/지번 등 일부를 입력"/>
                                 </div>
                             </div>
                         </div>
-                        <div class="actions">
-                            <button type="submit" class="btn">검색</button>
-                            <button type="button" id="resetBtn" class="btn ghost">초기화</button>
-                            <button type="button" id="exportBtn" class="btn sec">CSV 내보내기</button>
-                            <button type="button" id="sendBtn" class="btn">선택 전송</button>
-                            <button type="button" id="addNewBtn" class="btn">신규 추가</button>
+                        <div class="actions krds-button-group">
+                            <button type="submit" class="btn btn-primary">검색</button>
+                            <button type="button" id="resetBtn" class="btn btn-secondary">초기화</button>
+                            <button type="button" id="exportBtn" class="btn btn-outline">CSV 내보내기</button>
+                            <button type="button" id="sendBtn" class="btn btn-secondary">선택 전송</button>
+                            <button type="button" id="addNewBtn" class="btn btn-primary">신규 추가</button>
                         </div>
                     </form>
                 </section>
 
                 <!-- 결과/탭 -->
                 <section class="result-panel one-card">
-                    <div class="summary" id="summary">총 0건</div>
+                    <div class="summary krds-chip" id="summary">총 0건</div>
 
-                    <div class="tabs" role="tablist" aria-label="목록">
+                    <div class="tabs krds-tabs" role="tablist" aria-label="목록">
                         <button id="tabList" class="tab-btn active" role="tab" aria-controls="panelList" aria-selected="true">목록</button>
                     </div>
 

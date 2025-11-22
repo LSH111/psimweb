@@ -1,4 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page import="com.fasterxml.jackson.databind.ObjectMapper" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="ko">
@@ -21,21 +22,42 @@
     <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
     <c:set var="statusCode" value="${empty param.status ? '' : param.status}"/>
     <c:set var="isApproved" value="${statusCode eq '30'}"/>
+    <%
+        Object parkingObj = request.getAttribute("parking");
+        String parkingJson = "null";
+        try {
+            if (parkingObj != null) {
+                parkingJson = new ObjectMapper().writeValueAsString(parkingObj);
+            }
+        } catch (Exception ignored) {
+            parkingJson = "null";
+        }
+    %>
+    <script>
+        window.initialParking = <%= parkingJson %>;
+    </script>
 </head>
 <body data-status="${not empty statusCode ? statusCode : (empty param.status ? '' : param.status)}">
 <div id="toast-container"></div>
 <div class="wrap">
     <header class="card head">
-        <div class="title" id="v_name">노외주차장 상세</div>
+        <div class="title" id="v_name"><c:out value="${empty parking.prkplceNm ? '노외주차장 상세' : parking.prkplceNm}"/></div>
         <span class="badge">노외</span>
-        <span class="muted mono" id="v_id">관리번호</span>
-        <span class="muted" id="v_addr"></span>
+        <span class="muted mono" id="v_id"><c:out value="${parking.prkPlceManageNo}"/></span>
+        <span class="muted" id="v_addr"><c:out value="${parking.dtadd}"/></span>
         <span class="actions" style="margin-left:auto">
             <button class="btn" onclick="window.print()">인쇄</button>
             <button class="btn" id="btnSaveTop" <c:if test="${isApproved}">disabled="disabled"</c:if>>저장</button>
         </span>
     </header>
     <input type="hidden" id="statusCode" value="${not empty statusCode ? statusCode : (empty param.status ? '' : param.status)}"/>
+    <input type="hidden" id="prkPlceManageNo" value="<c:out value='${parking.prkPlceManageNo}'/>"/>
+    <input type="hidden" id="prkPlceInfoSn" value="<c:out value='${parking.prkPlceInfoSn}'/>"/>
+    <span style="display:none">
+        <c:out value="${parking.prkPlceManageNo}"/>
+        <c:out value="${parking.prkplceNm}"/>
+        <c:out value="${statusCode}"/>
+    </span>
 
     <!-- 기본정보 -->
     <section class="row">
@@ -43,10 +65,10 @@
             <h2>기본정보</h2>
             <div class="grid">
                 <div><label for="f_id">주차장관리번호</label>
-                    <div class="ctl"><input id="f_id" class="mono" type="text" readonly/></div>
+                    <div class="ctl"><input id="f_id" class="mono" type="text" value="<c:out value='${parking.prkPlceManageNo}'/>" readonly/></div>
                 </div>
                 <div><label for="f_name">주차장명</label>
-                    <div class="ctl"><input id="f_name" type="text" placeholder="예) 분당구청 노외"/></div>
+                    <div class="ctl"><input id="f_name" type="text" value="<c:out value='${parking.prkplceNm}'/>" placeholder="예) 분당구청 노외"/></div>
                 </div>
                 <!-- 🔥 진행상태를 select로 변경 -->
                 <div>
@@ -87,7 +109,7 @@
                     </div>
                 </div>
                 <!-- 🔥 우편번호 hidden 필드 추가 -->
-                <input type="hidden" id="f_zip"/>
+                <input type="hidden" id="f_zip" value="<c:out value='${parking.zip}'/>"/>
 
                 <!-- 🔥 리(里) 추가 -->
                 <div>
@@ -131,12 +153,12 @@
                 <!-- 주소: 지번/도로명 + 주소찾기 -->
                 <div style="grid-column:1/-1">
                     <label for="f_addr_jibun">지번 주소</label>
-                    <div class="ctl"><input id="f_addr_jibun" type="text" placeholder="예) 성남시 분당구 정자동 123-45" readonly/>
+                    <div class="ctl"><input id="f_addr_jibun" type="text" value="<c:out value='${parking.dtadd}'/>" placeholder="예) 성남시 분당구 정자동 123-45" readonly/>
                     </div>
                 </div>
                 <div style="grid-column:1/-1">
                     <label for="f_addr_road">도로명 주소</label>
-                    <div class="ctl"><input id="f_addr_road" type="text" placeholder="예) 분당로 23" readonly/></div>
+                    <div class="ctl"><input id="f_addr_road" type="text" value="<c:out value='${parking.rnmadr}'/>" placeholder="예) 분당로 23" readonly/></div>
                 </div>
                 <div style="grid-column:1/-1; display:flex; gap:8px">
                     <button type="button" class="btn light" id="btnFindAddr">주소찾기</button>
@@ -167,10 +189,10 @@
                 </div>
                 <div style="grid-column:1/-1"><img id="preview" class="thumb" alt="사진 미리보기"/></div>
                 <div><label for="f_lat">위도</label>
-                    <div class="ctl"><input id="f_lat" class="mono" inputmode="decimal"/></div>
+                    <div class="ctl"><input id="f_lat" class="mono" inputmode="decimal" value="<c:out value='${parking.prkPlceLat}'/>"/></div>
                 </div>
                 <div><label for="f_lng">경도</label>
-                    <div class="ctl"><input id="f_lng" class="mono" inputmode="decimal"/></div>
+                    <div class="ctl"><input id="f_lng" class="mono" inputmode="decimal" value="<c:out value='${parking.prkPlceLon}'/>"/></div>
                 </div>
             </div>
         </div>
@@ -983,8 +1005,18 @@
         </div>
     </section>
 
-    <!-- 비고 섹션 추가 -->
-    <section class="card"></section>
+    <!-- 비고 섹션 -->
+    <section class="card section-card">
+        <h2 class="section-header">비고</h2>
+        <div class="grid">
+            <div style="grid-column:1/-1">
+                <label for="f_partclr_matter">특이사항</label>
+                <div class="ctl">
+                    <textarea id="f_partclr_matter" name="rmk" rows="8" placeholder="주차장 관련 특이사항을 입력하세요"><c:out value="${parking.partclrMatter}"/></textarea>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- 저장 버튼 섹션 -->
     <section class="card">

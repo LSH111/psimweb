@@ -41,7 +41,11 @@ public class SecurityConfig {
                             .includeSubDomains(true)
                             .maxAgeInSeconds(31536000);
                     headers.cacheControl();
-                    headers.contentSecurityPolicy("default-src 'self'; img-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'");
+                    headers.contentSecurityPolicy("default-src 'self'; " +
+                            "img-src 'self' data: https://dapi.kakao.com https://map.kakao.com https://t1.daumcdn.net http://t1.daumcdn.net https://mts.daumcdn.net http://mts.daumcdn.net; " +
+                            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://dapi.kakao.com https://t1.daumcdn.net http://t1.daumcdn.net https://cdn.jsdelivr.net; " +
+                            "connect-src 'self' https://dapi.kakao.com https://t1.daumcdn.net http://t1.daumcdn.net; " +
+                            "style-src 'self' 'unsafe-inline'");
                 })
 
                 // .formLogin() 설정을 제거합니다.
@@ -54,7 +58,10 @@ public class SecurityConfig {
                 // 로그아웃 설정
                 .logout(logout -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessUrl("/") // 로그아웃 성공 시 이동할 경로
+                        .logoutSuccessUrl("/login?logout")
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID")
                         .permitAll()
                 );
 

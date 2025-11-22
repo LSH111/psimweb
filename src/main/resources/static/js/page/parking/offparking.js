@@ -1177,9 +1177,9 @@ recompute();
 
 // ========== 헤더 주소 ==========
 function updateHeaderAddr() {
-    const sido = f_sido?.value?.trim() || '';
-    const sigungu = f_sigungu?.value?.trim() || '';
-    const emd = f_emd?.value?.trim() || '';
+    const sido = f_sido?.selectedOptions?.[0]?.textContent?.trim() || '';
+    const sigungu = f_sigungu?.selectedOptions?.[0]?.textContent?.trim() || '';
+    const emd = f_emd?.selectedOptions?.[0]?.textContent?.trim() || '';
     const j = f_addrJ?.value?.trim() || '';
     const r = f_addrR?.value?.trim() || '';
 
@@ -2164,11 +2164,23 @@ const LoadingIndicator = {
     }
 };
 
+// 진행상태 select에 코드/명칭을 방어적으로 매핑
+function applyStatusSelect(selectEl, statusValue) {
+    if (!selectEl) return;
+    const val = (statusValue || '').trim();
+    if (!val) return;
+    selectEl.value = val;
+    if (selectEl.value === val) return;
+    const options = Array.from(selectEl.options || []);
+    const match = options.find(opt => opt.textContent.trim() === val);
+    if (match) selectEl.value = match.value;
+}
+
 // ========== 🔥 페이지 로드 시 서버에서 데이터 가져오기 ==========
 async function loadParkingDetailFromServer() {
-    const prkPlceManageNo = p.id;
+    const prkPlceManageNo = document.getElementById('prkPlceManageNo')?.value || p.id;
 
-    if (!prkPlceManageNo) {
+    if (!prkPlceManageNo && !window.initialParking) {
         console.warn('⚠️ 주차장 관리번호가 없습니다. 신규 등록 모드입니다.');
         return;
     }
@@ -2176,18 +2188,12 @@ async function loadParkingDetailFromServer() {
     LoadingIndicator.show('주차장 정보를 불러오는 중...');
 
     try {
-        console.log('🔄 노외주차장 상세 정보 로드 시작:', prkPlceManageNo);
-
-        const response = await fetch(`/prk/offparking-detail?prkPlceManageNo=${encodeURIComponent(prkPlceManageNo)}`);
-        const result = await response.json();
-
-        if (result.success && result.data) {
-            console.log('✅ 서버 데이터 로드 성공:', result.data);
-            await populateFormWithData(result.data);
-        } else {
-            console.error('❌ 서버 데이터 로드 실패:', result.message);
-            alert('주차장 정보를 불러오지 못했습니다: ' + (result.message || '알 수 없는 오류'));
+        if (window.initialParking) {
+            await populateFormWithData(window.initialParking);
+            return;
         }
+
+        console.warn('initialParking 데이터가 없어 서버 요청을 건너뜁니다.');
     } catch (error) {
         console.error('❌ 서버 통신 오류:', error);
         alert('서버와의 통신 중 오류가 발생했습니다.');
@@ -2215,10 +2221,7 @@ async function populateFormWithData(data) {
     if (f_id) f_id.value = data.prkPlceManageNo || '';
     if (f_name) f_name.value = data.prkplceNm || '';
     // 🔥 진행상태 바인딩 (select)
-    if (f_status && data.prgsStsCd) {
-        f_status.value = data.prgsStsCd;
-        console.log('✅ 진행상태 바인딩:', data.prgsStsCd);
-    }
+    applyStatusSelect($('#f_status'), data.prgsStsCd || data.prgsStsNm || '');
     // 🔥 행정구역 바인딩 (select) - sidoCd, sigunguCd 사용
     if (data.sidoCd) {
         const f_sido = $('#f_sido');

@@ -64,9 +64,9 @@
     const typeKey = normalizeType(type);
 
     const pathMap = {
-      on: '/prk/onparking',
-      off: '/prk/offparking',
-      build: '/prk/buildparking'
+      on: '/prk/onparking-detail',
+      off: '/prk/offparking-detail',
+      build: '/prk/buildparking-detail'
     };
     const path = pathMap[typeKey];
 
@@ -105,10 +105,22 @@
       return;
     }
 
-    const sp = new URLSearchParams({
-      id: rec.manageNo, name: rec.nm, status: rec.status,
-      sido: rec.sido, sigungu: rec.sigungu, emd: rec.emd, addr: rec.addr
-    });
+    const infoSn = rec.prkPlceInfoSn || rec.infoSn;
+
+    if ((typeKey === 'on' || typeKey === 'build') && !infoSn) {
+      window.toast && toast('상세를 열기 위한 prkPlceInfoSn이 없습니다.');
+      return;
+    }
+
+    const sp = new URLSearchParams();
+    if (rec.manageNo) sp.set('prkPlceManageNo', rec.manageNo);
+    if (infoSn) sp.set('prkPlceInfoSn', infoSn);
+    if (rec.status) sp.set('status', rec.status);
+    if (rec.nm) sp.set('name', rec.nm);
+    if (rec.sido) sp.set('sido', rec.sido);
+    if (rec.sigungu) sp.set('sigungu', rec.sigungu);
+    if (rec.emd) sp.set('emd', rec.emd);
+    if (rec.addr) sp.set('addr', rec.addr);
     const url = `${path}?${sp.toString()}`;
 
     fetch(url, { method: 'HEAD' })

@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<link rel="icon" href="${pageContext.request.contextPath}/static/favicon.ico"/>
 <style>
     /* GNB two-level menu */
     nav .gnb { list-style:none; margin:0; padding:0; display:flex; gap: 20px; }
@@ -31,6 +32,9 @@
         color:#111 !important;
         margin: 0;
         font-size: 1.5rem;
+    }
+    .site-header nav {
+        flex: 1;
     }
 
     /* Top-level menu */
@@ -91,9 +95,37 @@
             font-size: 14px !important;
         }
     }
+
+    /* Logout button */
+    .session-actions {
+        margin-left: auto;
+    }
+    .logout-form {
+        margin: 0;
+    }
+    .logout-btn {
+        padding: 8px 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        background: #f8fafc;
+        color: #111;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+    .logout-btn:hover,
+    .logout-btn:focus {
+        background: #e2e8f0;
+        color: #0f172a;
+        outline: none;
+    }
 </style>
 <header class="site-header">
-    <h1>주차장 관리 시스템</h1>
+    <h1>
+        <a href="<c:url value='/index'/>" class="app-title" aria-label="주차장 관리 시스템 홈으로 이동">
+            주차장 관리 시스템
+        </a>
+    </h1>
     <nav id="main-gnb">
         <ul class="gnb">
             <li class="has-sub">
@@ -111,4 +143,11 @@
             </li>
         </ul>
     </nav>
+    <c:if test="${not empty sessionScope.loginUser}">
+        <div class="session-actions">
+            <form class="logout-form" action="<c:url value='/logout'/>" method="post">
+                <button type="submit" class="logout-btn">로그아웃</button>
+            </form>
+        </div>
+    </c:if>
 </header>

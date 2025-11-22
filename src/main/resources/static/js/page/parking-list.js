@@ -1,3 +1,4 @@
+// TODO: 운영 배포 시 console.log/console.warn 로그를 단계적으로 제거하거나 로그 레벨 제어하도록 정리 필요.
 window.reloadList = function () {
     console.log('🔄 목록 새로고침 요청을 받았습니다.');
 
@@ -655,43 +656,27 @@ function checkMapReturn() {
     }
 }
 
-async function loadAndOpenParkingDetail(prkPlceManageNo, prkPlceType) {
+async function loadAndOpenParkingDetail(prkPlceManageNo, prkPlceType, prkPlceInfoSn) {
     try {
-        console.log('🔍 서버에서 주차장 상세 정보 조회:', prkPlceManageNo);
+        console.log('🔍 주차장 상세 탭 열기:', prkPlceManageNo, prkPlceInfoSn);
 
-        let detailUrl = '/prk/onparking-detail';
-        if (prkPlceType === '노외' || prkPlceType === '02') {
-            detailUrl = '/prk/offparking-detail';
-        } else if (prkPlceType === '부설' || prkPlceType === '03') {
-            detailUrl = '/prk/buildparking-detail';
+        if (!prkPlceManageNo || !prkPlceInfoSn) {
+            throw new Error('prkPlceManageNo 혹은 prkPlceInfoSn이 없습니다.');
         }
 
-        const response = await fetch(`${detailUrl}?prkPlceManageNo=${encodeURIComponent(prkPlceManageNo)}`);
+        const rec = {
+            nm: prkPlceManageNo,
+            type: prkPlceType || '',
+            status: '',
+            sido: '',
+            sigungu: '',
+            emd: '',
+            addr: '',
+            manageNo: prkPlceManageNo,
+            prkPlceInfoSn
+        };
 
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-
-        const result = await response.json();
-
-        if (result.success && result.data) {
-            const rec = {
-                nm: result.data.prkplceNm || '',
-                type: prkPlceType || result.data.prkPlceType || '',
-                status: result.data.prgsStsCd || '',
-                sido: result.data.sidoNm || '',
-                sigungu: result.data.sigunguNm || '',
-                emd: result.data.lgalEmdNm || '',
-                addr: result.data.dtadd || '',
-                manageNo: prkPlceManageNo,
-                zip: result.data.zip || ''
-            };
-
-            console.log('✅ 주차장 정보 조회 성공:', rec);
-            ensureDetailTabTop(rec);
-        } else {
-            throw new Error(result.message || '주차장 정보를 찾을 수 없습니다');
-        }
+        ensureDetailTabTop(rec);
 
     } catch (error) {
         console.error('❌ 주차장 상세 정보 조회 실패:', error);
@@ -945,7 +930,7 @@ async function init() {
         window.parkingDetailParams.openDetailId &&
         window.parkingDetailParams.parkingType) {
 
-        const {openDetailId, parkingType} = window.parkingDetailParams;
+        const {openDetailId, parkingType, prkPlceInfoSn} = window.parkingDetailParams;
         console.log('🔍 지도에서 상세보기 요청:', openDetailId, parkingType);
 
         setTimeout(() => {
@@ -955,7 +940,7 @@ async function init() {
                 ensureDetailTabTop(parking);
             } else {
                 console.warn('⚠️ 주차장 데이터를 찾을 수 없음:', openDetailId);
-                loadAndOpenParkingDetail(openDetailId, parkingType);
+                loadAndOpenParkingDetail(openDetailId, parkingType, prkPlceInfoSn);
             }
         }, 500);
     }

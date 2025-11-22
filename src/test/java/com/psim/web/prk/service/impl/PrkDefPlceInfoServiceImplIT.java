@@ -8,6 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.Assumptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 @Transactional
+@ActiveProfiles("test")
 class PrkDefPlceInfoServiceImplIT {
 
     @Autowired
@@ -54,7 +56,7 @@ class PrkDefPlceInfoServiceImplIT {
     @DisplayName("상세조회 호출 시 존재하지 않는 관리번호여도 예외 없이 null 또는 VO를 반환한다")
     void getOnstreetParkingDetail_safeForUnknownId() {
         try {
-            com.psim.web.prk.vo.ParkingDetailVO detail = service.getOnstreetParkingDetail("NON_EXIST_MANAGE_NO");
+            com.psim.web.prk.vo.ParkingDetailVO detail = service.getOnstreetParkingDetail("NON_EXIST_MANAGE_NO", -1L);
             assertThat(detail).isNull();
         } catch (Exception e) {
             Assumptions.assumeTrue(false, "DB 연결/데이터가 없어 테스트를 건너뜁니다: " + e.getMessage());

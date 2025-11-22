@@ -54,11 +54,11 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
     // ========== 상세 조회 ==========
 
     @Override
-    @Cacheable(value = "parkingDetail", key = "#prkPlceManageNo", unless = "#result == null")
-    public ParkingDetailVO getOnstreetParkingDetail(String prkPlceManageNo) {
+    @Cacheable(value = "parkingDetail", key = "#prkPlceManageNo + ':' + #prkPlceInfoSn", unless = "#result == null")
+    public ParkingDetailVO getOnstreetParkingDetail(String prkPlceManageNo, Long prkPlceInfoSn) {
         try {
-            log.info("노상주차장 상세 조회: {}", prkPlceManageNo);
-            return prkDefPlceInfoMapper.selectOnstreetParkingDetail(prkPlceManageNo);
+            log.info("노상주차장 상세 조회: {} / {}", prkPlceManageNo, prkPlceInfoSn);
+            return prkDefPlceInfoMapper.selectOnstreetParkingDetail(prkPlceManageNo, prkPlceInfoSn);
         } catch (Exception e) {
             log.error("❌ 노상주차장 조회 실패", e);
             return null;
@@ -66,11 +66,11 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
     }
 
     @Override
-    @Cacheable(value = "parkingDetail", key = "#prkPlceManageNo", unless = "#result == null")
-    public ParkingDetailVO getOffstreetParkingDetail(String prkPlceManageNo) {
+    @Cacheable(value = "parkingDetail", key = "#prkPlceManageNo + ':' + #prkPlceInfoSn", unless = "#result == null")
+    public ParkingDetailVO getOffstreetParkingDetail(String prkPlceManageNo, Long prkPlceInfoSn) {
         try {
-            log.info("노외주차장 상세 조회: {}", prkPlceManageNo);
-            return prkDefPlceInfoMapper.selectOffstreetParkingDetail(prkPlceManageNo);
+            log.info("노외주차장 상세 조회: {} / {}", prkPlceManageNo, prkPlceInfoSn);
+            return prkDefPlceInfoMapper.selectOffstreetParkingDetail(prkPlceManageNo, prkPlceInfoSn);
         } catch (Exception e) {
             log.error("❌ 노외주차장 조회 실패", e);
             return null;
@@ -78,11 +78,11 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
     }
 
     @Override
-    @Cacheable(value = "parkingDetail", key = "#prkPlceManageNo", unless = "#result == null")
-    public ParkingDetailVO getBuildParkingDetail(String prkPlceManageNo) {
+    @Cacheable(value = "parkingDetail", key = "#prkPlceManageNo + ':' + #prkPlceInfoSn", unless = "#result == null")
+    public ParkingDetailVO getBuildParkingDetail(String prkPlceManageNo, Long prkPlceInfoSn) {
         try {
-            log.info("부설주차장 상세 조회: {}", prkPlceManageNo);
-            return prkDefPlceInfoMapper.selectBuildParkingDetail(prkPlceManageNo);
+            log.info("부설주차장 상세 조회: {} / {}", prkPlceManageNo, prkPlceInfoSn);
+            return prkDefPlceInfoMapper.selectBuildParkingDetail(prkPlceManageNo, prkPlceInfoSn);
         } catch (Exception e) {
             log.error("❌ 부설주차장 조회 실패", e);
             return null;
