@@ -1391,6 +1391,7 @@ function buildPayload() {
         name: f_name?.value,
         status: f_status?.value,
         type: '노상',
+        ownerCode: document.querySelector('input[name="ownCd"]:checked')?.value || $('#own_cd')?.value || '',
 
         // 🔥 행정구역 정보 추가 (SELECT의 value 그대로)
         sido: f_sido?.value || null,
@@ -2877,6 +2878,12 @@ function validateRequiredFields() {
         errors.push('• 운영주체를 선택해주세요.');
     }
 
+    // 관리주체(소유주체)
+    var ownerCode = document.querySelector('input[name="ownCd"]:checked')?.value || $('#own_cd')?.value;
+    if (!ownerCode) {
+        errors.push('• 관리주체(소유주체)를 선택해주세요.');
+    }
+
     // 민간위탁인 경우 업체명 확인
     const ownRadios = $$('input[name="own"]');
     const selectedOwn = ownRadios.find(r => r.checked);
@@ -3060,6 +3067,7 @@ async function doSave() {
     try {
         // 1. 🔥 검증 초기화 (이전 에러 상태 제거)
         FormValidator.clearErrorStyles();
+        clearValidationErrors();
 
         // 2. 🔥 필수 항목 검증 (순서대로 체크)
         let isValid = true;
@@ -3103,14 +3111,14 @@ async function doSave() {
         // 3. 🔥 유효성 검사 실패 시 중단
         if (!isValid) {
             console.warn('❌ 유효성 검사 실패: 필수 입력 항목 누락');
-            alert('필수 입력 항목을 확인해주세요. (붉은색 표시 항목)');
+            showValidationErrors(['필수 입력 항목을 확인해주세요. (붉은색 표시 항목)']);
             return;
         }
 
         // 4. 상세 비즈니스 로직 검증
         const validationErrors = validateRequiredFields();
         if (validationErrors.length > 0) {
-            alert('다음 항목을 입력해주세요:\n\n' + validationErrors.join('\n'));
+            showValidationErrors(validationErrors);
             return;
         }
 
@@ -3383,6 +3391,7 @@ function mapPayloadToServerFormat(payload) {
         prkplceNm: payload.name || '',
         prgsStsCd: payload.status || '10',
         prkPlceType: '1',
+        prkplceSe: payload.ownerCode || null,
 
         // 🔥 수정: 명시적으로 생성한 10자리 ldongCd 사용
         ldongCd: ldongCd,
@@ -3558,4 +3567,43 @@ function handlePostSave(fallbackUrl) {
     else {
         location.href = fallbackUrl;
     }
+}
+
+function ensureValidationBox() {
+    var box = document.getElementById('validationErrors');
+    if (!box) {
+        box = document.createElement('div');
+        box.id = 'validationErrors';
+        box.className = 'validation-errors';
+        box.style.color = '#c62828';
+        box.style.margin = '12px 0';
+        box.style.display = 'none';
+        var form = document.querySelector('form') || document.body;
+        form.insertBefore(box, form.firstChild);
+    }
+    return box;
+}
+
+function clearValidationErrors() {
+    var box = document.getElementById('validationErrors');
+    if (box) {
+        box.style.display = 'none';
+        box.innerHTML = '';
+    }
+}
+
+function showValidationErrors(errors) {
+    var box = ensureValidationBox();
+    var listHtml = '<ul style=\"padding-left:16px; margin:4px 0;\">' + errors.map(function (msg) {
+        return '<li>' + msg + '</li>';
+    }).join('') + '</ul>';
+    box.innerHTML = '<strong>입력 오류가 있습니다.</strong>' + listHtml;
+    box.style.display = 'block';
+
+    var firstInvalid = document.querySelector('[aria-invalid=\"true\"], input:invalid, textarea:invalid, select:invalid');
+    if (firstInvalid && typeof firstInvalid.focus === 'function') {
+        firstInvalid.focus();
+    }
+    var top = box.getBoundingClientRect().top + window.pageYOffset - 20;
+    window.scrollTo({top: top, behavior: 'smooth'});
 }

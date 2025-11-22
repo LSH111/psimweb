@@ -25,7 +25,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf
-                        .ignoringAntMatchers("/api/**", "/prk/api/**", "/login", "/logout", "/static/**", "/webjars/**"))
+                        .ignoringAntMatchers("/api/**", "/prk/api/**", "/prk/**", "/login", "/logout", "/static/**", "/webjars/**"))
 
                 // 요청에 대한 접근 권한 설정
                 .authorizeHttpRequests(authz -> authz
@@ -45,6 +45,7 @@ public class SecurityConfig {
                             "img-src 'self' data: https://dapi.kakao.com https://map.kakao.com https://t1.daumcdn.net http://t1.daumcdn.net https://mts.daumcdn.net http://mts.daumcdn.net; " +
                             "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://dapi.kakao.com https://t1.daumcdn.net http://t1.daumcdn.net https://cdn.jsdelivr.net; " +
                             "connect-src 'self' https://dapi.kakao.com https://t1.daumcdn.net http://t1.daumcdn.net; " +
+                            "frame-src 'self' https://postcode.map.daum.net http://postcode.map.daum.net; " +
                             "style-src 'self' 'unsafe-inline'");
                 })
 

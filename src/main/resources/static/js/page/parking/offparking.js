@@ -2768,6 +2768,7 @@ function buildPayload() {
         status: f_status?.value,
         type: '노외',
         operationType: selectedOp,
+        ownerCode: $('input[name="ownCd"]:checked')?.value || document.querySelector('input[name="ownCd"]:checked')?.value || $('#own_cd')?.value || '',
         ldongCd: generateLdongCd(),
         times: {
             day: isDayChecked,
@@ -2802,6 +2803,7 @@ function buildPayload() {
         sigunguCd: payload.sigunguCd,
         emdCd: payload.emdCd
     });
+    console.log('[buildPayload] ownerCode =', payload.ownerCode);
 
     return payload;
 }
@@ -2832,6 +2834,13 @@ function validateRequiredFields() {
         console.log('   ✅ 운영주체 검증 통과');
     }
 
+    // 관리주체(소유주체) 검증
+    const ownerCode = document.querySelector('input[name=\"ownCd\"]:checked')?.value || $('#own_cd')?.value;
+    console.log('   - 관리주체(소유주체):', ownerCode || '선택 안됨');
+    if (!ownerCode) {
+        errors.push('• 관리주체(소유주체)를 선택해주세요');
+    }
+
     // 시간대 검증
     const isDayChecked = $('#chk_day')?.checked;
     const isNightChecked = $('#chk_night')?.checked;
@@ -2858,6 +2867,7 @@ function mapPayloadToServerFormat(payload) {
         prkplceNm: payload.name,
         prgsStsCd: payload.status,
         prkPlceType: '2', // 노외주차장 구분 코드
+        prkplceSe: payload.ownerCode,
 
         sidoCd: payload.sidoCd,
         sigunguCd: payload.sigunguCd,
@@ -3344,6 +3354,7 @@ async function doSave() {
 
     // 1. 🔥 검증 초기화 (이전 에러 상태 제거)
     FormValidator.reset();
+    clearValidationErrors();
 
     // 2. 🔥 필수 항목 검증 (순서대로 체크, 실패 시 false 반환하지만 계속 진행하지 않고 중단하려면 && 연산자 활용 또는 if문 나열)
     // 모든 필드를 다 체크해서 빨간불을 켜고 싶다면 아래처럼 변수에 누적합니다.
@@ -3389,18 +3400,20 @@ async function doSave() {
     // 3. 🔥 유효성 검사 실패 시 중단
     if (!isValid) {
         console.warn('❌ 유효성 검사 실패: 필수 입력 항목 누락');
+        showValidationErrors(['필수 입력 항목을 확인해주세요. (붉은색 표시 항목)']);
         return; // 저장 중단
     }
 
     try {
         console.log('1️⃣ 필수 입력 검증 시작');
+        clearValidationErrors();
         const validationErrors = validateRequiredFields();
 
         console.log('2️⃣ 검증 결과:', validationErrors);
 
         if (validationErrors.length > 0) {
             console.log('❌ 검증 실패 - alert 표시');
-            alert('다음 항목을 입력해주세요:\n\n' + validationErrors.join('\n'));
+            showValidationErrors(validationErrors);
             return;
         }
 
@@ -3487,7 +3500,7 @@ async function doSave() {
         }
     } catch (error) {
         console.error('❌ 저장 중 오류:', error);
-        alert('저장 중 오류가 발생했습니다: ' + error.message);
+        showValidationErrors(['저장 중 오류가 발생했습니다: ' + error.message]);
     }
 }
 
@@ -3524,4 +3537,43 @@ function handlePostSave(fallbackUrl) {
     else {
         location.href = fallbackUrl;
     }
+}
+
+function ensureValidationBox() {
+    var box = document.getElementById('validationErrors');
+    if (!box) {
+        box = document.createElement('div');
+        box.id = 'validationErrors';
+        box.className = 'validation-errors';
+        box.style.color = '#c62828';
+        box.style.margin = '12px 0';
+        box.style.display = 'none';
+        var form = document.querySelector('form') || document.body;
+        form.insertBefore(box, form.firstChild);
+    }
+    return box;
+}
+
+function clearValidationErrors() {
+    var box = document.getElementById('validationErrors');
+    if (box) {
+        box.style.display = 'none';
+        box.innerHTML = '';
+    }
+}
+
+function showValidationErrors(errors) {
+    var box = ensureValidationBox();
+    var listHtml = '<ul style=\"padding-left:16px; margin:4px 0;\">' + errors.map(function (msg) {
+        return '<li>' + msg + '</li>';
+    }).join('') + '</ul>';
+    box.innerHTML = '<strong>입력 오류가 있습니다.</strong>' + listHtml;
+    box.style.display = 'block';
+
+    var firstInvalid = document.querySelector('[aria-invalid=\"true\"], input:invalid, textarea:invalid, select:invalid');
+    if (firstInvalid && typeof firstInvalid.focus === 'function') {
+        firstInvalid.focus();
+    }
+    var top = box.getBoundingClientRect().top + window.pageYOffset - 20;
+    window.scrollTo({top: top, behavior: 'smooth'});
 }

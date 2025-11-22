@@ -31,6 +31,9 @@ public class IndexController {
         Map<String, Object> params = new HashMap<>();
         params.put("sidoCd", sidoCd);
         params.put("sigunguCd", sigunguCd);
+        // 목록 쿼리와 동일한 파라미터 키를 함께 전달하여 공통 WHERE 블록을 재사용
+        params.put("sido", sidoCd);
+        params.put("sigungu", sigunguCd);
         Map<String, Object> status = indexService.getParkingStatusDashboard(params);
         return ResponseEntity.ok(status);
     }

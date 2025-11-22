@@ -29,22 +29,15 @@
     <!-- [Dashboard] 주차장 현황 -->
     <select id="getParkingStatusDashboard" parameterType="map" resultType="map">
         SELECT
-            COUNT(*) FILTER (WHERE bppi.prgs_sts_cd = '00') AS "draft",
-            COUNT(*) FILTER (WHERE bppi.prgs_sts_cd = '10') AS "inSurvey",
-            COUNT(*) FILTER (WHERE bppi.prgs_sts_cd = '20') AS "pending",
-            COUNT(*) FILTER (WHERE bppi.prgs_sts_cd = '30') AS "approved",
-            COUNT(*) FILTER (WHERE bppi.prgs_sts_cd = '99') AS "rejected"
-        FROM cpk.tb_biz_per_prklot_info bppi
-        INNER JOIN cpk.tb_prk_def_plce_info pdpi ON bppi.prk_plce_manage_no = pdpi.prk_plce_manage_no AND bppi.prk_plce_info_sn = pdpi.prk_plce_info_sn
-        LEFT JOIN cpk.tb_co_ldong tcl ON pdpi.ldong_cd = tcl.ldong_cd
-        <where>
-            <if test="sidoCd != null and sidoCd != ''">
-                AND tcl.sido_cd = #{sidoCd}
-            </if>
-            <if test="sigunguCd != null and sigunguCd != ''">
-                AND tcl.sigungu_cd = #{sigunguCd}
-            </if>
-        </where>
+            COUNT(*) FILTER (WHERE tbppi.prgs_sts_cd = '00') AS "draft",
+            COUNT(*) FILTER (WHERE tbppi.prgs_sts_cd = '10') AS "inSurvey",
+            COUNT(*) FILTER (WHERE tbppi.prgs_sts_cd = '20') AS "pending",
+            COUNT(*) FILTER (WHERE tbppi.prgs_sts_cd = '30') AS "approved",
+            COUNT(*) FILTER (WHERE tbppi.prgs_sts_cd = '99') AS "rejected"
+        FROM cpk.tb_biz_per_prklot_info tbppi
+        INNER JOIN cpk.tb_prk_def_plce_info tpdpi ON tbppi.prk_plce_manage_no = tpdpi.prk_plce_manage_no AND tbppi.prk_plce_info_sn = tpdpi.prk_plce_info_sn
+        LEFT JOIN cpk.tb_co_ldong tcl ON tpdpi.ldong_cd = tcl.ldong_cd
+        <include refid="com.psim.web.prk.mapper.PrkDefPlceInfoMapper.parkingCommonWhere"/>
     </select>
 
     <!-- [Dashboard] 주차장 이용실태 현황 -->

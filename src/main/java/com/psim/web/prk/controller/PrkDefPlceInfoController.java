@@ -69,6 +69,41 @@ public class PrkDefPlceInfoController {
         }
     }
 
+    /**
+     * 디버그용: 입력 파라미터를 ParkingDetailVO로 바인딩 후 XML로 반환 (DB 저장 없음)
+     */
+    @PostMapping(value = "/debug/xml", produces = MediaType.APPLICATION_XML_VALUE)
+    @ResponseBody
+    public String debugXml(@ModelAttribute ParkingDetailVO vo) {
+        try {
+            StringBuilder xmlBuilder = new StringBuilder();
+            xmlBuilder.append("<ParkingDetail>");
+            appendTag(xmlBuilder, "prkPlceManageNo", vo.getPrkPlceManageNo());
+            appendTag(xmlBuilder, "prkPlceInfoSn", vo.getPrkPlceInfoSn());
+            appendTag(xmlBuilder, "prkPlceType", vo.getPrkPlceType());
+            appendTag(xmlBuilder, "prkplceNm", vo.getPrkplceNm());
+            appendTag(xmlBuilder, "dtadd", vo.getDtadd());
+            appendTag(xmlBuilder, "prkPlceLat", vo.getPrkPlceLat());
+            appendTag(xmlBuilder, "prkPlceLon", vo.getPrkPlceLon());
+            appendTag(xmlBuilder, "totPrkCnt", vo.getTotPrkCnt());
+            xmlBuilder.append("</ParkingDetail>");
+            String xml = xmlBuilder.toString();
+            log.debug("🧪 Debug XML 생성 완료: {}", xml);
+            return xml;
+        } catch (Exception e) {
+            log.error("❌ XML 생성 실패", e);
+            throw new RuntimeException("XML 생성 실패: " + e.getMessage(), e);
+        }
+    }
+
+    private void appendTag(StringBuilder sb, String tag, Object value) {
+        sb.append("<").append(tag).append(">");
+        if (value != null) {
+            sb.append(value);
+        }
+        sb.append("</").append(tag).append(">");
+    }
+
     // AJAX로 주차장 목록 데이터 조회 (페이징 제거)
     @GetMapping("/parking-data")
     @ResponseBody
@@ -215,6 +250,7 @@ public class PrkDefPlceInfoController {
                 }
 
                 parkingData.setPrkPlceManageNo(newManageNo);
+                parkingData.setPrkPlceType(prkPlceType);
                 log.info("✅ 생성된 주차장관리번호: {}", newManageNo);
 
                 String bizPerPrkMngNo = "BP" + System.currentTimeMillis();
@@ -411,6 +447,7 @@ public class PrkDefPlceInfoController {
                 }
 
                 parkingData.setPrkPlceManageNo(newManageNo);
+                parkingData.setPrkPlceType(prkPlceType);
                 log.info("✅ 생성된 주차장관리번호: {}", newManageNo);
 
                 String bizPerPrkMngNo = "BP" + System.currentTimeMillis();
@@ -632,6 +669,7 @@ public class PrkDefPlceInfoController {
                 }
 
                 parkingData.setPrkPlceManageNo(newManageNo);
+                parkingData.setPrkPlceType(prkPlceType);
                 log.info("✅ 생성된 주차장관리번호: {}", newManageNo);
 
                 // 3. 사업별주차관리번호

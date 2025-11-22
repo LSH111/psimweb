@@ -2077,10 +2077,11 @@ async function doSave() {
             return; // 저장 프로세스를 중단합니다.
         }
 
+        clearValidationErrors();
         const validationErrors = validateRequiredFields();
         if (validationErrors.length > 0) {
-            alert('다음 항목을 입력해주세요:\n\n' + validationErrors.join('\n'));
             console.warn('❌ 유효성 검사 실패:', validationErrors);
+            showValidationErrors(validationErrors);
             return;
         }
         console.log('✅ 유효성 검사 통과');
@@ -2152,6 +2153,18 @@ async function doSave() {
         if (!response.ok) {
             const errorText = await response.text();
             console.error('❌ 서버 에러 응답:', {status: response.status, body: errorText});
+            try {
+                const parsed = JSON.parse(errorText);
+                if (parsed && parsed.message) {
+                    showValidationErrors([parsed.message]);
+                } else if (parsed && parsed.errors) {
+                    showValidationErrors(parsed.errors);
+                } else {
+                    showValidationErrors(['요청이 거부되었습니다. 잠시 후 다시 시도해주세요.']);
+                }
+            } catch (e) {
+                showValidationErrors(['요청이 거부되었습니다. 잠시 후 다시 시도해주세요.']);
+            }
             throw new Error(`HTTP ${response.status}: ${response.statusText}\n${errorText}`);
         }
 
@@ -2174,11 +2187,50 @@ async function doSave() {
     } catch (error) {
         console.error('💥 저장 프로세스 중 예외 발생:', error);
         if (error.name === 'AbortError') {
-            alert('⏰ 서버 응답 시간이 초과되었습니다. 네트워크 연결을 확인하고 다시 시도해주세요.');
+            showValidationErrors(['⏰ 서버 응답 시간이 초과되었습니다. 네트워크 연결을 확인하고 다시 시도해주세요.']);
         } else {
-            alert('저장 중 오류가 발생했습니다. 개발자 콘솔을 확인해주세요.');
+            showValidationErrors(['저장 중 오류가 발생했습니다. 개발자 콘솔을 확인해주세요.']);
         }
     }
+}
+
+function ensureValidationBox() {
+    var box = document.getElementById('validationErrors');
+    if (!box) {
+        box = document.createElement('div');
+        box.id = 'validationErrors';
+        box.className = 'validation-errors';
+        box.style.color = '#c62828';
+        box.style.margin = '12px 0';
+        box.style.display = 'none';
+        var form = document.querySelector('form') || document.body;
+        form.insertBefore(box, form.firstChild);
+    }
+    return box;
+}
+
+function clearValidationErrors() {
+    var box = document.getElementById('validationErrors');
+    if (box) {
+        box.style.display = 'none';
+        box.innerHTML = '';
+    }
+}
+
+function showValidationErrors(errors) {
+    var box = ensureValidationBox();
+    var listHtml = '<ul style=\"padding-left:16px; margin:4px 0;\">' + errors.map(function (msg) {
+        return '<li>' + msg + '</li>';
+    }).join('') + '</ul>';
+    box.innerHTML = '<strong>입력 오류가 있습니다.</strong>' + listHtml;
+    box.style.display = 'block';
+
+    var firstInvalid = document.querySelector('[aria-invalid=\"true\"], input:invalid, textarea:invalid, select:invalid');
+    if (firstInvalid && typeof firstInvalid.focus === 'function') {
+        firstInvalid.focus();
+    }
+    var top = box.getBoundingClientRect().top + window.pageYOffset - 20;
+    window.scrollTo({top: top, behavior: 'smooth'});
 }
 
 function buildPayload() {
@@ -2187,6 +2239,7 @@ function buildPayload() {
         name: f_name?.value,
         status: f_status?.value,
         type: '부설',
+        ownerCode: document.querySelector('input[name="ownCd"]:checked')?.value || $('#own_cd')?.value || '',
         sido: f_sido?.value,
         sigungu: f_sigungu?.value,
         emd: f_emd?.value,
@@ -2217,6 +2270,7 @@ function mapPayloadToServerFormat(payload) {
         dtadd: payload.addrJibun || payload.addrRoad,
         prkPlceLat: payload.lat,
         prkPlceLon: payload.lng,
+        prkplceSe: payload.ownerCode || null,
 
         // 🔥 우편번호 추가
         zip: document.getElementById('f_zip')?.value || null,
@@ -2292,6 +2346,11 @@ function validateRequiredFields() {
     const ownSelected = $$('input[name="operationEntity"]:checked').length > 0;
     if (!ownSelected) {
         errors.push('• 운영주체를 선택해주세요');
+    }
+
+    const ownerCode = document.querySelector('input[name="ownCd"]:checked')?.value || $('#own_cd')?.value;
+    if (!ownerCode) {
+        errors.push('• 관리주체(소유주체)를 선택해주세요');
     }
 
     const mgrName = $('#f_management_agency')?.value?.trim();
