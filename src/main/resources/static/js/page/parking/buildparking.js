@@ -2306,29 +2306,7 @@ async function doSave() {
 
 
         if (result.success) {
-            alert(isNewRecord ? '신규 등록되었습니다.' : '수정되었습니다.');
-            clearUploadProgressUI();
-
-            if (closeParentTabAndRefreshList()) {
-                return;
-            }
-
-            if (window.opener && !window.opener.closed) {
-                try {
-                    if (typeof window.opener.reloadList === 'function') {
-                        window.opener.reloadList();
-                    } else {
-                        window.opener.location.reload();
-                    }
-                    window.opener.focus();
-                    window.close();
-                    return;
-                } catch (e) {
-                    console.warn('부모 창 제어 실패:', e);
-                }
-            }
-
-            location.href = '/prk/parkinglist';
+            handlePostSave(isNewRecord, '/prk/parkinglist');
         } else {
             alert('❌ 저장 실패: ' + (result.message || '알 수 없는 오류'));
         }
@@ -2620,35 +2598,36 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 /**
  * 🔥 저장 성공 후 페이지 처리 공통 함수
+ * @param {boolean} isNew - 신규 여부
  * @param {string} fallbackUrl - 부모 창이 없을 때 이동할 목록 페이지 URL
  */
-function handlePostSave(fallbackUrl) {
-    // 1. 알림 표시
-    alert('저장이 완료되었습니다.');
+function handlePostSave(isNew, fallbackUrl) {
+    alert(isNew ? '신규 등록되었습니다.' : '수정되었습니다.');
+    clearUploadProgressUI();
 
-    // 2. 부모 창(Opener)이 존재하는지 확인 (새 탭/팝업으로 열린 경우)
-    if (window.opener && !window.opener.closed) {
-        try {
-            // 부모 창에 reloadList 함수가 있으면 실행
-            if (typeof window.opener.reloadList === 'function') {
-                window.opener.reloadList();
-            } else {
-                // 함수가 없으면 단순히 부모 창 새로고침
-                window.opener.location.reload();
-            }
-
-            // 부모 창으로 포커스 이동 (브라우저 정책에 따라 제한될 수 있음)
-            window.opener.focus();
-
-        } catch (e) {
-            console.warn('부모 창 제어 중 오류 (Cross-Origin 등):', e);
-        } finally {
-            // 현재 창 닫기
-            window.close();
+    if (isNew) {
+        if (window.parent && typeof window.parent.closeNewParkingTabAndGoList === 'function') {
+            window.parent.closeNewParkingTabAndGoList();
+            return;
         }
-    }
-    // 3. 부모 창이 없는 경우 (그냥 페이지 이동으로 들어온 경우)
-    else {
-        location.href = fallbackUrl;
+        if (window.opener && !window.opener.closed) {
+            try {
+                if (typeof window.opener.closeNewParkingTabAndGoList === 'function') {
+                    window.opener.closeNewParkingTabAndGoList();
+                } else if (typeof window.opener.reloadList === 'function') {
+                    window.opener.reloadList();
+                } else {
+                    window.opener.location.reload();
+                }
+                window.opener.focus();
+                window.close();
+                return;
+            } catch (e) {
+                console.warn('부모 창 제어 중 오류:', e);
+            }
+        }
+        if (fallbackUrl) {
+            location.href = fallbackUrl;
+        }
     }
 }

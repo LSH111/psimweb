@@ -1177,6 +1177,7 @@
 
     <!-- 🔥 [STEP 2/4] 사업별 주차장 정보 INSERT -->
     <insert id="insertBizPerPrklotInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
+        <!-- cpk.tb_biz_per_prklot_info 컬럼 길이 참고: prk_biz_mng_no varchar(14), biz_per_prk_mng_no varchar(18), prk_plce_manage_no varchar(18) -->
         INSERT INTO cpk.tb_biz_per_prklot_info (prk_biz_mng_no,
                                                 biz_per_prk_mng_no,
                                                 prk_plce_manage_no,
@@ -1188,8 +1189,8 @@
                                                 updt_dt,
                                                 updusr_id,
                                                 updusr_ip_addr)
-        VALUES (#{prkBizMngNo},
-                #{bizPerPrkMngNo},
+        VALUES (SUBSTRING(#{prkBizMngNo}, 1, 14),
+                SUBSTRING(#{bizPerPrkMngNo}, 1, 18),
                 #{prkPlceManageNo},
                 #{prkPlceInfoSn},
                 '10',

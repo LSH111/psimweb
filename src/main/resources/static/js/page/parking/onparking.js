@@ -3197,7 +3197,7 @@ async function doSave() {
         }
         const result = await response.json();
         if (result.success) {
-            handlePostSave(isNewRecord ? '/prk/parkinglist' : '/prk/parkinglist');
+            handlePostSave(isNewRecord, '/prk/parkinglist');
         } else {
             console.error('❌ 저장 실패:', result.message);
             alert('저장 실패: ' + result.message);
@@ -3599,38 +3599,33 @@ function closeParentTabAndRefreshList() {
     return false;
 }
 
-function handlePostSave(fallbackUrl) {
-    // 1. 알림 표시
+function handlePostSave(isNew, fallbackUrl) {
     alert('저장이 완료되었습니다.');
 
-    if (closeParentTabAndRefreshList()) {
-        return;
-    }
-
-    // 2. 부모 창(Opener)이 존재하는지 확인 (새 탭/팝업으로 열린 경우)
-    if (window.opener && !window.opener.closed) {
-        try {
-            // 부모 창에 reloadList 함수가 있으면 실행
-            if (typeof window.opener.reloadList === 'function') {
-                window.opener.reloadList();
-            } else {
-                // 함수가 없으면 단순히 부모 창 새로고침
-                window.opener.location.reload();
-            }
-
-            // 부모 창으로 포커스 이동 (브라우저 정책에 따라 제한될 수 있음)
-            window.opener.focus();
-
-        } catch (e) {
-            console.warn('부모 창 제어 중 오류 (Cross-Origin 등):', e);
-        } finally {
-            // 현재 창 닫기
-            window.close();
+    if (isNew) {
+        if (window.parent && typeof window.parent.closeNewParkingTabAndGoList === 'function') {
+            window.parent.closeNewParkingTabAndGoList();
+            return;
         }
-    }
-    // 3. 부모 창이 없는 경우 (그냥 페이지 이동으로 들어온 경우)
-    else {
-        location.href = fallbackUrl;
+        if (window.opener && !window.opener.closed) {
+            try {
+                if (typeof window.opener.closeNewParkingTabAndGoList === 'function') {
+                    window.opener.closeNewParkingTabAndGoList();
+                } else if (typeof window.opener.reloadList === 'function') {
+                    window.opener.reloadList();
+                } else {
+                    window.opener.location.reload();
+                }
+                window.opener.focus();
+                window.close();
+                return;
+            } catch (e) {
+                console.warn('부모 창 제어 중 오류:', e);
+            }
+        }
+        if (fallbackUrl) {
+            location.href = fallbackUrl;
+        }
     }
 }
 

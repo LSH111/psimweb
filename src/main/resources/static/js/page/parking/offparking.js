@@ -3534,7 +3534,7 @@ async function doSave() {
         console.log('📦 응답 데이터:', result);
 
         if (result.success) {
-            handlePostSave('/prk/parkinglist');
+            handlePostSave(isNewRecord, '/prk/parkinglist');
         } else {
             alert('❌ 저장 실패: ' + (result.message || '알 수 없는 오류'));
         }
@@ -3544,67 +3544,33 @@ async function doSave() {
     }
 }
 
-/**
- * 🔥 저장 성공 후 페이지 처리 공통 함수
- * @param {string} fallbackUrl - 부모 창이 없을 때 이동할 목록 페이지 URL
- */
-function closeParentTabAndRefreshList() {
-    if (!window.parent || window.parent === window) return false;
-    try {
-        if (typeof window.parent.reloadList === 'function') {
-            window.parent.reloadList();
-        }
-
-        const iframeEl = window.frameElement;
-        const panelEl = iframeEl ? iframeEl.closest('.tab-panel') : null;
-        if (panelEl && window.parent.Tabs && typeof window.parent.Tabs.closeTop === 'function') {
-            const tabBtn = window.parent.document.querySelector(`.tab-btn[aria-controls="${panelEl.id}"]`);
-            if (tabBtn) {
-                window.parent.Tabs.closeTop(tabBtn);
-                if (window.parent.Tabs.activateTop) {
-                    window.parent.Tabs.activateTop('tabList');
-                }
-                return true;
-            }
-        }
-    } catch (e) {
-        console.warn('부모 탭 제어 실패:', e);
-    }
-    return false;
-}
-
-function handlePostSave(fallbackUrl) {
-    // 1. 알림 표시
+function handlePostSave(isNew, fallbackUrl) {
     alert('저장이 완료되었습니다.');
 
-    if (closeParentTabAndRefreshList()) {
-        return;
-    }
-
-    // 2. 부모 창(Opener)이 존재하는지 확인 (새 탭/팝업으로 열린 경우)
-    if (window.opener && !window.opener.closed) {
-        try {
-            // 부모 창에 reloadList 함수가 있으면 실행
-            if (typeof window.opener.reloadList === 'function') {
-                window.opener.reloadList();
-            } else {
-                // 함수가 없으면 단순히 부모 창 새로고침
-                window.opener.location.reload();
-            }
-
-            // 부모 창으로 포커스 이동 (브라우저 정책에 따라 제한될 수 있음)
-            window.opener.focus();
-
-        } catch (e) {
-            console.warn('부모 창 제어 중 오류 (Cross-Origin 등):', e);
-        } finally {
-            // 현재 창 닫기
-            window.close();
+    if (isNew) {
+        if (window.parent && typeof window.parent.closeNewParkingTabAndGoList === 'function') {
+            window.parent.closeNewParkingTabAndGoList();
+            return;
         }
-    }
-    // 3. 부모 창이 없는 경우 (그냥 페이지 이동으로 들어온 경우)
-    else {
-        location.href = fallbackUrl;
+        if (window.opener && !window.opener.closed) {
+            try {
+                if (typeof window.opener.closeNewParkingTabAndGoList === 'function') {
+                    window.opener.closeNewParkingTabAndGoList();
+                } else if (typeof window.opener.reloadList === 'function') {
+                    window.opener.reloadList();
+                } else {
+                    window.opener.location.reload();
+                }
+                window.opener.focus();
+                window.close();
+                return;
+            } catch (e) {
+                console.warn('부모 창 제어 중 오류:', e);
+            }
+        }
+        if (fallbackUrl) {
+            location.href = fallbackUrl;
+        }
     }
 }
 

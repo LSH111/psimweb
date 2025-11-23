@@ -185,6 +185,45 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
         return normalized;
     }
 
+    private String truncate(String value, int maxLength) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        if (trimmed.length() <= maxLength) {
+            return trimmed;
+        }
+        String result = trimmed.substring(0, maxLength);
+        log.warn("⚠️ 길이 제한으로 값이 잘립니다. max={}, 원본='{}', 결과='{}'", maxLength, trimmed, result);
+        return result;
+    }
+
+    private String buildBizPerPrkMngNo(ParkingDetailVO vo) {
+        String candidate = vo.getBizPerPrkMngNo();
+        if (candidate == null || candidate.trim().isEmpty()) {
+            candidate = "BP" + System.currentTimeMillis();
+        }
+        return truncate(candidate, 18);
+    }
+
+    private void applyBizPerIdentifiers(ParkingDetailVO vo) {
+        String safePrkBizMngNo = truncate(vo.getPrkBizMngNo(), 14);
+        if (safePrkBizMngNo != null && !safePrkBizMngNo.equals(vo.getPrkBizMngNo())) {
+            log.warn("⚠️ prkBizMngNo가 길이 제한(14)을 초과하여 잘립니다. before='{}', after='{}'", vo.getPrkBizMngNo(), safePrkBizMngNo);
+        }
+        vo.setPrkBizMngNo(safePrkBizMngNo);
+
+        // 관리번호는 22자리 전체 문자열을 그대로 사용 (DB 컬럼 길이 확장 전제)
+        String manageNo = vo.getPrkPlceManageNo();
+        vo.setPrkPlceManageNo(manageNo);
+
+        String safeBizPerNo = buildBizPerPrkMngNo(vo);
+        if (!safeBizPerNo.equals(vo.getBizPerPrkMngNo())) {
+            log.warn("⚠️ bizPerPrkMngNo가 길이 제한(18)을 초과하거나 비어 있어 변경합니다. before='{}', after='{}'", vo.getBizPerPrkMngNo(), safeBizPerNo);
+        }
+        vo.setBizPerPrkMngNo(safeBizPerNo);
+    }
+
     private String normalizeDigits(String value) {
         if (value == null) {
             return null;
@@ -247,6 +286,7 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
     public void insertOnstreetParking(ParkingDetailVO vo) {
         try {
             ensureOwnCd(vo);
+            applyBizPerIdentifiers(vo);
             // 🔥 STEP 0: prkPlceInfoSn 생성
             log.info("🔵 [STEP 0/4] prkPlceInfoSn 생성 시작");
             Integer newSn = prkDefPlceInfoMapper.generateParkingInfoSn(vo.getPrkPlceManageNo());
@@ -341,6 +381,7 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
     public void insertOffstreetParking(ParkingDetailVO vo) {
         try {
             ensureOwnCd(vo);
+            applyBizPerIdentifiers(vo);
             // 🔥 STEP 0: prkPlceInfoSn 생성
             log.info("🔵 [노외주차장 STEP 0/4] prkPlceInfoSn 생성 시작");
             Integer newSn = prkDefPlceInfoMapper.generateParkingInfoSn(vo.getPrkPlceManageNo());
@@ -399,6 +440,7 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
     public void insertBuildParking(ParkingDetailVO vo) {
         try {
             ensureOwnCd(vo);
+            applyBizPerIdentifiers(vo);
             log.info("🆕 부설주차장 INSERT 시작 - 관리번호: {}", vo.getPrkPlceManageNo());
 
             // 🔵 STEP 0: prkPlceInfoSn 생성

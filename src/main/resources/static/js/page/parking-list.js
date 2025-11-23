@@ -20,6 +20,58 @@ window.reloadList = function () {
     location.reload();
 };
 
+// 목록 탭 ID 상수 (탭 버튼 id 기준)
+const LIST_TAB_ID = 'tabList';
+
+function activateListTab() {
+    if (window.Tabs && typeof window.Tabs.activateTop === 'function') {
+        window.Tabs.activateTop(LIST_TAB_ID);
+        return;
+    }
+    const listBtn = document.getElementById(LIST_TAB_ID);
+    if (listBtn) {
+        listBtn.click();
+    }
+}
+
+/**
+ * 신규 추가 탭을 닫고 목록 탭으로 이동 + 목록 재조회
+ * - iframe 내부(on/off/build)에서 window.parent.closeNewParkingTabAndGoList() 호출
+ */
+window.closeNewParkingTabAndGoList = function () {
+    try {
+        const host = getTabHost ? getTabHost() : {tabBar: document.querySelector('.tabs')};
+        const tabBar = host.tabBar;
+
+        const activeBtn = tabBar ? tabBar.querySelector('.tab-btn.active') : null;
+        if (activeBtn && activeBtn.id && activeBtn.id.indexOf('tab-new-') === 0) {
+            window.Tabs && typeof window.Tabs.closeTop === 'function' && window.Tabs.closeTop(activeBtn);
+        } else if (tabBar) {
+            // 혹시 활성 탭이 아니어도 신규 탭이 남아 있으면 닫는다.
+            const newBtn = tabBar.querySelector('.tab-btn[id^="tab-new-"]');
+            if (newBtn && window.Tabs && typeof window.Tabs.closeTop === 'function') {
+                window.Tabs.closeTop(newBtn);
+            }
+        }
+
+        activateListTab();
+
+        if (typeof window.reloadList === 'function') {
+            window.reloadList();
+        } else if (typeof window.loadParkingList === 'function') {
+            window.loadParkingList();
+        } else {
+            window.location.reload();
+        }
+        console.log('✅ 신규 탭 닫기 + 목록 갱신 완료');
+    } catch (e) {
+        console.warn('⚠️ 신규 탭 닫기/목록 갱신 중 오류:', e);
+        if (typeof window.reloadList === 'function') {
+            window.reloadList();
+        }
+    }
+};
+
 
 // 공통 코드 관련 함수들
 const CodeUtils = {
