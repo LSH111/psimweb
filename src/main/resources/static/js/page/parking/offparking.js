@@ -112,6 +112,35 @@ function applyPhoneFormat(input) {
     });
 }
 
+// 🔥 관리주체(소유주체) 코드 정규화/선택 헬퍼
+function normalizeOwnCdValue(raw) {
+    if (raw === undefined || raw === null) return '';
+    const value = String(raw).trim();
+    if (!value) return '';
+    if (value.includes('공영')) return '1';
+    if (value.includes('민영') || value.includes('민간')) return '2';
+    if (value.includes('기타')) return '9';
+    const stripped = value.replace(/^0+/, '');
+    return ['1', '2', '9'].includes(stripped) ? stripped : '';
+}
+
+function applyOwnCdSelection(rawValue) {
+    const normalized = normalizeOwnCdValue(rawValue);
+    if (!normalized) return;
+    const radio = document.querySelector(`input[name="ownCd"][value="${normalized}"]`);
+    if (radio) {
+        radio.checked = true;
+    }
+    const hiddenOwn = document.getElementById('own_cd');
+    if (hiddenOwn) {
+        hiddenOwn.value = normalized;
+    }
+}
+
+function getSelectedOwnCd() {
+    return document.querySelector('input[name="ownCd"]:checked')?.value || '';
+}
+
 // ========== 🔥 행정구역 코드 로더 추가 ==========
 const RegionCodeLoader = {
     // 진행상태 로드
@@ -2256,6 +2285,7 @@ async function populateFormWithData(data) {
     if (f_addrR) f_addrR.value = data.dtadd || '';
     if (f_lat) f_lat.value = data.prkPlceLat || '';
     if (f_lng) f_lng.value = data.prkPlceLon || '';
+    applyOwnCdSelection(data.ownCd || data.prkplceSe);
     // 🔥 우편번호 바인딩
     const f_zip = document.getElementById('f_zip');
     if (f_zip && data.zip) {
@@ -2768,7 +2798,8 @@ function buildPayload() {
         status: f_status?.value,
         type: '노외',
         operationType: selectedOp,
-        ownerCode: $('input[name="ownCd"]:checked')?.value || document.querySelector('input[name="ownCd"]:checked')?.value || $('#own_cd')?.value || '',
+        // 변경: 관리주체(소유주체) 코드 포함
+        ownCd: getSelectedOwnCd(),
         ldongCd: generateLdongCd(),
         times: {
             day: isDayChecked,
@@ -2803,7 +2834,7 @@ function buildPayload() {
         sigunguCd: payload.sigunguCd,
         emdCd: payload.emdCd
     });
-    console.log('[buildPayload] ownerCode =', payload.ownerCode);
+    console.log('[buildPayload] ownCd =', payload.ownCd);
 
     return payload;
 }
@@ -2835,10 +2866,17 @@ function validateRequiredFields() {
     }
 
     // 관리주체(소유주체) 검증
-    const ownerCode = document.querySelector('input[name=\"ownCd\"]:checked')?.value || $('#own_cd')?.value;
+    // 변경: 관리주체(소유주체) 필수 검증
+    const ownerCode = getSelectedOwnCd();
     console.log('   - 관리주체(소유주체):', ownerCode || '선택 안됨');
     if (!ownerCode) {
         errors.push('• 관리주체(소유주체)를 선택해주세요');
+    }
+
+    // 행정구역 코드
+    const ldongCd = generateLdongCd();
+    if (!ldongCd) {
+        errors.push('• 행정구역(시군구/읍면동)을 선택해주세요');
     }
 
     // 시간대 검증
@@ -2867,7 +2905,8 @@ function mapPayloadToServerFormat(payload) {
         prkplceNm: payload.name,
         prgsStsCd: payload.status,
         prkPlceType: '2', // 노외주차장 구분 코드
-        prkplceSe: payload.ownerCode,
+        // 변경: 관리주체(소유주체) 코드 매핑
+        prkplceSe: payload.ownCd,
 
         sidoCd: payload.sidoCd,
         sigunguCd: payload.sigunguCd,
@@ -3430,8 +3469,13 @@ async function doSave() {
         const serverData = mapPayloadToServerFormat(payload);
         console.log('5️⃣ 서버 데이터 매핑 완료:', serverData);
 
+        if (isNewRecord) {
+            delete serverData.prkPlceManageNo;
+        }
+
         // 🔥 FormData 생성
         const formData = new FormData();
+        formData.append('ownCd', payload.ownCd || '');
 
         // JSON 데이터를 Blob으로 추가
         formData.append('parkingData', new Blob([JSON.stringify(serverData)], {
@@ -3490,11 +3534,7 @@ async function doSave() {
         console.log('📦 응답 데이터:', result);
 
         if (result.success) {
-            alert('저장되었습니다.');
-
-            setTimeout(() => {
-                top.location.href = '/prk/parkinglist';
-            }, 1500);
+            handlePostSave('/prk/parkinglist');
         } else {
             alert('❌ 저장 실패: ' + (result.message || '알 수 없는 오류'));
         }
@@ -3508,9 +3548,38 @@ async function doSave() {
  * 🔥 저장 성공 후 페이지 처리 공통 함수
  * @param {string} fallbackUrl - 부모 창이 없을 때 이동할 목록 페이지 URL
  */
+function closeParentTabAndRefreshList() {
+    if (!window.parent || window.parent === window) return false;
+    try {
+        if (typeof window.parent.reloadList === 'function') {
+            window.parent.reloadList();
+        }
+
+        const iframeEl = window.frameElement;
+        const panelEl = iframeEl ? iframeEl.closest('.tab-panel') : null;
+        if (panelEl && window.parent.Tabs && typeof window.parent.Tabs.closeTop === 'function') {
+            const tabBtn = window.parent.document.querySelector(`.tab-btn[aria-controls="${panelEl.id}"]`);
+            if (tabBtn) {
+                window.parent.Tabs.closeTop(tabBtn);
+                if (window.parent.Tabs.activateTop) {
+                    window.parent.Tabs.activateTop('tabList');
+                }
+                return true;
+            }
+        }
+    } catch (e) {
+        console.warn('부모 탭 제어 실패:', e);
+    }
+    return false;
+}
+
 function handlePostSave(fallbackUrl) {
     // 1. 알림 표시
     alert('저장이 완료되었습니다.');
+
+    if (closeParentTabAndRefreshList()) {
+        return;
+    }
 
     // 2. 부모 창(Opener)이 존재하는지 확인 (새 탭/팝업으로 열린 경우)
     if (window.opener && !window.opener.closed) {

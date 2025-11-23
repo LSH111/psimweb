@@ -1391,7 +1391,8 @@ function buildPayload() {
         name: f_name?.value,
         status: f_status?.value,
         type: '노상',
-        ownerCode: document.querySelector('input[name="ownCd"]:checked')?.value || $('#own_cd')?.value || '',
+        // 변경: 관리주체(소유주체) 코드 포함
+        ownCd: getSelectedOwnCd(),
 
         // 🔥 행정구역 정보 추가 (SELECT의 value 그대로)
         sido: f_sido?.value || null,
@@ -2228,6 +2229,9 @@ async function bindDataToForm(data) {
     if (f_lat) f_lat.value = data.prkPlceLat || '';
     if (f_lng) f_lng.value = data.prkPlceLon || '';
 
+    // 관리주체(소유주체)
+    applyOwnCdSelection(data.ownCd || data.prkplceSe);
+
     // 주차면수
     if (totalInput) totalInput.value = data.totPrkCnt || 0;
     if (disInput) disInput.value = data.disabPrkCnt || 0;
@@ -2879,9 +2883,10 @@ function validateRequiredFields() {
     }
 
     // 관리주체(소유주체)
-    var ownerCode = document.querySelector('input[name="ownCd"]:checked')?.value || $('#own_cd')?.value;
+    // 변경: 관리주체(소유주체) 필수 검증
+    const ownerCode = getSelectedOwnCd();
     if (!ownerCode) {
-        errors.push('• 관리주체(소유주체)를 선택해주세요.');
+        errors.push('• 관리주체(소유주체)를 선택해주세요');
     }
 
     // 민간위탁인 경우 업체명 확인
@@ -3143,6 +3148,7 @@ async function doSave() {
 
         // 7. FormData 생성
         const formData = new FormData();
+        formData.append('ownCd', payload.ownCd || '');
         formData.append('parkingData', new Blob([JSON.stringify(serverData)], {
             type: 'application/json'
         }));
@@ -3251,6 +3257,35 @@ function getDayNightCode(isDay, isNight) {
 function joinCodes(arr) {
     if (!arr || arr.length === 0) return null;
     return arr.join(',');
+}
+
+// 🔥 관리주체(소유주체) 코드 정규화/선택 헬퍼
+function normalizeOwnCdValue(raw) {
+    if (raw === undefined || raw === null) return '';
+    const value = String(raw).trim();
+    if (!value) return '';
+    if (value.includes('공영')) return '1';
+    if (value.includes('민영') || value.includes('민간')) return '2';
+    if (value.includes('기타')) return '9';
+    const stripped = value.replace(/^0+/, '');
+    return ['1', '2', '9'].includes(stripped) ? stripped : '';
+}
+
+function applyOwnCdSelection(rawValue) {
+    const normalized = normalizeOwnCdValue(rawValue);
+    if (!normalized) return;
+    const radio = document.querySelector(`input[name="ownCd"][value="${normalized}"]`);
+    if (radio) {
+        radio.checked = true;
+    }
+    const hiddenOwn = document.getElementById('own_cd');
+    if (hiddenOwn) {
+        hiddenOwn.value = normalized;
+    }
+}
+
+function getSelectedOwnCd() {
+    return document.querySelector('input[name="ownCd"]:checked')?.value || '';
 }
 
 // ========== 초기화 ==========
@@ -3391,7 +3426,8 @@ function mapPayloadToServerFormat(payload) {
         prkplceNm: payload.name || '',
         prgsStsCd: payload.status || '10',
         prkPlceType: '1',
-        prkplceSe: payload.ownerCode || null,
+        // 변경: 관리주체(소유주체) 코드 매핑
+        prkplceSe: payload.ownCd || null,
 
         // 🔥 수정: 명시적으로 생성한 10자리 ldongCd 사용
         ldongCd: ldongCd,
@@ -3538,9 +3574,38 @@ function mapPayloadToServerFormat(payload) {
  * 🔥 저장 성공 후 페이지 처리 공통 함수
  * @param {string} fallbackUrl - 부모 창이 없을 때 이동할 목록 페이지 URL
  */
+function closeParentTabAndRefreshList() {
+    if (!window.parent || window.parent === window) return false;
+    try {
+        if (typeof window.parent.reloadList === 'function') {
+            window.parent.reloadList();
+        }
+
+        const iframeEl = window.frameElement;
+        const panelEl = iframeEl ? iframeEl.closest('.tab-panel') : null;
+        if (panelEl && window.parent.Tabs && typeof window.parent.Tabs.closeTop === 'function') {
+            const tabBtn = window.parent.document.querySelector(`.tab-btn[aria-controls="${panelEl.id}"]`);
+            if (tabBtn) {
+                window.parent.Tabs.closeTop(tabBtn);
+                if (window.parent.Tabs.activateTop) {
+                    window.parent.Tabs.activateTop('tabList');
+                }
+                return true;
+            }
+        }
+    } catch (e) {
+        console.warn('부모 탭 제어 실패:', e);
+    }
+    return false;
+}
+
 function handlePostSave(fallbackUrl) {
     // 1. 알림 표시
     alert('저장이 완료되었습니다.');
+
+    if (closeParentTabAndRefreshList()) {
+        return;
+    }
 
     // 2. 부모 창(Opener)이 존재하는지 확인 (새 탭/팝업으로 열린 경우)
     if (window.opener && !window.opener.closed) {

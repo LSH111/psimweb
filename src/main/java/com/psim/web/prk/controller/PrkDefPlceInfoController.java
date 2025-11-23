@@ -177,6 +177,7 @@ public class PrkDefPlceInfoController {
             @RequestPart("parkingData") String parkingDataJson,
             @RequestPart(value = "mainPhoto", required = false) MultipartFile mainPhoto,
             @RequestPart(value = "signPhoto", required = false) MultipartFile signPhoto,
+            @RequestParam(value = "ownCd", required = false) String ownCd,
             HttpServletRequest request,
             HttpSession session) {
 
@@ -208,6 +209,27 @@ public class PrkDefPlceInfoController {
 
             ObjectMapper objectMapper = new ObjectMapper();
             ParkingDetailVO parkingData = objectMapper.readValue(parkingDataJson, ParkingDetailVO.class);
+            String resolvedOwnCd = (ownCd != null && !ownCd.trim().isEmpty())
+                    ? ownCd.trim()
+                    : (parkingData.getOwnCd() != null && !parkingData.getOwnCd().trim().isEmpty())
+                    ? parkingData.getOwnCd().trim()
+                    : (parkingData.getPrkplceSe() != null ? parkingData.getPrkplceSe().trim() : null);
+
+            if (resolvedOwnCd == null || resolvedOwnCd.trim().isEmpty()) {
+                log.error("❌ 관리주체(소유주체) 코드가 없습니다.");
+                response.put("success", false);
+                response.put("message", "관리주체(소유주체) 코드가 필요합니다.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+            parkingData.setOwnCd(resolvedOwnCd.trim());
+            parkingData.setPrkplceSe(resolvedOwnCd.trim());
+            log.info("✅ 파라미터 검증 완료 - ownCd={}", resolvedOwnCd.trim());
+            log.info("✅ 파라미터 검증 완료 - sidoCd={}, sigunguCd={}, emdCd={}, ldongCd={}",
+                    parkingData.getSidoCd(), parkingData.getSigunguCd(), parkingData.getEmdCd(), parkingData.getLdongCd());
+            log.info("✅ 파라미터 검증 완료 - sidoCd={}, sigunguCd={}, emdCd={}, ldongCd={}",
+                    parkingData.getSidoCd(), parkingData.getSigunguCd(), parkingData.getEmdCd(), parkingData.getLdongCd());
+            log.info("✅ 파라미터 검증 완료 - sidoCd={}, sigunguCd={}, emdCd={}, ldongCd={}",
+                    parkingData.getSidoCd(), parkingData.getSigunguCd(), parkingData.getEmdCd(), parkingData.getLdongCd());
 
             String prkPlceManageNo = parkingData.getPrkPlceManageNo();
             boolean isNewRecord = (prkPlceManageNo == null || prkPlceManageNo.trim().isEmpty());
@@ -234,7 +256,7 @@ public class PrkDefPlceInfoController {
                     operMbyCd = "1";
                 }
 
-                String prkplceSe = "1";
+                String prkplceSe = resolvedOwnCd;
                 String prkPlceType = "1";
 
                 log.info("📝 관리번호 생성 파라미터 - zipCode: {}, prkplceSe: {}, operMbyCd: {}, prkPlceType: {}",
@@ -260,9 +282,6 @@ public class PrkDefPlceInfoController {
                 String prkBizMngNo = userBizList.get(0);
                 parkingData.setPrkBizMngNo(prkBizMngNo);
                 log.info("✅ 사업관리번호: {}", prkBizMngNo);
-
-                String ldongCd = parkingData.getEmdCd();
-                parkingData.setLdongCd(ldongCd);
 
                 log.info("✅ 사용자정보 설정 완료 - userId: {}, IP: {}", userId, clientIp);
             } else {
@@ -374,6 +393,7 @@ public class PrkDefPlceInfoController {
             @RequestPart(value = "barrierPhoto", required = false) MultipartFile barrierPhoto,
             @RequestPart(value = "exitAlarmPhoto", required = false) MultipartFile exitAlarmPhoto,
             @RequestPart(value = "entrancePhoto", required = false) MultipartFile entrancePhoto,
+            @RequestParam(value = "ownCd", required = false) String ownCd,
             HttpServletRequest request,
             HttpSession session) {
 
@@ -406,6 +426,22 @@ public class PrkDefPlceInfoController {
             ObjectMapper objectMapper = new ObjectMapper();
             ParkingDetailVO parkingData = objectMapper.readValue(parkingDataJson, ParkingDetailVO.class);
 
+            String resolvedOwnCd = (ownCd != null && !ownCd.trim().isEmpty())
+                    ? ownCd.trim()
+                    : (parkingData.getOwnCd() != null && !parkingData.getOwnCd().trim().isEmpty())
+                    ? parkingData.getOwnCd().trim()
+                    : (parkingData.getPrkplceSe() != null ? parkingData.getPrkplceSe().trim() : null);
+
+            if (resolvedOwnCd == null || resolvedOwnCd.trim().isEmpty()) {
+                log.error("❌ 관리주체(소유주체) 코드가 없습니다.");
+                response.put("success", false);
+                response.put("message", "관리주체(소유주체) 코드가 필요합니다.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+            parkingData.setOwnCd(resolvedOwnCd.trim());
+            parkingData.setPrkplceSe(resolvedOwnCd.trim());
+            log.info("✅ 파라미터 검증 완료 - ownCd={}", resolvedOwnCd.trim());
+
             String prkPlceManageNo = parkingData.getPrkPlceManageNo();
             boolean isNewRecord = (prkPlceManageNo == null || prkPlceManageNo.trim().isEmpty());
 
@@ -431,7 +467,7 @@ public class PrkDefPlceInfoController {
                     operMbyCd = "1";
                 }
 
-                String prkplceSe = parkingData.getPrkplceSe();  // 관리주체(소유주체)
+                String prkplceSe = resolvedOwnCd;  // 관리주체(소유주체)
                 String prkPlceType = "2"; // 주차장유형 - 노외
 
                 log.info("📝 관리번호 생성 파라미터 - zipCode: {}, prkplceSe: {}, operMbyCd: {}, prkPlceType: {}",
@@ -457,9 +493,6 @@ public class PrkDefPlceInfoController {
                 String prkBizMngNo = userBizList.get(0);
                 parkingData.setPrkBizMngNo(prkBizMngNo);
                 log.info("✅ 사업관리번호: {}", prkBizMngNo);
-
-                //String ldongCd = parkingData.getEmdCd();
-                //parkingData.setLdongCd(ldongCd);
 
                 log.info("✅ 사용자정보 설정 완료 - userId: {}, IP: {}", userId, clientIp);
             } else {
@@ -596,6 +629,7 @@ public class PrkDefPlceInfoController {
             @RequestPart(value = "barrierPhoto", required = false) MultipartFile barrierPhoto,
             @RequestPart(value = "exitAlarmPhoto", required = false) MultipartFile exitAlarmPhoto,
             @RequestPart(value = "entrancePhoto", required = false) MultipartFile entrancePhoto,
+            @RequestParam(value = "ownCd", required = false) String ownCd,
             HttpServletRequest request,
             HttpSession session) {
 
@@ -626,6 +660,22 @@ public class PrkDefPlceInfoController {
             ObjectMapper objectMapper = new ObjectMapper();
             ParkingDetailVO parkingData = objectMapper.readValue(parkingDataJson, ParkingDetailVO.class);
 
+            String resolvedOwnCd = (ownCd != null && !ownCd.trim().isEmpty())
+                    ? ownCd.trim()
+                    : (parkingData.getOwnCd() != null && !parkingData.getOwnCd().trim().isEmpty())
+                    ? parkingData.getOwnCd().trim()
+                    : (parkingData.getPrkplceSe() != null ? parkingData.getPrkplceSe().trim() : null);
+
+            if (resolvedOwnCd == null || resolvedOwnCd.trim().isEmpty()) {
+                log.error("❌ 관리주체(소유주체) 코드가 없습니다.");
+                response.put("success", false);
+                response.put("message", "관리주체(소유주체) 코드가 필요합니다.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+            parkingData.setOwnCd(resolvedOwnCd.trim());
+            parkingData.setPrkplceSe(resolvedOwnCd.trim());
+            log.info("✅ 파라미터 검증 완료 - ownCd={}", resolvedOwnCd.trim());
+
             String prkPlceManageNo = parkingData.getPrkPlceManageNo();
             boolean isNewRecord = (prkPlceManageNo == null || prkPlceManageNo.trim().isEmpty());
 
@@ -653,7 +703,7 @@ public class PrkDefPlceInfoController {
                 }
 
                 // 2. 관리번호 생성 파라미터
-                String prkplceSe = parkingData.getPrkplceSe();  // 관리주체(소유주체) - 공영=1, 민영=2, 기타=9
+                String prkplceSe = resolvedOwnCd;  // 관리주체(소유주체) - 공영=1, 민영=2, 기타=9
                 String prkPlceType = "3"; // 주차장유형 - 부설=3
 
                 log.info("📝 관리번호 생성 파라미터 - zipCode: {}, prkplceSe: {}, operMbyCd: {}, prkPlceType: {}",
@@ -681,10 +731,6 @@ public class PrkDefPlceInfoController {
                 String prkBizMngNo = userBizList.get(0);
                 parkingData.setPrkBizMngNo(prkBizMngNo);
                 log.info("✅ 사업관리번호: {}", prkBizMngNo);
-
-                // 5. 행정구역 코드 (읍면동 → ldongCd)
-                //String ldongCd = parkingData.getEmdCd();
-                //parkingData.setLdongCd(ldongCd);
 
                 log.info("✅ 사용자정보 설정 완료 - userId: {}, IP: {}", userId, clientIp);
             } else {

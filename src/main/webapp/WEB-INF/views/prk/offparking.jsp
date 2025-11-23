@@ -236,7 +236,7 @@
                 </div>
             </div>
 
-            <!-- 관리주체(소유주체) -->
+            <!-- 관리주체(소유주체) // 변경: 입력 UI 추가 -->
             <div style="grid-column:1/-1">
                 <label>관리주체(소유주체)</label>
                 <div class="radio-group" id="owner_group">
@@ -244,7 +244,7 @@
                     <label><input type="radio" name="ownCd" value="2"/> <span>민영</span></label>
                     <label><input type="radio" name="ownCd" value="9"/> <span>기타</span></label>
                 </div>
-                <input type="hidden" id="own_cd" name="own_cd" value=""/>
+                <input type="hidden" id="own_cd" name="ownCd" value="${parking.ownCd}"/>
             </div>
 
             <!-- 운영주체 -->

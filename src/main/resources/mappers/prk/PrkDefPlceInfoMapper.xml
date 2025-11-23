@@ -269,7 +269,8 @@
     <!-- 🔥 노상주차장 정보 업데이트 (tb_onstr_prklot_info) -->
     <update id="updateOnstrPrklotInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
         UPDATE cpk.tb_onstr_prklot_info
-        SET tot_prk_cnt       = #{totPrkCnt}
+        SET prkplce_se       = #{prkplceSe}
+          , tot_prk_cnt       = #{totPrkCnt}
           , disab_prk_cnt     = #{disabPrkCnt}
           , compact_prk_cnt   = #{compactPrkCnt}
           , eco_prk_cnt       = #{ecoPrkCnt}
@@ -482,7 +483,8 @@
     <!-- 🔥 노외주차장 정보 업데이트 (tb_offstr_prklot_info) -->
     <update id="updateOffstrPrklotInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
         UPDATE cpk.tb_offstr_prklot_info
-        SET tot_prk_cnt       = #{totPrkCnt}
+        SET prkplce_se       = #{prkplceSe}
+          , tot_prk_cnt       = #{totPrkCnt}
           , disab_prk_cnt     = #{disabPrkCnt}
           , compact_prk_cnt   = #{compactPrkCnt}
           , eco_prk_cnt       = #{ecoPrkCnt}
@@ -593,6 +595,7 @@
              , tpdpi.prk_plce_manage_no                         as prkPlceManageNo
              , tpdpi.prk_plce_type                              as prkPlceType
              , tpdpi.prkplce_nm                                 as prkplceNm
+             , tapi.prkplce_se                                 as ownCd
              , tcl.sido_cd                                      as sidoCd
              , tcl.sido_nm                                      as sidoNm
              , tcl.sigungu_cd                                   as sigunguCd
@@ -725,7 +728,8 @@
     <!-- 🔥 부설주차장 정보 업데이트 (tb_atch_prklot_info) -->
     <update id="updateAtchPrklotInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
         UPDATE cpk.tb_atch_prklot_info
-        SET tot_prk_cnt       = #{totPrkCnt}
+        SET prkplce_se       = #{prkplceSe}
+          , tot_prk_cnt       = #{totPrkCnt}
           , disab_prk_cnt     = #{disabPrkCnt}
           , compact_prk_cnt   = #{compactPrkCnt}
           , eco_prk_cnt       = #{ecoPrkCnt}
@@ -778,6 +782,7 @@
     <insert id="insertOffstrPrklotInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
         INSERT INTO cpk.tb_offstr_prklot_info (prk_plce_manage_no,
                                                prk_plce_info_sn,
+                                               prkplce_se,
                                                tot_prk_cnt,
                                                disab_prk_cnt,
                                                compact_prk_cnt,
@@ -796,6 +801,7 @@
                                                updusr_ip_addr)
         VALUES (#{prkPlceManageNo},
                 #{prkPlceInfoSn},
+                #{prkplceSe},
                 #{totPrkCnt},
                 #{disabPrkCnt},
                 #{compactPrkCnt},
@@ -1199,6 +1205,7 @@
     <insert id="insertOnstrPrklotInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
         INSERT INTO cpk.tb_onstr_prklot_info (prk_plce_manage_no,
                                               prk_plce_info_sn,
+                                              prkplce_se,
                                               tot_prk_cnt,
                                               disab_prk_cnt,
                                               compact_prk_cnt,
@@ -1217,6 +1224,7 @@
                                               updusr_ip_addr)
         VALUES (#{prkPlceManageNo},
                 #{prkPlceInfoSn},
+                #{prkplceSe},
                 #{totPrkCnt},
                 #{disabPrkCnt},
                 #{compactPrkCnt},

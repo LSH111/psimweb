@@ -33,9 +33,14 @@ class PrkDefPlceInfoServiceImplMockTest {
         vo.setZip("12345");
         vo.setOperMbyCd("1");
         vo.setPrkPlceType("1"); // 노상
+        vo.setPrkplceSe("1");
+        vo.setOwnCd("1");
         vo.setPrkPlceLat("37.1");
         vo.setPrkPlceLon("127.1");
-        vo.setLdongCd("11110");
+        vo.setSigunguCd("11110");
+        vo.setEmdCd("120");
+        vo.setLiCd("00");
+        vo.setLdongCd("1111012000");
         vo.setPrkBizMngNo("BIZ-1");
         vo.setBizPerPrkMngNo("BP-1");
         return vo;
