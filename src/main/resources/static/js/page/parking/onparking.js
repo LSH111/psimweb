@@ -10,6 +10,36 @@ function params() {
     return new Proxy({}, {get: (_, k) => sp.get(k) || ''});
 }
 
+function renderUploadedList(photos) {
+    if (typeof window.renderUploadedList === 'function') {
+        window.renderUploadedList(photos, '#uploadedFileList');
+        return;
+    }
+    const list = document.querySelector('#uploadedFileList');
+    if (!list) return;
+    list.innerHTML = '';
+    (photos || []).forEach(p => {
+        const li = document.createElement('li');
+        li.className = 'uploaded-file';
+        li.dataset.seqNo = p.seqNo || p.seq_no || '';
+        const realName = p.realFileNm || p.real_file_nm;
+        const serverName = p.fileNm || p.file_nm || p.fileName;
+        li.textContent = realName || serverName || '파일';
+        list.appendChild(li);
+    });
+}
+
+async function reloadParkingPhotos(infoSn) {
+    if (!infoSn) return;
+    try {
+        const resp = await fetch(`/prk/parking-photos?prkPlceInfoSn=${infoSn}`);
+        const json = await resp.json();
+        renderUploadedList(json.photos || []);
+    } catch (e) {
+        console.warn('⚠️ 파일 목록 재조회 실패:', e);
+    }
+}
+
 function num(v) {
     const n = parseInt((v || '').toString().replace(/[^0-9]/g, ''), 10);
     return Number.isFinite(n) && n >= 0 ? n : 0;
@@ -1179,58 +1209,22 @@ function setupTimeOperationEvents(timeType) {
     }
 }
 
-// ========== 🔥 법정동코드 생성 함수 개선 (수정됨) ==========
+// ========== 🔥 법정동코드 생성 함수 (공통 유틸 사용) ==========
 function generateLdongCd() {
     const f_sigungu = document.getElementById('f_sigungu');
     const f_emd = document.getElementById('f_emd');
+    const f_ri = document.getElementById('f_ri');
 
-    // 1. 필수값 체크
-    if (!f_sigungu || !f_sigungu.value) {
-        console.error('❌ 시군구가 선택되지 않았습니다.');
-        return null;
-    }
-    if (!f_emd || !f_emd.value) {
-        console.warn('⚠️ 읍면동이 선택되지 않았습니다.');
-        return null;
-    }
+    const sigunguCd = f_sigungu?.value;
+    const emdCd = f_emd?.value;
+    const liCd = f_ri?.value;
 
-    const sigunguCd = f_sigungu.value; // 예: "47150" (5자리)
-    const emdCd = f_emd.value;         // 예: "120" (3자리) 또는 "12000" (5자리)
-
-    // 2. 이미 10자리인 경우 (드물지만 방어 코드)
-    if (emdCd.length === 10) {
-        return emdCd;
-    }
-
-    // 3. 법정동코드 조합 로직 (표준: 시군구5 + 읍면동3 + 리2 = 총 10자리)
-    // 시군구 코드는 무조건 5자리여야 함
-    if (sigunguCd.length !== 5) {
-        console.error('❌ 시군구 코드가 5자리가 아닙니다:', sigunguCd);
-        return null;
-    }
-
-    let ldongCd = '';
-
-    if (emdCd.length === 3) {
-        // 읍면동이 3자리인 경우 (예: 120) -> 뒤에 리(00)을 붙여 10자리 완성
-        // 조합: 47150 + 120 + 00 = 4715012000
-        ldongCd = sigunguCd + emdCd + '00';
-    } else if (emdCd.length === 5) {
-        // 읍면동이 5자리인 경우 (예: 12000) -> 그대로 조합
-        // 조합: 47150 + 12000 = 4715012000
-        ldongCd = sigunguCd + emdCd;
+    const ldongCd = LdongUtil.generateLdongCd(sigunguCd, emdCd, liCd);
+    if (!ldongCd) {
+        console.error('❌ 법정동코드 생성 실패:', sigunguCd, emdCd, liCd);
     } else {
-        console.error('❌ 읍면동 코드 길이 오류:', emdCd);
-        return null;
+        console.log(`✅ 법정동코드 생성: ${ldongCd}`);
     }
-
-    // 4. 최종 검증
-    if (ldongCd.length !== 10) {
-        console.error('❌ 생성된 법정동코드 길이가 10자리가 아닙니다:', ldongCd);
-        return null;
-    }
-
-    console.log(`✅ 법정동코드 생성: ${sigunguCd} + ${emdCd} => ${ldongCd}`);
     return ldongCd;
 }
 
@@ -1971,6 +1965,8 @@ async function loadAndDisplayPhotos(prkPlceInfoSn) {
                     displayPhotoInfo('sign_photo_info', photo);
                 });
             }
+            // 🔥 업로드 리스트에도 반영
+            renderUploadedList(result.photos);
         } else {
             console.warn('⚠️ 조회된 사진이 없습니다.');
         }
@@ -3154,21 +3150,25 @@ async function doSave() {
         }));
 
         // 🔥 사진 추가 로직...
-        const mainPhotoLib = document.getElementById('f_photo_lib');
-        const mainPhotoCam = document.getElementById('f_photo_cam');
-        if (mainPhotoLib && mainPhotoLib.files && mainPhotoLib.files.length > 0) {
-            formData.append('mainPhoto', mainPhotoLib.files[0]);
-        } else if (mainPhotoCam && mainPhotoCam.files && mainPhotoCam.files.length > 0) {
-            formData.append('mainPhoto', mainPhotoCam.files[0]);
-        }
+    const mainPhotoLib = document.getElementById('f_photo_lib');
+    const mainPhotoCam = document.getElementById('f_photo_cam');
+    if (mainPhotoLib && mainPhotoLib.files && mainPhotoLib.files.length > 0) {
+        formData.append('mainPhoto', mainPhotoLib.files[0]);
+        appendUploadedFiles('#uploadedFileList', mainPhotoLib.files);
+    } else if (mainPhotoCam && mainPhotoCam.files && mainPhotoCam.files.length > 0) {
+        formData.append('mainPhoto', mainPhotoCam.files[0]);
+        appendUploadedFiles('#uploadedFileList', mainPhotoCam.files);
+    }
 
-        const signPhotoLib = document.getElementById('f_sign_photo_lib');
-        const signPhotoCam = document.getElementById('f_sign_photo_cam');
-        if (signPhotoLib && signPhotoLib.files && signPhotoLib.files.length > 0) {
-            formData.append('signPhoto', signPhotoLib.files[0]);
-        } else if (signPhotoCam && signPhotoCam.files && signPhotoCam.files.length > 0) {
-            formData.append('signPhoto', signPhotoCam.files[0]);
-        }
+    const signPhotoLib = document.getElementById('f_sign_photo_lib');
+    const signPhotoCam = document.getElementById('f_sign_photo_cam');
+    if (signPhotoLib && signPhotoLib.files && signPhotoLib.files.length > 0) {
+        formData.append('signPhoto', signPhotoLib.files[0]);
+        appendUploadedFiles('#uploadedFileList', signPhotoLib.files);
+    } else if (signPhotoCam && signPhotoCam.files && signPhotoCam.files.length > 0) {
+        formData.append('signPhoto', signPhotoCam.files[0]);
+        appendUploadedFiles('#uploadedFileList', signPhotoCam.files);
+    }
 
         // 8. 전송
         const controller = new AbortController();
@@ -3197,6 +3197,9 @@ async function doSave() {
         }
         const result = await response.json();
         if (result.success) {
+            const hiddenInfoSn = document.getElementById('prkPlceInfoSn')?.value;
+            const infoSn = result.prkPlceInfoSn || hiddenInfoSn || loadedPrkPlceInfoSn;
+            await reloadParkingPhotos(infoSn);
             handlePostSave(isNewRecord, '/prk/parkinglist');
         } else {
             console.error('❌ 저장 실패:', result.message);
@@ -3390,31 +3393,11 @@ function mapPayloadToServerFormat(payload) {
     const sigunguCd = f_sigungu?.value || null;
     const emdCd = f_emd?.value || null;
 
-    // 🔥 2. 법정동코드(ldongCd) 명시적 생성
-    // 기존: emdCd만 사용하여 DB에 120만 들어감
-    // 수정: generateLdongCd()를 호출하거나 직접 조합하여 10자리 코드 생성
-    let ldongCd = null;
-    if (sigunguCd && emdCd) {
-        if (emdCd.length === 3) {
-            // 시군구(5) + 읍면동(3) + 리(00) = 10자리
-            ldongCd = sigunguCd + emdCd + '00';
-        } else if (emdCd.length === 5) {
-            // 시군구(5) + 읍면동(5) = 10자리 (경우에 따라 다름)
-            ldongCd = sigunguCd + emdCd;
-        } else if (emdCd.length === 10) {
-            ldongCd = emdCd;
-        } else {
-            // 기본 조합 시도
-            ldongCd = sigunguCd + emdCd.padEnd(5, '0');
-        }
+    // 🔥 2. 법정동코드(ldongCd) 명시적 생성 (10자리 고정)
+    const ldongCd = LdongUtil.generateLdongCd(sigunguCd, emdCd, payload.liCd);
+    if (!ldongCd) {
+        throw new Error('법정동코드(ldong_cd)는 10자리여야 합니다.');
     }
-
-    if (!ldongCd || ldongCd.length !== 10) {
-        console.warn('⚠️ 법정동코드 생성 실패 또는 길이 오류:', ldongCd);
-        // 실패 시 payload에 있는 값을 사용해봅니다 (buildPayload에서 생성했었다면)
-        ldongCd = payload.ldongCd || ldongCd;
-    }
-
     console.log(`🛠️ 법정동코드 매핑: 시군구(${sigunguCd}) + 읍면동(${emdCd}) => ldongCd(${ldongCd})`);
 
     const isNewRecord = !payload.id || payload.id.trim() === '';
@@ -3599,33 +3582,36 @@ function closeParentTabAndRefreshList() {
     return false;
 }
 
-function handlePostSave(isNew, fallbackUrl) {
+function handlePostSave(isNew) {
     alert('저장이 완료되었습니다.');
 
-    if (isNew) {
+    if (typeof clearUploadProgressUI === 'function') {
+        clearUploadProgressUI(); // 진행률만 정리, 완료 리스트는 유지
+    }
+
+    try {
         if (window.parent && typeof window.parent.closeNewParkingTabAndGoList === 'function') {
-            window.parent.closeNewParkingTabAndGoList();
+            window.parent.closeNewParkingTabAndGoList('onparking');
+            return;
+        }
+        if (window.parent && typeof window.parent.reloadList === 'function') {
+            window.parent.reloadList();
             return;
         }
         if (window.opener && !window.opener.closed) {
-            try {
-                if (typeof window.opener.closeNewParkingTabAndGoList === 'function') {
-                    window.opener.closeNewParkingTabAndGoList();
-                } else if (typeof window.opener.reloadList === 'function') {
-                    window.opener.reloadList();
-                } else {
-                    window.opener.location.reload();
-                }
-                window.opener.focus();
-                window.close();
-                return;
-            } catch (e) {
-                console.warn('부모 창 제어 중 오류:', e);
+            if (typeof window.opener.closeNewParkingTabAndGoList === 'function') {
+                window.opener.closeNewParkingTabAndGoList('onparking');
+            } else if (typeof window.opener.reloadList === 'function') {
+                window.opener.reloadList();
+            } else {
+                window.opener.location.reload();
             }
+            window.opener.focus();
+            window.close();
+            return;
         }
-        if (fallbackUrl) {
-            location.href = fallbackUrl;
-        }
+    } catch (e) {
+        console.warn('부모 창 제어 중 오류:', e);
     }
 }
 

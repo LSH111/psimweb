@@ -44,6 +44,9 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             String prkImgId,
             MultipartFile file
     ) {
+        if (prkPlceInfoSn == null) {
+            throw new IllegalArgumentException("prkPlceInfoSn이 없습니다. 파일을 저장할 수 없습니다.");
+        }
         validateFile(file);
         String safePrkImgId = sanitizeIdentifier(prkImgId);
 
@@ -79,6 +82,9 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             String prkImgId,
             List<MultipartFile> files
     ) {
+        if (prkPlceInfoSn == null) {
+            throw new IllegalArgumentException("prkPlceInfoSn이 없습니다. 파일을 저장할 수 없습니다.");
+        }
         List<AttchPicMngInfoVO> result = new ArrayList<>();
 
         if (files == null || files.isEmpty()) {

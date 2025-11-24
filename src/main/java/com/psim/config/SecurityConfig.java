@@ -42,7 +42,7 @@ public class SecurityConfig {
                             .maxAgeInSeconds(31536000);
                     headers.cacheControl();
                     headers.contentSecurityPolicy("default-src 'self'; " +
-                            "img-src 'self' data: https://dapi.kakao.com https://map.kakao.com https://t1.daumcdn.net http://t1.daumcdn.net https://mts.daumcdn.net http://mts.daumcdn.net; " +
+                            "img-src 'self' data: blob: https://dapi.kakao.com https://map.kakao.com https://t1.daumcdn.net http://t1.daumcdn.net https://mts.daumcdn.net http://mts.daumcdn.net; " +
                             "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://dapi.kakao.com https://t1.daumcdn.net http://t1.daumcdn.net https://cdn.jsdelivr.net; " +
                             "connect-src 'self' https://dapi.kakao.com https://t1.daumcdn.net http://t1.daumcdn.net; " +
                             "frame-src 'self' https://postcode.map.daum.net http://postcode.map.daum.net; " +

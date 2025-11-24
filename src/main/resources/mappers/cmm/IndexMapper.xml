@@ -37,7 +37,18 @@
         FROM cpk.tb_biz_per_prklot_info tbppi
         INNER JOIN cpk.tb_prk_def_plce_info tpdpi ON tbppi.prk_plce_manage_no = tpdpi.prk_plce_manage_no AND tbppi.prk_plce_info_sn = tpdpi.prk_plce_info_sn
         LEFT JOIN cpk.tb_co_ldong tcl ON tpdpi.ldong_cd = tcl.ldong_cd
-        <include refid="com.psim.web.prk.mapper.PrkDefPlceInfoMapper.parkingCommonWhere"/>
+        <where>
+            tcl.use_yn = 'Y'
+            <if test="sidoCd != null and sidoCd != ''">
+                AND tpdpi.sido_cd = #{sidoCd}
+            </if>
+            <if test="sigunguCd != null and sigunguCd != ''">
+                AND tpdpi.sigungu_cd = #{sigunguCd}
+            </if>
+            <if test="prkBizMngNo != null and prkBizMngNo != ''">
+                AND tbppi.prk_biz_mng_no = #{prkBizMngNo}
+            </if>
+        </where>
     </select>
 
     <!-- [Dashboard] 주차장 이용실태 현황 -->
@@ -53,6 +64,9 @@
             </if>
             <if test="sigunguCd != null and sigunguCd != ''">
                 AND psbi.sigungu_cd = #{sigunguCd}
+            </if>
+            <if test="prkBizMngNo != null and prkBizMngNo != ''">
+                AND pci.prk_biz_mng_no = #{prkBizMngNo}
             </if>
         </where>
     </select>

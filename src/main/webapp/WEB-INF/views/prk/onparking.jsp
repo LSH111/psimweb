@@ -189,6 +189,9 @@
                 <div style="grid-column:1/-1"><img id="preview" class="thumb" alt="사진 미리보기"/></div>
                 <!-- 🔥 저장된 사진 정보 표시 영역 추가 -->
                 <div id="photo_info" style="grid-column:1/-1"></div>
+                <!-- 🔥 업로드 진행/완료 분리 -->
+                <div id="uploadProgressContainer" style="grid-column:1/-1"></div>
+                <ul id="uploadedFileList" style="grid-column:1/-1" class="preview-list"></ul>
                 <div><label for="f_lat">위도</label>
                     <div class="ctl"><input id="f_lat" class="mono" inputmode="decimal" value="<c:out value='${parking.prkPlceLat}'/>"/></div>
                 </div>
@@ -843,6 +846,8 @@
 <script src="${pageContext.request.contextPath}/static/js/common/dom-utils.js"></script>
 <script src="${pageContext.request.contextPath}/static/js/common/format-utils.js"></script>
 <script src="${pageContext.request.contextPath}/static/js/common/code-api.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/common/ldong-util.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/common/upload-util.js"></script>
 <script src="${pageContext.request.contextPath}/static/js/component/toast.js"></script>
 <script src="${pageContext.request.contextPath}/static/js/component/modal.js"></script>
 <script src="${pageContext.request.contextPath}/static/js/page/parking/onparking.js"></script>

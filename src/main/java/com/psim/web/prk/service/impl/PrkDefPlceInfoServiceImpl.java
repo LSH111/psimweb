@@ -185,6 +185,18 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
         return normalized;
     }
 
+    private void ensureAdminCodes(ParkingDetailVO vo) {
+        if (vo.getSidoCd() == null || vo.getSidoCd().trim().isEmpty()) {
+            throw new IllegalArgumentException("sidoCd(시도코드)는 필수입니다.");
+        }
+        if (vo.getSigunguCd() == null || vo.getSigunguCd().trim().isEmpty()) {
+            throw new IllegalArgumentException("sigunguCd(시군구코드)는 필수입니다.");
+        }
+        if (vo.getEmdCd() == null || vo.getEmdCd().trim().isEmpty()) {
+            throw new IllegalArgumentException("emdCd(읍면동코드)는 필수입니다.");
+        }
+    }
+
     private String truncate(String value, int maxLength) {
         if (value == null) {
             return null;
@@ -203,25 +215,25 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
         if (candidate == null || candidate.trim().isEmpty()) {
             candidate = "BP" + System.currentTimeMillis();
         }
-        return truncate(candidate, 18);
+        return candidate.trim();
     }
 
     private void applyBizPerIdentifiers(ParkingDetailVO vo) {
-        String safePrkBizMngNo = truncate(vo.getPrkBizMngNo(), 14);
-        if (safePrkBizMngNo != null && !safePrkBizMngNo.equals(vo.getPrkBizMngNo())) {
-            log.warn("⚠️ prkBizMngNo가 길이 제한(14)을 초과하여 잘립니다. before='{}', after='{}'", vo.getPrkBizMngNo(), safePrkBizMngNo);
+        String prkBizMngNo = vo.getPrkBizMngNo();
+        if (prkBizMngNo != null && prkBizMngNo.trim().length() > 14) {
+            throw new IllegalArgumentException("사업관리번호(prk_biz_mng_no)는 14자 이내여야 합니다.");
         }
-        vo.setPrkBizMngNo(safePrkBizMngNo);
+        vo.setPrkBizMngNo(prkBizMngNo != null ? prkBizMngNo.trim() : null);
 
-        // 관리번호는 22자리 전체 문자열을 그대로 사용 (DB 컬럼 길이 확장 전제)
+        // 관리번호는 생성값 그대로 사용 (tail 유지)
         String manageNo = vo.getPrkPlceManageNo();
         vo.setPrkPlceManageNo(manageNo);
 
-        String safeBizPerNo = buildBizPerPrkMngNo(vo);
-        if (!safeBizPerNo.equals(vo.getBizPerPrkMngNo())) {
-            log.warn("⚠️ bizPerPrkMngNo가 길이 제한(18)을 초과하거나 비어 있어 변경합니다. before='{}', after='{}'", vo.getBizPerPrkMngNo(), safeBizPerNo);
+        String bizPerNo = buildBizPerPrkMngNo(vo);
+        if (bizPerNo != null && bizPerNo.trim().length() > 18) {
+            throw new IllegalArgumentException("사업별주차관리번호(biz_per_prk_mng_no)는 18자 이내여야 합니다.");
         }
-        vo.setBizPerPrkMngNo(safeBizPerNo);
+        vo.setBizPerPrkMngNo(bizPerNo != null ? bizPerNo.trim() : null);
     }
 
     private String normalizeDigits(String value) {
@@ -247,17 +259,25 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
     }
 
     private String resolveLdongCd(ParkingDetailVO vo) {
-        String incoming = normalizeDigits(vo.getLdongCd());
-        if (incoming != null && incoming.length() == 10) {
-            return incoming;
-        }
-
         String sigungu = normalizeSegment(vo.getSigunguCd(), 5, null);
         String emd = normalizeSegment(vo.getEmdCd(), 3, null);
         String li = normalizeSegment(vo.getLiCd(), 2, "00");
 
+        String incoming = normalizeDigits(vo.getLdongCd());
+        String candidate = null;
         if (sigungu != null && emd != null) {
-            String candidate = sigungu + emd + li;
+            candidate = sigungu + emd + li;
+        }
+
+        if (incoming != null && incoming.length() == 10) {
+            if (candidate != null && !incoming.equals(candidate)) {
+                log.warn("⚠️ 전달된 ldongCd와 계산된 ldongCd가 불일치하여 계산값으로 대체합니다. 입력값: {}, 계산값: {}", incoming, candidate);
+                return candidate;
+            }
+            return incoming;
+        }
+
+        if (candidate != null && candidate.length() == 10) {
             if (incoming != null && !incoming.isEmpty()) {
                 log.warn("⚠️ 전달된 ldongCd가 10자리가 아니어서 재계산합니다. 입력값: {}, 재계산: {}", vo.getLdongCd(), candidate);
             }
@@ -286,6 +306,7 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
     public void insertOnstreetParking(ParkingDetailVO vo) {
         try {
             ensureOwnCd(vo);
+            ensureAdminCodes(vo);
             applyBizPerIdentifiers(vo);
             // 🔥 STEP 0: prkPlceInfoSn 생성
             log.info("🔵 [STEP 0/4] prkPlceInfoSn 생성 시작");
@@ -381,6 +402,7 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
     public void insertOffstreetParking(ParkingDetailVO vo) {
         try {
             ensureOwnCd(vo);
+            ensureAdminCodes(vo);
             applyBizPerIdentifiers(vo);
             // 🔥 STEP 0: prkPlceInfoSn 생성
             log.info("🔵 [노외주차장 STEP 0/4] prkPlceInfoSn 생성 시작");
@@ -440,6 +462,7 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
     public void insertBuildParking(ParkingDetailVO vo) {
         try {
             ensureOwnCd(vo);
+            ensureAdminCodes(vo);
             applyBizPerIdentifiers(vo);
             log.info("🆕 부설주차장 INSERT 시작 - 관리번호: {}", vo.getPrkPlceManageNo());
 
@@ -493,6 +516,7 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
     public void updateOnstreetParking(ParkingDetailVO parkingData) {
         try {
             ensureOwnCd(parkingData);
+            ensureAdminCodes(parkingData);
             log.info("🔄 노상주차장 UPDATE: {}", parkingData.getPrkPlceManageNo());
             applyLdongCd(parkingData);
 
@@ -514,6 +538,7 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
     public void updateOffstreetParking(ParkingDetailVO parkingData) {
         try {
             ensureOwnCd(parkingData);
+            ensureAdminCodes(parkingData);
             log.info("🔄 노외주차장 UPDATE: {}", parkingData.getPrkPlceManageNo());
             applyLdongCd(parkingData);
 
@@ -534,6 +559,7 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
     public void updateBuildParking(ParkingDetailVO parkingData) {
         try {
             ensureOwnCd(parkingData);
+            ensureAdminCodes(parkingData);
             log.info("🔄 부설주차장 UPDATE: {}", parkingData.getPrkPlceManageNo());
             applyLdongCd(parkingData);
 

@@ -223,13 +223,9 @@ public class PrkDefPlceInfoController {
             }
             parkingData.setOwnCd(resolvedOwnCd.trim());
             parkingData.setPrkplceSe(resolvedOwnCd.trim());
-            log.info("✅ 파라미터 검증 완료 - ownCd={}", resolvedOwnCd.trim());
-            log.info("✅ 파라미터 검증 완료 - sidoCd={}, sigunguCd={}, emdCd={}, ldongCd={}",
-                    parkingData.getSidoCd(), parkingData.getSigunguCd(), parkingData.getEmdCd(), parkingData.getLdongCd());
-            log.info("✅ 파라미터 검증 완료 - sidoCd={}, sigunguCd={}, emdCd={}, ldongCd={}",
-                    parkingData.getSidoCd(), parkingData.getSigunguCd(), parkingData.getEmdCd(), parkingData.getLdongCd());
-            log.info("✅ 파라미터 검증 완료 - sidoCd={}, sigunguCd={}, emdCd={}, ldongCd={}",
-                    parkingData.getSidoCd(), parkingData.getSigunguCd(), parkingData.getEmdCd(), parkingData.getLdongCd());
+            validateAdminCodes(parkingData);
+            log.info("✅ 파라미터 검증 완료 - ownCd={}, sidoCd={}, sigunguCd={}, emdCd={}, ldongCd={}",
+                    resolvedOwnCd.trim(), parkingData.getSidoCd(), parkingData.getSigunguCd(), parkingData.getEmdCd(), parkingData.getLdongCd());
 
             String prkPlceManageNo = parkingData.getPrkPlceManageNo();
             boolean isNewRecord = (prkPlceManageNo == null || prkPlceManageNo.trim().isEmpty());
@@ -346,6 +342,8 @@ public class PrkDefPlceInfoController {
             response.put("success", true);
             response.put("message", isNewRecord ? "신규 등록되었습니다." : "수정되었습니다.");
             response.put("prkPlceManageNo", parkingData.getPrkPlceManageNo());
+            response.put("prkPlceInfoSn", parkingData.getPrkPlceInfoSn());
+            response.put("prkPlceType", parkingData.getPrkPlceType());
 
             log.info("✅✅✅ 노상주차장 저장 완료");
 
@@ -441,6 +439,12 @@ public class PrkDefPlceInfoController {
             parkingData.setOwnCd(resolvedOwnCd.trim());
             parkingData.setPrkplceSe(resolvedOwnCd.trim());
             log.info("✅ 파라미터 검증 완료 - ownCd={}", resolvedOwnCd.trim());
+            validateAdminCodes(parkingData);
+            log.info("✅ 행정구역 파라미터 검증 완료 - sidoCd={}, sigunguCd={}, emdCd={}, ldongCd={}",
+                    parkingData.getSidoCd(), parkingData.getSigunguCd(), parkingData.getEmdCd(), parkingData.getLdongCd());
+            validateAdminCodes(parkingData);
+            log.info("✅ 행정구역 파라미터 검증 완료 - sidoCd={}, sigunguCd={}, emdCd={}, ldongCd={}",
+                    parkingData.getSidoCd(), parkingData.getSigunguCd(), parkingData.getEmdCd(), parkingData.getLdongCd());
 
             String prkPlceManageNo = parkingData.getPrkPlceManageNo();
             boolean isNewRecord = (prkPlceManageNo == null || prkPlceManageNo.trim().isEmpty());
@@ -1110,5 +1114,17 @@ public class PrkDefPlceInfoController {
     public String buildParking(@RequestParam(value = "status", required = false) String status, org.springframework.ui.Model model) {
         model.addAttribute("statusCode", status);
         return "prk/buildparking";
+    }
+
+    private void validateAdminCodes(ParkingDetailVO parkingData) {
+        if (parkingData.getSidoCd() == null || parkingData.getSidoCd().trim().isEmpty()) {
+            throw new IllegalArgumentException("sidoCd(시도코드)는 필수입니다.");
+        }
+        if (parkingData.getSigunguCd() == null || parkingData.getSigunguCd().trim().isEmpty()) {
+            throw new IllegalArgumentException("sigunguCd(시군구코드)는 필수입니다.");
+        }
+        if (parkingData.getEmdCd() == null || parkingData.getEmdCd().trim().isEmpty()) {
+            throw new IllegalArgumentException("emdCd(읍면동코드)는 필수입니다.");
+        }
     }
 }
