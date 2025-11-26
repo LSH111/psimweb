@@ -37,7 +37,7 @@
         window.initialParking = <%= parkingJson %>;
     </script>
 </head>
-<body data-status="${not empty statusCode ? statusCode : (empty param.status ? '' : param.status)}">
+<body class="parking-detail-page" data-status="${not empty statusCode ? statusCode : (empty param.status ? '' : param.status)}">
 <div class="wrap">
     <header class="card head">
         <div class="title" id="v_name"><c:out value="${empty parking.prkplceNm ? '부설주차장 상세' : parking.prkplceNm}"/></div>

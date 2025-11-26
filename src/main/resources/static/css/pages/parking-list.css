@@ -211,6 +211,19 @@ article.card {
     position: relative;
 }
 
+article.card.parking-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.card-body.info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
 article.card:hover {
     transform: translateY(-2px);
     box-shadow: 0 12px 24px rgba(0,0,0,.12);
@@ -244,6 +257,27 @@ article.card:hover {
     border: 1px solid #e2e8f0;
 }
 
+.checkbox-wrap {
+    display: flex;
+    align-items: center;
+    margin-right: 10px;
+}
+
+.checkbox-wrap input[type="checkbox"] {
+    position: static !important;
+    width: 18px !important;
+    height: 18px !important;
+    margin: 0 6px 0 0 !important;
+    padding: 0 !important;
+    clip: auto !important;
+    overflow: visible !important;
+    opacity: 1 !important;
+    appearance: auto !important;
+    -webkit-appearance: checkbox !important;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
 /* ========== 카드 제목 ========== */
 .name {
     font-size: 18px;
@@ -254,15 +288,16 @@ article.card:hover {
 }
 
 /* ========== 카드 배지 영역 ========== */
-article.card > div:nth-child(3) {
+.card-body .card-meta {
     margin: 12px 0;
     display: flex;
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
+    font-size: 13px;
 }
 
-article.card .badge {
+.card-body .badge {
     display: inline-flex;
     align-items: center;
     padding: 6px 12px;
@@ -275,7 +310,7 @@ article.card .badge {
 }
 
 /* ========== 주소 정보 ========== */
-article.card > div:nth-child(4) {
+.card-body .location {
     color: var(--muted);
     font-size: 14px;
     margin: 8px 0;
@@ -426,7 +461,7 @@ article.card > div:nth-child(4) {
 }
 
 .card-meta {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--muted);
 }
 
@@ -549,15 +584,11 @@ a:hover {
 /* ========== 상세 영역/iframe 높이 보정 ========== */
 .detail-wrap{ min-height:60vh }
 .detail-wrap{ display:flex; flex-direction:column }
-.detail-tabs{ border-bottom:1px solid var(--line); padding:8px 12px; overflow:auto }
+.detail-tabs{ border-bottom:1px solid var(--line); padding:8px 12px; overflow:visible }
 .detail-tabs .tabs-list{ display:flex; gap:8px; flex-wrap:wrap }
 .detail-tabs .tab-btn{ white-space:nowrap }
 .detail-frames{ padding:8px 0 }
-.detail-frames iframe{ width:100%; display:block; border:0; min-height:700px }
-
-@media (min-width:1024px){
-    .detail-frames iframe{ min-height:calc(100vh - 220px) }
-}
+.detail-frames iframe{ width:100%; display:block; border:0; min-height:0; height:auto }
 
 /* ========== 상세 탭 패널 스타일 ========== */
 .tab-panels {
@@ -565,12 +596,12 @@ a:hover {
 }
 
 .tab-panel {
-    min-height: 400px;
+    min-height: auto;
 }
 
 .tab-panel iframe {
     width: 100%;
-    height: 100%;
+    height: auto;
     border: 0;
     border-radius: 8px;
     background: white;
@@ -583,4 +614,39 @@ a:hover {
     height: 400px;
     color: var(--muted);
     font-size: 16px;
+}
+
+/* 목록 화면 내부에서 띄우는 상세 탭/iframe의 세로 스크롤 제거 */
+.parking-detail-page .detail-tabs {
+    overflow: visible !important;
+}
+
+.parking-detail-page .detail-tabs .tab-panels,
+.parking-detail-page .detail-tabs .tab-panel,
+.parking-detail-page .tab-panels,
+.parking-detail-page .tab-panel,
+.parking-detail-page .detail-frames,
+.parking-detail-page .detail-frames iframe {
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+}
+
+.parking-detail-page .detail-frames iframe,
+.parking-detail-page .detail-tabs .tab-panel iframe {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+}
+
+/* 상세 카드/패널이 목록 탭 안에서 또 스크롤되지 않도록 한다 */
+.parking-detail-page .krds-card,
+.parking-detail-page .krds-card .wrap,
+.parking-detail-page .result-panel,
+.parking-detail-page .panel,
+.parking-detail-page .panel .panel-body,
+.parking-detail-page .card {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
 }

@@ -219,6 +219,23 @@ const $id = (id) => document.getElementById(id);
 const $one = (sel, root = document) => root.querySelector(sel);
 const $all = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
+function updateSendButtonState() {
+    const sendBtn = $id('sendBtn');
+    if (!sendBtn) return;
+    const checkedCount = document.querySelectorAll('input[name="selectedPrk"]:checked').length;
+    sendBtn.disabled = checkedCount === 0;
+}
+
+function syncSelectedFromDOM() {
+    const checkedValues = Array.from(document.querySelectorAll('input[name="selectedPrk"]:checked'))
+        .map(chk => chk.value);
+    selected.clear();
+    checkedValues.forEach(v => selected.add(v));
+    syncHeaderCheck();
+    updateSendButtonState();
+    return checkedValues;
+}
+
 /* =========================
    서버 데이터 로드
    ========================= */
@@ -351,7 +368,9 @@ function render() {
         return `
       <tr data-id="${r.manageNo}">
         <td class="num">${seq}</td>
-        <td class="check"><input type="checkbox" class="row-check" ${checked} aria-label="선택: ${r.nm}" /></td>
+        <td class="check">
+          <input type="checkbox" class="row-check" name="selectedPrk" value="${r.manageNo}" ${checked} aria-label="선택: ${r.nm}" />
+        </td>
         <td>${r.type}</td>
         <td>${FormatUtils.badgeStatus(r.status)}</td>
         <td>${r.sido}</td>
@@ -367,15 +386,25 @@ function render() {
     cards.innerHTML = pageRows.map(r => {
         const checked = selected.has(r.manageNo) ? 'checked' : '';
         return `
-      <article class="card" data-id="${r.manageNo}" aria-label="${r.nm}">
-        <div class="card-head">
-          <input type="checkbox" class="card-check" ${checked} aria-label="선택: ${r.nm}" />
-          <div class="muted">${r.manageNo}</div>
+      <article class="card parking-item" data-id="${r.manageNo}" aria-label="${r.nm}">
+        <label class="checkbox-wrap">
+          <input
+            type="checkbox"
+            class="card-check"
+            name="selectedPrk"
+            value="${r.manageNo}"
+            ${checked}
+            aria-label="선택: ${r.nm}" />
+        </label>
+        <div class="card-body info">
+          <div class="card-head">
+            <div class="muted">${r.manageNo}</div>
+          </div>
+          <div class="name">${r.nm}</div>
+          <div class="card-meta"><span class="badge">${r.type}</span> · ${FormatUtils.badgeStatus(r.status)}</div>
+          <div class="location muted">${r.sido} ${r.sigungu} ${r.emd}</div>
+          <div class="addr">${r.addr}</div>
         </div>
-        <div class="name">${r.nm}</div>
-        <div><span class="badge">${r.type}</span> · ${FormatUtils.badgeStatus(r.status)}</div>
-        <div class="muted">${r.sido} ${r.sigungu} ${r.emd}</div>
-        <div class="addr">${r.addr}</div>
       </article>`;
     }).join('');
 
@@ -386,6 +415,7 @@ function render() {
     bindRowChecks();
     bindCardChecks();
     bindOpenDetailHandlers(pageRows);
+    updateSendButtonState();
 }
 
 /* =========================
@@ -402,6 +432,7 @@ function bindRowChecks() {
             if (e.target.checked) selected.add(id);
             else selected.delete(id);
             syncHeaderCheck();
+            updateSendButtonState();
             const card = cards.querySelector(`.card[data-id="${id}"] .card-check`);
             if (card) card.checked = e.target.checked;
         });
@@ -422,6 +453,7 @@ function bindCardChecks() {
             const row = tbody.querySelector(`tr[data-id="${id}"] .row-check`);
             if (row) row.checked = e.target.checked;
             syncHeaderCheck();
+            updateSendButtonState();
         });
     });
 }
@@ -455,6 +487,7 @@ function syncHeaderCheck() {
                 if (cardChk) cardChk.checked = selected.has(id);
             });
             syncHeaderCheck();
+            updateSendButtonState();
         });
     }
 })();
@@ -545,12 +578,14 @@ async function exportCSV() {
 }
 
 async function sendSelected() {
-    if (selected.size === 0) {
+    const checkedValues = syncSelectedFromDOM();
+
+    if (checkedValues.length === 0) {
         toast('전송할 항목이 없습니다. (선택 0)');
         return;
     }
 
-    const parkingList = Array.from(selected).map(manageNo => {
+    const parkingList = checkedValues.map(manageNo => {
         const parking = DATA.find(p => p.manageNo === manageNo);
         return {
             prkPlceManageNo: manageNo,
@@ -565,7 +600,7 @@ async function sendSelected() {
 
     showConfirmModal({
         title: '전송 확인',
-        message: `선택한 ${selected.size}개의 주차장을 승인 대기 상태로 변경하시겠습니까?`,
+        message: `선택한 ${checkedValues.length}개의 주차장을 승인 대기 상태로 변경하시겠습니까?`,
         confirmText: '확인',
         cancelText: '취소',
         onConfirm: async () => {
@@ -577,6 +612,7 @@ async function sendSelected() {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
+                        selectedPrk: checkedValues,
                         parkingList: parkingList
                     })
                 });
@@ -597,6 +633,10 @@ async function sendSelected() {
                         checkAll.checked = false;
                         checkAll.indeterminate = false;
                     }
+                    document.querySelectorAll('input[name="selectedPrk"]').forEach(chk => {
+                        chk.checked = false;
+                    });
+                    updateSendButtonState();
 
                     // 데이터 새로고침
                     await loadDataFromServer();
@@ -965,6 +1005,7 @@ function openNewParkingTab(type) {
    ========================= */
 async function init() {
     $id('panelDetail')?.setAttribute('hidden', '');
+    updateSendButtonState();
 
     checkMapReturn();
 

@@ -15,6 +15,108 @@ function num(v) {
 const p = params();
 const serverStatusValue = (document.body?.dataset?.status || document.getElementById('statusCode')?.value || '').trim();
 
+// ========== 이미지 미리보기 ==========
+if (typeof ImagePreview === 'undefined') {
+    var ImagePreview = {
+        tooltip: null,
+        currentTimeout: null,
+        createTooltip() {
+            if (this.tooltip) return;
+            this.tooltip = document.createElement('div');
+            this.tooltip.id = 'image-tooltip';
+            this.tooltip.style.cssText = `
+                position: fixed;
+                display: none;
+                background: white;
+                border: 2px solid #ddd;
+                border-radius: 8px;
+                padding: 10px;
+                box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+                z-index: 10000;
+                max-width: 400px;
+                pointer-events: none;
+            `;
+            this.tooltip.innerHTML = `
+                <div class="tooltip-loading" style="text-align: center; padding: 20px;">
+                    <div style="
+                        width: 40px;
+                        height: 40px;
+                        border: 4px solid #f3f3f3;
+                        border-top: 4px solid #3b82f6;
+                        border-radius: 50%;
+                        margin: 0 auto;
+                        animation: spin 1s linear infinite;
+                    "></div>
+                    <p style="margin-top: 10px; color: #666; font-size: 14px;">이미지 로딩 중...</p>
+                </div>
+                <img class="tooltip-image" style="display: none; max-width: 100%; height: auto; border-radius: 4px;">
+                <p class="tooltip-filename" style="margin: 8px 0 0 0; font-size: 12px; color: #666; text-align: center;"></p>
+            `;
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            `;
+            document.head.appendChild(style);
+            document.body.appendChild(this.tooltip);
+        },
+        async show(prkPlceInfoSn, prkImgId, seqNo, fileName, event) {
+            this.createTooltip();
+            const loadingDiv = this.tooltip.querySelector('.tooltip-loading');
+            const img = this.tooltip.querySelector('.tooltip-image');
+            const fileNameEl = this.tooltip.querySelector('.tooltip-filename');
+            loadingDiv.style.display = 'block';
+            img.style.display = 'none';
+            fileNameEl.textContent = fileName || '';
+            this.updatePosition(event);
+            this.tooltip.style.display = 'block';
+            try {
+                const imageUrl = `/prk/photo?prkPlceInfoSn=${prkPlceInfoSn}&prkImgId=${prkImgId}&seqNo=${seqNo}`;
+                img.onload = () => {
+                    loadingDiv.style.display = 'none';
+                    img.style.display = 'block';
+                };
+                img.onerror = () => {
+                    loadingDiv.innerHTML = '<p style="color: #ef4444;">이미지를 불러올 수 없습니다</p>';
+                };
+                img.src = imageUrl;
+            } catch (error) {
+                loadingDiv.innerHTML = '<p style="color: #ef4444;">오류가 발생했습니다</p>';
+            }
+        },
+        updatePosition(event) {
+            if (!this.tooltip) return;
+            const offset = 15;
+            const x = event.clientX;
+            const y = event.clientY;
+            const tooltipRect = this.tooltip.getBoundingClientRect();
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            let left = x + offset;
+            let top = y + offset;
+            if (left + tooltipRect.width > vw) left = x - tooltipRect.width - offset;
+            if (top + tooltipRect.height > vh) top = y - tooltipRect.height - offset;
+            this.tooltip.style.left = `${left}px`;
+            this.tooltip.style.top = `${top}px`;
+        },
+        hide() {
+            if (this.tooltip) this.tooltip.style.display = 'none';
+            if (this.currentTimeout) {
+                clearTimeout(this.currentTimeout);
+                this.currentTimeout = null;
+            }
+        },
+        showWithDelay(prkPlceInfoSn, prkImgId, seqNo, fileName, event, delay = 300) {
+            if (this.currentTimeout) clearTimeout(this.currentTimeout);
+            this.currentTimeout = setTimeout(() => {
+                this.show(prkPlceInfoSn, prkImgId, seqNo, fileName, event);
+            }, delay);
+        }
+    };
+}
+
 // 🔥 숫자를 한국 통화 형식으로 포맷팅
 function formatCurrency(value) {
     const numValue = Number(value);
@@ -3669,19 +3771,18 @@ function renderUploadedList(photos) {
         const li = document.createElement('li');
         li.className = 'uploaded-file';
         const infoSn = p.prkPlceInfoSn || p.prk_plce_info_sn || document.querySelector('#prkPlceInfoSn')?.value;
-        const imgId = p.prkImgId || p.prk_img_id;
+        const imgId = p.prkImgId || p.prk_img_id || p.prkimgid;
         const seq = p.seqNo || p.seq_no || p.seqno;
         li.dataset.seqNo = seq ?? '';
         const name = p.realFileNm || p.real_file_nm || p.realfilenm || p.fileNm || p.file_nm || p.filename || p.fileName;
         li.textContent = name || '파일';
-        if (infoSn && imgId && seq != null) {
-            const url = `/prk/photo?prkPlceInfoSn=${infoSn}&prkImgId=${imgId}&seqNo=${seq}`;
-            li.style.cursor = 'pointer';
-            li.title = '미리보기';
-            li.addEventListener('mouseenter', (ev) => showHoverPreview(ev, url, name));
-            li.addEventListener('mousemove', positionHoverPreview);
-            li.addEventListener('mouseleave', hideHoverPreview);
-            li.addEventListener('click', () => window.open(url, '_blank'));
+        if (infoSn && imgId && seq != null && typeof ImagePreview?.showWithDelay === 'function') {
+            li.addEventListener('mouseenter', (e) => {
+                ImagePreview.showWithDelay(infoSn, imgId, seq, name, e, 300);
+            });
+            li.addEventListener('mouseleave', () => ImagePreview.hide && ImagePreview.hide());
+        } else if (!infoSn || !imgId || seq == null) {
+            console.warn('⚠️ 미리보기 데이터 누락:', {infoSn, imgId, seq});
         }
         list.appendChild(li);
     });

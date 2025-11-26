@@ -37,7 +37,7 @@
         window.initialParking = <%= parkingJson %>;
     </script>
 </head>
-<body data-status="${not empty statusCode ? statusCode : (empty param.status ? '' : param.status)}">
+<body class="parking-detail-page" data-status="${not empty statusCode ? statusCode : (empty param.status ? '' : param.status)}">
 <div id="toast-container"></div>
 <div class="wrap">
     <header class="card head">

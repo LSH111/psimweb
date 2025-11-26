@@ -81,14 +81,13 @@ function renderUploadedList(photos) {
         const infoSn = p.prkPlceInfoSn || p.prk_plce_info_sn;
         const imgId = p.prkImgId || p.prk_img_id;
         const seq = p.seqNo || p.seq_no;
-        if (infoSn && imgId && seq != null) {
-            const url = `/prk/photo?prkPlceInfoSn=${infoSn}&prkImgId=${imgId}&seqNo=${seq}`;
-            li.style.cursor = 'pointer';
-            li.title = '미리보기';
-            li.addEventListener('mouseenter', (ev) => showHoverPreview(ev, url, name));
-            li.addEventListener('mousemove', positionHoverPreview);
-            li.addEventListener('mouseleave', hideHoverPreview);
-            li.addEventListener('click', () => window.open(url, '_blank'));
+        if (infoSn && imgId && seq != null && typeof ImagePreview?.showWithDelay === 'function') {
+            li.addEventListener('mouseenter', (e) => {
+                ImagePreview.showWithDelay(infoSn, imgId, seq, name, e, 300);
+            });
+            li.addEventListener('mouseleave', () => ImagePreview.hide && ImagePreview.hide());
+        } else if (!infoSn || !imgId || seq == null) {
+            console.warn('⚠️ 미리보기 데이터 누락:', {infoSn, imgId, seq});
         }
         list.appendChild(li);
     });
@@ -2140,6 +2139,7 @@ function formatDate(dateString) {
 
 // ========== 🔥 전역 변수로 사업관리번호 저장 ==========
 let loadedBizMngNo = null; // 🔥 서버에서 로드한 사업관리번호 저장
+let loadedPrkPlceInfoSn = document.getElementById('prkPlceInfoSn')?.value || null;
 
 // ========== 🔥 폼에 데이터 바인딩 ==========
 async function bindDataToForm(data) {
@@ -2150,6 +2150,9 @@ async function bindDataToForm(data) {
 
     // 🔥 주차장정보일련번호 저장
     if (data.prkPlceInfoSn) {
+        loadedPrkPlceInfoSn = data.prkPlceInfoSn;
+        const hiddenInfoSn = document.getElementById('prkPlceInfoSn');
+        if (hiddenInfoSn) hiddenInfoSn.value = data.prkPlceInfoSn;
         // 🔥 사진 정보 로드
         await loadAndDisplayPhotos(data.prkPlceInfoSn);
     }
@@ -3266,6 +3269,11 @@ async function doSave() {
         if (result.success) {
             const hiddenInfoSn = document.getElementById('prkPlceInfoSn')?.value;
             const infoSn = result.prkPlceInfoSn || hiddenInfoSn || loadedPrkPlceInfoSn;
+            if (infoSn) {
+                loadedPrkPlceInfoSn = infoSn;
+                const hidden = document.getElementById('prkPlceInfoSn');
+                if (hidden) hidden.value = infoSn;
+            }
             await reloadParkingPhotos(infoSn);
             handlePostSave(isNewRecord, '/prk/parkinglist');
         } else {
@@ -3469,10 +3477,13 @@ function mapPayloadToServerFormat(payload) {
 
     const isNewRecord = !payload.id || payload.id.trim() === '';
     const prkBizMngNo = isNewRecord ? null : loadedBizMngNo;
+    const hiddenInfoSn = document.getElementById('prkPlceInfoSn')?.value || null;
+    const prkPlceInfoSn = isNewRecord ? null : (payload.prkPlceInfoSn || hiddenInfoSn || loadedPrkPlceInfoSn || null);
 
     const serverData = {
         /* ========== Basic Information ========== */
         prkPlceManageNo: payload.id || null,
+        prkPlceInfoSn: prkPlceInfoSn,
         prkplceNm: payload.name || '',
         prgsStsCd: payload.status || '10',
         prkPlceType: '1',

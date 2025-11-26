@@ -808,3 +808,32 @@ textarea{min-height:80px; resize:vertical}
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
+
+/* 부설 주차장 상세화면: 내부 .main 스크롤 제거, 브라우저 전체 스크롤 사용 */
+.parking-detail-page .main {
+    overflow-y: visible !important;
+    max-height: none !important;
+    height: auto !important;
+}
+
+/* 부설 상세: 카드/패널/탭 컨테이너는 높이 제한/스크롤 없이 확장 */
+.parking-detail-page .card,
+.parking-detail-page .panel,
+.parking-detail-page .panel-body,
+.parking-detail-page .section,
+.parking-detail-page .row {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+}
+
+/* 탭/iframe 래퍼들의 세로 스크롤 제거 (상세 탭으로 열릴 때) */
+.parking-detail-page .tab-panels,
+.parking-detail-page .tab-panel,
+.parking-detail-page .tab-panel iframe,
+.parking-detail-page .detail-frames,
+.parking-detail-page .detail-frames iframe {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+}
