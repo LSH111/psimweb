@@ -5,16 +5,70 @@
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
 
+let hoverPreviewDiv = null;
+
 function params() {
     const sp = new URLSearchParams(location.search);
     return new Proxy({}, {get: (_, k) => sp.get(k) || ''});
 }
 
+function ensureHoverPreview() {
+    if (hoverPreviewDiv) return hoverPreviewDiv;
+    const div = document.createElement('div');
+    div.style.position = 'fixed';
+    div.style.zIndex = '9999';
+    div.style.pointerEvents = 'none';
+    div.style.padding = '6px';
+    div.style.background = '#fff';
+    div.style.border = '1px solid #d1d5db';
+    div.style.borderRadius = '4px';
+    div.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+    div.style.display = 'none';
+    div.innerHTML = '<div style="font-size:12px;color:#374151;margin-top:4px;"></div>';
+    document.body.appendChild(div);
+    hoverPreviewDiv = div;
+    return div;
+}
+
+function showHoverPreview(e, url, name) {
+    const div = ensureHoverPreview();
+    div.style.display = 'block';
+    const img = document.createElement('img');
+    img.src = url;
+    img.style.maxWidth = '240px';
+    img.style.maxHeight = '180px';
+    img.style.display = 'block';
+    img.style.objectFit = 'contain';
+    div.innerHTML = '';
+    div.appendChild(img);
+    const caption = document.createElement('div');
+    caption.textContent = name || '';
+    caption.style.fontSize = '12px';
+    caption.style.color = '#374151';
+    caption.style.marginTop = '4px';
+    div.appendChild(caption);
+    positionHoverPreview(e);
+}
+
+function hideHoverPreview() {
+    if (hoverPreviewDiv) hoverPreviewDiv.style.display = 'none';
+}
+
+function positionHoverPreview(e) {
+    if (!hoverPreviewDiv) return;
+    const offset = 12;
+    const maxW = window.innerWidth;
+    const maxH = window.innerHeight;
+    let left = e.clientX + offset;
+    let top = e.clientY + offset;
+    const rect = hoverPreviewDiv.getBoundingClientRect();
+    if (left + rect.width > maxW) left = e.clientX - rect.width - offset;
+    if (top + rect.height > maxH) top = e.clientY - rect.height - offset;
+    hoverPreviewDiv.style.left = `${left}px`;
+    hoverPreviewDiv.style.top = `${top}px`;
+}
+
 function renderUploadedList(photos) {
-    if (typeof window.renderUploadedList === 'function') {
-        window.renderUploadedList(photos, '#uploadedFileList');
-        return;
-    }
     const list = document.querySelector('#uploadedFileList');
     if (!list) return;
     list.innerHTML = '';
@@ -22,12 +76,25 @@ function renderUploadedList(photos) {
         const li = document.createElement('li');
         li.className = 'uploaded-file';
         li.dataset.seqNo = p.seqNo || p.seq_no || '';
-        const realName = p.realFileNm || p.real_file_nm;
-        const serverName = p.fileNm || p.file_nm || p.fileName;
-        li.textContent = realName || serverName || '파일';
+        const name = p.realFileNm || p.real_file_nm || p.realfilenm || p.fileNm || p.file_nm || p.filename || p.fileName;
+        li.textContent = name || '파일';
+        const infoSn = p.prkPlceInfoSn || p.prk_plce_info_sn;
+        const imgId = p.prkImgId || p.prk_img_id;
+        const seq = p.seqNo || p.seq_no;
+        if (infoSn && imgId && seq != null) {
+            const url = `/prk/photo?prkPlceInfoSn=${infoSn}&prkImgId=${imgId}&seqNo=${seq}`;
+            li.style.cursor = 'pointer';
+            li.title = '미리보기';
+            li.addEventListener('mouseenter', (ev) => showHoverPreview(ev, url, name));
+            li.addEventListener('mousemove', positionHoverPreview);
+            li.addEventListener('mouseleave', hideHoverPreview);
+            li.addEventListener('click', () => window.open(url, '_blank'));
+        }
         list.appendChild(li);
     });
 }
+// 보조: 전역 노출 보장
+window.renderUploadedList = renderUploadedList;
 
 async function reloadParkingPhotos(infoSn) {
     if (!infoSn) return;
@@ -1951,7 +2018,7 @@ async function loadAndDisplayPhotos(prkPlceInfoSn) {
             }
 
             // 현장 사진 표시
-            const mainPhotos = result.photos.filter(p => p.prkimgid === 'ON_MAIN');
+            const mainPhotos = result.photos.filter(p => p.prkImgId === 'ON_MAIN');
             if (photoInfoDiv && mainPhotos.length > 0) {
                 mainPhotos.forEach(photo => {
                     displayPhotoInfo('photo_info', photo);
@@ -1959,7 +2026,7 @@ async function loadAndDisplayPhotos(prkPlceInfoSn) {
             }
 
             // 표지판 사진 표시
-            const signPhotos = result.photos.filter(p => p.prkimgid === 'ON_SIGN');
+            const signPhotos = result.photos.filter(p => p.prkImgId === 'ON_SIGN');
             if (signPhotoInfoDiv && signPhotos.length > 0) {
                 signPhotos.forEach(photo => {
                     displayPhotoInfo('sign_photo_info', photo);
@@ -1984,7 +2051,7 @@ function displayPhotoInfo(containerId, photoData) {
         return;
     }
     // 🔥 데이터 검증 - null/undefined 체크
-    if (!photoData.prkplceinfosn || !photoData.prkimgid || photoData.seqno === null || photoData.seqno === undefined) {
+    if (!photoData.prkPlceInfoSn || !photoData.prkImgId || photoData.seqNo === null || photoData.seqNo === undefined) {
         console.error('❌ 필수 데이터 누락:', photoData);
         return;
     }
@@ -2007,9 +2074,9 @@ function displayPhotoInfo(containerId, photoData) {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
             </svg>
             <div style="flex: 1;">
-                <div style="font-size: 14px; color: #374151; font-weight: 500;">${photoData.realfilenm}</div>
+                <div style="font-size: 14px; color: #374151; font-weight: 500;">${photoData.realFileNm || photoData.real_file_nm || photoData.fileNm}</div>
                 <div style="font-size: 12px; color: #9ca3af; margin-top: 2px;">
-                    등록일: ${formatDate(photoData.regdt)} · seqNo: ${photoData.seqno}
+                    등록일: ${formatDate(photoData.regDt)} · seqNo: ${photoData.seqNo}
                 </div>
             </div>
         </div>
@@ -2018,7 +2085,7 @@ function displayPhotoInfo(containerId, photoData) {
     // 🔥 클릭 이벤트 - 한 번만 등록
     infoDiv.onclick = function (e) {
         e.stopPropagation();
-        const url = `/prk/photo?prkPlceInfoSn=${photoData.prkplceinfosn}&prkImgId=${photoData.prkimgid}&seqNo=${photoData.seqno}`;
+        const url = `/prk/photo?prkPlceInfoSn=${photoData.prkPlceInfoSn}&prkImgId=${photoData.prkImgId}&seqNo=${photoData.seqNo}`;
         window.open(url, '_blank');
     };
 
@@ -2027,10 +2094,10 @@ function displayPhotoInfo(containerId, photoData) {
         infoDiv.style.background = '#f3f4f6';
         infoDiv.style.borderColor = '#d1d5db';
         ImagePreview.showWithDelay(
-            photoData.prkplceinfosn,
-            photoData.prkimgid,
-            photoData.seqno,
-            photoData.realfilenm,
+            photoData.prkPlceInfoSn,
+            photoData.prkImgId,
+            photoData.seqNo,
+            photoData.realFileNm || photoData.real_file_nm || photoData.fileNm,
             e,
             300
         );

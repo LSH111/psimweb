@@ -2286,7 +2286,8 @@ async function doSave() {
         if (result.success) {
             const hiddenInfoSn = document.getElementById('prkPlceInfoSn')?.value || loadedPrkPlceInfoSn;
             const infoSn = result.prkPlceInfoSn || hiddenInfoSn;
-            await reloadParkingPhotos(infoSn);
+            if (infoSn) document.getElementById('prkPlceInfoSn').value = infoSn;
+            if (infoSn) await reloadParkingPhotos(infoSn);
             handlePostSave(isNewRecord, '/prk/parkinglist');
         } else {
             alert('❌ 저장 실패: ' + (result.message || '알 수 없는 오류'));
@@ -2629,24 +2630,91 @@ function handlePostSave(isNew) {
 }
 
 // ========== 🔥 파일 목록 렌더/재조회 ==========
+let hoverPreviewDiv = null;
+
+function ensureHoverPreview() {
+    if (hoverPreviewDiv) return hoverPreviewDiv;
+    const div = document.createElement('div');
+    div.style.position = 'fixed';
+    div.style.zIndex = '9999';
+    div.style.pointerEvents = 'none';
+    div.style.padding = '6px';
+    div.style.background = '#fff';
+    div.style.border = '1px solid #d1d5db';
+    div.style.borderRadius = '4px';
+    div.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+    div.style.display = 'none';
+    div.innerHTML = '<div style="font-size:12px;color:#374151;margin-top:4px;"></div>';
+    document.body.appendChild(div);
+    hoverPreviewDiv = div;
+    return div;
+}
+
+function showHoverPreview(e, url, name) {
+    const div = ensureHoverPreview();
+    div.style.display = 'block';
+    const img = document.createElement('img');
+    img.src = url;
+    img.style.maxWidth = '240px';
+    img.style.maxHeight = '180px';
+    img.style.display = 'block';
+    img.style.objectFit = 'contain';
+    div.innerHTML = '';
+    div.appendChild(img);
+    const caption = document.createElement('div');
+    caption.textContent = name || '';
+    caption.style.fontSize = '12px';
+    caption.style.color = '#374151';
+    caption.style.marginTop = '4px';
+    div.appendChild(caption);
+    positionHoverPreview(e);
+}
+
+function hideHoverPreview() {
+    if (hoverPreviewDiv) hoverPreviewDiv.style.display = 'none';
+}
+
+function positionHoverPreview(e) {
+    if (!hoverPreviewDiv) return;
+    const offset = 12;
+    const maxW = window.innerWidth;
+    const maxH = window.innerHeight;
+    let left = e.clientX + offset;
+    let top = e.clientY + offset;
+    const rect = hoverPreviewDiv.getBoundingClientRect();
+    if (left + rect.width > maxW) left = e.clientX - rect.width - offset;
+    if (top + rect.height > maxH) top = e.clientY - rect.height - offset;
+    hoverPreviewDiv.style.left = `${left}px`;
+    hoverPreviewDiv.style.top = `${top}px`;
+}
+
 function renderUploadedList(photos) {
-    if (typeof window.renderUploadedList === 'function') {
-        window.renderUploadedList(photos, '#uploadedFileList');
-        return;
-    }
     const list = document.querySelector('#uploadedFileList');
     if (!list) return;
     list.innerHTML = '';
     (photos || []).forEach(p => {
         const li = document.createElement('li');
         li.className = 'uploaded-file';
-        li.dataset.seqNo = p.seqNo || p.seq_no || '';
-        const realName = p.realFileNm || p.real_file_nm;
-        const serverName = p.fileNm || p.file_nm || p.fileName;
-        li.textContent = realName || serverName || '파일';
+        const infoSn = p.prkPlceInfoSn || p.prk_plce_info_sn || document.querySelector('#prkPlceInfoSn')?.value;
+        const imgId = p.prkImgId || p.prk_img_id;
+        const seq = p.seqNo || p.seq_no || p.seqno;
+        li.dataset.seqNo = seq ?? '';
+        const name = p.realFileNm || p.real_file_nm || p.realfilenm || p.fileNm || p.file_nm || p.filename || p.fileName;
+        li.textContent = name || '파일';
+        if (infoSn && imgId && seq != null) {
+            const url = `/prk/photo?prkPlceInfoSn=${infoSn}&prkImgId=${imgId}&seqNo=${seq}`;
+            li.style.cursor = 'pointer';
+            li.title = '미리보기';
+            li.addEventListener('mouseenter', (ev) => showHoverPreview(ev, url, name));
+            li.addEventListener('mousemove', positionHoverPreview);
+            li.addEventListener('mouseleave', hideHoverPreview);
+            li.addEventListener('click', () => window.open(url, '_blank'));
+        }
         list.appendChild(li);
     });
 }
+// 보조: 전역에 확실히 노출
+window.renderUploadedList = renderUploadedList;
 
 async function reloadParkingPhotos(infoSn) {
     if (!infoSn) return;

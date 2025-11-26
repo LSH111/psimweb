@@ -751,7 +751,7 @@
     <!-- 🔥 부설주차장 운영 정보 업데이트 (tb_atch_prklot_oper_info) -->
     <update id="updateAtchPrklotOperInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
         UPDATE cpk.tb_atch_prklot_oper_info
-        SET prklot_sign_yn       = #{prklotSignYn}
+        SET prklot_sign_cd       = #{prklotSignCd}
           , tckt_mchn_yn         = #{tcktMchnYn}
           , barr_gte_yn          = #{barrGteYn}
           , exit_alrm_yn         = #{exitAlrmYn}

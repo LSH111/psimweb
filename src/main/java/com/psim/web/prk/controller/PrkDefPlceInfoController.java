@@ -172,7 +172,7 @@ public class PrkDefPlceInfoController {
     /**
      * 🔥 노상주차장 정보 저장/수정 (파일 업로드 포함) - 수정
      */
-    @PostMapping("/onparking-update")
+    @PostMapping(value = "/onparking-update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, Object>> updateOnstreetParking(
             @RequestPart("parkingData") String parkingDataJson,
             @RequestPart(value = "mainPhoto", required = false) MultipartFile mainPhoto,
@@ -382,7 +382,7 @@ public class PrkDefPlceInfoController {
     /**
      * 🔥 노외주차장 정보 저장/수정 (파일 업로드 포함)
      */
-    @PostMapping("/offparking-update")
+    @PostMapping(value = "/offparking-update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, Object>> updateOffstreetParking(
             @RequestPart("parkingData") String parkingDataJson,
             @RequestPart(value = "mainPhoto", required = false) MultipartFile mainPhoto,
@@ -586,6 +586,7 @@ public class PrkDefPlceInfoController {
             response.put("success", true);
             response.put("message", isNewRecord ? "신규 등록되었습니다." : "수정되었습니다.");
             response.put("prkPlceManageNo", parkingData.getPrkPlceManageNo());
+            response.put("prkPlceInfoSn", parkingData.getPrkPlceInfoSn());
 
             log.info("✅✅✅ 노외주차장 저장 완료");
 
@@ -624,7 +625,7 @@ public class PrkDefPlceInfoController {
     /**
      * 🔥 부설주차장 정보 저장/수정 (파일 업로드 포함)
      */
-    @PostMapping("/buildparking-update")
+    @PostMapping(value = "/buildparking-update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, Object>> updateBuildParking(
             @RequestPart("parkingData") String parkingDataJson,
             @RequestPart(value = "mainPhoto", required = false) MultipartFile mainPhoto,
@@ -819,6 +820,7 @@ public class PrkDefPlceInfoController {
             response.put("success", true);
             response.put("message", isNewRecord ? "신규 등록되었습니다." : "수정되었습니다.");
             response.put("prkPlceManageNo", parkingData.getPrkPlceManageNo());
+            response.put("prkPlceInfoSn", parkingData.getPrkPlceInfoSn());
 
             log.info("✅✅✅ 부설주차장 저장 완료");
 
