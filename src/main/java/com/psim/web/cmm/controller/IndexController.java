@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.util.HashMap;
 import java.util.Map;
@@ -81,7 +82,40 @@ public class IndexController {
     }
 
     @GetMapping("/gis/parkingmap")
-    public String parkingmap() {
+    public String parkingmap(Model model, HttpServletRequest request) {
+        String loginSidoNm = null;
+        String loginSigunguNm = null;
+        String loginSidoCd = null;
+        String loginSigunguCd = null;
+
+        // 세션에 저장된 로그인 지역 정보 우선 사용
+        if (request != null) {
+            Object sidoNmAttr = request.getSession().getAttribute("loginSidoNm");
+            Object sigunguNmAttr = request.getSession().getAttribute("loginSigunguNm");
+            Object sidoCdAttr = request.getSession().getAttribute("sido_cd");
+            Object sigunguCdAttr = request.getSession().getAttribute("sigungu_cd");
+            if (sidoNmAttr != null) loginSidoNm = String.valueOf(sidoNmAttr);
+            if (sigunguNmAttr != null) loginSigunguNm = String.valueOf(sigunguNmAttr);
+            if (sidoCdAttr != null) loginSidoCd = String.valueOf(sidoCdAttr);
+            if (sigunguCdAttr != null) loginSigunguCd = String.valueOf(sigunguCdAttr);
+        }
+
+        // 로그인 사용자 세션 객체에서 코드 보강
+        HttpSession session = request != null ? request.getSession(false) : null;
+        if (session != null) {
+            Object loginUserObj = session.getAttribute("loginUser");
+            if (loginUserObj instanceof CoUserVO) {
+                CoUserVO u = (CoUserVO) loginUserObj;
+                if (loginSidoCd == null && u.getSidoCd() != null) loginSidoCd = u.getSidoCd();
+                if (loginSigunguCd == null && u.getSigunguCd() != null) loginSigunguCd = u.getSigunguCd();
+            }
+        }
+
+        model.addAttribute("loginSidoNm", loginSidoNm);
+        model.addAttribute("loginSigunguNm", loginSigunguNm);
+        model.addAttribute("loginSidoCd", loginSidoCd);
+        model.addAttribute("loginSigunguCd", loginSigunguCd);
+
         return "/gis/parkingmap";
     }
 

@@ -67,7 +67,7 @@ public class LoginController {
 
         if (loginUser == null) {
             System.out.println("❌ 로그인 실패: 잘못된 인증 정보");
-            redirectAttributes.addFlashAttribute("finalErr", "아이디 또는 비밀번호가 일치하지 않습니다.");
+            redirectAttributes.addFlashAttribute("finalErr", "아이디 혹은 비밀번호가 잘못되었습니다.");
             return "redirect:/";
         }
         // 1. 세션 고정 공격 방지를 위해 기존 세션을 무효화하고 새로운 세션을 생성합니다.

@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/pages/offparking.css"/>
 
     <!-- 외부 라이브러리 -->
-    <script src="https://cdn.jsdelivr.net/npm/exifr@7/dist/full.umd.js"></script>
+    <script src="${pageContext.request.contextPath}/static/vendor/exifr/full.umd.js"></script>
     <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
     <c:set var="statusCode" value="${empty param.status ? '' : param.status}"/>
     <c:set var="isApproved" value="${statusCode eq '30'}"/>

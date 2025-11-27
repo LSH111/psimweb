@@ -897,6 +897,10 @@ public class PrkDefPlceInfoController {
         Map<String, Object> result = new HashMap<>();
 
         try {
+            // 공백 제거
+            if (sidoCd != null) sidoCd = sidoCd.trim();
+            if (sigunguCd != null) sigunguCd = sigunguCd.trim();
+
             log.info("🔍 지도용 주차장 데이터 조회 - sidoCd: {}, sigunguCd: {}", sidoCd, sigunguCd);
 
             // 🔥 세션에서 userBizList 가져오기
@@ -911,10 +915,12 @@ public class PrkDefPlceInfoController {
             // 🔥 시도/시군구 파라미터 추가
             if (sidoCd != null && !sidoCd.isEmpty()) {
                 params.put("sidoCd", sidoCd);
+                params.put("sido", sidoCd); // 구 키 호환
                 log.info("✅ 시도 필터 적용: {}", sidoCd);
             }
             if (sigunguCd != null && !sigunguCd.isEmpty()) {
                 params.put("sigunguCd", sigunguCd);
+                params.put("sigungu", sigunguCd); // 구 키 호환
                 log.info("✅ 시군구 필터 적용: {}", sigunguCd);
             }
 

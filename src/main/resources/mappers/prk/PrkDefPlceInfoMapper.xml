@@ -13,11 +13,12 @@
                     #{bizNo}
                 </foreach>
             </if>
-            <if test="sido != null and sido != ''">
-                AND tcl.sido_cd = #{sido}
+            <!-- 시도/시군구 필터: sidoCd/sigunguCd 우선, 구 키(sido/sigungu)도 호환 -->
+            <if test="(sidoCd != null and sidoCd != '') or (sido != null and sido != '')">
+                AND tcl.sido_cd = CASE WHEN #{sidoCd} IS NOT NULL AND #{sidoCd} != '' THEN #{sidoCd} ELSE #{sido} END
             </if>
-            <if test="sigungu != null and sigungu != ''">
-                AND tcl.sigungu_cd = #{sigungu}
+            <if test="(sigunguCd != null and sigunguCd != '') or (sigungu != null and sigungu != '')">
+                AND tcl.sigungu_cd = CASE WHEN #{sigunguCd} IS NOT NULL AND #{sigunguCd} != '' THEN #{sigunguCd} ELSE #{sigungu} END
             </if>
             <if test="emd != null and emd != ''">
                 AND tcl.emd_cd = #{emd}
@@ -40,6 +41,7 @@
         tpdpi.zip as zip,
         tpdpi.dtadd as dtadd,
         tcu.user_nm as userNm,
+        tpdpi.prk_plce_type as prkPlceTypeCd,
         cpk.FN_GET_CODE_NM(tpdpi.prk_plce_type, 'P_PRKPLCE_SE') as prkPlceType,
         tpdpi.prkplce_nm as prkplceNm,
         tbppi.biz_per_prk_mng_no as bizPerPrkMngNo,

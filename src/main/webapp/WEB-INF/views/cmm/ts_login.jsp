@@ -88,7 +88,7 @@
             <!-- 4) 최종 로그인 (OTP 성공해야 활성화) -->
             <section id="secFinal" class="step hide krds-form__section" aria-labelledby="step4-title">
                 <h2 id="step4-title" class="sr-only">최종 로그인</h2>
-                <div id="finalErr" class="error hide" aria-live="polite"></div>
+                <div id="finalErr" class="error hide" aria-live="polite"><c:out value="${finalErr}"/></div>
                 <div class="row" style="justify-content:flex-end; margin-top:12px;">
                     <button id="finalLoginBtn" class="btn btn-primary btn-lg" type="button" disabled>로그인</button>
                 </div>
