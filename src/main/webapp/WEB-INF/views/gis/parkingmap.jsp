@@ -8,6 +8,11 @@
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
     <title>주차장 지도</title>
 
+    <script type="text/javascript">
+        // 컨텍스트 경로 (예: /spis)
+        const contextPath = '${pageContext.request.contextPath}';
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js" crossorigin="anonymous"></script>
     <!-- Kakao Maps JS -->
     <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=a1194f70f6ecf2ece7a703a4a07a0876&libraries=services"></script>
 
@@ -513,21 +518,24 @@
         }, 5000);
     }
 
-    // 시도 목록 로드
-    async function loadSidoList(defaultSidoCd) {
-        try {
-            const response = await fetch('/cmm/codes/sido');
-            const result = await response.json();
-            const sidoSelect = document.getElementById('searchSido');
+    // 시도 목록 로드 (항상 호출)
+    function loadSidoList(defaultSidoCd) {
+        const sidoSelect = document.getElementById('searchSido');
 
-            if (!sidoSelect) {
-                console.error('❌ searchSido 엘리먼트를 찾을 수 없습니다');
-                return;
-            }
+        if (!sidoSelect) {
+            console.error('❌ searchSido 엘리먼트를 찾을 수 없습니다');
+            return $.Deferred().resolve();
+        }
 
-            sidoSelect.innerHTML = '<option value="">시도 선택</option>';
+        sidoSelect.innerHTML = '<option value="">시도 선택</option>';
+        sidoSelect.disabled = true;
 
-            if (result.success && result.data) {
+        return $.ajax({
+            url: contextPath + '/cmm/codes/sido',
+            type: 'GET',
+            dataType: 'json'
+        }).done(function (result) {
+            if (result && result.success && result.data) {
                 result.data.forEach(item => {
                     const option = document.createElement('option');
                     option.value = item.codeCd;
@@ -538,35 +546,40 @@
                     sidoSelect.value = defaultSidoCd;
                     const defaultSigunguCd = document.getElementById('loginSigunguCd')?.value;
                     if (defaultSigunguCd) {
-                        await loadSigunguList(defaultSidoCd, defaultSigunguCd);
+                        loadSigunguList(defaultSidoCd, defaultSigunguCd);
                     }
                 }
                 console.log('✅ 시도 목록 로드 완료:', result.data.length + '개');
             }
-        } catch (error) {
-            console.error('❌ 시도 목록 로드 실패:', error);
-        }
+        }).fail(function (xhr, status, error) {
+            console.error('❌ 시도 목록 로드 실패:', status, error, xhr.responseText);
+            showMessage('❌ 시도 목록을 불러올 수 없습니다', 'error');
+        }).always(function () {
+            sidoSelect.disabled = false;
+        });
     }
 
     // 시군구 목록 로드
-    async function loadSigunguList(sidoCd, defaultSigunguCd) {
-        try {
-            const sigunguSelect = document.getElementById('searchSigungu');
+    function loadSigunguList(sidoCd, defaultSigunguCd) {
+        const sigunguSelect = document.getElementById('searchSigungu');
 
-            if (!sigunguSelect) {
-                console.error('❌ searchSigungu 엘리먼트를 찾을 수 없습니다');
-                return;
-            }
+        if (!sigunguSelect) {
+            console.error('❌ searchSigungu 엘리먼트를 찾을 수 없습니다');
+            return $.Deferred().resolve();
+        }
 
-            sigunguSelect.innerHTML = '<option value="">시군구 선택</option>';
-            sigunguSelect.disabled = true;
+        sigunguSelect.innerHTML = '<option value="">시군구 선택</option>';
+        sigunguSelect.disabled = true;
 
-            if (!sidoCd) return;
+        if (!sidoCd) return $.Deferred().resolve();
 
-            const response = await fetch(`/cmm/codes/sigungu?sidoCd=${sidoCd}`);
-            const result = await response.json();
-
-            if (result.success && result.data) {
+        return $.ajax({
+            url: contextPath + '/cmm/codes/sigungu',
+            type: 'GET',
+            dataType: 'json',
+            data: {sido: sidoCd, sidoCd: sidoCd}
+        }).done(function (result) {
+            if (result && result.success && result.data) {
                 result.data.forEach(item => {
                     const option = document.createElement('option');
                     option.value = item.codeCd;
@@ -579,9 +592,10 @@
                 sigunguSelect.disabled = false;
                 console.log('✅ 시군구 목록 로드 완료:', result.data.length + '개');
             }
-        } catch (error) {
-            console.error('❌ 시군구 목록 로드 실패:', error);
-        }
+        }).fail(function (xhr, status, error) {
+            console.error('❌ 시군구 목록 로드 실패:', status, error, xhr.responseText);
+            showMessage('❌ 시군구 목록을 불러올 수 없습니다', 'error');
+        });
     }
 
     async function searchParkingByRegion() {
@@ -609,17 +623,17 @@
         try {
             showMessage('🔍 주차장 검색 중...', 'info');
 
-            const params = new URLSearchParams();
-            params.append('sidoCd', sidoCd);
+            const params = {sidoCd: sidoCd};
+            if (sigunguCd) params.sigunguCd = sigunguCd;
 
-            if (sigunguCd) {
-                params.append('sigunguCd', sigunguCd);
-            }
+            console.log('📤 전송 파라미터:', params);
 
-            console.log('📤 전송 파라미터:', params.toString());
-
-            const response = await fetch(`/prk/parking-map-data?${params}`);
-            const result = await response.json();
+            const result = await $.ajax({
+                url: contextPath + '/prk/parking-map-data',
+                type: 'GET',
+                dataType: 'json',
+                data: params
+            });
 
             console.log('📥 응답 데이터:', result);
 
@@ -879,7 +893,7 @@
         sessionStorage.setItem('parkingMapSido', sidoCd);
         sessionStorage.setItem('parkingMapSigungu', sigunguCd);
 
-        const url = '/prk/parkinglist?openDetail=' + encodeURIComponent(prkPlceManageNo) +
+        const url = contextPath + '/prk/parkinglist?openDetail=' + encodeURIComponent(prkPlceManageNo) +
             '&type=' + encodeURIComponent(prkPlceType);
         window.location.href = url;
     }

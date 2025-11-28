@@ -1,6 +1,16 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <link rel="icon" href="${pageContext.request.contextPath}/static/favicon.ico"/>
+<script>
+    // 전역 컨텍스트 경로 노출
+    (function() {
+        const serverCtx = ('${pageContext.request.contextPath}' || '').replace(/\/$/, '');
+        const locMatch = window.location.pathname.match(/^\/[^/]+/);
+        const locCtx = locMatch ? locMatch[0] : '';
+        // 접속 경로와 서버 컨텍스트가 다르면 접속 경로 우선
+        window.contextPath = window.contextPath || (locCtx && locCtx !== '/' && locCtx !== serverCtx ? locCtx : serverCtx);
+    })();
+</script>
 <style>
     /* GNB two-level menu */
     nav .gnb { list-style:none; margin:0; padding:0; display:flex; gap: 20px; }

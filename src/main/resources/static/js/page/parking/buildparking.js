@@ -3,6 +3,16 @@
 // ========== 유틸 ==========
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
+const __CTX = (() => {
+    if (window.contextPath) return window.contextPath.replace(/\/$/, '');
+    const match = window.location.pathname.match(/^\/[^/]+/);
+    return match ? match[0] : '';
+})();
+const withBase = (url) => {
+    if (!url || url.startsWith('http://') || url.startsWith('https://') || url.startsWith('//')) return url;
+    if (__CTX && url.startsWith('/')) return `${__CTX}${url}`;
+    return url;
+};
 
 function params() {
     const sp = new URLSearchParams(location.search);
@@ -213,7 +223,7 @@ const RegionCodeLoader = {
     // 진행상태 로드
     async loadProgressStatus() {
         try {
-            const response = await fetch('/cmm/codes/status');
+            const response = await fetch(withBase('/cmm/codes/status'));
             const result = await response.json();
 
             const statusSelect = $('#f_status');
@@ -236,7 +246,7 @@ const RegionCodeLoader = {
     // 시도 목록 로드
     async loadSidoList() {
         try {
-            const response = await fetch('/cmm/codes/sido');
+            const response = await fetch(withBase('/cmm/codes/sido'));
             const result = await response.json();
 
             const sidoSelect = $('#f_sido');
@@ -273,7 +283,7 @@ const RegionCodeLoader = {
                 return;
             }
 
-            const response = await fetch(`/cmm/codes/sigungu?sidoCd=${sidoCd}`);
+            const response = await fetch(withBase(`/cmm/codes/sigungu?sidoCd=${sidoCd}`));
             const result = await response.json();
 
             if (result.success && result.data) {
@@ -303,7 +313,7 @@ const RegionCodeLoader = {
                 return;
             }
 
-            const response = await fetch(`/cmm/codes/emd?sigunguCd=${sigunguCd}`);
+            const response = await fetch(withBase(`/cmm/codes/emd?sigunguCd=${sigunguCd}`));
             const result = await response.json();
 
             if (result.success && result.data) {
@@ -343,7 +353,7 @@ const RegionCodeLoader = {
 const CodeLoader = {
     async loadDynamicCodes() {
         try {
-            const response = await fetch('/cmm/codes/dynamic-groups');
+            const response = await fetch(withBase('/cmm/codes/dynamic-groups'));
             const result = await response.json();
 
             if (result.success && result.groups) {
@@ -1897,12 +1907,6 @@ async function populateFormWithData(data) {
     }
 
     // 주차관리 시설 정보
-        표지판: data.prklotSignCd,
-        발권기: data.tcktMchnYn,
-        차단기: data.barrGteYn,
-        출차알람: data.exitAlrmYn,
-        차량인식: data.vehRcgnTpCd
-    });
 
     if (data.prklotSignCd) {
         const signRadio = document.querySelector(`input[name="parkingSign"][value="${data.prklotSignCd}"]`);
@@ -2090,7 +2094,7 @@ function setAllFieldsReadOnly(isReadOnly) {
 // 🔥 좌표로 행정구역 정보 가져오기
 async function convertCoordToRegion(longitude, latitude) {
     try {
-        const response = await fetch(`/api/kakao/coord2region?longitude=${longitude}&latitude=${latitude}`);
+        const response = await fetch(withBase(`/api/kakao/coord2region?longitude=${longitude}&latitude=${latitude}`));
         const result = await response.json();
 
         if (result.success) {
@@ -2121,7 +2125,7 @@ async function convertCoordToRegion(longitude, latitude) {
 // 🔥 좌표를 주소로 변환하는 함수 (우편번호 포함)
 async function convertCoordToAddress(longitude, latitude) {
     try {
-        const response = await fetch(`/api/kakao/coord2address?longitude=${longitude}&latitude=${latitude}`);
+        const response = await fetch(withBase(`/api/kakao/coord2address?longitude=${longitude}&latitude=${latitude}`));
         const result = await response.json();
 
         if (result.success) {
@@ -2289,7 +2293,7 @@ async function doSave() {
         }, 30000);
 
 
-        const response = await fetch('/prk/buildparking-update', {
+        const response = await fetch(withBase('/prk/buildparking-update'), {
             method: 'POST',
             body: formData,
             signal: controller.signal
@@ -2446,7 +2450,7 @@ function mapPayloadToServerFormat(payload) {
         pregnantPrkCnt: payload.stalls.pregnant,
 
         // 주차장 유형
-        prkPlceTypeCd || prkPlceType: document.querySelector('input[name="parkingType"]:checked')?.value || '3',
+        prkPlceType: document.querySelector('input[name="parkingType"]:checked')?.value || '3',
 
         operMbyCd: document.querySelector('input[name="operationEntity"]:checked')?.value,
         mgrOrg: $('#f_management_agency')?.value,
@@ -2737,7 +2741,7 @@ window.renderUploadedList = renderUploadedList;
 async function reloadParkingPhotos(infoSn) {
     if (!infoSn) return;
     try {
-        const resp = await fetch(`/prk/parking-photos?prkPlceInfoSn=${infoSn}`);
+        const resp = await fetch(withBase(`/prk/parking-photos?prkPlceInfoSn=${infoSn}`));
         const json = await resp.json();
         renderUploadedList(json.photos || []);
     } catch (e) {

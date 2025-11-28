@@ -1,6 +1,16 @@
 // ========== 유틸 ==========
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
+const __CTX = (() => {
+    if (window.contextPath) return window.contextPath.replace(/\/$/, '');
+    const match = window.location.pathname.match(/^\/[^/]+/);
+    return match ? match[0] : '';
+})();
+const withBase = (url) => {
+    if (!url || url.startsWith('http://') || url.startsWith('https://') || url.startsWith('//')) return url;
+    if (__CTX && url.startsWith('/')) return `${__CTX}${url}`;
+    return url;
+};
 
 function params() {
     const sp = new URLSearchParams(location.search);
@@ -73,7 +83,7 @@ if (typeof ImagePreview === 'undefined') {
             this.updatePosition(event);
             this.tooltip.style.display = 'block';
             try {
-                const imageUrl = `/prk/photo?prkPlceInfoSn=${prkPlceInfoSn}&prkImgId=${prkImgId}&seqNo=${seqNo}`;
+                const imageUrl = withBase(`/prk/photo?prkPlceInfoSn=${prkPlceInfoSn}&prkImgId=${prkImgId}&seqNo=${seqNo}`);
                 img.onload = () => {
                     loadingDiv.style.display = 'none';
                     img.style.display = 'block';
@@ -248,7 +258,7 @@ const RegionCodeLoader = {
     // 진행상태 로드
     async loadProgressStatus() {
         try {
-            const response = await fetch('/cmm/codes/status');
+            const response = await fetch(withBase('/cmm/codes/status'));
             const result = await response.json();
             const statusSelect = $('#f_status');
             if (!statusSelect) {
@@ -275,7 +285,7 @@ const RegionCodeLoader = {
     // 시도 목록 로드
     async loadSidoList() {
         try {
-            const response = await fetch('/cmm/codes/sido');
+            const response = await fetch(withBase('/cmm/codes/sido'));
             const result = await response.json();
 
             const sidoSelect = $('#f_sido');
@@ -312,7 +322,7 @@ const RegionCodeLoader = {
                 return;
             }
 
-            const response = await fetch(`/cmm/codes/sigungu?sidoCd=${sidoCd}`);
+            const response = await fetch(withBase(`/cmm/codes/sigungu?sidoCd=${sidoCd}`));
             const result = await response.json();
 
             if (result.success && result.data) {
@@ -342,7 +352,7 @@ const RegionCodeLoader = {
                 return;
             }
 
-            const response = await fetch(`/cmm/codes/emd?sigunguCd=${sigunguCd}`);
+            const response = await fetch(withBase(`/cmm/codes/emd?sigunguCd=${sigunguCd}`));
             const result = await response.json();
 
             if (result.success && result.data) {
@@ -382,7 +392,7 @@ const RegionCodeLoader = {
 const CodeLoader = {
     async loadDynamicCodes() {
         try {
-            const response = await fetch('/cmm/codes/dynamic-groups');
+            const response = await fetch(withBase('/cmm/codes/dynamic-groups'));
             const result = await response.json();
 
             if (result.success && result.groups) {
@@ -988,7 +998,7 @@ async function parseAndFillAddress(data) {
 // 🔥 좌표로 행정구역 정보 가져오기
 async function convertCoordToRegion(longitude, latitude) {
     try {
-        const response = await fetch(`/api/kakao/coord2region?longitude=${longitude}&latitude=${latitude}`);
+        const response = await fetch(withBase(`/api/kakao/coord2region?longitude=${longitude}&latitude=${latitude}`));
         const result = await response.json();
 
         if (result.success) {
@@ -1017,7 +1027,7 @@ async function convertCoordToRegion(longitude, latitude) {
 // 🔥 좌표를 주소로 변환하는 함수 (우편번호 포함)
 async function convertCoordToAddress(longitude, latitude) {
     try {
-        const response = await fetch(`/api/kakao/coord2address?longitude=${longitude}&latitude=${latitude}`);
+        const response = await fetch(withBase(`/api/kakao/coord2address?longitude=${longitude}&latitude=${latitude}`));
         const result = await response.json();
 
         if (result.success) {
@@ -2485,12 +2495,6 @@ async function populateFormWithData(data) {
     }
 
     // 🔥 주차관리 시설 정보 바인딩 (Y/N 라디오 버튼)
-        표지판: data.prklotSignYn,
-        발권기: data.tcktMchnYn,
-        차단기: data.barrGteYn,
-        출차알람: data.exitAlrmYn,
-        차량인식: data.vehRcgnTpCd
-    });
 
     // 1) 주차장표지판 유무
     if (data.prklotSignYn) {
@@ -2538,13 +2542,6 @@ async function populateFormWithData(data) {
 
 
     // 🔥 주차 첨두 시간대 바인딩
-        주간시작: data.wkPeakStrTm,
-        주간종료: data.wkPeakEndTm,
-        주간대수: data.wkPrkVehCnt,
-        야간시작: data.ntPeakStrTm,
-        야간종료: data.ntPeakEndTm,
-        야간대수: data.ntPrkVehCnt
-    });
 
     if ($('#f_peak_day_start') && data.wkPeakStrTm) {
         const startHour = data.wkPeakStrTm.substring(0, 2);
@@ -2576,16 +2573,6 @@ async function populateFormWithData(data) {
     if ($('#f_entrance_lng')) $('#f_entrance_lng').value = data.prklotEntrLon || '';
 
     // 🔥 사전점검 정보 바인딩
-        건물층수코드: data.bldg2fPrklotCd,
-        추락방지시설: data.fallPrevFcltyYn,
-        경사여부: data.slpYn,
-        경사7초과: data.slp7gtAreaCnt,
-        보행안전: {
-            과속방지턱: data.spdBumpQty,
-            정지선: data.stopLineQty,
-            횡단보도: data.crswlkQty
-        }
-    });
 
     // 1) 2층 이상 건축물 주차장여부
     if (data.bldg2fPrklotCd) {
@@ -2613,7 +2600,6 @@ async function populateFormWithData(data) {
             slopeRadio.dispatchEvent(new Event('change'));
         }
     }
-
     // 4) 7% 초과 면수
     if ($('#f_slope_over_7_value') && data.slp7gtAreaCnt) {
         $('#f_slope_over_7_value').value = data.slp7gtAreaCnt;
@@ -2624,11 +2610,6 @@ async function populateFormWithData(data) {
     if ($('#f_crosswalk_count')) $('#f_crosswalk_count').value = data.stopLineQty || '';
     if ($('#f_pedestrian_crossing_count')) $('#f_pedestrian_crossing_count').value = data.crswlkQty || '';
 
-
-    // 🔥 안전시설 바인딩 추가
-        미끄럼방지시설: data.antislpFcltyYn,
-        미끄럼주의표지판: data.slpCtnGuidSignYn
-    });
 
     // 🔥 안전시설 바인딩 (antislpFcltyYn, slpCtnGuidSignYn)
     const antislpFacilityChk = document.getElementById('antislp_facility_chk');
@@ -2833,16 +2814,6 @@ function buildPayload() {
     payload.sigunguCd = $('#f_sigungu')?.value || null;
     payload.emdCd = $('#f_emd')?.value || null;
 
-    // 🔥 폼에서 읽어온 값 로그
-        f_sido: $('#f_sido')?.value,
-        f_sigungu: $('#f_sigungu')?.value,
-        f_emd: $('#f_emd')?.value
-    });
-        sidoCd: payload.sidoCd,
-        sigunguCd: payload.sigunguCd,
-        emdCd: payload.emdCd
-    });
-
     return payload;
 }
 
@@ -2906,7 +2877,7 @@ function mapPayloadToServerFormat(payload) {
         prkPlceManageNo: payload.id,
         prkplceNm: payload.name,
         prgsStsCd: payload.status,
-        prkPlceTypeCd || prkPlceType: '2', // 노외주차장 구분 코드
+        prkPlceType: payload.prkPlceType || payload.type || '2', // 노외주차장 구분 코드
         // 변경: 관리주체(소유주체) 코드 매핑
         prkplceSe: payload.ownCd,
 
@@ -3080,7 +3051,7 @@ function mapPayloadToServerFormat(payload) {
 // 🔥 좌표를 주소로 변환하는 함수 (우편번호 포함)
 async function convertCoordToAddress(longitude, latitude) {
     try {
-        const response = await fetch(`/api/kakao/coord2address?longitude=${longitude}&latitude=${latitude}`);
+        const response = await fetch(withBase(`/api/kakao/coord2address?longitude=${longitude}&latitude=${latitude}`));
         const result = await response.json();
 
         if (result.success) {
@@ -3177,7 +3148,7 @@ async function handlePhotoWithGPS(file) {
     }// 🔥 좌표를 주소로 변환하는 함수 (우편번호 포함)
     async function convertCoordToAddress(longitude, latitude) {
         try {
-            const response = await fetch(`/api/kakao/coord2address?longitude=${longitude}&latitude=${latitude}`);
+            const response = await fetch(withBase(`/api/kakao/coord2address?longitude=${longitude}&latitude=${latitude}`));
             const result = await response.json();
 
             if (result.success) {
@@ -3504,7 +3475,7 @@ async function doSave() {
         });
 
 
-        const response = await fetch('/prk/offparking-update', {
+        const response = await fetch(withBase('/prk/offparking-update'), {
             method: 'POST',
             body: formData
         });
@@ -3692,7 +3663,7 @@ window.renderUploadedList = renderUploadedList;
 async function reloadParkingPhotos(infoSn) {
     if (!infoSn) return;
     try {
-        const resp = await fetch(`/prk/parking-photos?prkPlceInfoSn=${infoSn}`);
+        const resp = await fetch(withBase(`/prk/parking-photos?prkPlceInfoSn=${infoSn}`));
         const json = await resp.json();
         renderUploadedList(json.photos || []);
     } catch (e) {

@@ -18,6 +18,18 @@ window.reloadList = function () {
     location.reload();
 };
 
+// 컨텍스트 경로 추론 (window.contextPath가 없을 경우 현재 URL에서 1단계까지 사용)
+const __CTX = (() => {
+    if (window.contextPath) return window.contextPath.replace(/\/$/, '');
+    const match = window.location.pathname.match(/^\/[^/]+/);
+    return match ? match[0] : '';
+})();
+const withBase = (url) => {
+    if (!url || url.startsWith('http://') || url.startsWith('https://') || url.startsWith('//')) return url;
+    if (__CTX && url.startsWith('/')) return `${__CTX}${url}`;
+    return url;
+};
+
 // 목록 탭 ID 상수 (탭 버튼 id 기준)
 const LIST_TAB_ID = 'tabList';
 
@@ -241,7 +253,7 @@ async function loadDataFromServer() {
             size: getPageSize()
         });
 
-        const response = await fetch('/prk/parking-data?' + params.toString(), {
+        const response = await fetch(withBase('/prk/parking-data?' + params.toString()), {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -492,7 +504,7 @@ async function exportCSV() {
 
         toast('CSV 파일을 생성하는 중입니다...');
 
-        const response = await fetch('/prk/parking-data?' + params.toString(), {
+        const response = await fetch(withBase('/prk/parking-data?' + params.toString()), {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -592,7 +604,7 @@ async function sendSelected() {
         onConfirm: async () => {
             try {
                 toast('전송 중...');
-                const res = await fetch('/prk/api/parking/update-status-pending', {
+                const res = await fetch(withBase('/prk/api/parking/update-status-pending'), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -719,7 +731,7 @@ function resetSearchForm() {
 }
 
 window.goBackToMap = function () {
-    window.location.href = '/gis/parkingmap';
+    window.location.href = withBase('/gis/parkingmap');
 };
 
 function checkMapReturn() {
@@ -917,9 +929,9 @@ function openNewParkingTab(type) {
     }
 
     const typeMap = {
-        'onparking': {url: '/prk/onparking', name: '노상 주차장 신규 등록', icon: '🅿️'},
-        'offparking': {url: '/prk/offparking', name: '노외 주차장 신규 등록', icon: '🏢'},
-        'buildparking': {url: '/prk/buildparking', name: '부설 주차장 신규 등록', icon: '🏗️'}
+        'onparking': {url: withBase('/prk/onparking'), name: '노상 주차장 신규 등록', icon: '🅿️'},
+        'offparking': {url: withBase('/prk/offparking'), name: '노외 주차장 신규 등록', icon: '🏢'},
+        'buildparking': {url: withBase('/prk/buildparking'), name: '부설 주차장 신규 등록', icon: '🏗️'}
     };
 
     const config = typeMap[type];

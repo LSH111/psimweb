@@ -429,11 +429,6 @@
 
         let dd = degrees + minutes / 60 + seconds / 3600;
 
-            input: `${degrees}° ${minutes}' ${seconds}"`,
-            ref: ref,
-            output: dd
-        });
-
         // 남위(S) 또는 서경(W)인 경우 음수로 변환
         if (ref === 'S' || ref === 'W') {
             dd = dd * -1;
@@ -662,7 +657,7 @@
                 formData.append('photos', file);
             });
 
-            const response = await fetch(`${contextPath}/prk/api/usage-status/save`, {
+            const response = await fetch(withBase(`/prk/api/usage-status/save`), {
                 method: 'POST',
                 body: formData
             });
@@ -802,7 +797,6 @@
                                     const emd = $('#f_emd');
                                     if (emd) {
                                         const emdText = data.bname; // bname = 법정동명
-                                            Array.from(emd.options).map(o => `"${o.textContent.trim()}"`).join(', '));
 
                                         // 🔥 다양한 매칭 시도
                                         let emdOption = null;

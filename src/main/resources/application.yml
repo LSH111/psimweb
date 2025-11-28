@@ -20,6 +20,7 @@ spring:
   datasource:
     # PostgreSQL을 기본 설정으로 변경
     driver-class-name: ${DB_DRIVER:org.postgresql.Driver}
+    #url: ${DB_URL:jdbc:postgresql://10.59.32.96:5432/postgres}
     url: ${DB_URL:jdbc:postgresql://localhost:5432/postgres}
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:ksi4788500!}

@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/base.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/layout.css">
     <script>
+        // 컨텍스트 경로를 전역에 노출 (예: /spis)
+        window.contextPath = '${pageContext.request.contextPath}';
         window.SESSION_FILTER = {
             sidoCd: '${sessionSidoCd}',
             sigunguCd: '${sessionSigunguCd}',

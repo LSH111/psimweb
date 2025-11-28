@@ -1,4 +1,15 @@
 (function () {
+  // 컨텍스트 경로 추론 및 프리픽스
+  const __CTX = (() => {
+    if (window.contextPath) return window.contextPath.replace(/\/$/, '');
+    const match = window.location.pathname.match(/^\/[^/]+/);
+    return match ? match[0] : '';
+  })();
+  const withBase = (url) => {
+    if (!url || url.startsWith('http://') || url.startsWith('https://') || url.startsWith('//')) return url;
+    if (__CTX && url.startsWith('/')) return `${__CTX}${url}`;
+    return url;
+  };
   function getTabHost() {
     return {
       tabBar: window.$one ? $one('.tabs') : document.querySelector('.tabs'),
@@ -64,9 +75,9 @@
     const typeKey = normalizeType(type);
 
     const pathMap = {
-      on: '/prk/onparking-detail',
-      off: '/prk/offparking-detail',
-      build: '/prk/buildparking-detail'
+      on: withBase('/prk/onparking-detail'),
+      off: withBase('/prk/offparking-detail'),
+      build: withBase('/prk/buildparking-detail')
     };
     const path = pathMap[typeKey];
 
