@@ -4,6 +4,41 @@
 
 <mapper namespace="com.psim.web.prk.mapper.PrkDefPlceInfoMapper">
 
+    <sql id="parkingCommonWhere">
+        <where>
+            tcl.use_yn = 'Y'
+            <if test="userBizList != null and userBizList.size() > 0">
+                AND tbppi.prk_biz_mng_no IN
+                <foreach collection="userBizList" item="bizNo" open="(" separator="," close=")">
+                    #{bizNo}
+                </foreach>
+            </if>
+            <!-- 시도/시군구 필터: sidoCd/sigunguCd 우선, 구 키(sido/sigungu)도 호환 -->
+            <if test="sidoCd != null and sidoCd != ''">
+                AND tcl.sido_cd = #{sidoCd}
+            </if>
+            <if test="(sidoCd == null or sidoCd == '') and (sido != null and sido != '')">
+                AND tcl.sido_cd = #{sido}
+            </if>
+
+            <if test="sigunguCd != null and sigunguCd != ''">
+                AND tcl.sigungu_cd = #{sigunguCd}
+            </if>
+            <if test="(sigunguCd == null or sigunguCd == '') and (sigungu != null and sigungu != '')">
+                AND tcl.sigungu_cd = #{sigungu}
+            </if>
+            <if test="emd != null and emd != ''">
+                AND tcl.emd_cd = #{emd}
+            </if>
+            <if test="prkNm != null and prkNm != ''">
+                AND tpdpi.prkplce_nm LIKE CONCAT('%', #{prkNm}, '%')
+            </if>
+            <if test="prkType != null and prkType != ''">
+                AND tpdpi.prk_plce_type = #{prkType}
+            </if>
+        </where>
+    </sql>
+
     <select id="selectParkingList" parameterType="map" resultType="com.psim.web.prk.vo.ParkingListVO">
         SELECT
         cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsCd,
@@ -16,6 +51,7 @@
         tpdpi.zip as zip,
         tpdpi.dtadd as dtadd,
         tcu.user_nm as userNm,
+        tpdpi.prk_plce_type as prkPlceTypeCd,
         cpk.FN_GET_CODE_NM(tpdpi.prk_plce_type, 'P_PRKPLCE_SE') as prkPlceType,
         tpdpi.prkplce_nm as prkplceNm,
         tbppi.biz_per_prk_mng_no as bizPerPrkMngNo,
@@ -30,36 +66,7 @@
         AND tpdpi.prk_plce_info_sn = tbppi.prk_plce_info_sn
         LEFT JOIN cpk.tb_co_user tcu
         ON tbppi.srvy_id = tcu.user_id
-        AND tcl.use_yn = 'Y'
-        <!-- 🔥 사용자가 접근 가능한 사업번호로 필터링 -->
-        <if test="userBizList != null and userBizList.size() > 0">
-            AND tbppi.prk_biz_mng_no IN
-            <foreach collection="userBizList" item="bizNo" open="(" separator="," close=")">
-                #{bizNo}
-            </foreach>
-        </if>
-        <!-- 검색 조건 추가 -->
-        <if test="sido != null and sido != ''">
-            AND tcl.sido_cd = #{sido}
-        </if>
-        <if test="sigungu != null and sigungu != ''">
-            AND tcl.sigungu_cd = #{sigungu}
-        </if>
-        <if test="emd != null and emd != ''">
-            AND tcl.emd_cd = #{emd}
-        </if>
-        <if test="prkNm != null and prkNm != ''">
-            AND tpdpi.prkplce_nm LIKE CONCAT('%', #{prkNm}, '%')
-        </if>
-        <if test="status != null and status != ''">
-            AND tbppi.prgs_sts_cd = #{status}
-        </if>
-        <if test="prkType != null and prkType != ''">
-            AND tpdpi.prk_plce_type = #{prkType}
-        </if>
-        <if test="addr != null and addr != ''">
-            AND tpdpi.dtadd LIKE CONCAT('%', #{addr}, '%')
-        </if>
+        <include refid="parkingCommonWhere"/>
         ORDER BY tpdpi.prkplce_nm ASC
         <!-- 페이징 제거: LIMIT/OFFSET 구문 삭제 -->
     </select>
@@ -75,27 +82,7 @@
         AND tpdpi.prk_plce_info_sn = tbppi.prk_plce_info_sn
         LEFT JOIN cpk.tb_co_user tcu
         ON tbppi.srvy_id = tcu.user_id
-        WHERE tcl.use_yn = 'Y'
-        <!-- 🔥 userBizList 필터링 추가 필요 -->
-        <if test="userBizList != null and userBizList.size() > 0">
-            AND tbppi.prk_biz_mng_no IN
-            <foreach collection="userBizList" item="bizNo" open="(" separator="," close=")">
-                #{bizNo}
-            </foreach>
-        </if>
-        <!-- 검색 조건 추가 -->
-        <if test="sido != null and sido != ''">
-            AND tcl.sido_cd = #{sido}
-        </if>
-        <if test="sigungu != null and sigungu != ''">
-            AND tcl.sigungu_cd = #{sigungu}
-        </if>
-        <if test="emd != null and emd != ''">
-            AND tcl.emd_cd = #{emd}
-        </if>
-        <if test="prkNm != null and prkNm != ''">
-            AND tpdpi.prkplce_nm LIKE CONCAT('%', #{prkNm}, '%')
-        </if>
+        <include refid="parkingCommonWhere"/>
     </select>
 
     <select id="selectParkingDetail" parameterType="map" resultType="com.psim.web.prk.vo.ParkingListVO">
@@ -156,7 +143,7 @@
     </update>
 
     <!-- 노상주차장 상세 조회 쿼리 -->
-    <select id="selectOnstreetParkingDetail" parameterType="string"
+    <select id="selectOnstreetParkingDetail" parameterType="map"
             resultType="com.psim.web.prk.vo.ParkingDetailVO">
         SELECT cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsCd
              , tpsbi.prk_biz_mng_no                             as prkBizMngNo
@@ -266,6 +253,7 @@
                            ON tbppi.prk_biz_mng_no = tpsbi.prk_biz_mng_no
                                AND tpsbi.use_yn = 'Y'
         WHERE tpdpi.prk_plce_manage_no = #{prkPlceManageNo}
+          AND tpdpi.prk_plce_info_sn = #{prkPlceInfoSn}
     </select>
 
     <!-- 🔥 기본 정보 업데이트 (tb_prk_def_plce_info) -->
@@ -273,6 +261,9 @@
         UPDATE cpk.tb_prk_def_plce_info
         SET prkplce_nm     = #{prkplceNm},
             ldong_cd       = #{ldongCd},
+            sido_cd        = #{sidoCd},
+            sigungu_cd     = #{sigunguCd},
+            emd_cd         = #{emdCd},
             zip            = #{zip},
             dtadd          = #{dtadd},
             prk_plce_lat   = #{prkPlceLat},
@@ -293,7 +284,8 @@
     <!-- 🔥 노상주차장 정보 업데이트 (tb_onstr_prklot_info) -->
     <update id="updateOnstrPrklotInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
         UPDATE cpk.tb_onstr_prklot_info
-        SET tot_prk_cnt       = #{totPrkCnt}
+        SET prkplce_se       = #{prkplceSe}
+          , tot_prk_cnt       = #{totPrkCnt}
           , disab_prk_cnt     = #{disabPrkCnt}
           , compact_prk_cnt   = #{compactPrkCnt}
           , eco_prk_cnt       = #{ecoPrkCnt}
@@ -385,7 +377,7 @@
     </update>
 
     <!-- 🔥 노외주차장 상세 조회 쿼리 -->
-    <select id="selectOffstreetParkingDetail" parameterType="string" resultType="com.psim.web.prk.vo.ParkingDetailVO">
+    <select id="selectOffstreetParkingDetail" parameterType="map" resultType="com.psim.web.prk.vo.ParkingDetailVO">
         SELECT cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsCd
              , tpsbi.prk_biz_mng_no                             as prkBizMngNo
              , tpdpi.prk_plce_info_sn                           AS prkPlceInfoSn
@@ -500,12 +492,14 @@
                             ON tbppi.prk_biz_mng_no = tpsbi.prk_biz_mng_no
                                 AND tpsbi.use_yn = 'Y'
         WHERE tpdpi.prk_plce_manage_no = #{prkPlceManageNo}
+          AND tpdpi.prk_plce_info_sn = #{prkPlceInfoSn}
     </select>
 
     <!-- 🔥 노외주차장 정보 업데이트 (tb_offstr_prklot_info) -->
     <update id="updateOffstrPrklotInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
         UPDATE cpk.tb_offstr_prklot_info
-        SET tot_prk_cnt       = #{totPrkCnt}
+        SET prkplce_se       = #{prkplceSe}
+          , tot_prk_cnt       = #{totPrkCnt}
           , disab_prk_cnt     = #{disabPrkCnt}
           , compact_prk_cnt   = #{compactPrkCnt}
           , eco_prk_cnt       = #{ecoPrkCnt}
@@ -603,7 +597,7 @@
     </update>
 
     <!-- 🔥 부설주차장 상세 조회 쿼리 -->
-    <select id="selectBuildParkingDetail" parameterType="string" resultType="com.psim.web.prk.vo.ParkingDetailVO">
+    <select id="selectBuildParkingDetail" parameterType="map" resultType="com.psim.web.prk.vo.ParkingDetailVO">
         SELECT cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsCd
              , tbppi.prgs_sts_cd                                as prgsStsRawCd
              , tbppi.biz_per_prk_mng_no                         as bizPerPrkMngNo
@@ -616,6 +610,7 @@
              , tpdpi.prk_plce_manage_no                         as prkPlceManageNo
              , tpdpi.prk_plce_type                              as prkPlceType
              , tpdpi.prkplce_nm                                 as prkplceNm
+             , tapi.prkplce_se                                 as ownCd
              , tcl.sido_cd                                      as sidoCd
              , tcl.sido_nm                                      as sidoNm
              , tcl.sigungu_cd                                   as sigunguCd
@@ -742,12 +737,14 @@
                             ON tbppi.prk_biz_mng_no = tpsbi.prk_biz_mng_no
                                 AND tpsbi.use_yn = 'Y'
         WHERE tpdpi.prk_plce_manage_no = #{prkPlceManageNo}
+          AND tpdpi.prk_plce_info_sn = #{prkPlceInfoSn}
     </select>
 
     <!-- 🔥 부설주차장 정보 업데이트 (tb_atch_prklot_info) -->
     <update id="updateAtchPrklotInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
         UPDATE cpk.tb_atch_prklot_info
-        SET tot_prk_cnt       = #{totPrkCnt}
+        SET prkplce_se       = #{prkplceSe}
+          , tot_prk_cnt       = #{totPrkCnt}
           , disab_prk_cnt     = #{disabPrkCnt}
           , compact_prk_cnt   = #{compactPrkCnt}
           , eco_prk_cnt       = #{ecoPrkCnt}
@@ -766,7 +763,7 @@
     <!-- 🔥 부설주차장 운영 정보 업데이트 (tb_atch_prklot_oper_info) -->
     <update id="updateAtchPrklotOperInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
         UPDATE cpk.tb_atch_prklot_oper_info
-        SET prklot_sign_yn       = #{prklotSignYn}
+        SET prklot_sign_cd       = #{prklotSignCd}
           , tckt_mchn_yn         = #{tcktMchnYn}
           , barr_gte_yn          = #{barrGteYn}
           , exit_alrm_yn         = #{exitAlrmYn}
@@ -800,6 +797,7 @@
     <insert id="insertOffstrPrklotInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
         INSERT INTO cpk.tb_offstr_prklot_info (prk_plce_manage_no,
                                                prk_plce_info_sn,
+                                               prkplce_se,
                                                tot_prk_cnt,
                                                disab_prk_cnt,
                                                compact_prk_cnt,
@@ -818,6 +816,7 @@
                                                updusr_ip_addr)
         VALUES (#{prkPlceManageNo},
                 #{prkPlceInfoSn},
+                #{prkplceSe},
                 #{totPrkCnt},
                 #{disabPrkCnt},
                 #{compactPrkCnt},
@@ -1097,27 +1096,12 @@
         AND tpdpi.prk_plce_info_sn = tbppi.prk_plce_info_sn
         LEFT JOIN cpk.tb_co_user tcu
         ON tbppi.srvy_id = tcu.user_id
-        WHERE tcl.use_yn = 'Y'
+        <include refid="parkingCommonWhere"/>
         <!-- 🔥 좌표가 있는 주차장만 조회 -->
         AND tpdpi.prk_plce_lat IS NOT NULL
         AND tpdpi.prk_plce_lon IS NOT NULL
         AND tpdpi.prk_plce_lat != ''
         AND tpdpi.prk_plce_lon != ''
-        <!-- 🔥 사용자가 접근 가능한 사업번호로 필터링 -->
-        <if test="userBizList != null and userBizList.size() > 0">
-            AND tbppi.prk_biz_mng_no IN
-            <foreach collection="userBizList" item="bizNo" open="(" separator="," close=")">
-                #{bizNo}
-            </foreach>
-        </if>
-        <!-- 🔥 시도 필터 조건 추가 -->
-        <if test="sidoCd != null and sidoCd != ''">
-            AND tcl.sido_cd = #{sidoCd}
-        </if>
-        <!-- 🔥 시군구 필터 조건 추가 -->
-        <if test="sigunguCd != null and sigunguCd != ''">
-            AND tcl.sigungu_cd = #{sigunguCd}
-        </if>
         ORDER BY tpdpi.prkplce_nm ASC
     </select>
 
@@ -1236,6 +1220,7 @@
     <insert id="insertOnstrPrklotInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
         INSERT INTO cpk.tb_onstr_prklot_info (prk_plce_manage_no,
                                               prk_plce_info_sn,
+                                              prkplce_se,
                                               tot_prk_cnt,
                                               disab_prk_cnt,
                                               compact_prk_cnt,
@@ -1254,6 +1239,7 @@
                                               updusr_ip_addr)
         VALUES (#{prkPlceManageNo},
                 #{prkPlceInfoSn},
+                #{prkplceSe},
                 #{totPrkCnt},
                 #{disabPrkCnt},
                 #{compactPrkCnt},

@@ -234,6 +234,8 @@ public class ParkingDetailVO {
 
     // 주차장구분
     private String prkplceSe;          // 주차장구분 (PRK_001)
+    // 변경: 관리주체(소유주체) 코드(프론트 ownCd 매핑용 별칭)
+    private String ownCd;
 
     // 위탁/직영 회사명
     private String trutCompNm;         // 위탁회사명
@@ -251,6 +253,21 @@ public class ParkingDetailVO {
     private String mechPrklotTpCd;     // 기계식주차장형태코드 (PRK_004)
     private String mechPrklotOperYn;   // 기계식주차장작동여부 (PRK_005)
     private Integer mechPrkInopCnt;    // 기계식주차불능대수
+
+    public void setPrkplceSe(String prkplceSe) {
+        this.prkplceSe = prkplceSe;
+        if ((this.ownCd == null || this.ownCd.trim().isEmpty()) && prkplceSe != null && !prkplceSe.trim().isEmpty()) {
+            this.ownCd = prkplceSe;
+        }
+    }
+
+    // 변경: ownCd 세터에서 prkplceSe 비어있을 때 동기화
+    public void setOwnCd(String ownCd) {
+        this.ownCd = ownCd;
+        if ((this.prkplceSe == null || this.prkplceSe.trim().isEmpty()) && ownCd != null && !ownCd.trim().isEmpty()) {
+            this.prkplceSe = ownCd;
+        }
+    }
 
     // 주차시설형태 총계
     private Integer prkFcltyTpTotFlrCapa;   // 주차시설형태_총_층수

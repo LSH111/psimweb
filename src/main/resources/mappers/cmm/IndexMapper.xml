@@ -3,7 +3,7 @@
 <mapper namespace="com.psim.web.cmm.mapper.IndexMapper">
 
     <select id="selectParkingStatus" resultType="map">
-        SELECT 
+        SELECT
             COUNT(*) as total_count,
             SUM(CASE WHEN tcl.sido_nm = '서울특별시' THEN 1 ELSE 0 END) as seoul_count,
             SUM(CASE WHEN tcl.sido_nm = '강원도' THEN 1 ELSE 0 END) as gangwon_count
@@ -14,16 +14,61 @@
 
     <!-- 주차상의용현황 조회 -->
     <select id="selectUsageStatus" resultType="map">
-        SELECT 
+        SELECT
             SUM(CASE WHEN tbppi.prgs_sts_cd = 'PRK_013001' THEN 1 ELSE 0 END) as illegal_count,
             SUM(CASE WHEN tbppi.prgs_sts_cd = 'PRK_013002' THEN 1 ELSE 0 END) as legal_count,
             COUNT(*) as total_usage_count
         FROM cpk.tb_biz_per_prklot_info tbppi
-        LEFT JOIN cpk.tb_prk_def_plce_info tpdpi 
+        LEFT JOIN cpk.tb_prk_def_plce_info tpdpi
             ON tbppi.prk_plce_manage_no = tpdpi.prk_plce_manage_no
             AND tbppi.prk_plce_info_sn = tpdpi.prk_plce_info_sn
         LEFT JOIN cpk.tb_co_ldong tcl ON tpdpi.ldong_cd = tcl.ldong_cd
         WHERE tcl.use_yn = 'Y'
+    </select>
+
+    <!-- [Dashboard] 주차장 현황 -->
+    <select id="getParkingStatusDashboard" parameterType="map" resultType="map">
+        SELECT
+            COUNT(*) FILTER (WHERE tbppi.prgs_sts_cd = '00') AS "draft",
+            COUNT(*) FILTER (WHERE tbppi.prgs_sts_cd = '10') AS "inSurvey",
+            COUNT(*) FILTER (WHERE tbppi.prgs_sts_cd = '20') AS "pending",
+            COUNT(*) FILTER (WHERE tbppi.prgs_sts_cd = '30') AS "approved",
+            COUNT(*) FILTER (WHERE tbppi.prgs_sts_cd = '99') AS "rejected"
+        FROM cpk.tb_biz_per_prklot_info tbppi
+        INNER JOIN cpk.tb_prk_def_plce_info tpdpi ON tbppi.prk_plce_manage_no = tpdpi.prk_plce_manage_no AND tbppi.prk_plce_info_sn = tpdpi.prk_plce_info_sn
+        LEFT JOIN cpk.tb_co_ldong tcl ON tpdpi.ldong_cd = tcl.ldong_cd
+        <where>
+            tcl.use_yn = 'Y'
+            <if test="sidoCd != null and sidoCd != ''">
+                AND tpdpi.sido_cd = #{sidoCd}
+            </if>
+            <if test="sigunguCd != null and sigunguCd != ''">
+                AND tpdpi.sigungu_cd = #{sigunguCd}
+            </if>
+            <if test="prkBizMngNo != null and prkBizMngNo != ''">
+                AND tbppi.prk_biz_mng_no = #{prkBizMngNo}
+            </if>
+        </where>
+    </select>
+
+    <!-- [Dashboard] 주차장 이용실태 현황 -->
+    <select id="getUsageStatusDashboard" parameterType="map" resultType="map">
+        SELECT
+            COUNT(*) FILTER (WHERE pci.law_cd = '2') AS "illegalCount",
+            COUNT(*) FILTER (WHERE pci.law_cd = '1') AS "legalCount"
+        FROM cpk.tb_prklot_cmpl_info pci
+        INNER JOIN cpk.tb_prk_srvy_biz_info psbi ON pci.prk_biz_mng_no = psbi.prk_biz_mng_no
+        <where>
+            <if test="sidoCd != null and sidoCd != ''">
+                AND psbi.sido_cd = #{sidoCd}
+            </if>
+            <if test="sigunguCd != null and sigunguCd != ''">
+                AND psbi.sigungu_cd = #{sigunguCd}
+            </if>
+            <if test="prkBizMngNo != null and prkBizMngNo != ''">
+                AND pci.prk_biz_mng_no = #{prkBizMngNo}
+            </if>
+        </where>
     </select>
 
 </mapper>

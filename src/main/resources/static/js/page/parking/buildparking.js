@@ -15,6 +15,109 @@ function num(v) {
 }
 
 const p = params();
+const serverStatusValue = (document.body?.dataset?.status || document.getElementById('statusCode')?.value || '').trim();
+
+// ========== 이미지 미리보기 ==========
+if (typeof ImagePreview === 'undefined') {
+    var ImagePreview = {
+        tooltip: null,
+        currentTimeout: null,
+        createTooltip() {
+            if (this.tooltip) return;
+            this.tooltip = document.createElement('div');
+            this.tooltip.id = 'image-tooltip';
+            this.tooltip.style.cssText = `
+                position: fixed;
+                display: none;
+                background: white;
+                border: 2px solid #ddd;
+                border-radius: 8px;
+                padding: 10px;
+                box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+                z-index: 10000;
+                max-width: 400px;
+                pointer-events: none;
+            `;
+            this.tooltip.innerHTML = `
+                <div class="tooltip-loading" style="text-align: center; padding: 20px;">
+                    <div style="
+                        width: 40px;
+                        height: 40px;
+                        border: 4px solid #f3f3f3;
+                        border-top: 4px solid #3b82f6;
+                        border-radius: 50%;
+                        margin: 0 auto;
+                        animation: spin 1s linear infinite;
+                    "></div>
+                    <p style="margin-top: 10px; color: #666; font-size: 14px;">이미지 로딩 중...</p>
+                </div>
+                <img class="tooltip-image" style="display: none; max-width: 100%; height: auto; border-radius: 4px;">
+                <p class="tooltip-filename" style="margin: 8px 0 0 0; font-size: 12px; color: #666; text-align: center;"></p>
+            `;
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            `;
+            document.head.appendChild(style);
+            document.body.appendChild(this.tooltip);
+        },
+        async show(prkPlceInfoSn, prkImgId, seqNo, fileName, event) {
+            this.createTooltip();
+            const loadingDiv = this.tooltip.querySelector('.tooltip-loading');
+            const img = this.tooltip.querySelector('.tooltip-image');
+            const fileNameEl = this.tooltip.querySelector('.tooltip-filename');
+            loadingDiv.style.display = 'block';
+            img.style.display = 'none';
+            fileNameEl.textContent = fileName || '';
+            this.updatePosition(event);
+            this.tooltip.style.display = 'block';
+            try {
+                const imageUrl = `/prk/photo?prkPlceInfoSn=${prkPlceInfoSn}&prkImgId=${prkImgId}&seqNo=${seqNo}`;
+                img.onload = () => {
+                    loadingDiv.style.display = 'none';
+                    img.style.display = 'block';
+                };
+                img.onerror = () => {
+                    loadingDiv.innerHTML = '<p style="color: #ef4444;">이미지를 불러올 수 없습니다</p>';
+                };
+                img.src = imageUrl;
+            } catch (error) {
+                loadingDiv.innerHTML = '<p style="color: #ef4444;">오류가 발생했습니다</p>';
+            }
+        },
+        updatePosition(event) {
+            if (!this.tooltip) return;
+            const offset = 15;
+            const x = event.clientX;
+            const y = event.clientY;
+            const tooltipRect = this.tooltip.getBoundingClientRect();
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            let left = x + offset;
+            let top = y + offset;
+            if (left + tooltipRect.width > vw) left = x - tooltipRect.width - offset;
+            if (top + tooltipRect.height > vh) top = y - tooltipRect.height - offset;
+            this.tooltip.style.left = `${left}px`;
+            this.tooltip.style.top = `${top}px`;
+        },
+        hide() {
+            if (this.tooltip) this.tooltip.style.display = 'none';
+            if (this.currentTimeout) {
+                clearTimeout(this.currentTimeout);
+                this.currentTimeout = null;
+            }
+        },
+        showWithDelay(prkPlceInfoSn, prkImgId, seqNo, fileName, event, delay = 300) {
+            if (this.currentTimeout) clearTimeout(this.currentTimeout);
+            this.currentTimeout = setTimeout(() => {
+                this.show(prkPlceInfoSn, prkImgId, seqNo, fileName, event);
+            }, delay);
+        }
+    };
+}
 
 // 🔥 숫자를 한국 통화 형식으로 포맷팅
 function formatCurrency(value) {
@@ -58,6 +161,53 @@ function applyCurrencyFormat(input) {
     });
 }
 
+// 🔥 법정동코드 생성 (공통 유틸 사용: 시군구5 + 읍면동3 + 리2)
+function generateLdongCd() {
+    const f_sigungu = document.getElementById('f_sigungu');
+    const f_emd = document.getElementById('f_emd');
+    const f_ri = document.getElementById('f_ri');
+
+    const sigunguCd = f_sigungu?.value;
+    const emdCd = f_emd?.value;
+    const liCd = f_ri?.value;
+
+    const ldongCd = LdongUtil.generateLdongCd(sigunguCd, emdCd, liCd);
+    if (!ldongCd) {
+        console.error('❌ 법정동코드 생성 실패:', sigunguCd, emdCd, liCd);
+    } else {
+    }
+    return ldongCd;
+}
+
+// 🔥 관리주체(소유주체) 코드 정규화/선택 헬퍼
+function normalizeOwnCdValue(raw) {
+    if (raw === undefined || raw === null) return '';
+    const value = String(raw).trim();
+    if (!value) return '';
+    if (value.includes('공영')) return '1';
+    if (value.includes('민영') || value.includes('민간')) return '2';
+    if (value.includes('기타')) return '9';
+    const stripped = value.replace(/^0+/, '');
+    return ['1', '2', '9'].includes(stripped) ? stripped : '';
+}
+
+function applyOwnCdSelection(rawValue) {
+    const normalized = normalizeOwnCdValue(rawValue);
+    if (!normalized) return;
+    const radio = document.querySelector(`input[name="ownCd"][value="${normalized}"]`);
+    if (radio) {
+        radio.checked = true;
+    }
+    const hiddenOwn = document.getElementById('own_cd');
+    if (hiddenOwn) {
+        hiddenOwn.value = normalized;
+    }
+}
+
+function getSelectedOwnCd() {
+    return document.querySelector('input[name="ownCd"]:checked')?.value || '';
+}
+
 // ========== 🔥 행정구역 코드 로더 추가 ==========
 const RegionCodeLoader = {
     // 진행상태 로드
@@ -77,7 +227,6 @@ const RegionCodeLoader = {
                     option.textContent = item.codeNm;
                     statusSelect.appendChild(option);
                 });
-                console.log('✅ 진행상태 로드 완료:', result.data.length);
             }
         } catch (error) {
             console.error('❌ 진행상태 로드 실패:', error);
@@ -101,7 +250,6 @@ const RegionCodeLoader = {
                     option.textContent = item.codeNm;
                     sidoSelect.appendChild(option);
                 });
-                console.log('✅ 시도 목록 로드 완료:', result.data.length);
             }
         } catch (error) {
             console.error('❌ 시도 로드 실패:', error);
@@ -136,7 +284,6 @@ const RegionCodeLoader = {
                     sigunguSelect.appendChild(option);
                 });
                 sigunguSelect.disabled = false;
-                console.log('✅ 시군구 목록 로드 완료:', result.data.length);
             }
         } catch (error) {
             console.error('❌ 시군구 로드 실패:', error);
@@ -167,7 +314,6 @@ const RegionCodeLoader = {
                     emdSelect.appendChild(option);
                 });
                 emdSelect.disabled = false;
-                console.log('✅ 읍면동 목록 로드 완료:', result.data.length);
             }
         } catch (error) {
             console.error('❌ 읍면동 로드 실패:', error);
@@ -181,14 +327,12 @@ const RegionCodeLoader = {
 
         if (sidoSelect) {
             sidoSelect.addEventListener('change', (e) => {
-                console.log('🔄 시도 변경:', e.target.value);
                 this.loadSigunguList(e.target.value);
             });
         }
 
         if (sigunguSelect) {
             sigunguSelect.addEventListener('change', (e) => {
-                console.log('🔄 시군구 변경:', e.target.value);
                 this.loadEmdList(e.target.value);
             });
         }
@@ -199,12 +343,10 @@ const RegionCodeLoader = {
 const CodeLoader = {
     async loadDynamicCodes() {
         try {
-            console.log('=== 동적 코드 로드 시작 ===');
             const response = await fetch('/cmm/codes/dynamic-groups');
             const result = await response.json();
 
             if (result.success && result.groups) {
-                console.log('✅ 로드된 코드 그룹:', Object.keys(result.groups));
                 return result.groups;
             } else {
                 console.error('❌ 동적 코드 로드 실패:', result.message);
@@ -232,7 +374,6 @@ const CodeLoader = {
                 option.textContent = code.codeNm;
                 select.appendChild(option);
             });
-            console.log(`✅ ${selectId} 옵션 ${codes.length}개 추가`);
         }
     },
 
@@ -264,7 +405,6 @@ const CodeLoader = {
                 label.appendChild(span);
                 container.appendChild(label);
             });
-            console.log(`✅ ${containerId} 라디오 ${codes.length}개 추가`);
         }
     },
 
@@ -295,7 +435,6 @@ const CodeLoader = {
                 label.appendChild(span);
                 container.appendChild(label);
             });
-            console.log(`✅ ${containerId} 체크박스 ${codes.length}개 추가`);
         }
     },
 
@@ -333,7 +472,6 @@ const CodeLoader = {
                 container.appendChild(label);
             });
 
-            console.log(`✅ ${containerId} 라디오 버튼 ${codes.length}개 생성`);
         }
     },
 
@@ -398,7 +536,6 @@ const CodeLoader = {
         // PRK_004: 운영시간코드
         if (groups['PRK_004']) {
             window.OPERATION_TIME_CODES = groups['PRK_004'].codes;
-            console.log('✅ PRK_004 운영시간 코드 로드:', window.OPERATION_TIME_CODES);
 
             this.populateOperationTimeRadios('weekday', groups['PRK_004'].codes);
             this.populateOperationTimeRadios('saturday', groups['PRK_004'].codes);
@@ -443,7 +580,6 @@ const CodeLoader = {
             this.populateRadioGroup('#mech_prklot_oper_group', 'mechPrklotOper', groups['PRK_012'].codes);
         }
 
-        console.log('✅ 모든 동적 코드 적용 완료');
     }
 };
 
@@ -476,7 +612,6 @@ $('#btnFindAddr')?.addEventListener('click', () => {
     container.innerHTML = '';
     new daum.Postcode({
         oncomplete(data) {
-            console.log('🔍 다음 주소 API 응답:', data);
 
             // 🔥 주소 파싱 및 자동 입력
             parseAndFillAddress(data);
@@ -496,25 +631,21 @@ layer?.addEventListener('click', (e) => {
 // 🔥 주소 데이터 파싱 및 입력 함수
 async function parseAndFillAddress(data) {
     try {
-        console.log('📝 주소 파싱 시작', data);
 
         // 1. 우편번호
         const f_zip = document.getElementById('f_zip');
         if (f_zip && data.zonecode) {
             f_zip.value = data.zonecode;
-            console.log('✅ 우편번호:', data.zonecode);
         }
 
         // 2. 지번주소 / 도로명주소 먼저 입력
         if (f_addrJ && data.jibunAddress) {
             f_addrJ.value = data.jibunAddress;
-            console.log('✅ 지번주소:', data.jibunAddress);
         }
 
         if (f_addrR) {
             const roadAddr = data.roadAddress || data.autoRoadAddress || '';
             f_addrR.value = roadAddr;
-            console.log('✅ 도로명주소:', roadAddr);
         }
 
         // 3. 시도/시군구/읍면동 코드 매핑용 객체
@@ -525,7 +656,6 @@ async function parseAndFillAddress(data) {
             bname1: data.bname1,
             bname2: data.bname2
         };
-        console.log('🗺️ 행정구역 정보:', regionMap);
 
         // 4. 시도 선택 - 축약형을 정식 명칭으로 변환하여 매칭
         if (regionMap.sido) {
@@ -546,7 +676,6 @@ async function parseAndFillAddress(data) {
 
                 if (sidoOption) {
                     sidoSelect.value = sidoOption.value;
-                    console.log('✅ 시도 선택:', fullSidoName, '→', sidoOption.value);
                     sidoSelect.dispatchEvent(new Event('change'));
                     await new Promise(resolve => setTimeout(resolve, 500));
                 } else {
@@ -565,7 +694,6 @@ async function parseAndFillAddress(data) {
 
                 if (sigunguOption) {
                     sigunguSelect.value = sigunguOption.value;
-                    console.log('✅ 시군구 선택:', regionMap.sigungu, '→', sigunguOption.value);
                     sigunguSelect.dispatchEvent(new Event('change'));
                     await new Promise(resolve => setTimeout(resolve, 500));
                 } else {
@@ -585,7 +713,6 @@ async function parseAndFillAddress(data) {
 
                 if (emdOption) {
                     emdSelect.value = emdOption.value;
-                    console.log('✅ 읍면동 선택:', emdTargetName, '→', emdOption.value);
                     emdSelect.dispatchEvent(new Event('change'));
                 } else {
                     console.warn('⚠️ 읍면동을 찾을 수 없음:', emdTargetName);
@@ -606,7 +733,6 @@ async function parseAndFillAddress(data) {
                     riInput.value = riPart;
                 }
             }
-            if (riInput.value) console.log('✅ 리 입력:', riInput.value);
         }
 
         // 8. 산 여부 판단
@@ -617,7 +743,6 @@ async function parseAndFillAddress(data) {
                 radio.checked = true;
             }
         });
-        console.log('✅ 산 여부:', isMountain ? '산' : '일반');
 
         // 9. 본번/부번 파싱
         const jibunAddress = data.jibunAddress || '';
@@ -645,24 +770,20 @@ async function parseAndFillAddress(data) {
 
         if (mainNumInput) {
             mainNumInput.value = mainNum;
-            console.log('✅ 본번:', mainNum);
         }
         if (subNumInput) {
             subNumInput.value = subNum;
-            console.log('✅ 부번:', subNum);
         }
 
         // 10. 건물명 입력
         const buildingNameInput = $('#f_buildingName');
         if (buildingNameInput && data.buildingName) {
             buildingNameInput.value = data.buildingName;
-            console.log('✅ 건물명:', data.buildingName);
         }
 
         // 헤더 주소 업데이트
         updateHeaderAddr();
 
-        console.log('✅ 주소 파싱 및 입력 완료');
 
     } catch (error) {
         console.error('❌ 주소 파싱 오류:', error);
@@ -903,9 +1024,9 @@ recompute();
 
 // ========== 헤더 주소 ==========
 function updateHeaderAddr() {
-    const sido = f_sido?.value?.trim() || '';
-    const sigungu = f_sigungu?.value?.trim() || '';
-    const emd = f_emd?.value?.trim() || '';
+    const sido = f_sido?.selectedOptions?.[0]?.textContent?.trim() || '';
+    const sigungu = f_sigungu?.selectedOptions?.[0]?.textContent?.trim() || '';
+    const emd = f_emd?.selectedOptions?.[0]?.textContent?.trim() || '';
     const j = f_addrJ?.value?.trim() || '';
     const r = f_addrR?.value?.trim() || '';
 
@@ -982,7 +1103,6 @@ class FileUploadProgress {
 
     cancel() {
         this.hide();
-        console.log('업로드 취소됨');
     }
 
     updateProgress(percent) {
@@ -1043,6 +1163,7 @@ class FileUploadProgress {
                 this.progressArea.classList.remove('completed');
             }, 500);
         }
+        this.autoHideSoon();
     }
 
     error(message) {
@@ -1050,6 +1171,13 @@ class FileUploadProgress {
             this.fileStatus.textContent = message || '전송실패';
             this.fileStatus.className = 'file-status error';
         }
+    }
+
+    autoHideSoon() {
+        if (this.autoHideTimer) {
+            clearTimeout(this.autoHideTimer);
+        }
+        this.autoHideTimer = setTimeout(() => this.hide(), 1200);
     }
 
     startSimulatedProgress() {
@@ -1092,13 +1220,64 @@ class FileUploadProgress {
         this.currentFile = null;
         this.updateProgress(0);
         this.updateFileProgress(0);
+        if (this.progressArea) {
+            this.progressArea.classList.remove('completed');
+        }
+        if (this.fileItem) {
+            this.fileItem.style.display = 'none';
+        }
+        if (this.fileName) this.fileName.textContent = '';
+        if (this.fileSize) this.fileSize.textContent = '0MB / 0MB';
+        if (this.fileStatus) {
+            this.fileStatus.textContent = '';
+            this.fileStatus.className = 'file-status';
+        }
 
         if (this.btnComplete) this.btnComplete.style.display = 'none';
         if (this.btnCancel) this.btnCancel.style.display = 'inline-block';
+        if (this.autoHideTimer) {
+            clearTimeout(this.autoHideTimer);
+            this.autoHideTimer = null;
+        }
     }
 }
 
 const uploadProgress = new FileUploadProgress();
+
+function clearUploadProgressUI() {
+    if (uploadProgress && typeof uploadProgress.hide === 'function') {
+        uploadProgress.hide();
+    }
+    const progressArea = document.getElementById('upload-progress-area');
+    if (progressArea) {
+        progressArea.style.display = 'none';
+    }
+}
+
+function closeParentTabAndRefreshList() {
+    if (!window.parent || window.parent === window) return false;
+    try {
+        if (typeof window.parent.reloadList === 'function') {
+            window.parent.reloadList();
+        }
+
+        const iframeEl = window.frameElement;
+        const panelEl = iframeEl ? iframeEl.closest('.tab-panel') : null;
+        if (panelEl && window.parent.Tabs && typeof window.parent.Tabs.closeTop === 'function') {
+            const tabBtn = window.parent.document.querySelector(`.tab-btn[aria-controls="${panelEl.id}"]`);
+            if (tabBtn) {
+                window.parent.Tabs.closeTop(tabBtn);
+                if (window.parent.Tabs.activateTop) {
+                    window.parent.Tabs.activateTop('tabList');
+                }
+                return true;
+            }
+        }
+    } catch (e) {
+        console.warn('부모 탭 제어 실패:', e);
+    }
+    return false;
+}
 
 // ========== 기계식주차장 작동여부 입력창 토글 함수 ==========
 function setupMechPrklotOperToggle() {
@@ -1117,13 +1296,11 @@ function setupMechPrklotOperToggle() {
 
             if (selectedValue === '03') {
                 operInputWrap.style.display = 'block';
-                console.log('✅ 작동여부 입력창 표시 (codeCd: 03)');
             } else {
                 operInputWrap.style.display = 'none';
                 if (operValueInput) {
                     operValueInput.value = '';
                 }
-                console.log('✅ 작동여부 입력창 숨김');
             }
         }
     });
@@ -1133,7 +1310,6 @@ function setupMechPrklotOperToggle() {
         operInputWrap.style.display = 'block';
     }
 
-    console.log('✅ 기계식주차장 작동여부 토글 설정 완료');
 }
 
 // ========== 🔥 운영주체 민간위탁/민간직영 토글 ==========
@@ -1152,7 +1328,6 @@ function setupOperationEntityToggle() {
         });
     });
 
-    console.log('✅ 운영주체 토글 설정 완료');
 }
 
 // ========== 🔥 시간제운영 처리 함수 ==========
@@ -1183,7 +1358,6 @@ function setupSignToggle() {
         radio.addEventListener('change', () => {
             const isVisible = radio.checked && (radio.value === 'Y' || radio.value === '있음');
             signPhotoWrap.style.display = isVisible ? 'block' : 'none';
-            console.log('🖼️ 표지판 사진:', {value: radio.value, visible: isVisible});
         });
     });
 
@@ -1262,7 +1436,6 @@ function setupFacilityPhotoToggles() {
         });
     });
 
-    console.log('✅ 시설 사진 토글 설정 완료');
 }
 
 // ========== 🔥 주차장 입구 사진 이벤트 ==========
@@ -1343,7 +1516,6 @@ function setupEntrancePhotoEvents() {
         }
     });
 
-    console.log('✅ 주차장 입구 사진 이벤트 설정 완료');
 }
 
 // ========== 🔥 사전점검 이벤트 ==========
@@ -1359,7 +1531,6 @@ function setupPreInspectionEvents() {
         });
     });
 
-    console.log('✅ 사전점검 이벤트 설정 완료');
 }
 
 // ========== 🔥 보행안전시설 활성화 ==========
@@ -1397,7 +1568,6 @@ function setupPedestrianSafetyEvents() {
     });
 
     checkTotalStalls();
-    console.log('✅ 보행안전시설 활성화 설정 완료');
 }
 
 // ========== 🔥 주차 첨두 시간대 검증 ==========
@@ -1451,12 +1621,14 @@ function setupPeakTimeValidation() {
         });
     }
 
-    console.log('✅ 주차 첨두 시간대 검증 설정 완료');
 }
 
 // ========== 🔥 전역 변수로 사업관리번호, 정보일련번호 저장 ==========
 let loadedBizMngNo = null;
 let loadedPrkPlceInfoSn = null;
+let autoManagerAdminSet = false;
+let prevManagerValue = null;
+let prevAdminValue = null;
 
 // ========== 🔥 로딩 인디케이터 ==========
 const LoadingIndicator = {
@@ -1486,11 +1658,104 @@ const LoadingIndicator = {
     }
 };
 
+// 진행상태 select에 코드/명칭을 방어적으로 매핑
+function applyStatusSelect(selectEl, statusValue) {
+    if (!selectEl) return;
+    const val = (statusValue || '').trim();
+    if (!val) return;
+    selectEl.value = val;
+    if (selectEl.value === val) return;
+    const match = Array.from(selectEl.options || []).find(opt => opt.textContent.trim() === val);
+    if (match) selectEl.value = match.value;
+}
+
+// 전화번호 포맷팅 (off/onparking과 동일)
+function formatPhoneNumber(value) {
+    if (!value) return '';
+    const digits = value.replace(/[^0-9]/g, '');
+    if (digits.length <= 2) return digits;
+    if (digits.startsWith('02')) {
+        if (digits.length <= 5) return digits.replace(/^(\d{2})(\d+)/, '$1-$2');
+        if (digits.length <= 9) return digits.replace(/^(\d{2})(\d{3})(\d+)/, '$1-$2-$3');
+        return digits.replace(/^(\d{2})(\d{4})(\d+)/, '$1-$2-$3');
+    }
+    if (digits.length <= 7) return digits.replace(/^(\d{3})(\d+)/, '$1-$2');
+    if (digits.length <= 10) return digits.replace(/^(\d{3})(\d{3})(\d+)/, '$1-$2-$3');
+    return digits.replace(/^(\d{3})(\d{4})(\d+)/, '$1-$2-$3');
+}
+
+function applyPhoneFormat(input) {
+    if (!input) return;
+    input.addEventListener('input', function () {
+        const before = this.value;
+        const pos = this.selectionStart ?? before.length;
+        const formatted = formatPhoneNumber(before);
+        this.value = formatted;
+        const diff = formatted.length - before.length;
+        const newPos = pos + diff;
+        this.selectionStart = this.selectionEnd = Math.max(0, newPos);
+    });
+    input.addEventListener('blur', function () {
+        this.value = formatPhoneNumber(this.value);
+    });
+}
+
+function setRadioValue(name, value) {
+    if (!value) return;
+    const radio = document.querySelector(`input[name="${name}"][value="${value}"]`);
+    if (radio) {
+        radio.checked = true;
+        radio.dispatchEvent(new Event('change'));
+    }
+}
+
+function getMechanicalSpacesTotal() {
+    const ids = ['f_indoor_mechanical_spaces', 'f_outdoor_mechanical_spaces'];
+    return ids.map(id => {
+        const v = document.getElementById(id)?.value;
+        const n = parseInt((v || '').toString().replace(/[^0-9]/g, ''), 10);
+        return Number.isFinite(n) ? n : 0;
+    }).reduce((a, b) => a + b, 0);
+}
+
+function applyManagerAdminAutoRule() {
+    const total = getMechanicalSpacesTotal();
+    const mgrY = document.querySelector('input[name="manager"][value="Y"]');
+    const mgrN = document.querySelector('input[name="manager"][value="N"]');
+    const admY = document.querySelector('input[name="admin"][value="Y"]');
+    const admN = document.querySelector('input[name="admin"][value="N"]');
+    if (total >= 20 && mgrY && mgrN && admY && admN) {
+        if (mgrN.checked && admN.checked) {
+            prevManagerValue = mgrY.checked ? 'Y' : (mgrN.checked ? 'N' : null);
+            prevAdminValue = admY.checked ? 'Y' : (admN.checked ? 'N' : null);
+            autoManagerAdminSet = true;
+            mgrY.checked = true;
+            mgrY.dispatchEvent(new Event('change'));
+        } else {
+            autoManagerAdminSet = false;
+        }
+    } else if (autoManagerAdminSet) {
+        if (prevManagerValue) setRadioValue('manager', prevManagerValue);
+        if (prevAdminValue) setRadioValue('admin', prevAdminValue);
+        autoManagerAdminSet = false;
+    }
+}
+
+function bindMechanicalAutoRule() {
+    ['f_indoor_mechanical_spaces', 'f_outdoor_mechanical_spaces'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('change', () => applyManagerAdminAutoRule());
+            el.addEventListener('input', () => applyManagerAdminAutoRule());
+        }
+    });
+}
+
 // ========== 🔥 페이지 로드 시 서버에서 데이터 가져오기 ==========
 async function loadParkingDetailFromServer() {
-    const prkPlceManageNo = p.id;
+    const prkPlceManageNo = document.getElementById('prkPlceManageNo')?.value || p.id;
 
-    if (!prkPlceManageNo) {
+    if (!prkPlceManageNo && !window.initialParking) {
         console.warn('⚠️ 주차장 관리번호가 없습니다.');
         return;
     }
@@ -1498,55 +1763,41 @@ async function loadParkingDetailFromServer() {
     LoadingIndicator.show('주차장 정보를 불러오는 중...');
 
     try {
-        console.log('🔄 부설주차장 상세 정보 로드 시작:', prkPlceManageNo);
-
-        const response = await fetch(`/prk/buildparking-detail?prkPlceManageNo=${encodeURIComponent(prkPlceManageNo)}`);
-        const result = await response.json();
-
-        if (result.success && result.data) {
-            console.log('✅ 서버 데이터 로드 성공:', result.data);
-            await populateFormWithData(result.data);
-        } else {
-            console.error('❌ 서버 데이터 로드 실패:', result.message);
-            alert('주차장 정보를 불러오지 못했습니다: ' + (result.message || '알 수 없는 오류'));
+        if (window.initialParking) {
+            await populateFormWithData(window.initialParking);
+            return;
         }
+
+        console.warn('initialParking 데이터가 없어 서버 요청을 건너뜁니다.');
     } catch (error) {
         console.error('❌ 서버 통신 오류:', error);
         alert('서버와의 통신 중 오류가 발생했습니다.');
     } finally {
         LoadingIndicator.hide();
-        console.log('✅ 로딩 인디케이터 숨김');
     }
 }
 
 // 🔥 서버 데이터로 폼 채우기 ==========
 async function populateFormWithData(data) {
-    console.log('📝 폼 데이터 채우기 시작', data);
 
     // 🔥 사업관리번호, 정보일련번호 저장
     if (data.prkBizMngNo) {
         loadedBizMngNo = data.prkBizMngNo;
-        console.log('✅ 사업관리번호 저장:', loadedBizMngNo);
     }
     if (data.prkPlceInfoSn) {
         loadedPrkPlceInfoSn = data.prkPlceInfoSn;
-        console.log('✅ 정보일련번호 저장:', loadedPrkPlceInfoSn);
     }
 
     // 기본 정보
     if (f_id) f_id.value = data.prkPlceManageNo || '';
     if (f_name) f_name.value = data.prkplceNm || '';
     // 🔥 진행상태 바인딩 (select)
-    if (f_status && data.prgsStsCd) {
-        f_status.value = data.prgsStsCd;
-        console.log('✅ 진행상태 바인딩:', data.prgsStsCd);
-    }
+    applyStatusSelect($('#f_status'), data.prgsStsCd || data.prgsStsNm || $('#f_status')?.dataset?.defaultStatus || '');
     // 🔥 행정구역 바인딩 (select) - sidoCd, sigunguCd 사용
     if (data.sidoCd) {
         const f_sido = $('#f_sido');
         if (f_sido) {
             f_sido.value = data.sidoCd;
-            console.log('✅ 시도코드 바인딩:', data.sidoCd);
 
             // 시군구 로드
             await RegionCodeLoader.loadSigunguList(data.sidoCd);
@@ -1555,7 +1806,6 @@ async function populateFormWithData(data) {
                 const f_sigungu = $('#f_sigungu');
                 if (f_sigungu) {
                     f_sigungu.value = data.sigunguCd;
-                    console.log('✅ 시군구코드 바인딩:', data.sigunguCd);
 
                     // 읍면동 로드
                     await RegionCodeLoader.loadEmdList(data.sigunguCd);
@@ -1564,7 +1814,6 @@ async function populateFormWithData(data) {
                         const f_emd = $('#f_emd');
                         if (f_emd) {
                             f_emd.value = data.emdCd;
-                            console.log('✅ 읍면동코드 바인딩:', data.emdCd);
                         }
                     }
                 }
@@ -1578,15 +1827,34 @@ async function populateFormWithData(data) {
     const f_zip = document.getElementById('f_zip');
     if (f_zip && data.zip) {
         f_zip.value = data.zip;
-        console.log('✅ 우편번호 바인딩:', data.zip);
     }
 
     if (f_lat) f_lat.value = data.prkPlceLat || '';
     if (f_lng) f_lng.value = data.prkPlceLon || '';
+    applyOwnCdSelection(data.ownCd || data.prkplceSe);
 
     if (v_id) v_id.textContent = data.prkPlceManageNo || '';
     if (v_name) v_name.textContent = data.prkplceNm || '부설주차장 상세';
     updateHeaderAddr();
+    // 기계식 주차면 입력값 반영 (총면수 기반 자동 규칙 사용)
+    const indoorMech = document.getElementById('f_indoor_mechanical_spaces');
+    const outdoorMech = document.getElementById('f_outdoor_mechanical_spaces');
+    if (indoorMech) indoorMech.value = data.indrMechTotSpaceCnt ?? indoorMech.value ?? '';
+    if (outdoorMech) outdoorMech.value = data.outdrMechTotSpaceCnt ?? outdoorMech.value ?? '';
+
+    // 안내문 유무
+    setRadioValue('announcement', data.guidDocYn === 'Y' ? 'Y' : 'N');
+
+    // 관리인/관리자 유무
+    setRadioValue('manager', data.mgrYn === 'Y' ? 'Y' : 'N');
+    setRadioValue('admin', data.admYn === 'Y' ? 'Y' : 'N');
+
+    // 관리기관 전화번호 포맷팅
+    const mgrTelInput = document.getElementById('f_management_tel');
+    if (mgrTelInput) {
+        mgrTelInput.value = formatPhoneNumber(data.mgrOrgTelNo || mgrTelInput.value || '');
+    }
+    applyManagerAdminAutoRule();
 
     // 주차면수
     if (totalInput) totalInput.value = data.totPrkCnt || 0;
@@ -1611,10 +1879,10 @@ async function populateFormWithData(data) {
     }
 
     // 관리기관
-    const f_mgr_name = $('#f_management_agency');
-    const f_mgr_tel = $('#f_management_tel');
-    if (f_mgr_name) f_mgr_name.value = data.mgrOrg || '';
-    if (f_mgr_tel) f_mgr_tel.value = data.mgrOrgTelNo || '';
+   const f_mgr_name = $('#f_management_agency');
+   const f_mgr_tel = $('#f_management_tel');
+   if (f_mgr_name) f_mgr_name.value = data.mgrOrg || '';
+    if (f_mgr_tel) f_mgr_tel.value = formatPhoneNumber(data.mgrOrgTelNo || f_mgr_tel.value || '');
 
     // 부제시행여부
     const f_oddEven = $('#f_oddEven');
@@ -1626,11 +1894,9 @@ async function populateFormWithData(data) {
     const f_grade = $('#f_grade');
     if (f_grade && data.chrgGrdCd) {
         f_grade.value = data.chrgGrdCd;
-        console.log('✅ 급지구분 바인딩:', data.chrgGrdCd);
     }
 
     // 주차관리 시설 정보
-    console.log('📌 주차관리 시설 정보:', {
         표지판: data.prklotSignCd,
         발권기: data.tcktMchnYn,
         차단기: data.barrGteYn,
@@ -1677,7 +1943,6 @@ async function populateFormWithData(data) {
         }
     }
 
-    console.log('✅ 주차관리 시설 정보 바인딩 완료');
 
     // 주차 첨두 시간대
     if ($('#f_peak_day_start') && data.wkPeakStrTm) {
@@ -1751,31 +2016,29 @@ async function populateFormWithData(data) {
     // 특이사항
     if ($('#f_partclr_matter')) $('#f_partclr_matter').value = data.partclrMatter || '';
 
-    // 🔥 진행상태 확인 후 ReadOnly 처리
-    const isApproved = (data.prgsStsCd === '승인' || data.prgsStsCd === 'APPROVED');
+    // 🔥 진행상태 확인 후 ReadOnly 처리 (코드값 30=승인)
+    const statusValue = (data.prgsStsCd || $('#f_status')?.value || serverStatusValue || '').trim();
+    applyApprovalLock(statusValue);
 
-    if (isApproved) {
-        console.log('🔒 승인 상태 → 전체 필드 ReadOnly 처리');
-        setAllFieldsReadOnly(true);
-
-        const btnSave = $('#btnSave');
-        const btnSaveTop = $('#btnSaveTop');
-        if (btnSave) btnSave.setAttribute('disabled', 'true');
-        if (btnSaveTop) btnSaveTop.setAttribute('disabled', 'true');
-    } else {
-        console.log('✏️ 편집 가능 상태');
-        setAllFieldsReadOnly(false);
-
-        const btnSave = $('#btnSave');
-        const btnSaveTop = $('#btnSaveTop');
-        if (btnSave) btnSave.removeAttribute('disabled');
-        if (btnSaveTop) btnSaveTop.removeAttribute('disabled');
-    }
-
-    console.log('✅ 폼 데이터 채우기 완료');
 }
 
 // ========== 🔥 모든 필드를 ReadOnly로 설정하는 함수 ==========
+function isApprovedStatus(value) {
+    if (!value) return false;
+    const v = value.toString().trim();
+    return v === '30' || v === '승인' || v.toUpperCase() === 'APPROVED';
+}
+
+function applyApprovalLock(statusValue) {
+    const approved = isApprovedStatus(statusValue);
+    setAllFieldsReadOnly(approved);
+    const btnSave = $('#btnSave');
+    const btnSaveTop = $('#btnSaveTop');
+    if (btnSave) btnSave.disabled = approved;
+    if (btnSaveTop) btnSaveTop.disabled = approved;
+    return approved;
+}
+
 function setAllFieldsReadOnly(isReadOnly) {
     const inputs = $$('input[type="text"], input[type="number"], input[type="tel"], input[type="date"], textarea');
     inputs.forEach(input => {
@@ -1822,7 +2085,6 @@ function setAllFieldsReadOnly(isReadOnly) {
         if (btn) btn.disabled = isReadOnly;
     });
 
-    console.log(`🔒 모든 필드 ${isReadOnly ? 'ReadOnly' : '편집 가능'} 처리 완료`);
 }
 
 // 🔥 좌표로 행정구역 정보 가져오기
@@ -1843,7 +2105,6 @@ async function convertCoordToRegion(longitude, latitude) {
                 document.getElementById('f_emd').value = result.emd;
             }
 
-            console.log('좌표->행정구역 변환 성공:', result);
 
             // 헤더 주소 업데이트
             updateHeaderAddr();
@@ -1879,7 +2140,6 @@ async function convertCoordToAddress(longitude, latitude) {
                 const f_zip = document.getElementById('f_zip');
                 if (f_zip) {
                     f_zip.value = result.zoneNo;
-                    console.log('📮 우편번호 저장:', result.zoneNo);
                 }
             }
 
@@ -1894,7 +2154,6 @@ async function convertCoordToAddress(longitude, latitude) {
             // 🔥 추가: 행정구역 정보도 함께 가져오기
             await convertCoordToRegion(longitude, latitude);
 
-            console.log('좌표->주소 변환 성공:', result);
 
             // 헤더 주소 업데이트
             updateHeaderAddr();
@@ -1962,7 +2221,6 @@ async function handlePhotoWithGPS(file) {
 // ========== 저장 함수 수정 ==========
 async function doSave() {
     try {
-        console.log('🚀 저장 프로세스 시작');
 
         const ownerTypeCode = document.querySelector('input[name="parkingType"]:checked')?.value;
         if (!ownerTypeCode) {
@@ -1971,20 +2229,18 @@ async function doSave() {
             return; // 저장 프로세스를 중단합니다.
         }
 
+        clearValidationErrors();
         const validationErrors = validateRequiredFields();
         if (validationErrors.length > 0) {
-            alert('다음 항목을 입력해주세요:\n\n' + validationErrors.join('\n'));
             console.warn('❌ 유효성 검사 실패:', validationErrors);
+            showValidationErrors(validationErrors);
             return;
         }
-        console.log('✅ 유효성 검사 통과');
 
 
         const payload = buildPayload();
-        console.log('📝 생성된 Payload:', payload);
 
         const isNewRecord = !payload.id || payload.id.trim() === '';
-        console.log(isNewRecord ? '✨ 신규 등록 모드' : `✏️ 수정 모드 (ID: ${payload.id})`);
 
 
         const serverData = mapPayloadToServerFormat(payload);
@@ -1992,13 +2248,12 @@ async function doSave() {
         // 🔥 신규 등록 시 주차장관리번호를 보내지 않아야 서버에서 자동 생성됩니다. (onparking.js 참조)
         if (isNewRecord) {
             delete serverData.prkPlceManageNo;
-            console.log('🗑️ 신규 등록이므로 prkPlceManageNo 필드 제거');
         }
 
-        console.log('📤 서버 전송 데이터:', serverData);
 
 
         const formData = new FormData();
+        formData.append('ownCd', payload.ownCd || '');
         formData.append('parkingData', new Blob([JSON.stringify(serverData)], {
             type: 'application/json'
         }));
@@ -2017,17 +2272,16 @@ async function doSave() {
             const libInput = document.getElementById(ids[0]);
             const camInput = document.getElementById(ids[1]);
 
-            if (libInput && libInput.files.length > 0) {
-                formData.append(key, libInput.files[0]);
-                console.log(`📸 사진 추가 (${key}):`, libInput.files[0].name);
-            } else if (camInput && camInput.files.length > 0) {
-                formData.append(key, camInput.files[0]);
-                console.log(`📸 사진 추가 (${key}):`, camInput.files[0].name);
-            }
+        if (libInput && libInput.files.length > 0) {
+            formData.append(key, libInput.files[0]);
+            appendUploadedFiles('#uploadedFileList', libInput.files);
+        } else if (camInput && camInput.files.length > 0) {
+            formData.append(key, camInput.files[0]);
+            appendUploadedFiles('#uploadedFileList', camInput.files);
         }
+    }
 
 
-        console.log('📡 서버에 데이터 전송 시작...');
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
             controller.abort();
@@ -2046,33 +2300,80 @@ async function doSave() {
         if (!response.ok) {
             const errorText = await response.text();
             console.error('❌ 서버 에러 응답:', {status: response.status, body: errorText});
+            try {
+                const parsed = JSON.parse(errorText);
+                if (parsed && parsed.message) {
+                    showValidationErrors([parsed.message]);
+                } else if (parsed && parsed.errors) {
+                    showValidationErrors(parsed.errors);
+                } else {
+                    showValidationErrors(['요청이 거부되었습니다. 잠시 후 다시 시도해주세요.']);
+                }
+            } catch (e) {
+                showValidationErrors(['요청이 거부되었습니다. 잠시 후 다시 시도해주세요.']);
+            }
             throw new Error(`HTTP ${response.status}: ${response.statusText}\n${errorText}`);
         }
 
         const result = await response.json();
-        console.log('✅ 서버 응답:', result);
 
 
         if (result.success) {
-            alert(isNewRecord ? '신규 등록되었습니다.' : '수정되었습니다.');
-            setTimeout(() => {
-                if (window.parent && window.parent !== window) {
-                    window.parent.postMessage({type: 'navigate', url: '/prk/parkinglist'}, '*');
-                } else {
-                    location.href = '/prk/parkinglist';
-                }
-            }, 500);
+            const hiddenInfoSn = document.getElementById('prkPlceInfoSn')?.value || loadedPrkPlceInfoSn;
+            const infoSn = result.prkPlceInfoSn || hiddenInfoSn;
+            if (infoSn) document.getElementById('prkPlceInfoSn').value = infoSn;
+            if (infoSn) await reloadParkingPhotos(infoSn);
+            handlePostSave(isNewRecord, '/prk/parkinglist');
         } else {
             alert('❌ 저장 실패: ' + (result.message || '알 수 없는 오류'));
         }
     } catch (error) {
         console.error('💥 저장 프로세스 중 예외 발생:', error);
         if (error.name === 'AbortError') {
-            alert('⏰ 서버 응답 시간이 초과되었습니다. 네트워크 연결을 확인하고 다시 시도해주세요.');
+            showValidationErrors(['⏰ 서버 응답 시간이 초과되었습니다. 네트워크 연결을 확인하고 다시 시도해주세요.']);
         } else {
-            alert('저장 중 오류가 발생했습니다. 개발자 콘솔을 확인해주세요.');
+            showValidationErrors(['저장 중 오류가 발생했습니다. 개발자 콘솔을 확인해주세요.']);
         }
     }
+}
+
+function ensureValidationBox() {
+    var box = document.getElementById('validationErrors');
+    if (!box) {
+        box = document.createElement('div');
+        box.id = 'validationErrors';
+        box.className = 'validation-errors';
+        box.style.color = '#c62828';
+        box.style.margin = '12px 0';
+        box.style.display = 'none';
+        var form = document.querySelector('form') || document.body;
+        form.insertBefore(box, form.firstChild);
+    }
+    return box;
+}
+
+function clearValidationErrors() {
+    var box = document.getElementById('validationErrors');
+    if (box) {
+        box.style.display = 'none';
+        box.innerHTML = '';
+    }
+}
+
+function showValidationErrors(errors) {
+    var box = ensureValidationBox();
+    var listHtml = '<ul style=\"padding-left:16px; margin:4px 0;\">' + errors.map(function (msg) {
+        return '<li>' + msg + '</li>';
+    }).join('') + '</ul>';
+    box.innerHTML = '<strong>입력 오류가 있습니다.</strong>' + listHtml;
+    box.style.display = 'block';
+
+    var firstInvalid = document.querySelector('[aria-invalid=\"true\"], input:invalid, textarea:invalid, select:invalid');
+    if (firstInvalid && typeof firstInvalid.focus === 'function') {
+        firstInvalid.focus();
+    }
+    var top = box.getBoundingClientRect().top + window.pageYOffset - 20;
+    window.scrollTo({top: top, behavior: 'smooth'});
 }
 
 function buildPayload() {
@@ -2081,9 +2382,13 @@ function buildPayload() {
         name: f_name?.value,
         status: f_status?.value,
         type: '부설',
-        sido: f_sido?.value,
-        sigungu: f_sigungu?.value,
-        emd: f_emd?.value,
+        // 변경: 관리주체(소유주체) 코드 포함
+        ownCd: getSelectedOwnCd(),
+        // 행정구역 코드
+        sidoCd: f_sido?.value,
+        sigunguCd: f_sigungu?.value,
+        emdCd: f_emd?.value,
+        // 주소/좌표
         addrJibun: f_addrJ?.value,
         addrRoad: f_addrR?.value,
         lat: f_lat?.value,
@@ -2099,6 +2404,11 @@ function buildPayload() {
         }
     };
 
+    // 🔥 법정동코드 10자리 필수 생성
+    payload.ldongCd = generateLdongCd();
+    if (!payload.ldongCd || payload.ldongCd.length !== 10) {
+        throw new Error('법정동코드(ldong_cd)는 10자리여야 합니다.');
+    }
     return payload;
 }
 
@@ -2111,6 +2421,12 @@ function mapPayloadToServerFormat(payload) {
         dtadd: payload.addrJibun || payload.addrRoad,
         prkPlceLat: payload.lat,
         prkPlceLon: payload.lng,
+        // 변경: 관리주체(소유주체) 코드 매핑
+        prkplceSe: payload.ownCd || null,
+        ldongCd: payload.ldongCd,
+        sidoCd: payload.sidoCd,
+        sigunguCd: payload.sigunguCd,
+        emdCd: payload.emdCd,
 
         // 🔥 우편번호 추가
         zip: document.getElementById('f_zip')?.value || null,
@@ -2129,7 +2445,8 @@ function mapPayloadToServerFormat(payload) {
         ecoPrkCnt: payload.stalls.eco,
         pregnantPrkCnt: payload.stalls.pregnant,
 
-        prkplceSe: document.querySelector('input[name="parkingType"]:checked')?.value,
+        // 주차장 유형
+        prkPlceTypeCd || prkPlceType: document.querySelector('input[name="parkingType"]:checked')?.value || '3',
 
         operMbyCd: document.querySelector('input[name="operationEntity"]:checked')?.value,
         mgrOrg: $('#f_management_agency')?.value,
@@ -2183,9 +2500,25 @@ function validateRequiredFields() {
         errors.push('• 총 주차면수를 입력해주세요');
     }
 
+    const prkType = document.querySelector('input[name="parkingType"]:checked')?.value;
+    if (!prkType) {
+        errors.push('• 주차장구분을 선택해주세요');
+    }
+
+    const ldongCd = generateLdongCd();
+    if (!ldongCd) {
+        errors.push('• 행정구역(시군구/읍면동)을 선택해주세요');
+    }
+
     const ownSelected = $$('input[name="operationEntity"]:checked').length > 0;
     if (!ownSelected) {
         errors.push('• 운영주체를 선택해주세요');
+    }
+
+    // 변경: 관리주체(소유주체) 필수 검증
+    const ownerCode = getSelectedOwnCd();
+    if (!ownerCode) {
+        errors.push('• 관리주체(소유주체)를 선택해주세요');
     }
 
     const mgrName = $('#f_management_agency')?.value?.trim();
@@ -2202,26 +2535,22 @@ function validateRequiredFields() {
 }
 
 document.addEventListener('DOMContentLoaded', async function () {
-    console.log('=== 부설주차장 페이지 초기화 시작 ===');
 
     try {
-        console.log('Step 1: 초기화 시작');
-        const isNewRecord = !p.id;
+        const prkPlceManageNo = document.getElementById('prkPlceManageNo')?.value || p.id;
+        const isNewRecord = !prkPlceManageNo;
+        if (serverStatusValue) {
+            applyApprovalLock(serverStatusValue);
+        }
 
-        console.log('Step 2: 공통 코드 로드 시작');
         await RegionCodeLoader.loadProgressStatus();
-        console.log('Step 2a: 진행상태 로드 완료');
 
         await RegionCodeLoader.loadSidoList();
-        console.log('Step 2b: 시도 목록 로드 완료');
 
         RegionCodeLoader.setupEventListeners();
-        console.log('Step 2c: 행정구역 리스너 설정 완료');
 
         await CodeLoader.applyAllDynamicCodes();
-        console.log('Step 2d: 동적 코드 적용 완료');
 
-        console.log('Step 3: UI 이벤트 리스너 설정 시작');
         setupMechPrklotOperToggle();
         setupOperationEntityToggle();
         setupTimeOperationEvents('weekday');
@@ -2233,9 +2562,14 @@ document.addEventListener('DOMContentLoaded', async function () {
         setupPreInspectionEvents();
         setupPedestrianSafetyEvents();
         setupPeakTimeValidation();
-        console.log('Step 3a: UI 이벤트 리스너 설정 완료');
 
-        console.log('Step 4: 저장 버튼 이벤트 리스너 등록');
+        // 전화번호 포맷팅 적용
+    applyPhoneFormat(document.getElementById('f_management_tel'));
+
+    // 기계식 주차면수 기반 관리인/관리자 자동 규칙 바인딩
+    bindMechanicalAutoRule();
+    applyManagerAdminAutoRule();
+
         const btnSave = document.getElementById('btnSave');
         const btnSaveTop = document.getElementById('btnSaveTop');
 
@@ -2256,21 +2590,19 @@ document.addEventListener('DOMContentLoaded', async function () {
         } else {
             console.error('❌ btnSaveTop 요소를 찾을 수 없습니다!');
         }
-        console.log('Step 4a: 저장 버튼 이벤트 리스너 등록 완료');
 
-        console.log(`Step 5: 모드 분기 처리 (isNewRecord: ${isNewRecord})`);
         if (isNewRecord) {
-            console.log('✨ 신규 등록 모드입니다.');
             if (f_status) {
                 f_status.value = '10'; // '조사중' 코드
             }
         } else {
-            console.log(`✏️ 수정 모드입니다. (ID: ${p.id})`);
             await loadParkingDetailFromServer();
+            const hiddenInfoSn = document.getElementById('prkPlceInfoSn')?.value || loadedPrkPlceInfoSn;
+        if (hiddenInfoSn) {
+            await reloadParkingPhotos(hiddenInfoSn);
         }
-        console.log('Step 5a: 모드 분기 처리 완료');
+        }
 
-        console.log('=== 부설주차장 페이지 초기화 완료 ===');
 
     } catch (error) {
         console.error('❌ 페이지 초기화 중 심각한 오류 발생:', error);
@@ -2280,35 +2612,135 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 /**
  * 🔥 저장 성공 후 페이지 처리 공통 함수
+ * @param {boolean} isNew - 신규 여부
  * @param {string} fallbackUrl - 부모 창이 없을 때 이동할 목록 페이지 URL
  */
-function handlePostSave(fallbackUrl) {
-    // 1. 알림 표시
-    alert('저장이 완료되었습니다.');
+function handlePostSave(isNew) {
+    alert(isNew ? '신규 등록되었습니다.' : '수정되었습니다.');
 
-    // 2. 부모 창(Opener)이 존재하는지 확인 (새 탭/팝업으로 열린 경우)
-    if (window.opener && !window.opener.closed) {
-        try {
-            // 부모 창에 reloadList 함수가 있으면 실행
-            if (typeof window.opener.reloadList === 'function') {
+    if (typeof clearUploadProgressUI === 'function') {
+        clearUploadProgressUI(); // 진행률만 정리, 완료 리스트는 유지
+    }
+
+    try {
+        if (window.parent && typeof window.parent.closeNewParkingTabAndGoList === 'function') {
+            window.parent.closeNewParkingTabAndGoList('buildparking');
+            return;
+        }
+        if (window.parent && typeof window.parent.reloadList === 'function') {
+            window.parent.reloadList();
+            return;
+        }
+        if (window.opener && !window.opener.closed) {
+            if (typeof window.opener.closeNewParkingTabAndGoList === 'function') {
+                window.opener.closeNewParkingTabAndGoList('buildparking');
+            } else if (typeof window.opener.reloadList === 'function') {
                 window.opener.reloadList();
             } else {
-                // 함수가 없으면 단순히 부모 창 새로고침
                 window.opener.location.reload();
             }
-
-            // 부모 창으로 포커스 이동 (브라우저 정책에 따라 제한될 수 있음)
             window.opener.focus();
-
-        } catch (e) {
-            console.warn('부모 창 제어 중 오류 (Cross-Origin 등):', e);
-        } finally {
-            // 현재 창 닫기
             window.close();
+            return;
         }
+    } catch (e) {
+        console.warn('부모 창 제어 중 오류:', e);
     }
-    // 3. 부모 창이 없는 경우 (그냥 페이지 이동으로 들어온 경우)
-    else {
-        location.href = fallbackUrl;
+}
+
+// ========== 🔥 파일 목록 렌더/재조회 ==========
+let hoverPreviewDiv = null;
+
+function ensureHoverPreview() {
+    if (hoverPreviewDiv) return hoverPreviewDiv;
+    const div = document.createElement('div');
+    div.style.position = 'fixed';
+    div.style.zIndex = '9999';
+    div.style.pointerEvents = 'none';
+    div.style.padding = '6px';
+    div.style.background = '#fff';
+    div.style.border = '1px solid #d1d5db';
+    div.style.borderRadius = '4px';
+    div.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+    div.style.display = 'none';
+    div.innerHTML = '<div style="font-size:12px;color:#374151;margin-top:4px;"></div>';
+    document.body.appendChild(div);
+    hoverPreviewDiv = div;
+    return div;
+}
+
+function showHoverPreview(e, url, name) {
+    const div = ensureHoverPreview();
+    div.style.display = 'block';
+    const img = document.createElement('img');
+    img.src = url;
+    img.style.maxWidth = '240px';
+    img.style.maxHeight = '180px';
+    img.style.display = 'block';
+    img.style.objectFit = 'contain';
+    div.innerHTML = '';
+    div.appendChild(img);
+    const caption = document.createElement('div');
+    caption.textContent = name || '';
+    caption.style.fontSize = '12px';
+    caption.style.color = '#374151';
+    caption.style.marginTop = '4px';
+    div.appendChild(caption);
+    positionHoverPreview(e);
+}
+
+function hideHoverPreview() {
+    if (hoverPreviewDiv) hoverPreviewDiv.style.display = 'none';
+}
+
+function positionHoverPreview(e) {
+    if (!hoverPreviewDiv) return;
+    const offset = 12;
+    const maxW = window.innerWidth;
+    const maxH = window.innerHeight;
+    let left = e.clientX + offset;
+    let top = e.clientY + offset;
+    const rect = hoverPreviewDiv.getBoundingClientRect();
+    if (left + rect.width > maxW) left = e.clientX - rect.width - offset;
+    if (top + rect.height > maxH) top = e.clientY - rect.height - offset;
+    hoverPreviewDiv.style.left = `${left}px`;
+    hoverPreviewDiv.style.top = `${top}px`;
+}
+
+function renderUploadedList(photos) {
+    const list = document.querySelector('#uploadedFileList');
+    if (!list) return;
+    list.innerHTML = '';
+    (photos || []).forEach(p => {
+        const li = document.createElement('li');
+        li.className = 'uploaded-file';
+        const infoSn = p.prkPlceInfoSn || p.prk_plce_info_sn || document.querySelector('#prkPlceInfoSn')?.value;
+        const imgId = p.prkImgId || p.prk_img_id || p.prkimgid;
+        const seq = p.seqNo || p.seq_no || p.seqno;
+        li.dataset.seqNo = seq ?? '';
+        const name = p.realFileNm || p.real_file_nm || p.realfilenm || p.fileNm || p.file_nm || p.filename || p.fileName;
+        li.textContent = name || '파일';
+        if (infoSn && imgId && seq != null && typeof ImagePreview?.showWithDelay === 'function') {
+            li.addEventListener('mouseenter', (e) => {
+                ImagePreview.showWithDelay(infoSn, imgId, seq, name, e, 300);
+            });
+            li.addEventListener('mouseleave', () => ImagePreview.hide && ImagePreview.hide());
+        } else if (!infoSn || !imgId || seq == null) {
+            console.warn('⚠️ 미리보기 데이터 누락:', {infoSn, imgId, seq});
+        }
+        list.appendChild(li);
+    });
+}
+// 보조: 전역에 확실히 노출
+window.renderUploadedList = renderUploadedList;
+
+async function reloadParkingPhotos(infoSn) {
+    if (!infoSn) return;
+    try {
+        const resp = await fetch(`/prk/parking-photos?prkPlceInfoSn=${infoSn}`);
+        const json = await resp.json();
+        renderUploadedList(json.photos || []);
+    } catch (e) {
+        console.warn('⚠️ 파일 목록 재조회 실패:', e);
     }
 }

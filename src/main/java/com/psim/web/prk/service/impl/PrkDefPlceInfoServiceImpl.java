@@ -54,11 +54,11 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
     // ========== 상세 조회 ==========
 
     @Override
-    @Cacheable(value = "parkingDetail", key = "#prkPlceManageNo", unless = "#result == null")
-    public ParkingDetailVO getOnstreetParkingDetail(String prkPlceManageNo) {
+    @Cacheable(value = "parkingDetail", key = "#prkPlceManageNo + ':' + #prkPlceInfoSn", unless = "#result == null")
+    public ParkingDetailVO getOnstreetParkingDetail(String prkPlceManageNo, Long prkPlceInfoSn) {
         try {
-            log.info("노상주차장 상세 조회: {}", prkPlceManageNo);
-            return prkDefPlceInfoMapper.selectOnstreetParkingDetail(prkPlceManageNo);
+            log.info("노상주차장 상세 조회: {} / {}", prkPlceManageNo, prkPlceInfoSn);
+            return prkDefPlceInfoMapper.selectOnstreetParkingDetail(prkPlceManageNo, prkPlceInfoSn);
         } catch (Exception e) {
             log.error("❌ 노상주차장 조회 실패", e);
             return null;
@@ -66,11 +66,11 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
     }
 
     @Override
-    @Cacheable(value = "parkingDetail", key = "#prkPlceManageNo", unless = "#result == null")
-    public ParkingDetailVO getOffstreetParkingDetail(String prkPlceManageNo) {
+    @Cacheable(value = "parkingDetail", key = "#prkPlceManageNo + ':' + #prkPlceInfoSn", unless = "#result == null")
+    public ParkingDetailVO getOffstreetParkingDetail(String prkPlceManageNo, Long prkPlceInfoSn) {
         try {
-            log.info("노외주차장 상세 조회: {}", prkPlceManageNo);
-            return prkDefPlceInfoMapper.selectOffstreetParkingDetail(prkPlceManageNo);
+            log.info("노외주차장 상세 조회: {} / {}", prkPlceManageNo, prkPlceInfoSn);
+            return prkDefPlceInfoMapper.selectOffstreetParkingDetail(prkPlceManageNo, prkPlceInfoSn);
         } catch (Exception e) {
             log.error("❌ 노외주차장 조회 실패", e);
             return null;
@@ -78,11 +78,11 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
     }
 
     @Override
-    @Cacheable(value = "parkingDetail", key = "#prkPlceManageNo", unless = "#result == null")
-    public ParkingDetailVO getBuildParkingDetail(String prkPlceManageNo) {
+    @Cacheable(value = "parkingDetail", key = "#prkPlceManageNo + ':' + #prkPlceInfoSn", unless = "#result == null")
+    public ParkingDetailVO getBuildParkingDetail(String prkPlceManageNo, Long prkPlceInfoSn) {
         try {
-            log.info("부설주차장 상세 조회: {}", prkPlceManageNo);
-            return prkDefPlceInfoMapper.selectBuildParkingDetail(prkPlceManageNo);
+            log.info("부설주차장 상세 조회: {} / {}", prkPlceManageNo, prkPlceInfoSn);
+            return prkDefPlceInfoMapper.selectBuildParkingDetail(prkPlceManageNo, prkPlceInfoSn);
         } catch (Exception e) {
             log.error("❌ 부설주차장 조회 실패", e);
             return null;
@@ -124,7 +124,7 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
                 throw new IllegalArgumentException("주차장유형 코드가 필요합니다.");
             }
 
-            log.info("✅ 파라미터 검증 통과");
+            log.info("✅ 파라미터 검증 통과 - ownCd={}", prkplceSe);
             log.info("🔄 DB 함수 fn_create_srvy_prk_plce_manage_no2 호출 중...");
 
             String manageNo = null;
@@ -170,6 +170,132 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
         }
     }
 
+    private String ensureOwnCd(ParkingDetailVO vo) {
+        String ownCd = vo.getOwnCd();
+        if (ownCd == null || ownCd.trim().isEmpty()) {
+            ownCd = vo.getPrkplceSe();
+        }
+        if (ownCd == null || ownCd.trim().isEmpty()) {
+            throw new IllegalArgumentException("관리주체(소유주체) 코드가 필요합니다.");
+        }
+        String normalized = ownCd.trim();
+        vo.setOwnCd(normalized);
+        vo.setPrkplceSe(normalized);
+        log.info("✅ 파라미터 검증 완료 - ownCd={}", normalized);
+        return normalized;
+    }
+
+    private void ensureAdminCodes(ParkingDetailVO vo) {
+        if (vo.getSidoCd() == null || vo.getSidoCd().trim().isEmpty()) {
+            throw new IllegalArgumentException("sidoCd(시도코드)는 필수입니다.");
+        }
+        if (vo.getSigunguCd() == null || vo.getSigunguCd().trim().isEmpty()) {
+            throw new IllegalArgumentException("sigunguCd(시군구코드)는 필수입니다.");
+        }
+        if (vo.getEmdCd() == null || vo.getEmdCd().trim().isEmpty()) {
+            throw new IllegalArgumentException("emdCd(읍면동코드)는 필수입니다.");
+        }
+    }
+
+    private String truncate(String value, int maxLength) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        if (trimmed.length() <= maxLength) {
+            return trimmed;
+        }
+        String result = trimmed.substring(0, maxLength);
+        log.warn("⚠️ 길이 제한으로 값이 잘립니다. max={}, 원본='{}', 결과='{}'", maxLength, trimmed, result);
+        return result;
+    }
+
+    private String buildBizPerPrkMngNo(ParkingDetailVO vo) {
+        String candidate = vo.getBizPerPrkMngNo();
+        if (candidate == null || candidate.trim().isEmpty()) {
+            candidate = "BP" + System.currentTimeMillis();
+        }
+        return candidate.trim();
+    }
+
+    private void applyBizPerIdentifiers(ParkingDetailVO vo) {
+        String prkBizMngNo = vo.getPrkBizMngNo();
+        if (prkBizMngNo != null && prkBizMngNo.trim().length() > 14) {
+            throw new IllegalArgumentException("사업관리번호(prk_biz_mng_no)는 14자 이내여야 합니다.");
+        }
+        vo.setPrkBizMngNo(prkBizMngNo != null ? prkBizMngNo.trim() : null);
+
+        // 관리번호는 생성값 그대로 사용 (tail 유지)
+        String manageNo = vo.getPrkPlceManageNo();
+        vo.setPrkPlceManageNo(manageNo);
+
+        String bizPerNo = buildBizPerPrkMngNo(vo);
+        if (bizPerNo != null && bizPerNo.trim().length() > 18) {
+            throw new IllegalArgumentException("사업별주차관리번호(biz_per_prk_mng_no)는 18자 이내여야 합니다.");
+        }
+        vo.setBizPerPrkMngNo(bizPerNo != null ? bizPerNo.trim() : null);
+    }
+
+    private String normalizeDigits(String value) {
+        if (value == null) {
+            return null;
+        }
+        String digits = value.replaceAll("\\D", "");
+        return digits.isEmpty() ? null : digits;
+    }
+
+    private String normalizeSegment(String value, int length, String defaultValue) {
+        String digits = normalizeDigits(value);
+        if (digits == null || digits.isEmpty()) {
+            return defaultValue;
+        }
+        if (digits.length() > length) {
+            return digits.substring(0, length);
+        }
+        if (digits.length() < length) {
+            return String.format("%" + length + "s", digits).replace(' ', '0');
+        }
+        return digits;
+    }
+
+    private String resolveLdongCd(ParkingDetailVO vo) {
+        String sigungu = normalizeSegment(vo.getSigunguCd(), 5, null);
+        String emd = normalizeSegment(vo.getEmdCd(), 3, null);
+        String li = normalizeSegment(vo.getLiCd(), 2, "00");
+
+        String incoming = normalizeDigits(vo.getLdongCd());
+        String candidate = null;
+        if (sigungu != null && emd != null) {
+            candidate = sigungu + emd + li;
+        }
+
+        if (incoming != null && incoming.length() == 10) {
+            if (candidate != null && !incoming.equals(candidate)) {
+                log.warn("⚠️ 전달된 ldongCd와 계산된 ldongCd가 불일치하여 계산값으로 대체합니다. 입력값: {}, 계산값: {}", incoming, candidate);
+                return candidate;
+            }
+            return incoming;
+        }
+
+        if (candidate != null && candidate.length() == 10) {
+            if (incoming != null && !incoming.isEmpty()) {
+                log.warn("⚠️ 전달된 ldongCd가 10자리가 아니어서 재계산합니다. 입력값: {}, 재계산: {}", vo.getLdongCd(), candidate);
+            }
+            return candidate;
+        }
+
+        throw new IllegalArgumentException(String.format(
+                "법정동코드를 10자리로 생성할 수 없습니다. 입력값(ldongCd=%s, sigunguCd=%s, emdCd=%s, liCd=%s)",
+                vo.getLdongCd(), vo.getSigunguCd(), vo.getEmdCd(), vo.getLiCd()));
+    }
+
+    private void applyLdongCd(ParkingDetailVO vo) {
+        String resolved = resolveLdongCd(vo);
+        vo.setLdongCd(resolved);
+        log.info("📌 저장 직전 코드 상태 - sidoCd={}, sigunguCd={}, emdCd={}, liCd={}, ldongCd={}",
+                vo.getSidoCd(), vo.getSigunguCd(), vo.getEmdCd(), vo.getLiCd(), vo.getLdongCd());
+    }
+
     @Override
     @Transactional(
             propagation = Propagation.REQUIRED,
@@ -179,6 +305,9 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
     )
     public void insertOnstreetParking(ParkingDetailVO vo) {
         try {
+            ensureOwnCd(vo);
+            ensureAdminCodes(vo);
+            applyBizPerIdentifiers(vo);
             // 🔥 STEP 0: prkPlceInfoSn 생성
             log.info("🔵 [STEP 0/4] prkPlceInfoSn 생성 시작");
             Integer newSn = prkDefPlceInfoMapper.generateParkingInfoSn(vo.getPrkPlceManageNo());
@@ -189,6 +318,8 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
                 throw new RuntimeException("주차장 일련번호 생성 실패");
             }
             log.info("✅ [STEP 0/4] prkPlceInfoSn 생성 완료: {}", newSn);
+
+            applyLdongCd(vo);
 
             // 🔥 STEP 1: 기본 정보 INSERT
             log.info("🔵 [STEP 1/4] tb_prk_def_plce_info INSERT 시작");
@@ -270,6 +401,9 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
     )
     public void insertOffstreetParking(ParkingDetailVO vo) {
         try {
+            ensureOwnCd(vo);
+            ensureAdminCodes(vo);
+            applyBizPerIdentifiers(vo);
             // 🔥 STEP 0: prkPlceInfoSn 생성
             log.info("🔵 [노외주차장 STEP 0/4] prkPlceInfoSn 생성 시작");
             Integer newSn = prkDefPlceInfoMapper.generateParkingInfoSn(vo.getPrkPlceManageNo());
@@ -280,6 +414,8 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
                 throw new RuntimeException("주차장 일련번호 생성 실패");
             }
             log.info("✅ [STEP 0/4] prkPlceInfoSn 생성 완료: {}", newSn);
+
+            applyLdongCd(vo);
 
             // 🔥 STEP 1: 기본 정보 INSERT
             log.info("🔵 [STEP 1/4] tb_prk_def_plce_info INSERT 시작");
@@ -325,6 +461,9 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
     @Transactional
     public void insertBuildParking(ParkingDetailVO vo) {
         try {
+            ensureOwnCd(vo);
+            ensureAdminCodes(vo);
+            applyBizPerIdentifiers(vo);
             log.info("🆕 부설주차장 INSERT 시작 - 관리번호: {}", vo.getPrkPlceManageNo());
 
             // 🔵 STEP 0: prkPlceInfoSn 생성
@@ -337,6 +476,8 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
                 throw new RuntimeException("주차장 일련번호 생성 실패");
             }
             log.info("✅ [STEP 0/4] prkPlceInfoSn 생성 완료: {}", newSn);
+
+            applyLdongCd(vo);
 
             // 🔵 STEP 1: 기본 정보 INSERT (tb_prk_def_plce_info)
             log.info("🔵 [STEP 1/4] tb_prk_def_plce_info INSERT 시작");
@@ -374,7 +515,10 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
     @CacheEvict(value = "parkingDetail", key = "#parkingData.prkPlceManageNo")
     public void updateOnstreetParking(ParkingDetailVO parkingData) {
         try {
+            ensureOwnCd(parkingData);
+            ensureAdminCodes(parkingData);
             log.info("🔄 노상주차장 UPDATE: {}", parkingData.getPrkPlceManageNo());
+            applyLdongCd(parkingData);
 
             prkDefPlceInfoMapper.updatePrkDefPlceInfo(parkingData);
             prkDefPlceInfoMapper.updateOnstrPrklotInfo(parkingData);
@@ -393,7 +537,10 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
     @CacheEvict(value = "parkingDetail", key = "#parkingData.prkPlceManageNo")
     public void updateOffstreetParking(ParkingDetailVO parkingData) {
         try {
+            ensureOwnCd(parkingData);
+            ensureAdminCodes(parkingData);
             log.info("🔄 노외주차장 UPDATE: {}", parkingData.getPrkPlceManageNo());
+            applyLdongCd(parkingData);
 
             prkDefPlceInfoMapper.updatePrkDefPlceInfo(parkingData);
             prkDefPlceInfoMapper.updateOffstrPrklotInfo(parkingData);
@@ -411,7 +558,10 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
     @CacheEvict(value = "parkingDetail", key = "#parkingData.prkPlceManageNo")
     public void updateBuildParking(ParkingDetailVO parkingData) {
         try {
+            ensureOwnCd(parkingData);
+            ensureAdminCodes(parkingData);
             log.info("🔄 부설주차장 UPDATE: {}", parkingData.getPrkPlceManageNo());
+            applyLdongCd(parkingData);
 
             prkDefPlceInfoMapper.updatePrkDefPlceInfo(parkingData);
             prkDefPlceInfoMapper.updateAtchPrklotInfo(parkingData);

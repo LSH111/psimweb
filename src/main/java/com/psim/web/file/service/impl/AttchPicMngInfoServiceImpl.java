@@ -1,26 +1,18 @@
 package com.psim.web.file.service.impl;
 
+import com.psim.media.storage.PhotoStorage;
 import com.psim.web.file.mapper.AttchPicMngInfoMapper;
 import com.psim.web.file.service.AttchPicMngInfoService;
 import com.psim.web.file.vo.AttchPicMngInfoVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.InvalidPathException;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -28,9 +20,10 @@ import java.util.Map;
 public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
 
     private final AttchPicMngInfoMapper mapper;
-
-    @Value("${file.upload.path:/upload/parking}")
-    private String uploadBasePath;
+    private final PhotoStorage photoStorage;
+    private static final Set<String> ALLOWED_EXTENSIONS = Collections.unmodifiableSet(
+            new HashSet<>(Arrays.asList("jpg", "jpeg", "png", "gif", "bmp", "webp")));
+    private static final long MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024L; // 10MB
 
     @Override
     @Transactional
@@ -51,29 +44,32 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             String prkImgId,
             MultipartFile file
     ) {
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("파일이 비어있습니다.");
+        if (prkPlceInfoSn == null) {
+            throw new IllegalArgumentException("prkPlceInfoSn이 없습니다. 파일을 저장할 수 없습니다.");
         }
+        validateFile(file);
+        String safePrkImgId = sanitizeIdentifier(prkImgId);
 
         try {
-            String savedFileName = saveFile(file, prkImgId);
+            PhotoStorage.SaveResult saved = photoStorage.save(safePrkImgId, file);
+            String extension = getFileExtension(file.getOriginalFilename());
 
             AttchPicMngInfoVO vo = new AttchPicMngInfoVO();
             vo.setPrkPlceInfoSn(prkPlceInfoSn);
-            vo.setPrkImgId(prkImgId);
+            vo.setPrkImgId(safePrkImgId);
             vo.setSeqNo(getNextSeqNo(prkPlceInfoSn, prkImgId));
             vo.setRealFileNm(file.getOriginalFilename());
-            vo.setFileNm(savedFileName);
-            vo.setFilePath(getRelativePath(prkImgId));
-            vo.setExtNm(getFileExtension(file.getOriginalFilename()));
+            vo.setFileNm(saved.savedFileName());
+            vo.setFilePath(saved.relativePath());
+            vo.setExtNm(extension);
             vo.setRegDt(LocalDateTime.now());
 
             mapper.insertAttchPicMngInfo(vo);
 
-            log.info("✅ 파일 저장 완료: {}", savedFileName);
+            log.info("✅ 파일 저장 완료: {}", saved.savedFileName());
             return vo;
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("❌ 파일 저장 실패", e);
             throw new RuntimeException("파일 저장 중 오류가 발생했습니다.", e);
         }
@@ -86,15 +82,19 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             String prkImgId,
             List<MultipartFile> files
     ) {
+        if (prkPlceInfoSn == null) {
+            throw new IllegalArgumentException("prkPlceInfoSn이 없습니다. 파일을 저장할 수 없습니다.");
+        }
         List<AttchPicMngInfoVO> result = new ArrayList<>();
 
         if (files == null || files.isEmpty()) {
             return result;
         }
+        String safePrkImgId = sanitizeIdentifier(prkImgId);
 
         for (MultipartFile file : files) {
             if (!file.isEmpty()) {
-                result.add(uploadAndSaveFile(prkPlceInfoSn, prkImgId, file));
+                result.add(uploadAndSaveFile(prkPlceInfoSn, safePrkImgId, file));
             }
         }
 
@@ -113,7 +113,7 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
         );
 
         for (AttchPicMngInfoVO file : files) {
-            deletePhysicalFile(file);
+            photoStorage.delete(file.getFilePath(), file.getFileNm());
         }
 
         mapper.deleteAttchPicMngInfo(prkPlceInfoSn, prkImgId, seqNo);
@@ -136,32 +136,32 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             String prkImgId,
             MultipartFile file
     ) {
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("파일이 비어있습니다.");
-        }
+        validateFile(file);
+        String safePrkImgId = sanitizeIdentifier(prkImgId);
 
         try {
-            String savedFileName = saveFile(file, prkImgId);
+            PhotoStorage.SaveResult saved = photoStorage.save(safePrkImgId, file);
+            String extension = getFileExtension(file.getOriginalFilename());
 
             AttchPicMngInfoVO vo = new AttchPicMngInfoVO();
             vo.setCmplSn(cmplSn);
-            vo.setPrkImgId(prkImgId);
+            vo.setPrkImgId(safePrkImgId);
             vo.setAttachType("USAGE");
             vo.setSeqNo(getNextSeqNoForUsage(cmplSn, prkImgId));
             vo.setRealFileNm(file.getOriginalFilename());
-            vo.setFileNm(savedFileName);
-            vo.setFilePath(getRelativePath(prkImgId));
-            vo.setExtNm(getFileExtension(file.getOriginalFilename()));
+            vo.setFileNm(saved.savedFileName());
+            vo.setFilePath(saved.relativePath());
+            vo.setExtNm(extension);
             vo.setRegDt(LocalDateTime.now());
             vo.setRgstId("SYSTEM");
             vo.setRgstIpAddr("127.0.0.1");
 
             mapper.insertAttchPicMngInfo(vo);
 
-            log.info("✅ 이용실태 파일 저장 완료 - cmplSn: {}, 파일: {}", cmplSn, savedFileName);
+            log.info("✅ 이용실태 파일 저장 완료 - cmplSn: {}, 파일: {}", cmplSn, saved.savedFileName());
             return vo;
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("❌ 파일 저장 실패", e);
             throw new RuntimeException("파일 저장 중 오류가 발생했습니다.", e);
         }
@@ -185,6 +185,7 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
 
         List<AttchPicMngInfoVO> results = new ArrayList<>();
         int seqNo = getNextSeqNoForUsage(cmplSn, prkImgId);
+        String safePrkImgId = sanitizeIdentifier(prkImgId);
 
         for (MultipartFile file : files) {
             if (file.isEmpty()) {
@@ -192,17 +193,18 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             }
 
             try {
+                validateFile(file);
                 log.info("📸 파일 저장 시작: cmplSn={}, seqNo={}, fileName={}",
                         cmplSn, seqNo, file.getOriginalFilename());
 
                 // 파일 저장 (기존 saveFile 메서드 사용)
-                String savedFileName = saveFile(file, prkImgId);
-                String relativePath = getRelativePath(prkImgId);
+                PhotoStorage.SaveResult saved = photoStorage.save(safePrkImgId, file);
+                String relativePath = saved.relativePath();
 
                 // DB 저장
                 AttchPicMngInfoVO vo = new AttchPicMngInfoVO();
                 vo.setCmplSn(cmplSn);
-                vo.setPrkImgId(prkImgId);
+                vo.setPrkImgId(safePrkImgId);
                 vo.setSeqNo(seqNo);
                 vo.setAttachType("USAGE");
 
@@ -211,7 +213,7 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
 
                 vo.setExtNm(extension);
                 vo.setFilePath(relativePath);
-                vo.setFileNm(savedFileName);
+                vo.setFileNm(saved.savedFileName());
                 vo.setRealFileNm(originalFileName);
                 vo.setRgstId(userId);
                 vo.setRgstIpAddr(userIp);
@@ -255,7 +257,7 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
 
         for (AttchPicMngInfoVO file : files) {
             if (seqNo == null || file.getSeqNo().equals(seqNo)) {
-                deletePhysicalFile(file);
+                photoStorage.delete(file.getFilePath(), file.getFileNm());
             }
         }
 
@@ -275,35 +277,6 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
     // ========== Private Helper Methods ==========
 
     /**
-     * 파일 저장
-     */
-    private String saveFile(MultipartFile file, String prkImgId) throws IOException {
-        String dateDir = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String targetDir = uploadBasePath + File.separator + prkImgId + File.separator + dateDir;
-
-        Path dirPath = Paths.get(targetDir);
-        if (!Files.exists(dirPath)) {
-            Files.createDirectories(dirPath);
-            log.info("📁 디렉토리 생성: {}", targetDir);
-        }
-
-        // 디렉토리 쓰기 권한 확인
-        if (!Files.isWritable(dirPath)) {
-            throw new IOException("디렉토리 쓰기 권한 없음: " + targetDir);
-        }
-
-        String originalFileName = file.getOriginalFilename();
-        String extension = getFileExtension(originalFileName);
-        String savedFileName = UUID.randomUUID() + "." + extension;
-
-        Path filePath = dirPath.resolve(savedFileName);
-        file.transferTo(filePath.toFile());
-
-        log.info("💾 파일 저장: {} -> {}", originalFileName, savedFileName);
-        return savedFileName;
-    }
-
-    /**
      * 다음 시퀀스 번호 조회 (주차장용)
      */
     private Integer getNextSeqNo(Integer prkPlceInfoSn, String prkImgId) {
@@ -320,14 +293,6 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
     }
 
     /**
-     * 상대 경로 생성
-     */
-    private String getRelativePath(String prkImgId) {
-        String dateDir = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        return prkImgId + "/" + dateDir;
-    }
-
-    /**
      * 파일 확장자 추출
      */
     private String getFileExtension(String fileName) {
@@ -337,23 +302,30 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
         return fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
     }
 
-    /**
-     * 물리적 파일 삭제
-     */
-    private void deletePhysicalFile(AttchPicMngInfoVO file) {
-        try {
-            String fullPath = uploadBasePath + File.separator +
-                    file.getFilePath() + File.separator + file.getFileNm();
-            Path path = Paths.get(fullPath);
-
-            if (Files.exists(path)) {
-                Files.delete(path);
-                log.info("🗑️ 물리적 파일 삭제: {}", fullPath);
-            }
-        } catch (IOException e) {
-            log.warn("⚠️ 파일 삭제 실패: {}", file.getFileNm(), e);
+    private void validateFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("파일이 비어있습니다.");
+        }
+        if (file.getSize() > MAX_FILE_SIZE_BYTES) {
+            throw new IllegalArgumentException("허용된 파일 크기를 초과했습니다.");
+        }
+        String extension = getFileExtension(file.getOriginalFilename());
+        if (!ALLOWED_EXTENSIONS.contains(extension)) {
+            throw new IllegalArgumentException("허용되지 않은 파일 형식입니다.");
         }
     }
+
+    private String sanitizeIdentifier(String identifier) {
+        if (identifier == null || identifier.trim().isEmpty()) {
+            throw new IllegalArgumentException("잘못된 파일 그룹 식별자입니다.");
+        }
+        String trimmed = identifier.trim();
+        if (trimmed.contains("..") || trimmed.contains("/") || trimmed.contains("\\")) {
+            throw new InvalidPathException(trimmed, "경로 이동 문자는 허용되지 않습니다.");
+        }
+        return trimmed;
+    }
+
     /**
      * 🔥 주차장 정보 일련번호로 사진 목록 조회
      */

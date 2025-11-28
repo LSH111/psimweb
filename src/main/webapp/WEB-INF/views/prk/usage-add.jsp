@@ -1,7 +1,12 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/pages/usage-add.css"/>
-<script src="${pageContext.request.contextPath}/static/js/usage-add.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/common/dom-utils.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/common/format-utils.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/common/code-api.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/component/toast.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/component/modal.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/page/usage-add.js"></script>
 <!-- usage-status-list.jsp에 포함되므로 html, head, body 태그 제거 -->
 <div class="wrap">
     <header class="card head">

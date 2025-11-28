@@ -1,0 +1,839 @@
+
+/* ===== 라이트(하얀) 고정 팔레트 ===== */
+:root{
+    --bg:#ffffff;
+    --card:#ffffff;
+    --text:#1f2937;
+    --muted:#6b7280;
+    --primary:#2563eb;
+    --primary-2:#1d4ed8;
+    --border:#e5e7eb;
+    --warn:#dc2626;
+    --ok:#16a34a;
+    --line:#e5e7eb;
+    --accent:#2563eb;
+}
+
+/* ===== 공통 레이아웃/컴포넌트 ===== */
+*{box-sizing:border-box}
+body{
+    margin:0;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans KR",sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    padding:12px;
+}
+.wrap{max-width:1100px; margin:0 auto; display:grid; gap:12px}
+.head{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+.title{font-weight:800; font-size:1.2rem}
+.muted{color:var(--muted)}
+.badge{
+    display:inline-block; padding:4px 8px; border:1px solid var(--border);
+    border-radius:999px; font-size:.8rem; background:#eef2ff
+}
+
+.row{
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+    margin-bottom:24px;
+}
+
+@media(min-width:1024px){
+    .row{
+        gap:24px;
+    }
+}
+
+.section{
+    width:100%;
+}
+
+.card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:12px;
+}
+h2{font-size:1rem; margin:.2rem 0 .6rem}
+.grid{display:grid; grid-template-columns:1fr; gap:8px}
+@media(min-width:700px){ .grid{grid-template-columns: 1fr 1fr} }
+label{display:block; font-size:.85rem; color:var(--muted); margin-bottom:4px}
+.ctl{
+    display:flex; gap:8px; border:1px solid var(--border);
+    border-radius:10px; padding:10px 12px; background:transparent;
+    align-items:center; flex-wrap:wrap
+}
+input,textarea,select{
+    border:0; outline:0; width:100%; background:transparent; color:var(--text); font-size:1rem
+}
+input[readonly]{color:var(--muted)}
+textarea{min-height:80px; resize:vertical}
+.actions{display:flex; gap:8px; flex-wrap:wrap}
+.btn{
+    border:0; border-radius:10px; padding:10px 14px; cursor:pointer; font-weight:700; color:#fff;
+    background:linear-gradient(180deg,var(--primary),var(--primary-2))
+}
+.btn.ghost{background:transparent; color:var(--primary); border:1px solid var(--border)}
+.btn.light{background:#eef2ff; color:#1e40af; border:1px solid var(--border)}
+.thumb{width:100%; max-height:260px; object-fit:contain; border:1px solid var(--border); border-radius:10px; background:#fff}
+.mono{font-variant-numeric: tabular-nums}
+.suffix{white-space:nowrap; color:var(--muted); font-size:.95rem}
+.row-1c{grid-template-columns:1fr}
+.help{font-size:.85rem; color:var(--muted)}
+.ok{color:var(--ok)}
+.warn{color:var(--warn)}
+.ctl.warn{border-color:var(--warn)}
+[hidden]{display:none !important}
+
+/* 라디오/체크 */
+.radio-group, .check-group{display:flex; flex-wrap:wrap; gap:12px}
+.radio-group label, .check-group label{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:6px 10px; border:1px solid var(--border); border-radius:999px;
+    background:transparent; line-height:1.2; cursor:pointer; transition: all 0.2s ease;
+}
+.radio-group label:hover, .check-group label:hover{
+    background:#f0f9ff; border-color:var(--primary);
+}
+.radio-group input[type="radio"], .check-group input[type="checkbox"]{
+    width:18px; height:18px; accent-color:var(--primary); cursor:pointer;
+}
+.radio-group label:has(input:checked), .check-group label:has(input:checked){
+    background:#eef2ff; border-color:var(--primary);
+}
+.radio-group label:has(input:checked) span, .check-group label:has(input:checked) span{
+    color:var(--primary); font-weight:600;
+}
+
+/* 주소찾기 레이어 */
+#postcodeLayer{display:none; position:fixed; inset:0; background:rgba(0,0,0,.25); z-index:9999}
+#postcodeWrap{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    width:min(100vw - 24px,520px); height:70vh; background:#fff; border:1px solid var(--border);
+    border-radius:12px; overflow:hidden; box-shadow:0 20px 40px rgba(0,0,0,.2)
+}
+#postcodeClose{position:absolute; right:10px; top:10px; z-index:1}
+#postcodeContainer{width:100%; height:100%}
+
+/* ===== Section 카드 스타일 ===== */
+.section-card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:20px;
+    margin-bottom:16px;
+}
+
+.section-header{
+    font-size:1.1rem;
+    font-weight:700;
+    color:var(--text);
+    margin:0 0 16px 0;
+    padding-bottom:12px;
+    border-bottom:2px solid var(--border);
+}
+
+.subsection{
+    margin-bottom:20px;
+}
+
+.subsection:last-child{
+    margin-bottom:0;
+}
+
+.subsection-title{
+    font-size:0.95rem;
+    font-weight:600;
+    color:var(--text);
+    margin:0 0 12px 0;
+}
+
+/* 🔥 총 주차면수 - 한 줄 배치 */
+.subsection:has(#ctl_total){
+    display:flex;
+    align-items:center;
+    gap:16px;
+    flex-wrap:wrap;
+    margin-bottom:16px;
+}
+
+.subsection:has(#ctl_total) > label{
+    margin:0;
+    white-space:nowrap;
+}
+
+.subsection:has(#ctl_total) #ctl_total{
+    margin:0;
+}
+
+.subsection:has(#ctl_total) #stallsMsg{
+    margin:0 !important;
+    flex:1;
+}
+
+/* 🔥 주차면수 세부 - 한 줄 배치 */
+.parking-stalls-grid{
+    display:flex;
+    gap:16px;
+    flex-wrap:nowrap;
+    align-items:center;
+    overflow-x:auto;
+    padding:12px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:var(--card);
+}
+
+.stall-item{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    white-space:nowrap;
+    flex-shrink:0;
+}
+
+.stall-item > label{
+    font-weight:500;
+    color:var(--text);
+    min-width:fit-content;
+    margin:0 !important;
+}
+
+.stall-item .ctl{
+    display:flex;
+    align-items:center;
+    gap:4px;
+    min-width:100px;
+}
+
+.stall-item .ctl input{
+    width:60px !important;
+    text-align:center;
+}
+
+.stall-item .ctl .suffix{
+    flex-shrink:0;
+}
+
+/* 🔥 허가 및 검사 정보 - 한 줄 배치 */
+.subsection:has(#f_permit_date) > div{
+    display:flex !important;
+    gap:16px;
+    flex-wrap:wrap;
+    align-items:center;
+}
+
+.subsection:has(#f_permit_date) > div > div{
+    flex:1;
+    min-width:200px;
+}
+
+/* 🔥 면적 정보 - 한 줄 배치 */
+.subsection:has(#f_site_area) > div{
+    display:flex !important;
+    gap:16px;
+    flex-wrap:wrap;
+    align-items:center;
+}
+
+.subsection:has(#f_site_area) > div > div{
+    flex:1;
+    min-width:180px;
+}
+
+/* 🔥 전체 규모 - 한 줄 배치 */
+.scale-input-group{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+}
+
+.scale-input-group input{
+    width:120px !important;
+    text-align:center;
+}
+
+.scale-input-group span{
+    font-weight:500;
+    color:var(--text);
+}
+
+/* 🔥 옥내/옥외 시설 - 한 줄 배치 */
+.facility-detail{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+.facility-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+}
+
+.facility-label{
+    min-width:60px;
+    font-weight:500;
+    color:var(--text);
+}
+
+.facility-inputs{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+}
+
+.facility-inputs input{
+    width:80px !important;
+    text-align:center;
+}
+
+.facility-inputs span{
+    font-weight:500;
+    color:var(--muted);
+}
+
+/* 🔥 주차 첨두 시간대 - 한 줄 배치 */
+.peak-time-group{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+    padding:12px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    background:var(--card);
+}
+
+.peak-label{
+    font-weight:500;
+    color:var(--text);
+    white-space:nowrap;
+}
+
+.peak-time-group .ctl{
+    display:flex;
+    align-items:center;
+    gap:4px;
+    min-width:100px;
+}
+
+.peak-time-group .ctl input{
+    width:70px !important;
+    text-align:center;
+}
+
+.peak-time-group > span{
+    font-weight:500;
+    color:var(--muted);
+}
+
+/* 🔥 관리기관 정보 - 한 줄 배치 */
+.subsection:has(#f_management_agency) > div{
+    display:flex !important;
+    gap:16px;
+    flex-wrap:wrap;
+}
+
+.subsection:has(#f_management_agency) > div > div{
+    flex:1;
+    min-width:200px;
+}
+
+/* 🔥 기계식주차장 안전관리 - 한 줄 배치 */
+.safety-check-grid{
+    display:flex;
+    gap:24px;
+    flex-wrap:wrap;
+    padding:16px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:var(--card);
+}
+
+.safety-check-grid .subsection{
+    flex:1;
+    min-width:200px;
+    margin:0 !important;
+}
+
+.safety-check-grid .subsection-title{
+    font-size:14px;
+    margin-bottom:8px;
+}
+
+/* 🔥 보행안전시설 그리드 - 한 줄 배치 */
+.pedestrian-safety-grid{
+    display:flex;
+    gap:16px;
+    flex-wrap:nowrap;
+    align-items:center;
+    overflow-x:auto;
+    padding:12px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:var(--card);
+}
+
+.safety-item{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    white-space:nowrap;
+    flex-shrink:0;
+}
+
+.safety-item > span{
+    font-weight:500;
+    color:var(--text);
+    min-width:fit-content;
+}
+
+.safety-item .ctl{
+    display:flex;
+    align-items:center;
+    gap:4px;
+    min-width:100px;
+}
+
+.safety-item .ctl input{
+    width:60px !important;
+    text-align:center;
+}
+
+.safety-item .ctl .suffix{
+    flex-shrink:0;
+}
+
+/* 반응형 대응 */
+@media (max-width: 768px) {
+    .parking-stalls-grid,
+    .pedestrian-safety-grid,
+    .peak-time-group{
+        gap:12px;
+        padding:10px;
+    }
+
+    .stall-item .ctl input,
+    .safety-item .ctl input,
+    .peak-time-group .ctl input{
+        width:50px !important;
+    }
+
+    .facility-row,
+    .scale-input-group,
+    .peak-time-group{
+        flex-wrap:wrap;
+    }
+
+    .subsection:has(#f_permit_date) > div,
+    .subsection:has(#f_site_area) > div,
+    .subsection:has(#f_management_agency) > div{
+        flex-direction:column;
+        gap:12px;
+    }
+
+    .subsection:has(#f_permit_date) > div > div,
+    .subsection:has(#f_site_area) > div > div,
+    .subsection:has(#f_management_agency) > div > div{
+        width:100%;
+    }
+
+    .safety-check-grid{
+        flex-direction:column;
+        gap:16px;
+    }
+}
+
+@media (max-width: 520px) {
+    .parking-stalls-grid,
+    .pedestrian-safety-grid,
+    .peak-time-group{
+        flex-wrap:wrap;
+    }
+
+    .stall-item,
+    .safety-item,
+    .peak-label{
+        min-width:140px;
+    }
+
+    .facility-inputs{
+        width:100%;
+    }
+
+    .scale-input-group{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+}
+
+/* ===== 요금 그룹 ===== */
+.fee-group{
+    display:grid; gap:10px;
+    grid-template-columns: repeat(4, minmax(0,1fr));
+    padding:12px; border:1px solid var(--border);
+    border-radius:12px; background:var(--card);
+}
+@media (max-width: 900px){ .fee-group{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
+@media (max-width: 520px){ .fee-group{ grid-template-columns: 1fr; } }
+.fee-item label{ margin-bottom:6px; }
+.fee-group .ctl{ display:flex; align-items:center; gap:8px; }
+.fee-group .ctl input{ width:87% !important; }
+.fee-group .ctl .suffix{ flex:0 0 auto; white-space:nowrap; }
+
+#res_fee_wrap .fee-group{ grid-template-columns: repeat(4, minmax(0,1fr)); }
+@media (max-width: 900px){ #res_fee_wrap .fee-group{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
+@media (max-width: 520px){ #res_fee_wrap .fee-group{ grid-template-columns: 1fr; } }
+
+#normal_fee_wrap .fee-group{ grid-template-columns: repeat(3, minmax(0,1fr)); }
+@media (max-width: 900px){ #normal_fee_wrap .fee-group{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
+@media (max-width: 520px){ #normal_fee_wrap .fee-group{ grid-template-columns: 1fr; } }
+
+.fee-level{ display:grid; gap:12px; background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px; }
+.fee-level .fee-title{ font-size:1rem; margin:.2rem 0 .4rem; }
+
+/* 요금 지불방식 - '기타' 입력칸 */
+.pay-etc{
+    display:inline-flex !important;
+    align-items:center;
+    gap:8px;
+    padding:6px 10px !important;
+    border:1px solid var(--border) !important;
+    border-radius:999px !important;
+    background:transparent !important;
+    line-height:1.2;
+}
+
+.pay-etc input[type="text"]{
+    width:200px !important;
+    max-width:none !important;
+    padding:4px 10px !important;
+    border:1px solid var(--border) !important;
+    border-radius:6px !important;
+    background:#ffffff !important;
+    color:var(--text) !important;
+    font-size:0.9rem !important;
+    transition:all 0.2s ease;
+    margin:0 !important;
+}
+
+.pay-etc input[type="text"]:focus{
+    border-color:var(--primary) !important;
+    box-shadow:0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+    outline:none !important;
+}
+
+.pay-etc input[type="text"]:disabled{
+    background-color:#f3f4f6 !important;
+    color:#9ca3af !important;
+    border-color:#e5e7eb !important;
+    cursor:not-allowed;
+}
+
+.pay-etc input[type="text"]::placeholder{
+    color:#9ca3af;
+    font-style:italic;
+}
+
+.pay-etc:has(input[type="checkbox"]:checked) input[type="text"]:not(:disabled){
+    border-color:var(--primary);
+    background:#f0f9ff !important;
+}
+
+/* 운영시간 스타일 */
+.operation-day-block {
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background-color: #fafafa;
+    margin-bottom: 8px;
+}
+
+.operation-day-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    color: #333;
+}
+
+.time-inputs-wrapper {
+    display: none;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    border-left: 3px solid #007bff;
+    transition: all 0.3s ease-in-out;
+}
+
+.time-inputs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.highlight-input-area {
+    border: 2px dashed;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 12px 0;
+    position: relative;
+    animation: fadeInSlide 0.3s ease-in-out;
+}
+
+.highlight-input-area::before {
+    content: "입력 필요";
+    position: absolute;
+    top: -8px;
+    left: 12px;
+    color: white;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 10px;
+    z-index: 1;
+}
+
+.weekday-time .highlight-input-area {
+    background: linear-gradient(135deg, #f0f9ff 0%, #dbeafe 100%);
+    border-color: #3b82f6;
+}
+
+.weekday-time .highlight-input-area::before {
+    background: #3b82f6;
+}
+
+.saturday-time .highlight-input-area {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-color: #22c55e;
+}
+
+.saturday-time .highlight-input-area::before {
+    background: #22c55e;
+}
+
+.holiday-time .highlight-input-area {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border-color: #f59e0b;
+}
+
+.holiday-time .highlight-input-area::before {
+    background: #f59e0b;
+}
+
+.time-input-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+    flex-wrap: wrap;
+}
+
+.time-input {
+    width: 60px !important;
+    height: 36px;
+    text-align: center;
+    border: 2px solid;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: bold;
+    background: white;
+    transition: all 0.2s ease;
+}
+
+.time-input:focus {
+    outline: none;
+}
+
+.time-unit {
+    font-weight: bold;
+    color: #333;
+    font-size: 14px;
+    margin: 0 2px;
+}
+
+.time-separator {
+    font-weight: bold;
+    color: #666;
+    font-size: 16px;
+    margin: 0 4px;
+}
+
+.time-label {
+    font-weight: bold;
+    font-size: 15px;
+    margin-right: 12px;
+}
+
+.input-guide {
+    font-size: 12px;
+    color: #666;
+    font-style: italic;
+    margin-top: 8px;
+    text-align: center;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border-left: 3px solid;
+}
+
+@keyframes fadeInSlide {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 파일 업로드 */
+.file-upload-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.upload-progress-container {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.photo-upload-zone {
+    padding: 16px;
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    background: #f9fafb;
+    transition: all 0.3s ease;
+}
+
+.photo-upload-zone:hover {
+    border-color: var(--accent);
+    background: rgba(37, 99, 235, 0.02);
+}
+
+.photo-section {
+    background: linear-gradient(135deg, #fefce8 0%, #ffffff 100%);
+}
+
+/* 저장 버튼 */
+.btn-save {
+    font-size: 1.1rem;
+    padding: 14px 32px;
+    background: linear-gradient(180deg, #10b981, #059669);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-save:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 보행안전시설 섹션 비활성화 */
+.pedestrian-safety-section {
+    position: relative;
+    transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+.pedestrian-safety-section[style*="opacity: 0.5"] {
+    filter: grayscale(50%);
+}
+
+.pedestrian-safety-section .help {
+    color: #f59e0b;
+    font-weight: 500;
+}
+
+/* 🔥 로딩 인디케이터 */
+#global-loader {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+}
+
+.loader-backdrop {
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loader-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.loader-spinner {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 1rem;
+    border: 4px solid #f3f4f6;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* 부설 주차장 상세화면: 내부 .main 스크롤 제거, 브라우저 전체 스크롤 사용 */
+.parking-detail-page .main {
+    overflow-y: visible !important;
+    max-height: none !important;
+    height: auto !important;
+}
+
+/* 부설 상세: 카드/패널/탭 컨테이너는 높이 제한/스크롤 없이 확장 */
+.parking-detail-page .card,
+.parking-detail-page .panel,
+.parking-detail-page .panel-body,
+.parking-detail-page .section,
+.parking-detail-page .row {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+}
+
+/* 탭/iframe 래퍼들의 세로 스크롤 제거 (상세 탭으로 열릴 때) */
+.parking-detail-page .tab-panels,
+.parking-detail-page .tab-panel,
+.parking-detail-page .tab-panel iframe,
+.parking-detail-page .detail-frames,
+.parking-detail-page .detail-frames iframe {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+}

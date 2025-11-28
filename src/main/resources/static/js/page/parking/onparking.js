@@ -4,9 +4,105 @@
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
 
+let hoverPreviewDiv = null;
+
 function params() {
     const sp = new URLSearchParams(location.search);
     return new Proxy({}, {get: (_, k) => sp.get(k) || ''});
+}
+
+function ensureHoverPreview() {
+    if (hoverPreviewDiv) return hoverPreviewDiv;
+    const div = document.createElement('div');
+    div.style.position = 'fixed';
+    div.style.zIndex = '9999';
+    div.style.pointerEvents = 'none';
+    div.style.padding = '6px';
+    div.style.background = '#fff';
+    div.style.border = '1px solid #d1d5db';
+    div.style.borderRadius = '4px';
+    div.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+    div.style.display = 'none';
+    div.innerHTML = '<div style="font-size:12px;color:#374151;margin-top:4px;"></div>';
+    document.body.appendChild(div);
+    hoverPreviewDiv = div;
+    return div;
+}
+
+function showHoverPreview(e, url, name) {
+    const div = ensureHoverPreview();
+    div.style.display = 'block';
+    const img = document.createElement('img');
+    img.src = url;
+    img.style.maxWidth = '240px';
+    img.style.maxHeight = '180px';
+    img.style.display = 'block';
+    img.style.objectFit = 'contain';
+    div.innerHTML = '';
+    div.appendChild(img);
+    const caption = document.createElement('div');
+    caption.textContent = name || '';
+    caption.style.fontSize = '12px';
+    caption.style.color = '#374151';
+    caption.style.marginTop = '4px';
+    div.appendChild(caption);
+    positionHoverPreview(e);
+}
+
+function hideHoverPreview() {
+    if (hoverPreviewDiv) hoverPreviewDiv.style.display = 'none';
+}
+
+function positionHoverPreview(e) {
+    if (!hoverPreviewDiv) return;
+    const offset = 12;
+    const maxW = window.innerWidth;
+    const maxH = window.innerHeight;
+    let left = e.clientX + offset;
+    let top = e.clientY + offset;
+    const rect = hoverPreviewDiv.getBoundingClientRect();
+    if (left + rect.width > maxW) left = e.clientX - rect.width - offset;
+    if (top + rect.height > maxH) top = e.clientY - rect.height - offset;
+    hoverPreviewDiv.style.left = `${left}px`;
+    hoverPreviewDiv.style.top = `${top}px`;
+}
+
+function renderUploadedList(photos) {
+    const list = document.querySelector('#uploadedFileList');
+    if (!list) return;
+    list.innerHTML = '';
+    (photos || []).forEach(p => {
+        const li = document.createElement('li');
+        li.className = 'uploaded-file';
+        li.dataset.seqNo = p.seqNo || p.seq_no || '';
+        const name = p.realFileNm || p.real_file_nm || p.realfilenm || p.fileNm || p.file_nm || p.filename || p.fileName;
+        li.textContent = name || '파일';
+        const infoSn = p.prkPlceInfoSn || p.prk_plce_info_sn;
+        const imgId = p.prkImgId || p.prk_img_id;
+        const seq = p.seqNo || p.seq_no;
+        if (infoSn && imgId && seq != null && typeof ImagePreview?.showWithDelay === 'function') {
+            li.addEventListener('mouseenter', (e) => {
+                ImagePreview.showWithDelay(infoSn, imgId, seq, name, e, 300);
+            });
+            li.addEventListener('mouseleave', () => ImagePreview.hide && ImagePreview.hide());
+        } else if (!infoSn || !imgId || seq == null) {
+            console.warn('⚠️ 미리보기 데이터 누락:', {infoSn, imgId, seq});
+        }
+        list.appendChild(li);
+    });
+}
+// 보조: 전역 노출 보장
+window.renderUploadedList = renderUploadedList;
+
+async function reloadParkingPhotos(infoSn) {
+    if (!infoSn) return;
+    try {
+        const resp = await fetch(`/prk/parking-photos?prkPlceInfoSn=${infoSn}`);
+        const json = await resp.json();
+        renderUploadedList(json.photos || []);
+    } catch (e) {
+        console.warn('⚠️ 파일 목록 재조회 실패:', e);
+    }
 }
 
 function num(v) {
@@ -15,6 +111,7 @@ function num(v) {
 }
 
 const p = params();
+const serverStatusValue = (document.body?.dataset?.status || document.getElementById('statusCode')?.value || '').trim();
 
 // ========== 🔥 행정구역 코드 로더 추가 ==========
 const RegionCodeLoader = {
@@ -441,7 +538,6 @@ const FormValidator = {
         const toast = document.getElementById('toast-container');
         if (toast) toast.innerHTML = '';
 
-        console.log('🧹 유효성 UI 초기화 완료 (값은 유지됨)');
     },
 
     /**
@@ -1177,58 +1273,21 @@ function setupTimeOperationEvents(timeType) {
     }
 }
 
-// ========== 🔥 법정동코드 생성 함수 개선 (수정됨) ==========
+// ========== 🔥 법정동코드 생성 함수 (공통 유틸 사용) ==========
 function generateLdongCd() {
     const f_sigungu = document.getElementById('f_sigungu');
     const f_emd = document.getElementById('f_emd');
+    const f_ri = document.getElementById('f_ri');
 
-    // 1. 필수값 체크
-    if (!f_sigungu || !f_sigungu.value) {
-        console.error('❌ 시군구가 선택되지 않았습니다.');
-        return null;
-    }
-    if (!f_emd || !f_emd.value) {
-        console.warn('⚠️ 읍면동이 선택되지 않았습니다.');
-        return null;
-    }
+    const sigunguCd = f_sigungu?.value;
+    const emdCd = f_emd?.value;
+    const liCd = f_ri?.value;
 
-    const sigunguCd = f_sigungu.value; // 예: "47150" (5자리)
-    const emdCd = f_emd.value;         // 예: "120" (3자리) 또는 "12000" (5자리)
-
-    // 2. 이미 10자리인 경우 (드물지만 방어 코드)
-    if (emdCd.length === 10) {
-        return emdCd;
-    }
-
-    // 3. 법정동코드 조합 로직 (표준: 시군구5 + 읍면동3 + 리2 = 총 10자리)
-    // 시군구 코드는 무조건 5자리여야 함
-    if (sigunguCd.length !== 5) {
-        console.error('❌ 시군구 코드가 5자리가 아닙니다:', sigunguCd);
-        return null;
-    }
-
-    let ldongCd = '';
-
-    if (emdCd.length === 3) {
-        // 읍면동이 3자리인 경우 (예: 120) -> 뒤에 리(00)을 붙여 10자리 완성
-        // 조합: 47150 + 120 + 00 = 4715012000
-        ldongCd = sigunguCd + emdCd + '00';
-    } else if (emdCd.length === 5) {
-        // 읍면동이 5자리인 경우 (예: 12000) -> 그대로 조합
-        // 조합: 47150 + 12000 = 4715012000
-        ldongCd = sigunguCd + emdCd;
+    const ldongCd = LdongUtil.generateLdongCd(sigunguCd, emdCd, liCd);
+    if (!ldongCd) {
+        console.error('❌ 법정동코드 생성 실패:', sigunguCd, emdCd, liCd);
     } else {
-        console.error('❌ 읍면동 코드 길이 오류:', emdCd);
-        return null;
     }
-
-    // 4. 최종 검증
-    if (ldongCd.length !== 10) {
-        console.error('❌ 생성된 법정동코드 길이가 10자리가 아닙니다:', ldongCd);
-        return null;
-    }
-
-    console.log(`✅ 법정동코드 생성: ${sigunguCd} + ${emdCd} => ${ldongCd}`);
     return ldongCd;
 }
 
@@ -1376,7 +1435,6 @@ function buildPayload() {
     const f_emd = document.getElementById('f_emd');
     // 🔥 법정동코드 생성
     const ldongCd = generateLdongCd();
-    console.log("!!!!!!!ldongCd : ", ldongCd);
 
     if (!ldongCd) {
         console.error('❌ 법정동코드 생성 실패');
@@ -1389,6 +1447,8 @@ function buildPayload() {
         name: f_name?.value,
         status: f_status?.value,
         type: '노상',
+        // 변경: 관리주체(소유주체) 코드 포함
+        ownCd: getSelectedOwnCd(),
 
         // 🔥 행정구역 정보 추가 (SELECT의 value 그대로)
         sido: f_sido?.value || null,
@@ -1521,7 +1581,6 @@ function setupSignToggle() {
             const isVisible = radio.checked && (value === 'y' || value === '있음' || value === 'yes' || value === '1');
             signPhotoWrap.style.display = isVisible ? 'block' : 'none';
 
-            console.log('🖼️ 표지판 사진:', {
                 originalValue: radio.value,
                 normalizedValue: value,
                 checked: radio.checked,
@@ -1536,11 +1595,9 @@ function setupSignToggle() {
         const value = (checkedSign.value || '').trim().toLowerCase();
         const isVisible = value === 'y' || value === '있음' || value === 'yes' || value === '1';
         signPhotoWrap.style.display = isVisible ? 'block' : 'none';
-        console.log('🔧 초기 표지판 상태:', {value: checkedSign.value, visible: isVisible});
     } else {
         // 체크된 라디오가 없으면 기본적으로 숨김
         signPhotoWrap.style.display = 'none';
-        console.log('⚠️ 선택된 표지판 라디오 버튼 없음 - 기본 숨김');
     }
 
     // 표지판 사진 업로드 버튼 이벤트
@@ -1650,7 +1707,6 @@ function setupSlopeToggle() {
     }
 
     slopeInputWrap.style.display = isVisible ? 'block' : 'none';
-    console.log('📐 경사구간 입력:', { visible: isVisible });
 }*/
 
 // ========== 🔥 로딩 인디케이터 ==========
@@ -1683,7 +1739,7 @@ const LoadingIndicator = {
 
 // ========== 🔥 서버에서 상세 데이터 로드 ==========
 async function loadParkingDetail(prkPlceManageNo) {
-    if (!prkPlceManageNo) {
+    if (!prkPlceManageNo && !window.initialParking) {
         console.warn('⚠️ 주차장 관리번호가 없습니다.');
         return;
     }
@@ -1691,26 +1747,12 @@ async function loadParkingDetail(prkPlceManageNo) {
     LoadingIndicator.show('주차장 정보를 불러오는 중...');
 
     try {
-        const response = await fetch(`/prk/onparking-detail?prkPlceManageNo=${encodeURIComponent(prkPlceManageNo)}`);
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        if (window.initialParking) {
+            await bindDataToForm(window.initialParking);
+            return;
         }
 
-        const result = await response.json();
-        if (result.success && result.data) {
-            bindDataToForm(result.data);
-            // 🔥 핵심: 사진 정보 로드 호출 추가
-            if (result.data.prkPlceInfoSn) {
-                await loadAndDisplayPhotos(result.data.prkPlceInfoSn);
-            }
-        } else {
-            console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            console.error('❌ 데이터 로드 실패');
-            console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            console.error('실패 사유:', result.message);
-            console.error('요청한 관리번호:', prkPlceManageNo);
-            console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        }
+        console.warn('initialParking 데이터가 없어 서버 요청을 건너뜁니다.');
     } catch (error) {
         console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         console.error('❌ 데이터 로드 중 예외 발생');
@@ -1967,7 +2009,7 @@ async function loadAndDisplayPhotos(prkPlceInfoSn) {
             }
 
             // 현장 사진 표시
-            const mainPhotos = result.photos.filter(p => p.prkimgid === 'ON_MAIN');
+            const mainPhotos = result.photos.filter(p => p.prkImgId === 'ON_MAIN');
             if (photoInfoDiv && mainPhotos.length > 0) {
                 mainPhotos.forEach(photo => {
                     displayPhotoInfo('photo_info', photo);
@@ -1975,12 +2017,14 @@ async function loadAndDisplayPhotos(prkPlceInfoSn) {
             }
 
             // 표지판 사진 표시
-            const signPhotos = result.photos.filter(p => p.prkimgid === 'ON_SIGN');
+            const signPhotos = result.photos.filter(p => p.prkImgId === 'ON_SIGN');
             if (signPhotoInfoDiv && signPhotos.length > 0) {
                 signPhotos.forEach(photo => {
                     displayPhotoInfo('sign_photo_info', photo);
                 });
             }
+            // 🔥 업로드 리스트에도 반영
+            renderUploadedList(result.photos);
         } else {
             console.warn('⚠️ 조회된 사진이 없습니다.');
         }
@@ -1998,7 +2042,7 @@ function displayPhotoInfo(containerId, photoData) {
         return;
     }
     // 🔥 데이터 검증 - null/undefined 체크
-    if (!photoData.prkplceinfosn || !photoData.prkimgid || photoData.seqno === null || photoData.seqno === undefined) {
+    if (!photoData.prkPlceInfoSn || !photoData.prkImgId || photoData.seqNo === null || photoData.seqNo === undefined) {
         console.error('❌ 필수 데이터 누락:', photoData);
         return;
     }
@@ -2021,9 +2065,9 @@ function displayPhotoInfo(containerId, photoData) {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
             </svg>
             <div style="flex: 1;">
-                <div style="font-size: 14px; color: #374151; font-weight: 500;">${photoData.realfilenm}</div>
+                <div style="font-size: 14px; color: #374151; font-weight: 500;">${photoData.realFileNm || photoData.real_file_nm || photoData.fileNm}</div>
                 <div style="font-size: 12px; color: #9ca3af; margin-top: 2px;">
-                    등록일: ${formatDate(photoData.regdt)} · seqNo: ${photoData.seqno}
+                    등록일: ${formatDate(photoData.regDt)} · seqNo: ${photoData.seqNo}
                 </div>
             </div>
         </div>
@@ -2032,7 +2076,7 @@ function displayPhotoInfo(containerId, photoData) {
     // 🔥 클릭 이벤트 - 한 번만 등록
     infoDiv.onclick = function (e) {
         e.stopPropagation();
-        const url = `/prk/photo?prkPlceInfoSn=${photoData.prkplceinfosn}&prkImgId=${photoData.prkimgid}&seqNo=${photoData.seqno}`;
+        const url = `/prk/photo?prkPlceInfoSn=${photoData.prkPlceInfoSn}&prkImgId=${photoData.prkImgId}&seqNo=${photoData.seqNo}`;
         window.open(url, '_blank');
     };
 
@@ -2041,10 +2085,10 @@ function displayPhotoInfo(containerId, photoData) {
         infoDiv.style.background = '#f3f4f6';
         infoDiv.style.borderColor = '#d1d5db';
         ImagePreview.showWithDelay(
-            photoData.prkplceinfosn,
-            photoData.prkimgid,
-            photoData.seqno,
-            photoData.realfilenm,
+            photoData.prkPlceInfoSn,
+            photoData.prkImgId,
+            photoData.seqNo,
+            photoData.realFileNm || photoData.real_file_nm || photoData.fileNm,
             e,
             300
         );
@@ -2087,6 +2131,7 @@ function formatDate(dateString) {
 
 // ========== 🔥 전역 변수로 사업관리번호 저장 ==========
 let loadedBizMngNo = null; // 🔥 서버에서 로드한 사업관리번호 저장
+let loadedPrkPlceInfoSn = document.getElementById('prkPlceInfoSn')?.value || null;
 
 // ========== 🔥 폼에 데이터 바인딩 ==========
 async function bindDataToForm(data) {
@@ -2097,6 +2142,9 @@ async function bindDataToForm(data) {
 
     // 🔥 주차장정보일련번호 저장
     if (data.prkPlceInfoSn) {
+        loadedPrkPlceInfoSn = data.prkPlceInfoSn;
+        const hiddenInfoSn = document.getElementById('prkPlceInfoSn');
+        if (hiddenInfoSn) hiddenInfoSn.value = data.prkPlceInfoSn;
         // 🔥 사진 정보 로드
         await loadAndDisplayPhotos(data.prkPlceInfoSn);
     }
@@ -2238,6 +2286,9 @@ async function bindDataToForm(data) {
     // 좌표
     if (f_lat) f_lat.value = data.prkPlceLat || '';
     if (f_lng) f_lng.value = data.prkPlceLon || '';
+
+    // 관리주체(소유주체)
+    applyOwnCdSelection(data.ownCd || data.prkplceSe);
 
     // 주차면수
     if (totalInput) totalInput.value = data.totPrkCnt || 0;
@@ -2469,11 +2520,9 @@ async function bindDataToForm(data) {
             sign_yes.checked = true;
             // 🔥 change 이벤트 트리거 추가
             sign_yes.dispatchEvent(new Event('change', {bubbles: true}));
-            console.log('✅ 표지판: 있음 선택');
         } else {
             sign_no.checked = true;
             sign_no.dispatchEvent(new Event('change', {bubbles: true}));
-            console.log('✅ 표지판: 없음 선택');
         }
     }
 
@@ -2545,26 +2594,9 @@ async function bindDataToForm(data) {
         bindOperationTime('night', 'holiday', data.ntHldyOperTmCd, data.ntHldyOperStarTm, data.ntHldyOperEndTm);
     }
 
-    // 🔥 2. 진행상태 확인 후 ReadOnly 처리
-    const isApproved = (data.prgsStsCd === '승인' || data.prgsStsCd === 'APPROVED');
-
-    if (isApproved) {
-        setAllFieldsReadOnly(true);
-
-        // 저장 버튼 비활성화
-        const btnSave = document.getElementById('btnSave');
-        const btnSaveTop = document.getElementById('btnSaveTop');
-        if (btnSave) btnSave.setAttribute('disabled', 'true');
-        if (btnSaveTop) btnSaveTop.setAttribute('disabled', 'true');
-    } else {
-        setAllFieldsReadOnly(false);
-
-        // 저장 버튼 활성화
-        const btnSave = document.getElementById('btnSave');
-        const btnSaveTop = document.getElementById('btnSaveTop');
-        if (btnSave) btnSave.removeAttribute('disabled');
-        if (btnSaveTop) btnSaveTop.removeAttribute('disabled');
-    }
+    // 🔥 2. 진행상태 확인 후 ReadOnly 처리 (코드값 30=승인)
+    const statusValue = (data.prgsStsCd || f_status?.value || serverStatusValue || '').trim();
+    applyApprovalLock(statusValue);
 
     // 헤더 업데이트
     if (v_id) v_id.textContent = data.prkPlceManageNo || '';
@@ -2591,6 +2623,22 @@ async function bindDataToForm(data) {
 }
 
 // ========== 🔥 모든 필드를 ReadOnly로 설정하는 함수 ==========
+function isApprovedStatus(value) {
+    if (!value) return false;
+    const v = value.toString().trim();
+    return v === '30' || v === '승인' || v.toUpperCase() === 'APPROVED';
+}
+
+function applyApprovalLock(statusValue) {
+    const approved = isApprovedStatus(statusValue);
+    setAllFieldsReadOnly(approved);
+    const btnSave = document.getElementById('btnSave');
+    const btnSaveTop = document.getElementById('btnSaveTop');
+    if (btnSave) btnSave.disabled = approved;
+    if (btnSaveTop) btnSaveTop.disabled = approved;
+    return approved;
+}
+
 function setAllFieldsReadOnly(isReadOnly) {
     // 🔥 1. 텍스트/숫자 입력 필드
     const inputs = $$('input[type="text"], input[type="number"], input[type="tel"], textarea');
@@ -2667,7 +2715,6 @@ function setAllFieldsReadOnly(isReadOnly) {
             }
         }
     });
-    console.log(`🔒 모든 필드 ${isReadOnly ? 'ReadOnly' : '편집 가능'} 처리 완료`);
 }
 
 // 🔥 운영시간 바인딩 함수 (PRK_004 코드 기반)
@@ -2890,6 +2937,13 @@ function validateRequiredFields() {
         errors.push('• 운영주체를 선택해주세요.');
     }
 
+    // 관리주체(소유주체)
+    // 변경: 관리주체(소유주체) 필수 검증
+    const ownerCode = getSelectedOwnCd();
+    if (!ownerCode) {
+        errors.push('• 관리주체(소유주체)를 선택해주세요');
+    }
+
     // 민간위탁인 경우 업체명 확인
     const ownRadios = $$('input[name="own"]');
     const selectedOwn = ownRadios.find(r => r.checked);
@@ -3067,12 +3121,12 @@ function validateRequiredFields() {
 }
 
 async function doSave() {
-    console.log('🚀 저장 프로세스 시작');
 
     // 🔥 try 블록을 함수 시작 시점으로 이동하여 모든 에러를 포착
     try {
         // 1. 🔥 검증 초기화 (이전 에러 상태 제거)
         FormValidator.clearErrorStyles();
+        clearValidationErrors();
 
         // 2. 🔥 필수 항목 검증 (순서대로 체크)
         let isValid = true;
@@ -3116,14 +3170,14 @@ async function doSave() {
         // 3. 🔥 유효성 검사 실패 시 중단
         if (!isValid) {
             console.warn('❌ 유효성 검사 실패: 필수 입력 항목 누락');
-            alert('필수 입력 항목을 확인해주세요. (붉은색 표시 항목)');
+            showValidationErrors(['필수 입력 항목을 확인해주세요. (붉은색 표시 항목)']);
             return;
         }
 
         // 4. 상세 비즈니스 로직 검증
         const validationErrors = validateRequiredFields();
         if (validationErrors.length > 0) {
-            alert('다음 항목을 입력해주세요:\n\n' + validationErrors.join('\n'));
+            showValidationErrors(validationErrors);
             return;
         }
 
@@ -3135,7 +3189,6 @@ async function doSave() {
         const serverData = mapPayloadToServerFormat(payload);
 
         // 🔥 법정동코드 디버깅 로그
-        console.log('📦 전송 데이터 확인 (법정동코드):', serverData.ldongCd);
 
         if (!serverData.prkplceNm) throw new Error('주차장명이 비어있습니다');
         if (!serverData.zip) throw new Error('우편번호가 비어있습니다');
@@ -3148,26 +3201,31 @@ async function doSave() {
 
         // 7. FormData 생성
         const formData = new FormData();
+        formData.append('ownCd', payload.ownCd || '');
         formData.append('parkingData', new Blob([JSON.stringify(serverData)], {
             type: 'application/json'
         }));
 
         // 🔥 사진 추가 로직...
-        const mainPhotoLib = document.getElementById('f_photo_lib');
-        const mainPhotoCam = document.getElementById('f_photo_cam');
-        if (mainPhotoLib && mainPhotoLib.files && mainPhotoLib.files.length > 0) {
-            formData.append('mainPhoto', mainPhotoLib.files[0]);
-        } else if (mainPhotoCam && mainPhotoCam.files && mainPhotoCam.files.length > 0) {
-            formData.append('mainPhoto', mainPhotoCam.files[0]);
-        }
+    const mainPhotoLib = document.getElementById('f_photo_lib');
+    const mainPhotoCam = document.getElementById('f_photo_cam');
+    if (mainPhotoLib && mainPhotoLib.files && mainPhotoLib.files.length > 0) {
+        formData.append('mainPhoto', mainPhotoLib.files[0]);
+        appendUploadedFiles('#uploadedFileList', mainPhotoLib.files);
+    } else if (mainPhotoCam && mainPhotoCam.files && mainPhotoCam.files.length > 0) {
+        formData.append('mainPhoto', mainPhotoCam.files[0]);
+        appendUploadedFiles('#uploadedFileList', mainPhotoCam.files);
+    }
 
-        const signPhotoLib = document.getElementById('f_sign_photo_lib');
-        const signPhotoCam = document.getElementById('f_sign_photo_cam');
-        if (signPhotoLib && signPhotoLib.files && signPhotoLib.files.length > 0) {
-            formData.append('signPhoto', signPhotoLib.files[0]);
-        } else if (signPhotoCam && signPhotoCam.files && signPhotoCam.files.length > 0) {
-            formData.append('signPhoto', signPhotoCam.files[0]);
-        }
+    const signPhotoLib = document.getElementById('f_sign_photo_lib');
+    const signPhotoCam = document.getElementById('f_sign_photo_cam');
+    if (signPhotoLib && signPhotoLib.files && signPhotoLib.files.length > 0) {
+        formData.append('signPhoto', signPhotoLib.files[0]);
+        appendUploadedFiles('#uploadedFileList', signPhotoLib.files);
+    } else if (signPhotoCam && signPhotoCam.files && signPhotoCam.files.length > 0) {
+        formData.append('signPhoto', signPhotoCam.files[0]);
+        appendUploadedFiles('#uploadedFileList', signPhotoCam.files);
+    }
 
         // 8. 전송
         const controller = new AbortController();
@@ -3196,7 +3254,15 @@ async function doSave() {
         }
         const result = await response.json();
         if (result.success) {
-            handlePostSave(isNewRecord ? '/prk/parkinglist' : '/prk/parkinglist');
+            const hiddenInfoSn = document.getElementById('prkPlceInfoSn')?.value;
+            const infoSn = result.prkPlceInfoSn || hiddenInfoSn || loadedPrkPlceInfoSn;
+            if (infoSn) {
+                loadedPrkPlceInfoSn = infoSn;
+                const hidden = document.getElementById('prkPlceInfoSn');
+                if (hidden) hidden.value = infoSn;
+            }
+            await reloadParkingPhotos(infoSn);
+            handlePostSave(isNewRecord, '/prk/parkinglist');
         } else {
             console.error('❌ 저장 실패:', result.message);
             alert('저장 실패: ' + result.message);
@@ -3258,11 +3324,43 @@ function joinCodes(arr) {
     return arr.join(',');
 }
 
+// 🔥 관리주체(소유주체) 코드 정규화/선택 헬퍼
+function normalizeOwnCdValue(raw) {
+    if (raw === undefined || raw === null) return '';
+    const value = String(raw).trim();
+    if (!value) return '';
+    if (value.includes('공영')) return '1';
+    if (value.includes('민영') || value.includes('민간')) return '2';
+    if (value.includes('기타')) return '9';
+    const stripped = value.replace(/^0+/, '');
+    return ['1', '2', '9'].includes(stripped) ? stripped : '';
+}
+
+function applyOwnCdSelection(rawValue) {
+    const normalized = normalizeOwnCdValue(rawValue);
+    if (!normalized) return;
+    const radio = document.querySelector(`input[name="ownCd"][value="${normalized}"]`);
+    if (radio) {
+        radio.checked = true;
+    }
+    const hiddenOwn = document.getElementById('own_cd');
+    if (hiddenOwn) {
+        hiddenOwn.value = normalized;
+    }
+}
+
+function getSelectedOwnCd() {
+    return document.querySelector('input[name="ownCd"]:checked')?.value || '';
+}
+
 // ========== 초기화 ==========
 document.addEventListener('DOMContentLoaded', async function () {
     // 🔥 1. URL에서 관리번호 확인하여 신규/조회 구분
-    const prkPlceManageNo = p.id || f_id?.value;
+    const prkPlceManageNo = document.getElementById('prkPlceManageNo')?.value || p.id || f_id?.value;
     const isNewRecord = !prkPlceManageNo || prkPlceManageNo === '';
+    if (serverStatusValue) {
+        applyApprovalLock(serverStatusValue);
+    }
     // 🔥 2. 진행상태 로드 (모든 상태 표시)
     await RegionCodeLoader.loadProgressStatus();
     // 3. 행정구역 코드 로드
@@ -3357,42 +3455,26 @@ function mapPayloadToServerFormat(payload) {
     const sigunguCd = f_sigungu?.value || null;
     const emdCd = f_emd?.value || null;
 
-    // 🔥 2. 법정동코드(ldongCd) 명시적 생성
-    // 기존: emdCd만 사용하여 DB에 120만 들어감
-    // 수정: generateLdongCd()를 호출하거나 직접 조합하여 10자리 코드 생성
-    let ldongCd = null;
-    if (sigunguCd && emdCd) {
-        if (emdCd.length === 3) {
-            // 시군구(5) + 읍면동(3) + 리(00) = 10자리
-            ldongCd = sigunguCd + emdCd + '00';
-        } else if (emdCd.length === 5) {
-            // 시군구(5) + 읍면동(5) = 10자리 (경우에 따라 다름)
-            ldongCd = sigunguCd + emdCd;
-        } else if (emdCd.length === 10) {
-            ldongCd = emdCd;
-        } else {
-            // 기본 조합 시도
-            ldongCd = sigunguCd + emdCd.padEnd(5, '0');
-        }
+    // 🔥 2. 법정동코드(ldongCd) 명시적 생성 (10자리 고정)
+    const ldongCd = LdongUtil.generateLdongCd(sigunguCd, emdCd, payload.liCd);
+    if (!ldongCd) {
+        throw new Error('법정동코드(ldong_cd)는 10자리여야 합니다.');
     }
-
-    if (!ldongCd || ldongCd.length !== 10) {
-        console.warn('⚠️ 법정동코드 생성 실패 또는 길이 오류:', ldongCd);
-        // 실패 시 payload에 있는 값을 사용해봅니다 (buildPayload에서 생성했었다면)
-        ldongCd = payload.ldongCd || ldongCd;
-    }
-
-    console.log(`🛠️ 법정동코드 매핑: 시군구(${sigunguCd}) + 읍면동(${emdCd}) => ldongCd(${ldongCd})`);
 
     const isNewRecord = !payload.id || payload.id.trim() === '';
     const prkBizMngNo = isNewRecord ? null : loadedBizMngNo;
+    const hiddenInfoSn = document.getElementById('prkPlceInfoSn')?.value || null;
+    const prkPlceInfoSn = isNewRecord ? null : (payload.prkPlceInfoSn || hiddenInfoSn || loadedPrkPlceInfoSn || null);
 
     const serverData = {
         /* ========== Basic Information ========== */
         prkPlceManageNo: payload.id || null,
+        prkPlceInfoSn: prkPlceInfoSn,
         prkplceNm: payload.name || '',
         prgsStsCd: payload.status || '10',
-        prkPlceType: '1',
+        prkPlceTypeCd || prkPlceType: '1',
+        // 변경: 관리주체(소유주체) 코드 매핑
+        prkplceSe: payload.ownCd || null,
 
         // 🔥 수정: 명시적으로 생성한 10자리 ldongCd 사용
         ldongCd: ldongCd,
@@ -3539,33 +3621,99 @@ function mapPayloadToServerFormat(payload) {
  * 🔥 저장 성공 후 페이지 처리 공통 함수
  * @param {string} fallbackUrl - 부모 창이 없을 때 이동할 목록 페이지 URL
  */
-function handlePostSave(fallbackUrl) {
-    // 1. 알림 표시
+function closeParentTabAndRefreshList() {
+    if (!window.parent || window.parent === window) return false;
+    try {
+        if (typeof window.parent.reloadList === 'function') {
+            window.parent.reloadList();
+        }
+
+        const iframeEl = window.frameElement;
+        const panelEl = iframeEl ? iframeEl.closest('.tab-panel') : null;
+        if (panelEl && window.parent.Tabs && typeof window.parent.Tabs.closeTop === 'function') {
+            const tabBtn = window.parent.document.querySelector(`.tab-btn[aria-controls="${panelEl.id}"]`);
+            if (tabBtn) {
+                window.parent.Tabs.closeTop(tabBtn);
+                if (window.parent.Tabs.activateTop) {
+                    window.parent.Tabs.activateTop('tabList');
+                }
+                return true;
+            }
+        }
+    } catch (e) {
+        console.warn('부모 탭 제어 실패:', e);
+    }
+    return false;
+}
+
+function handlePostSave(isNew) {
     alert('저장이 완료되었습니다.');
 
-    // 2. 부모 창(Opener)이 존재하는지 확인 (새 탭/팝업으로 열린 경우)
-    if (window.opener && !window.opener.closed) {
-        try {
-            // 부모 창에 reloadList 함수가 있으면 실행
-            if (typeof window.opener.reloadList === 'function') {
+    if (typeof clearUploadProgressUI === 'function') {
+        clearUploadProgressUI(); // 진행률만 정리, 완료 리스트는 유지
+    }
+
+    try {
+        if (window.parent && typeof window.parent.closeNewParkingTabAndGoList === 'function') {
+            window.parent.closeNewParkingTabAndGoList('onparking');
+            return;
+        }
+        if (window.parent && typeof window.parent.reloadList === 'function') {
+            window.parent.reloadList();
+            return;
+        }
+        if (window.opener && !window.opener.closed) {
+            if (typeof window.opener.closeNewParkingTabAndGoList === 'function') {
+                window.opener.closeNewParkingTabAndGoList('onparking');
+            } else if (typeof window.opener.reloadList === 'function') {
                 window.opener.reloadList();
             } else {
-                // 함수가 없으면 단순히 부모 창 새로고침
                 window.opener.location.reload();
             }
-
-            // 부모 창으로 포커스 이동 (브라우저 정책에 따라 제한될 수 있음)
             window.opener.focus();
-
-        } catch (e) {
-            console.warn('부모 창 제어 중 오류 (Cross-Origin 등):', e);
-        } finally {
-            // 현재 창 닫기
             window.close();
+            return;
         }
+    } catch (e) {
+        console.warn('부모 창 제어 중 오류:', e);
     }
-    // 3. 부모 창이 없는 경우 (그냥 페이지 이동으로 들어온 경우)
-    else {
-        location.href = fallbackUrl;
+}
+
+function ensureValidationBox() {
+    var box = document.getElementById('validationErrors');
+    if (!box) {
+        box = document.createElement('div');
+        box.id = 'validationErrors';
+        box.className = 'validation-errors';
+        box.style.color = '#c62828';
+        box.style.margin = '12px 0';
+        box.style.display = 'none';
+        var form = document.querySelector('form') || document.body;
+        form.insertBefore(box, form.firstChild);
     }
+    return box;
+}
+
+function clearValidationErrors() {
+    var box = document.getElementById('validationErrors');
+    if (box) {
+        box.style.display = 'none';
+        box.innerHTML = '';
+    }
+}
+
+function showValidationErrors(errors) {
+    var box = ensureValidationBox();
+    var listHtml = '<ul style=\"padding-left:16px; margin:4px 0;\">' + errors.map(function (msg) {
+        return '<li>' + msg + '</li>';
+    }).join('') + '</ul>';
+    box.innerHTML = '<strong>입력 오류가 있습니다.</strong>' + listHtml;
+    box.style.display = 'block';
+
+    var firstInvalid = document.querySelector('[aria-invalid=\"true\"], input:invalid, textarea:invalid, select:invalid');
+    if (firstInvalid && typeof firstInvalid.focus === 'function') {
+        firstInvalid.focus();
+    }
+    var top = box.getBoundingClientRect().top + window.pageYOffset - 20;
+    window.scrollTo({top: top, behavior: 'smooth'});
 }

@@ -33,7 +33,6 @@
 
                 if (typeof kakao !== 'undefined' && typeof kakao.maps !== 'undefined') {
                     clearInterval(checkKakaoLoaded);
-                    console.log('✅ Kakao Maps API 로드 완료');
                     initializeMap();
                 } else if (retryCount >= maxRetries) {
                     clearInterval(checkKakaoLoaded);
@@ -53,13 +52,11 @@
         if (!mapContainer || kakaoMap) return;
 
         try {
-            console.log('🗺️ 지도 객체 생성 시작...');
 
             const defaultCenter = new kakao.maps.LatLng(37.5665, 126.9780);
             const mapOption = { center: defaultCenter, level: 7 };
 
             kakaoMap = new kakao.maps.Map(mapContainer, mapOption);
-            console.log('✅ Kakao Map 초기화 완료!');
 
             getCurrentLocationAndSetCenter();
 
@@ -94,7 +91,6 @@
                         kakaoMap.setCenter(currentPosition);
                         kakaoMap.setLevel(5);
                     },
-                    () => console.log('💡 기본 위치 사용'),
                     { enableHighAccuracy: false, timeout: 12000 }
                 );
             },
@@ -132,7 +128,6 @@
             locationGroups.get(key).push({ ...item, originalLat: lat, originalLng: lng, index });
         });
 
-        console.log(`📍 ${locationGroups.size}개 위치에 ${dataList.length}개 데이터`);
 
         // 🔥 각 위치마다 하나의 마커만 생성
         locationGroups.forEach((items) => {
@@ -251,7 +246,6 @@
             kakaoMap.setBounds(bounds);
         }
 
-        console.log(`✅ 지도에 ${markers.length}개 위치 표시 완료`);
     }
 
     // ========== 🔥 단일 항목 인포윈도우 (마커 옆에 표시) ==========
@@ -867,7 +861,6 @@
 
     // ========== DOM 로드 후 실행 ==========
     document.addEventListener('DOMContentLoaded', async function () {
-        console.log('📄 usage-status-list.js 로드 완료');
 
         initKakaoMap();
 

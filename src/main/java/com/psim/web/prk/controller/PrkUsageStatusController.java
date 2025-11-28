@@ -72,8 +72,14 @@ public class PrkUsageStatusController {
         Map<String, Object> result = new HashMap<>();
 
         try {
-            log.info("🔍 목록 조회 요청 - prkBizMngNo: {}, searchVehicleNo: {}, searchLawCd: {}",
-                    vo.getPrkBizMngNo(), vo.getSearchVehicleNo(), vo.getSearchLawCd());
+            log.info("🔍 목록 조회 요청 - prkBizMngNo: {}, searchYear: {}, searchSido: {}, searchSigungu: {}, searchEmd: {}, searchVehicleNo: {}, searchLawCd: {}",
+                    vo.getPrkBizMngNo(),
+                    vo.getSearchYear(),
+                    vo.getSearchSidoCode(),
+                    vo.getSearchSigunguCode(),
+                    vo.getSearchEmdCode(),
+                    vo.getSearchVehicleNo(),
+                    vo.getSearchLawCd());
 
             List<PrkUsageStatusVO> list = usageStatusService.getUsageStatusList(vo);
 

@@ -1,0 +1,205 @@
+@startuml
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam componentStyle rectangle
+skinparam classAttributeIconSize 0
+left to right direction
+
+package "com.psim" {
+  class PsimWebApplication
+}
+
+package "com.psim.config" as cfg {
+  class SecurityConfig <<config>>
+  class WebMvcConfig <<config>>
+  class DatabaseConfig <<config>>
+  class DatabaseMonitoringConfig <<config>>
+  class DatabaseHealthIndicator <<health>>
+  class RestClientConfig <<config>>
+  class MyBatisConfig <<config>>
+  class AuthInterceptor <<interceptor>>
+}
+
+package "com.psim.media.storage" as media {
+  interface PhotoStorage
+  class FileSystemPhotoStorage
+}
+
+PhotoStorage <|.. FileSystemPhotoStorage
+
+package "com.psim.integration.geocoding" as geo {
+  interface GeocodingClient
+  class KakaoGeocodingClient
+  class GeocodingConfig <<config>>
+  class KakaoGeocodingProperties
+  class GeocodingException
+  class GeoAddress
+  class GeoCoordinate
+  class GeoRegion
+}
+
+GeocodingClient <|.. KakaoGeocodingClient
+GeocodingConfig ..> GeocodingClient
+KakaoGeocodingClient ..> KakaoGeocodingProperties
+KakaoGeocodingClient ..> GeoAddress
+KakaoGeocodingClient ..> GeoCoordinate
+KakaoGeocodingClient ..> GeoRegion
+
+package "com.psim.web.api" as api {
+  package controller {
+    class KakaoLocalController
+  }
+  package service {
+    interface KakaoLocalService
+  }
+  package "service.impl" {
+    class KakaoLocalServiceImpl
+  }
+  package vo {
+    class KakaoCoord2AddressResponse
+    class KakaoCoord2RegionResponse
+    class KakaoAddress2CoordResponse
+  }
+}
+
+KakaoLocalController ..> KakaoLocalService
+KakaoLocalService <|.. KakaoLocalServiceImpl
+KakaoLocalServiceImpl ..> KakaoCoord2AddressResponse
+KakaoLocalServiceImpl ..> KakaoCoord2RegionResponse
+KakaoLocalServiceImpl ..> KakaoAddress2CoordResponse
+KakaoLocalServiceImpl ..> geo.GeocodingException
+
+package "com.psim.web.cmm" as cmm {
+  package controller {
+    class IndexController
+    class LoginController
+    class CoCodeController
+    class ErrorPageController
+  }
+  package service {
+    interface IndexService
+    interface LoginService
+    interface CoCodeService
+    interface PasswordCryptoService
+    interface LoginAttemptPolicy
+  }
+  package "service.impl" {
+    class IndexServiceImpl
+    class LoginServiceImpl
+    class CoCodeServiceImpl
+    class PasswordCryptoServiceImpl
+    class InMemoryLoginAttemptPolicy
+  }
+  package mapper {
+    class IndexMapper
+    class LoginMapper
+    class CoCodeMapper
+    class CoUserMapper
+  }
+  package vo {
+    class CoUserVO
+    class CoAuthVO
+    class CoAuthMenuVO
+    class CoAuthTargetVO
+    class CoMenuVO
+    class CoCodeVO
+    class CoCodeGroupVO
+    class CoLdongVO
+    class CoAddrVO
+    class CoAddrJibunVO
+    class CoZipVO
+    class CoComboVO
+  }
+  package exception {
+    class GlobalExceptionHandler
+    class RestExceptionHandler
+  }
+  package filter {
+    class AuthFilter <<deprecated>>
+  }
+}
+
+IndexController ..> IndexService
+LoginController ..> LoginService
+CoCodeController ..> CoCodeService
+ErrorPageController ..> GlobalExceptionHandler
+LoginService <|.. LoginServiceImpl
+IndexService <|.. IndexServiceImpl
+CoCodeService <|.. CoCodeServiceImpl
+PasswordCryptoService <|.. PasswordCryptoServiceImpl
+LoginAttemptPolicy <|.. InMemoryLoginAttemptPolicy
+LoginServiceImpl ..> LoginMapper
+LoginServiceImpl ..> PasswordCryptoService
+LoginServiceImpl ..> LoginAttemptPolicy
+IndexServiceImpl ..> IndexMapper
+CoCodeServiceImpl ..> CoCodeMapper
+CoCodeMapper ..> CoCodeVO
+CoCodeMapper ..> CoCodeGroupVO
+CoCodeMapper ..> CoLdongVO
+LoginMapper ..> CoUserVO
+LoginMapper ..> CoAuthVO
+LoginMapper ..> CoAuthMenuVO
+LoginMapper ..> CoAuthTargetVO
+CoUserMapper ..> CoUserVO
+AuthInterceptor ..> cfg.SecurityConfig
+WebMvcConfig ..> AuthInterceptor
+
+package "com.psim.web.prk" as prk {
+  package controller {
+    class PrkDefPlceInfoController
+    class PrkUsageStatusController
+  }
+  package service {
+    interface PrkDefPlceInfoService
+    interface PrkUsageStatusService
+  }
+  package "service.impl" {
+    class PrkDefPlceInfoServiceImpl
+    class PrkUsageStatusServiceImpl
+  }
+  package mapper {
+    class PrkDefPlceInfoMapper
+    class PrkUsageStatusMapper
+  }
+  package vo {
+    class ParkingListVO
+    class ParkingDetailVO
+    class PrkUsageStatusVO
+  }
+}
+
+PrkDefPlceInfoController ..> PrkDefPlceInfoService
+PrkUsageStatusController ..> PrkUsageStatusService
+PrkDefPlceInfoService <|.. PrkDefPlceInfoServiceImpl
+PrkUsageStatusService <|.. PrkUsageStatusServiceImpl
+PrkDefPlceInfoServiceImpl ..> PrkDefPlceInfoMapper
+PrkUsageStatusServiceImpl ..> PrkUsageStatusMapper
+PrkDefPlceInfoMapper ..> ParkingListVO
+PrkDefPlceInfoMapper ..> ParkingDetailVO
+PrkUsageStatusMapper ..> PrkUsageStatusVO
+
+package "com.psim.web.file" as file {
+  package controller {
+    class FileUploadController
+  }
+  package service {
+    interface AttchPicMngInfoService
+  }
+  package "service.impl" {
+    class AttchPicMngInfoServiceImpl
+  }
+  package mapper {
+    class AttchPicMngInfoMapper
+  }
+  package vo {
+    class AttchPicMngInfoVO
+  }
+}
+
+FileUploadController ..> AttchPicMngInfoService
+AttchPicMngInfoService <|.. AttchPicMngInfoServiceImpl
+AttchPicMngInfoServiceImpl ..> AttchPicMngInfoMapper
+AttchPicMngInfoServiceImpl ..> media.PhotoStorage
+AttchPicMngInfoMapper ..> AttchPicMngInfoVO
+
+@enduml

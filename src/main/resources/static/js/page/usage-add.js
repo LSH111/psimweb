@@ -14,8 +14,7 @@
     const FormCodeUtils = {
         async loadSidoList() {
             try {
-                const response = await fetch(`${contextPath}/cmm/codes/sido`);
-                const result = await response.json();
+                const result = await CodeApi.loadSidoList(contextPath);
                 const sidoSelect = $('#f_sido');
                 if (!sidoSelect) return;
 
@@ -48,8 +47,7 @@
                     return;
                 }
 
-                const response = await fetch(`${contextPath}/cmm/codes/sigungu?sidoCd=${sidoCd}`);
-                const result = await response.json();
+                const result = await CodeApi.loadSigunguList(sidoCd, contextPath);
 
                 if (result.success && result.data) {
                     result.data.forEach(item => {
@@ -81,8 +79,7 @@
                     return;
                 }
 
-                const response = await fetch(`${contextPath}/cmm/codes/emd?sigunguCd=${sigunguCd}`);
-                const result = await response.json();
+                const result = await CodeApi.loadEmdList(sigunguCd, contextPath);
 
                 if (result.success && result.data) {
                     result.data.forEach(item => {
@@ -112,7 +109,6 @@
             // 사진첩 버튼
             if (target.id === 'btnPickFromLibrary' || target.closest('#btnPickFromLibrary')) {
                 e.preventDefault();
-                console.log('📁 사진첩 버튼 클릭 (이벤트 위임)');
                 const photoLibInput = $('#f_photo_lib');
                 if (photoLibInput) photoLibInput.click();
             }
@@ -120,7 +116,6 @@
             // 카메라 버튼
             else if (target.id === 'btnTakePhoto' || target.closest('#btnTakePhoto')) {
                 e.preventDefault();
-                console.log('📷 카메라 버튼 클릭 (이벤트 위임)');
                 const photoCamInput = $('#f_photo_cam');
                 if (photoCamInput) photoCamInput.click();
             }
@@ -128,21 +123,18 @@
             // 위치 버튼
             else if (target.id === 'btnUseGeolocation' || target.closest('#btnUseGeolocation')) {
                 e.preventDefault();
-                console.log('📍 위치 버튼 클릭 (이벤트 위임)');
                 getGeolocation();
             }
 
             // 초기화 버튼
             else if (target.id === 'btnClearPhoto' || target.closest('#btnClearPhoto')) {
                 e.preventDefault();
-                console.log('🗑️ 초기화 버튼 클릭 (이벤트 위임)');
                 clearPhoto();
             }
 
             // 주소찾기 버튼
             else if (target.id === 'btnFindAddr' || target.closest('#btnFindAddr')) {
                 e.preventDefault();
-                console.log('🔍 주소찾기 버튼 클릭 (이벤트 위임)');
                 openPostcode();
             }
 
@@ -152,7 +144,6 @@
                 e.preventDefault();
                 e.stopPropagation(); // 🔥 추가
                 e.stopImmediatePropagation(); // 🔥 추가
-                console.log('💾 저장 버튼 클릭 (이벤트 위임)');
                 handleSave();
                 return false; // 🔥 추가
             }
@@ -172,13 +163,11 @@
             if (photoLibInput && !photoLibInput.dataset.listenerAttached) {
                 photoLibInput.addEventListener('change', handlePhotoSelect);
                 photoLibInput.dataset.listenerAttached = 'true';
-                console.log('✅ 사진첩 input 이벤트 등록');
             }
 
             if (photoCamInput && !photoCamInput.dataset.listenerAttached) {
                 photoCamInput.addEventListener('change', handlePhotoSelect);
                 photoCamInput.dataset.listenerAttached = 'true';
-                console.log('✅ 카메라 input 이벤트 등록');
             }
         };
 
@@ -213,20 +202,16 @@
             const target = e.target;
 
             if (target.id === 'f_sido') {
-                console.log('시도 변경:', target.value);
                 FormCodeUtils.loadSigunguList(target.value);
             } else if (target.id === 'f_sigungu') {
-                console.log('시군구 변경:', target.value);
                 FormCodeUtils.loadEmdList(target.value);
             } else if (target.id === 'f_emd') {
-                console.log('✅ 읍면동 선택됨:', target.value, target.options[target.selectedIndex].text);
             }
         });
     }
 
     // ========== 폼 초기화 ==========
     async function initUsageAddForm() {
-        console.log('📝 등록 폼 초기화');
 
         // 행정구역 데이터 로드
         await FormCodeUtils.loadSidoList();
@@ -241,7 +226,6 @@
 
                 if (matchingSido) {
                     sidoSelect.value = sessionInfo.sidoCd;
-                    console.log('✅ 세션에서 시도 자동 선택:', sessionInfo.sidoCd);
 
                     // 시군구 목록 로드
                     await FormCodeUtils.loadSigunguList(sessionInfo.sidoCd);
@@ -255,7 +239,6 @@
 
                             if (matchingSigungu) {
                                 sigunguSelect.value = sessionInfo.sigunguCd;
-                                console.log('✅ 세션에서 시군구 자동 선택:', sessionInfo.sigunguCd);
 
                                 // 🔥 시군구 readonly 처리
                                 sigunguSelect.disabled = true;
@@ -280,7 +263,6 @@
         // 오늘 날짜 기본값 설정
         setTodayDate();
 
-        console.log('✅ 폼 초기화 완료');
     }
 
     // 🔥 조사원 정보 설정 (readonly 처리)
@@ -294,14 +276,12 @@
                 surveyorName.readOnly = true;
                 surveyorName.style.backgroundColor = '#f1f5f9';
                 surveyorName.style.cursor = 'not-allowed';
-                console.log('✅ 조사원 성명 자동 입력 및 readonly:', sessionInfo.userNm);
             }
             if (surveyorContact && sessionInfo.mbtlnum) {
                 surveyorContact.value = sessionInfo.mbtlnum;
                 surveyorContact.readOnly = true;
                 surveyorContact.style.backgroundColor = '#f1f5f9';
                 surveyorContact.style.cursor = 'not-allowed';
-                console.log('✅ 조사원 연락처 자동 입력 및 readonly:', sessionInfo.mbtlnum);
             }
         }
     }
@@ -331,7 +311,6 @@
             }
         });
 
-        console.log('✅ 차량번호 검증 설정 완료');
     }
 
     // 🔥 한국 차량번호 패턴 검증
@@ -361,12 +340,10 @@
         const files = Array.from(event.target.files);
         if (files.length === 0) return;
 
-        console.log('📸 선택된 파일 수:', files.length);
         selectedPhotoFiles = [...selectedPhotoFiles, ...files];
 
         // 🔥 첫 번째 사진에서 GPS 정보 추출 시도
         if (files.length > 0 && files[0]) {
-            console.log('🔍 GPS 정보 추출 시작:', files[0].name);
             extractGPSFromPhoto(files[0]);
         }
 
@@ -376,12 +353,10 @@
 
     // 🔥 사진에서 GPS 정보 추출
     function extractGPSFromPhoto(file) {
-        console.log('📍 EXIF 데이터 읽기 시작:', file.name);
 
         // EXIF.js 라이브러리 확인
         if (typeof EXIF === 'undefined') {
             console.error('❌ EXIF.js 라이브러리가 로드되지 않았습니다.');
-            console.log('💡 "기기 위치로 좌표" 버튼을 사용하세요.');
             return;
         }
 
@@ -389,60 +364,42 @@
         const reader = new FileReader();
 
         reader.onload = function(e) {
-            console.log('✅ 파일 읽기 완료');
 
             // 이미지 객체 생성
             const img = new Image();
             img.src = e.target.result;
 
             img.onload = function() {
-                console.log('🖼️ 이미지 로드 완료');
 
                 EXIF.getData(img, function() {
-                    console.log('📦 EXIF 데이터 읽기 완료');
 
                     // 모든 EXIF 태그 출력 (디버깅용)
                     const allTags = EXIF.getAllTags(this);
-                    console.log('📋 모든 EXIF 태그:', allTags);
 
                     const lat = EXIF.getTag(this, 'GPSLatitude');
                     const latRef = EXIF.getTag(this, 'GPSLatitudeRef');
                     const lng = EXIF.getTag(this, 'GPSLongitude');
                     const lngRef = EXIF.getTag(this, 'GPSLongitudeRef');
 
-                    console.log('🔍 GPS 데이터:', {
-                        lat: lat,
-                        latRef: latRef,
-                        lng: lng,
-                        lngRef: lngRef
-                    });
-
                     if (lat && lng) {
                         const latitude = convertDMSToDD(lat, latRef);
                         const longitude = convertDMSToDD(lng, lngRef);
-
-                        console.log('✅ GPS 좌표 변환 완료:', {
-                            latitude: latitude,
-                            longitude: longitude
-                        });
 
                         const latInput = $('#f_lat');
                         const lngInput = $('#f_lng');
 
                         if (latInput) {
                             latInput.value = latitude.toFixed(6);
-                            console.log('✅ 위도 입력:', latInput.value);
                         }
                         if (lngInput) {
                             lngInput.value = longitude.toFixed(6);
-                            console.log('✅ 경도 입력:', lngInput.value);
                         }
 
-                        alert(`📍 사진에서 위치 정보를 가져왔습니다.\n위도: ${latitude.toFixed(6)}\n경도: ${longitude.toFixed(6)}`);
+                        alert(`📍 사진에서 위치 정보를 가져왔습니다.\\n위도: ${latitude.toFixed(6)}\\n경도: ${longitude.toFixed(6)}`);
 
                     } else {
                         console.warn('⚠️ 이 사진에는 GPS 정보가 없습니다.');
-                        alert('⚠️ 이 사진에는 위치 정보가 없습니다.\n"기기 위치로 좌표" 버튼을 사용하거나,\n위치 정보가 있는 사진을 선택해주세요.');
+                        alert('⚠️ 이 사진에는 위치 정보가 없습니다.\\n\"기기 위치로 좌표\" 버튼을 사용하거나,\\n위치 정보가 있는 사진을 선택해주세요.');
                     }
                 });
             };
@@ -472,7 +429,6 @@
 
         let dd = degrees + minutes / 60 + seconds / 3600;
 
-        console.log('🔄 DMS → DD 변환:', {
             input: `${degrees}° ${minutes}' ${seconds}"`,
             ref: ref,
             output: dd
@@ -576,7 +532,6 @@
 
     // ========== 위치 정보 가져오기 ==========
     function getGeolocation() {
-        console.log('위치 정보 요청 시작');
 
         if (!navigator.geolocation) {
             alert('이 브라우저는 위치 정보를 지원하지 않습니다.');
@@ -617,7 +572,6 @@
         if (filesList) filesList.style.display = 'none';
         if (previewContainer) previewContainer.style.display = 'none';
 
-        console.log('사진 초기화 완료');
     }
 
 
@@ -632,7 +586,6 @@
             return;
         }
 
-        console.log('💾 저장 시작');
 
         // 🔥 저장 시작 플래그 설정
         isSaving = true;
@@ -725,34 +678,29 @@
                 const tabAdd = document.querySelector('[data-tab="add"]');
                 if (tabAdd) {
                     tabAdd.classList.remove('active');
-                    console.log('✅ 등록 탭 닫기');
                 }
 
                 // 🔥 등록 패널 숨기기
                 const panelAdd = document.querySelector('#panelAdd');
                 if (panelAdd) {
                     panelAdd.style.display = 'none';
-                    console.log('✅ 등록 패널 숨기기');
                 }
 
                 // 🔥 목록 탭 활성화
                 const tabList = document.querySelector('[data-tab="list"]');
                 if (tabList) {
                     tabList.classList.add('active');
-                    console.log('✅ 목록 탭 활성화');
                 }
 
                 // 🔥 목록 패널 표시
                 const panelList = document.querySelector('#panelList');
                 if (panelList) {
                     panelList.style.display = 'block';
-                    console.log('✅ 목록 패널 표시');
                 }
 
                 // 🔥 목록 새로고침 (딜레이 추가)
                 setTimeout(() => {
                     if (typeof window.loadUsageStatusList === 'function') {
-                        console.log('✅ 목록 새로고침');
                         window.loadUsageStatusList();
                     } else {
                         console.warn('⚠️ loadUsageStatusList 함수가 없습니다.');
@@ -816,14 +764,12 @@
 
         new daum.Postcode({
             oncomplete: async function(data) {
-                console.log('📮 다음 주소 API 전체 응답:', data);
 
                 try {
                     // 🔥 1단계: 시도 선택
                     const sido = $('#f_sido');
                     if (sido) {
                         const sidoText = data.sido;
-                        console.log('🔍 시도 검색:', sidoText);
 
                         const sidoOption = Array.from(sido.options).find(opt =>
                             opt.textContent.trim() === sidoText.trim()
@@ -832,18 +778,14 @@
                         if (sidoOption) {
                             sido.value = sidoOption.value;
                             sido.dispatchEvent(new Event('change'));
-                            console.log('✅ 시도 선택 완료:', sidoOption.value, '/', sidoText);
 
                             // 🔥 2단계: 시군구 목록 로드 대기
                             await FormCodeUtils.loadSigunguList(sidoOption.value);
-                            console.log('✅ 시군구 목록 로드 완료');
 
                             // 🔥 3단계: 시군구 선택
                             const sigungu = $('#f_sigungu');
                             if (sigungu) {
                                 const sigunguText = data.sigungu;
-                                console.log('🔍 시군구 검색:', sigunguText);
-                                console.log('📋 시군구 옵션 목록:', Array.from(sigungu.options).map(o => o.textContent));
 
                                 const sigunguOption = Array.from(sigungu.options).find(opt =>
                                     opt.textContent.trim() === sigunguText.trim()
@@ -852,18 +794,14 @@
                                 if (sigunguOption) {
                                     sigungu.value = sigunguOption.value;
                                     sigungu.dispatchEvent(new Event('change'));
-                                    console.log('✅ 시군구 선택 완료:', sigunguOption.value, '/', sigunguText);
 
                                     // 🔥 4단계: 읍면동 목록 로드 대기
                                     await FormCodeUtils.loadEmdList(sigunguOption.value);
-                                    console.log('✅ 읍면동 목록 로드 완료');
 
                                     // 🔥 5단계: 읍면동 선택
                                     const emd = $('#f_emd');
                                     if (emd) {
                                         const emdText = data.bname; // bname = 법정동명
-                                        console.log('🔍 읍면동 검색:', emdText);
-                                        console.log('📋 읍면동 옵션 목록:',
                                             Array.from(emd.options).map(o => `"${o.textContent.trim()}"`).join(', '));
 
                                         // 🔥 다양한 매칭 시도
@@ -877,7 +815,6 @@
                                         // 방법 2: 읍/면/동 제거하고 비교
                                         if (!emdOption) {
                                             const emdTextClean = emdText.replace(/[읍면동]/g, '').trim();
-                                            console.log('🔄 읍/면/동 제거 후:', emdTextClean);
 
                                             emdOption = Array.from(emd.options).find(opt => {
                                                 const optTextClean = opt.textContent.replace(/[읍면동]/g, '').trim();
@@ -887,7 +824,6 @@
 
                                         // 방법 3: 부분 포함 검색 (양방향)
                                         if (!emdOption) {
-                                            console.log('🔄 부분 일치 검색 시도');
                                             emdOption = Array.from(emd.options).find(opt => {
                                                 const optText = opt.textContent.trim();
                                                 const searchText = emdText.trim();
@@ -902,7 +838,6 @@
                                         if (emdOption) {
                                             emd.value = emdOption.value;
                                             emd.dispatchEvent(new Event('change'));
-                                            console.log('✅ 읍면동 선택 완료:', emdOption.value, '/', emdOption.textContent);
                                         } else {
                                             console.error('❌ 읍면동을 찾을 수 없음:', emdText);
                                             console.warn('💡 DB에 해당 읍면동 데이터가 없을 수 있습니다.');
@@ -922,7 +857,6 @@
                     const ri = $('#f_ri');
                     if (ri && data.bname2) {
                         ri.value = data.bname2;
-                        console.log('✅ 리(里):', data.bname2);
                     }
 
                     // 🔥 7단계: 산 여부 파싱
@@ -931,7 +865,6 @@
                         const mountainRadio = document.querySelector(`input[name="mountainYn"][value="${isMountain ? 'Y' : 'N'}"]`);
                         if (mountainRadio) {
                             mountainRadio.checked = true;
-                            console.log('✅ 산 여부:', isMountain ? '산' : '일반');
                         }
                     }
 
@@ -943,11 +876,9 @@
 
                         if (mainNum && parts[0]) {
                             mainNum.value = parts[0].replace(/\D/g, ''); // 숫자만 추출
-                            console.log('✅ 본번:', mainNum.value);
                         }
                         if (subNum && parts[1]) {
                             subNum.value = parts[1].replace(/\D/g, '');
-                            console.log('✅ 부번:', subNum.value);
                         }
                     }
 
@@ -955,7 +886,6 @@
                     const buildingName = $('#f_buildingName');
                     if (buildingName && data.buildingName) {
                         buildingName.value = data.buildingName;
-                        console.log('✅ 건물명:', data.buildingName);
                     }
 
                     // 🔥 10단계: 주소 표시
@@ -964,21 +894,17 @@
 
                     if (addrJibun) {
                         addrJibun.value = data.jibunAddress || data.autoJibunAddress || '';
-                        console.log('✅ 지번주소:', addrJibun.value);
                     }
                     if (addrRoad) {
                         addrRoad.value = data.roadAddress || data.autoRoadAddress || '';
-                        console.log('✅ 도로명주소:', addrRoad.value);
                     }
 
                     // 🔥 11단계: 우편번호 (hidden)
                     const zip = $('#f_zip');
                     if (zip && data.zonecode) {
                         zip.value = data.zonecode;
-                        console.log('✅ 우편번호:', data.zonecode);
                     }
 
-                    console.log('✅ 주소 파싱 완료');
 
                 } catch (error) {
                     console.error('❌ 주소 파싱 중 오류:', error);
@@ -1003,5 +929,4 @@
         setupGlobalEventDelegation();
     }
 
-    console.log('✅ usage-add.js 로드 완료 (이벤트 위임 방식)');
 })();

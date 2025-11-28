@@ -1,11 +1,11 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" isELIgnored="true" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" isELIgnored="false" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <jsp:include page="/WEB-INF/views/fragments/header.jsp"/>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
     <title>주차장 지도</title>
 
     <!-- Kakao Maps JS -->
@@ -30,9 +30,9 @@
         /* 🔥 지도 영역 - margin-top 제거 */
         body > #map {
             width: 100% !important;
-            height: 100vh !important;  /* 전체 높이 */
+            height: 100vh !important; /* 전체 높이 */
             position: relative !important;
-            margin-top: 0 !important;  /* 제거 */
+            margin-top: 0 !important; /* 제거 */
         }
 
         /* 검색 패널 */
@@ -43,7 +43,7 @@
             z-index: 10 !important;
             background: white !important;
             border-radius: 12px !important;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
             max-width: 400px !important;
             width: calc(100% - 40px) !important;
             transition: all 0.3s ease !important;
@@ -263,7 +263,7 @@
             font-size: 24px !important;
             color: #2563eb !important;
             cursor: pointer !important;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
             transition: all 0.2s !important;
             display: flex !important;
             align-items: center !important;
@@ -288,7 +288,7 @@
             padding: 12px 20px !important;
             font-size: 14px !important;
             font-weight: 500 !important;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
             max-width: 400px !important;
             pointer-events: none !important;
             white-space: nowrap !important;
@@ -315,8 +315,8 @@
         /* 모바일 대응 */
         @media (max-width: 768px) {
             body > #map {
-                height: 100vh !important;  /* 전체 높이 */
-                margin-top: 0 !important;  /* 제거 */
+                height: 100vh !important; /* 전체 높이 */
+                margin-top: 0 !important; /* 제거 */
             }
 
             #map > .search-panel {
@@ -366,8 +366,8 @@
         /* 가로 모드 */
         @media (max-height: 600px) and (orientation: landscape) {
             body > #map {
-                height: 100vh !important;  /* 전체 높이 */
-                margin-top: 0 !important;  /* 제거 */
+                height: 100vh !important; /* 전체 높이 */
+                margin-top: 0 !important; /* 제거 */
             }
 
             #map > .search-panel {
@@ -421,6 +421,10 @@
     </style>
 </head>
 <body>
+<input type="hidden" id="loginSidoNm" value="${loginSidoNm}">
+<input type="hidden" id="loginSigunguNm" value="${loginSigunguNm}">
+<input type="hidden" id="loginSidoCd" value="${loginSidoCd}">
+<input type="hidden" id="loginSigunguCd" value="${loginSigunguCd}">
 <!-- 지도 영역 -->
 <div id="map">
     <!-- 접을 수 있는 검색 패널 -->
@@ -510,7 +514,7 @@
     }
 
     // 시도 목록 로드
-    async function loadSidoList() {
+    async function loadSidoList(defaultSidoCd) {
         try {
             const response = await fetch('/cmm/codes/sido');
             const result = await response.json();
@@ -530,6 +534,13 @@
                     option.textContent = item.codeNm;
                     sidoSelect.appendChild(option);
                 });
+                if (defaultSidoCd) {
+                    sidoSelect.value = defaultSidoCd;
+                    const defaultSigunguCd = document.getElementById('loginSigunguCd')?.value;
+                    if (defaultSigunguCd) {
+                        await loadSigunguList(defaultSidoCd, defaultSigunguCd);
+                    }
+                }
                 console.log('✅ 시도 목록 로드 완료:', result.data.length + '개');
             }
         } catch (error) {
@@ -538,7 +549,7 @@
     }
 
     // 시군구 목록 로드
-    async function loadSigunguList(sidoCd) {
+    async function loadSigunguList(sidoCd, defaultSigunguCd) {
         try {
             const sigunguSelect = document.getElementById('searchSigungu');
 
@@ -562,6 +573,9 @@
                     option.textContent = item.codeNm;
                     sigunguSelect.appendChild(option);
                 });
+                if (defaultSigunguCd) {
+                    sigunguSelect.value = defaultSigunguCd;
+                }
                 sigunguSelect.disabled = false;
                 console.log('✅ 시군구 목록 로드 완료:', result.data.length + '개');
             }
@@ -741,7 +755,7 @@
         const markerImage = new kakao.maps.MarkerImage(
             markerSvg,
             new kakao.maps.Size(40, 40),
-            { offset: new kakao.maps.Point(20, 20) }
+            {offset: new kakao.maps.Point(20, 20)}
         );
 
         return new kakao.maps.Marker({
@@ -761,27 +775,36 @@
         });
     }
 
-    // 주차장 타입별 마커 이미지 경로 반환
-    function getParkingMarkerImage(prkPlceType) {
-        const basePath = '/static/img/prking/';
-        let color = 'blue';
+    // 주차장 타입별 마커 이미지 경로 반환 (코드 01/02/03 우선)
+    /*function getParkingMarkerImage(prkPlceType) {
+        const type = (prkPlceType ?? '').toString().trim();
 
-        if (prkPlceType === '노상' || prkPlceType === '01') {
-            color = 'red';
-        } else if (prkPlceType === '노외' || prkPlceType === '02') {
-            color = 'blue';
-        } else if (prkPlceType === '부설' || prkPlceType === '03') {
-            color = 'green';
+        let color = 'blue'; // 기본값
+        if (['노상', '01', '1', 'on', 'ON'].includes(type)) {
+            return `/static/img/prking/marker-red-P-64.svg`;
+        } else if (['노외', '02', '2', 'off', 'OFF'].includes(type)) {
+            return `/static/img/prking/marker-blue-P-64.svg`;
+        } else if (['부설', '03', '3', 'build', 'BUILD', 'bld', 'BLD'].includes(type)) {
+            return `/static/img/prking/marker-green-P-64.svg`;
         }
+    }*/
+    function getParkingMarkerImage(prkPlceType) {
+        const base = '<c:url value="/static/img/prking"/>';
+        const type = (prkPlceType ?? '').toString().trim();
 
-        return basePath + `marker-${color}-P-64.svg`;
+        if (['노상', '01', '1', 'on', 'ON'].includes(type)) return base + '/marker-red-P-64.svg';
+        if (['노외', '02', '2', 'off', 'OFF'].includes(type)) return base + '/marker-blue-P-64.svg';
+        if (['부설', '03', '3', 'build', 'BUILD', 'bld', 'BLD'].includes(type)) return base + '/marker-green-P-64.svg';
+
+        return base + '/marker-blue-P-64.svg'; // fallback
     }
 
     // 주차장 마커 생성
     function createParkingMarker(parking) {
-        const imageSrc = getParkingMarkerImage(parking.prkPlceType);
+        const typeForMarker = parking.prkPlceTypeCd || parking.prkPlceType;
+        const imageSrc = getParkingMarkerImage(typeForMarker);
         const imageSize = new kakao.maps.Size(64, 64);
-        const imageOption = { offset: new kakao.maps.Point(16, 32) };
+        const imageOption = {offset: new kakao.maps.Point(16, 32)};
 
         const markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize, imageOption);
 
@@ -792,7 +815,7 @@
             clickable: true
         });
 
-        kakao.maps.event.addListener(marker, 'click', function() {
+        kakao.maps.event.addListener(marker, 'click', function () {
             showParkingInfo(parking, marker);
         });
 
@@ -856,7 +879,8 @@
         sessionStorage.setItem('parkingMapSido', sidoCd);
         sessionStorage.setItem('parkingMapSigungu', sigunguCd);
 
-        const url = `/prk/parkinglist?openDetail=${encodeURIComponent(prkPlceManageNo)}&type=${encodeURIComponent(prkPlceType)}`;
+        const url = '/prk/parkinglist?openDetail=' + encodeURIComponent(prkPlceManageNo) +
+            '&type=' + encodeURIComponent(prkPlceType);
         window.location.href = url;
     }
 
@@ -957,7 +981,7 @@
             updateLocation,
             (error) => {
                 let errorMsg = '위치를 확인할 수 없습니다';
-                switch(error.code) {
+                switch (error.code) {
                     case error.PERMISSION_DENIED:
                         errorMsg = '❌ 위치 권한이 거부되었습니다';
                         break;
@@ -995,7 +1019,7 @@
     }
 
     // 지도 초기화
-    function initMap() {
+    async function initMap() {
         if (window.kakao && kakao.maps) {
             try {
                 const mapContainer = document.getElementById('map');
@@ -1016,8 +1040,12 @@
                 const regionSearchBtn = document.getElementById('regionSearchBtn');
                 const btnCurrentLocation = document.getElementById('btnCurrentLocation');
 
+                // 로그인 지역 코드로 셀렉트 초기화
+                const loginSidoCd = document.getElementById('loginSidoCd')?.value;
+                const loginSigunguCd = document.getElementById('loginSigunguCd')?.value;
+
                 if (searchSido) {
-                    searchSido.addEventListener('change', async function(e) {
+                    searchSido.addEventListener('change', async function (e) {
                         await loadSigunguList(e.target.value);
                     });
                     console.log('✅ 시도 선택 이벤트 등록 완료');
@@ -1037,7 +1065,7 @@
                     console.log('✅ 위치 버튼 이벤트 등록 완료');
                 }
 
-                loadSidoList();
+                await loadSidoList(loginSidoCd);
 
                 // 🔥 지도 복원 로직 수정
                 const isReturnFromList = sessionStorage.getItem('parkingMapReturn');
@@ -1048,9 +1076,11 @@
                         await restoreMapState();
                     }, 800); // 시도 목록 로드 대기
                 } else {
-                    // 기본 위치 추적 시작
-                    setTimeout(() => {
-                        startLocationTracking();
+                    setTimeout(async () => {
+                        const centered = await centerMapToLoginRegion(map);
+                        if (!centered) {
+                            startLocationTracking();
+                        }
                     }, 500);
                 }
 
@@ -1059,6 +1089,74 @@
                 showMessage('❌ 지도를 불러올 수 없습니다', 'error');
             }
         }
+    }
+
+    // 🔥 로그인 지역으로 지도 중심 이동
+    function centerMapToLoginRegion(targetMap) {
+        return new Promise((resolve) => {
+            let sido = document.getElementById('loginSidoNm')?.value?.trim();
+            let sigungu = document.getElementById('loginSigunguNm')?.value?.trim();
+            const loginSidoCd = document.getElementById('loginSidoCd')?.value;
+            const loginSigunguCd = document.getElementById('loginSigunguCd')?.value;
+
+            // 이름이 비어있으면 셀렉트 박스의 표시 텍스트를 사용
+            const searchSidoEl = document.getElementById('searchSido');
+            const searchSigunguEl = document.getElementById('searchSigungu');
+
+            // 코드로 셀렉트 일치/텍스트 추출 시도
+            if ((!sido || !sido.trim()) && loginSidoCd && searchSidoEl) {
+                const match = Array.from(searchSidoEl.options).find(o => o.value === loginSidoCd);
+                if (match) {
+                    searchSidoEl.value = loginSidoCd;
+                    if (match.text && match.text !== '시도 선택') sido = match.text.trim();
+                }
+            }
+            if ((!sigungu || !sigungu.trim()) && loginSigunguCd && searchSigunguEl) {
+                const match = Array.from(searchSigunguEl.options).find(o => o.value === loginSigunguCd);
+                if (match) {
+                    searchSigunguEl.value = loginSigunguCd;
+                    if (match.text && match.text !== '시군구 선택') sigungu = match.text.trim();
+                }
+            }
+
+            if ((!sido || !sido.trim()) && searchSidoEl) {
+                const sidoText = searchSidoEl.options[searchSidoEl.selectedIndex]?.text;
+                if (sidoText && sidoText !== '시도 선택') sido = sidoText.trim();
+            }
+            if ((!sigungu || !sigungu.trim()) && searchSigunguEl) {
+                const sigunguText = searchSigunguEl.options[searchSigunguEl.selectedIndex]?.text;
+                if (sigunguText && sigunguText !== '시군구 선택') sigungu = sigunguText.trim();
+            }
+
+            if (!sido || !sigungu || !sido.trim() || !sigungu.trim()) {
+                console.warn('로그인 지역정보 없음');
+                resolve(false);
+                return;
+            }
+
+            const address = `${sido.trim()} ${sigungu.trim()}`.trim();
+            if (!address) {
+                console.warn('로그인 지역정보 없음 (address empty)');
+                resolve(false);
+                return;
+            }
+            console.log('지도 중심 이동 시도:', address);
+
+            const geocoder = new kakao.maps.services.Geocoder();
+
+            geocoder.addressSearch(address, function (result, status) {
+                if (status !== kakao.maps.services.Status.OK) {
+                    console.error('주소 변환 실패', status);
+                    resolve(false);
+                    return;
+                }
+                const coords = result[0];
+                targetMap.setCenter(new kakao.maps.LatLng(coords.y, coords.x));
+                targetMap.setLevel(5);
+                console.log('로그인 지역으로 지도 이동 성공');
+                resolve(true);
+            });
+        });
     }
 
     // 🔥 지도 상태 복원 함수
@@ -1086,7 +1184,7 @@
             const sidoCd = sessionStorage.getItem('parkingMapSido');
             const sigunguCd = sessionStorage.getItem('parkingMapSigungu');
 
-            console.log('📍 복원할 검색 조건:', { sidoCd, sigunguCd });
+            console.log('📍 복원할 검색 조건:', {sidoCd, sigunguCd});
 
             if (sidoCd) {
                 const sidoSelect = document.getElementById('searchSido');
@@ -1149,13 +1247,13 @@
     }
 
     // DOM 로드 후 실행
-    window.addEventListener('DOMContentLoaded', function() {
+    window.addEventListener('DOMContentLoaded', function () {
         console.log('🚀 페이지 로드 완료');
 
         if (window.kakao && kakao.maps) {
             kakao.maps.load(initMap);
         } else {
-            setTimeout(function() {
+            setTimeout(function () {
                 if (window.kakao && kakao.maps) {
                     kakao.maps.load(initMap);
                 } else {
@@ -1167,7 +1265,7 @@
     });
 
     // 페이지 언로드 시 추적 중지
-    window.addEventListener('beforeunload', function() {
+    window.addEventListener('beforeunload', function () {
         stopLocationTracking();
     });
 </script>

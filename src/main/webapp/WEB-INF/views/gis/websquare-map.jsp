@@ -14,7 +14,7 @@
     - 'libraries=services': 주소-좌표 변환과 같은 추가 서비스를 사용하기 위해 반드시 포함해야 합니다.
 --%>
 <script type="text/javascript"
-        src="//dapi.kakao.com/v2/maps/sdk.js?appkey=a1194f70f6ecf2ece7a703a4a07a0876&libraries=services"></script>
+        src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=a1194f70f6ecf2ece7a703a4a07a0876&libraries=services"></script>
 
 <%-- 지도 제어를 위한 메인 스크립트입니다. --%>
 <script>
@@ -56,7 +56,6 @@
             // 주소 검색을 위한 지오코더 객체를 생성합니다.
             geocoder = new kakao.maps.services.Geocoder();
 
-            console.log('WebSquare용 Kakao Map 및 Geocoder가 성공적으로 초기화되었습니다.');
         }
 
         /**
@@ -149,7 +148,6 @@
                 return;
             }
 
-            console.log(`[지도 이동] 검색할 주소: "${address}", 확대 레벨: ${level}`);
 
             // geocoder.addressSearch를 사용하여 주소 문자열로 좌표를 검색합니다.
             geocoder.addressSearch(address, function (result, status) {
@@ -162,7 +160,6 @@
                     websquareMap.setCenter(coords);
                     // `setLevel` 함수로 지도의 확대 레벨을 조절합니다.
                     websquareMap.setLevel(level);
-                    console.log(`[지도 이동] 성공: '${address}' 위치로 이동했습니다.`);
                 } else {
                     // 주소 검색에 실패한 경우 콘솔에 에러 메시지를 출력합니다.
                     console.error(`[지도 오류] '${address}' 주소의 좌표 검색에 실패했습니다. (상태: ${status})`);

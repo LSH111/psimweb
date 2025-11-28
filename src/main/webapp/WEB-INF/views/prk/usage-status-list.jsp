@@ -19,7 +19,6 @@
             userNm: '${userName}',
             mbtlnum: '${userTel}'
         };
-        console.log('🔧 전역 변수 초기화 완료:', { contextPath, sessionInfo });
     </script>
 
     <style>
@@ -250,14 +249,13 @@
 
 <!-- 🔥 3. Kakao Maps SDK (JavaScript 키 사용) -->
 <script type="text/javascript"
-        src="//dapi.kakao.com/v2/maps/sdk.js?appkey=a1194f70f6ecf2ece7a703a4a07a0876&libraries=clusterer"
+        src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=a1194f70f6ecf2ece7a703a4a07a0876&libraries=clusterer"
         onerror="console.error('❌ Kakao Maps API 스크립트 로드 실패'); window.kakaoMapsLoadError = true;">
 </script>
 
 <!-- 🔥 4. Kakao Maps 로드 확인 -->
 <script>
     (function() {
-        console.log('🔍 Kakao Maps 로드 체크 시작');
 
         if (window.kakaoMapsLoadError) {
             console.error('❌ Kakao Maps API 스크립트 파일 로드 실패');
@@ -272,13 +270,9 @@
         const checkInterval = setInterval(function() {
             checkCount++;
 
-            console.log(`⏳ Kakao Maps 체크 ${checkCount}/${maxChecks}`);
-            console.log('- typeof kakao:', typeof kakao);
-            console.log('- typeof kakao.maps:', typeof kakao !== 'undefined' ? typeof kakao.maps : 'N/A');
 
             if (typeof kakao !== 'undefined' && typeof kakao.maps !== 'undefined') {
                 clearInterval(checkInterval);
-                console.log('✅ Kakao Maps API 로드 완료!');
                 window.kakaoMapsReady = true;
                 window.dispatchEvent(new Event('kakaoMapsLoaded'));
             } else if (checkCount >= maxChecks) {
@@ -291,9 +285,14 @@
     })();
 </script>
 
-<!-- 🔥 5. 애플리케이션 스크립트 (마지막) -->
-<script src="${pageContext.request.contextPath}/static/js/usage-status-list.js"></script>
-<script src="${pageContext.request.contextPath}/static/js/usage-add.js"></script>
+<!-- 🔥 5. 공통 → 컴포넌트 → 페이지 스크립트 -->
+<script src="${pageContext.request.contextPath}/static/js/common/dom-utils.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/common/format-utils.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/common/code-api.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/component/toast.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/component/modal.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/page/usage-status-list.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/page/usage-add.js"></script>
 
 </body>
 </html>

@@ -17,11 +17,14 @@ public interface PrkDefPlceInfoMapper {
     List<ParkingListVO> selectParkingListForMap(Map<String, Object> params);
 
     // ========== 상세 조회 ==========
-    ParkingDetailVO selectOnstreetParkingDetail(String prkPlceManageNo);
+    ParkingDetailVO selectOnstreetParkingDetail(@Param("prkPlceManageNo") String prkPlceManageNo,
+                                                @Param("prkPlceInfoSn") Long prkPlceInfoSn);
 
-    ParkingDetailVO selectOffstreetParkingDetail(String prkPlceManageNo);
+    ParkingDetailVO selectOffstreetParkingDetail(@Param("prkPlceManageNo") String prkPlceManageNo,
+                                                 @Param("prkPlceInfoSn") Long prkPlceInfoSn);
 
-    ParkingDetailVO selectBuildParkingDetail(String prkPlceManageNo);
+    ParkingDetailVO selectBuildParkingDetail(@Param("prkPlceManageNo") String prkPlceManageNo,
+                                             @Param("prkPlceInfoSn") Long prkPlceInfoSn);
 
     // ========== 신규 등록 ==========
     String generateParkingManageNo(@Param("zipCode") String zipCode,

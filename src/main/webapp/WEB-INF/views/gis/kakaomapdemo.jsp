@@ -194,14 +194,13 @@
     
     <!-- Kakao Maps SDK -->
     <script type="text/javascript"
-            src="//dapi.kakao.com/v2/maps/sdk.js?appkey=a1194f70f6ecf2ece7a703a4a07a0876&libraries=clusterer"
+            src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=a1194f70f6ecf2ece7a703a4a07a0876&libraries=clusterer"
             onerror="console.error('❌ Kakao Maps API 스크립트 로드 실패'); window.kakaoMapsLoadError = true;">
     </script>
     
     <!-- Kakao Maps 로드 확인 -->
     <script>
         (function() {
-            console.log('🔍 Kakao Maps 로드 체크 시작');
 
             if (window.kakaoMapsLoadError) {
                 console.error('❌ Kakao Maps API 스크립트 파일 로드 실패');
@@ -215,11 +214,9 @@
             const checkInterval = setInterval(function() {
                 checkCount++;
 
-                console.log(`⏳ Kakao Maps 체크 ${checkCount}/${maxChecks}`);
 
                 if (typeof kakao !== 'undefined' && typeof kakao.maps !== 'undefined') {
                     clearInterval(checkInterval);
-                    console.log('✅ Kakao Maps API 로드 완료!');
                     window.kakaoMapsReady = true;
                     initializeMap();
                 } else if (checkCount >= maxChecks) {
@@ -264,7 +261,6 @@
                 
                 // 지도 생성
                 map = new kakao.maps.Map(container, options);
-                console.log('✅ 지도 생성 완료');
                 
                 // 클러스터러 생성
                 clusterer = new kakao.maps.MarkerClusterer({
@@ -273,7 +269,6 @@
                     minLevel: 5,
                     disableClickZoom: true
                 });
-                console.log('✅ 클러스터러 생성 완료');
                 
                 // 샘플 마커 추가 (실제 환경에서는 API로 데이터 로드)
                 addSampleMarkers();
@@ -351,7 +346,6 @@
                 addMarker(data.lat, data.lng, data.legal, data.title, data.content);
             });
             
-            console.log(`✅ ${sampleData.length}개의 샘플 마커 추가 완료`);
         }
         
         /**

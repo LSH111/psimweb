@@ -1,6 +1,7 @@
 package com.psim.web.prk.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.psim.media.storage.PhotoStorage;
 import com.psim.web.cmm.vo.CoUserVO;
 import com.psim.web.file.service.AttchPicMngInfoService;
 import com.psim.web.prk.service.PrkDefPlceInfoService;
@@ -9,7 +10,6 @@ import com.psim.web.prk.vo.ParkingListVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -21,8 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +35,7 @@ public class PrkDefPlceInfoController {
 
     private final PrkDefPlceInfoService prkDefPlceInfoService;
     private final AttchPicMngInfoService attchPicService; // 🔥 추가
+    private final PhotoStorage photoStorage;
 
     /*@GetMapping("/parkinglist")
     public String parkingList() {
@@ -70,17 +69,82 @@ public class PrkDefPlceInfoController {
         }
     }
 
+    /**
+     * 디버그용: 입력 파라미터를 ParkingDetailVO로 바인딩 후 XML로 반환 (DB 저장 없음)
+     */
+    @PostMapping(value = "/debug/xml", produces = MediaType.APPLICATION_XML_VALUE)
+    @ResponseBody
+    public String debugXml(@ModelAttribute ParkingDetailVO vo) {
+        try {
+            StringBuilder xmlBuilder = new StringBuilder();
+            xmlBuilder.append("<ParkingDetail>");
+            appendTag(xmlBuilder, "prkPlceManageNo", vo.getPrkPlceManageNo());
+            appendTag(xmlBuilder, "prkPlceInfoSn", vo.getPrkPlceInfoSn());
+            appendTag(xmlBuilder, "prkPlceType", vo.getPrkPlceType());
+            appendTag(xmlBuilder, "prkplceNm", vo.getPrkplceNm());
+            appendTag(xmlBuilder, "dtadd", vo.getDtadd());
+            appendTag(xmlBuilder, "prkPlceLat", vo.getPrkPlceLat());
+            appendTag(xmlBuilder, "prkPlceLon", vo.getPrkPlceLon());
+            appendTag(xmlBuilder, "totPrkCnt", vo.getTotPrkCnt());
+            xmlBuilder.append("</ParkingDetail>");
+            String xml = xmlBuilder.toString();
+            log.debug("🧪 Debug XML 생성 완료: {}", xml);
+            return xml;
+        } catch (Exception e) {
+            log.error("❌ XML 생성 실패", e);
+            throw new RuntimeException("XML 생성 실패: " + e.getMessage(), e);
+        }
+    }
+
+    private void appendTag(StringBuilder sb, String tag, Object value) {
+        sb.append("<").append(tag).append(">");
+        if (value != null) {
+            sb.append(value);
+        }
+        sb.append("</").append(tag).append(">");
+    }
+
     // AJAX로 주차장 목록 데이터 조회 (페이징 제거)
     @GetMapping("/parking-data")
     @ResponseBody
     public Map<String, Object> getParkingData(@RequestParam Map<String, Object> params, HttpSession session) {
         Map<String, Object> result = new HashMap<>();
-        log.info("🔍 주차장 데이터 조회 시작 - params: {}", params);
+        log.info("🔍 주차장 데이터 조회 시작 - raw params: {}", params);
+
+        // 입력 파라미터 정리/트림 후 새 Map 구성
+        Map<String, Object> cleanParams = new HashMap<>();
+        params.forEach((k, v) -> {
+            if (v == null) return;
+            String trimmed = v.toString().trim();
+            if (!trimmed.isEmpty()) {
+                cleanParams.put(k, trimmed);
+            }
+        });
+
+        // 시도/시군구 코드 키 통일(sidoCd/sigunguCd) + 구 키 호환(sido/sigungu)
+        String sido = (String) cleanParams.getOrDefault("sido", cleanParams.get("sidoCd"));
+        String sigungu = (String) cleanParams.getOrDefault("sigungu", cleanParams.get("sigunguCd"));
+        if (sido != null && !sido.isEmpty()) {
+            cleanParams.put("sidoCd", sido);
+            cleanParams.put("sido", sido);
+        }
+        if (sigungu != null && !sigungu.isEmpty()) {
+            cleanParams.put("sigunguCd", sigungu);
+            cleanParams.put("sigungu", sigungu);
+        }
+
+        // 읍면동 키 통일
+        String emd = (String) cleanParams.get("emd");
+        if (emd != null && emd.isEmpty()) {
+            cleanParams.remove("emd");
+        }
+
+        log.info("🧹 정리된 params: {}", cleanParams);
 
         // 🔥 세션에서 userBizList 가져와서 params에 추가 
         List<String> userBizList = (List<String>) session.getAttribute("userBizList");
         if (userBizList != null && !userBizList.isEmpty()) {
-            params.put("userBizList", userBizList);
+            cleanParams.put("userBizList", userBizList);
             log.info("✅ userBizList 추가: {}", userBizList);
         } else {
             log.warn("⚠️ userBizList가 비어있습니다");
@@ -88,7 +152,7 @@ public class PrkDefPlceInfoController {
 
         try {
             log.info("🔄 서비스 호출 시작");
-            List<ParkingListVO> list = prkDefPlceInfoService.getParkingList(params);
+            List<ParkingListVO> list = prkDefPlceInfoService.getParkingList(cleanParams);
             int totalCount = list.size();
 
             result.put("list", list);
@@ -123,39 +187,27 @@ public class PrkDefPlceInfoController {
      * 🔥 [신규 추가] 노상주차장 상세 조회
      */
     @GetMapping("/onparking-detail")
-    @ResponseBody
-    public Map<String, Object> getOnstreetParkingDetail(@RequestParam String prkPlceManageNo) {
-        Map<String, Object> result = new HashMap<>();
-        try {
-            log.info("=== 노상주차장 상세 조회 요청: {} ===", prkPlceManageNo);
+    public String getOnstreetParkingDetail(@RequestParam("prkPlceManageNo") String prkPlceManageNo,
+                                           @RequestParam("prkPlceInfoSn") Long prkPlceInfoSn,
+                                           @RequestParam(value = "status", required = false) String status,
+                                           Model model) {
+        log.info("=== 노상주차장 상세 조회 요청: {} / {} ===", prkPlceManageNo, prkPlceInfoSn);
+        ParkingDetailVO detail = prkDefPlceInfoService.getOnstreetParkingDetail(prkPlceManageNo, prkPlceInfoSn);
+        model.addAttribute("parking", detail);
+        model.addAttribute("statusCode", detail != null ? detail.getPrgsStsCd() : null);
 
-            ParkingDetailVO detail = prkDefPlceInfoService.getOnstreetParkingDetail(prkPlceManageNo);
-
-            if (detail != null) {
-                result.put("success", true);
-                result.put("data", detail);
-                log.info("✅ 노상주차장 상세 조회 성공");
-            } else {
-                result.put("success", false);
-                result.put("message", "주차장 정보를 찾을 수 없습니다.");
-                log.warn("⚠️ 데이터 없음: {}", prkPlceManageNo);
-            }
-        } catch (Exception e) {
-            log.error("❌ 노상주차장 상세 조회 실패", e);
-            result.put("success", false);
-            result.put("message", "조회 중 오류가 발생했습니다: " + e.getMessage());
-        }
-        return result;
+        return "prk/onparking";
     }
 
     /**
      * 🔥 노상주차장 정보 저장/수정 (파일 업로드 포함) - 수정
      */
-    @PostMapping("/onparking-update")
+    @PostMapping(value = "/onparking-update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, Object>> updateOnstreetParking(
             @RequestPart("parkingData") String parkingDataJson,
             @RequestPart(value = "mainPhoto", required = false) MultipartFile mainPhoto,
             @RequestPart(value = "signPhoto", required = false) MultipartFile signPhoto,
+            @RequestParam(value = "ownCd", required = false) String ownCd,
             HttpServletRequest request,
             HttpSession session) {
 
@@ -187,6 +239,23 @@ public class PrkDefPlceInfoController {
 
             ObjectMapper objectMapper = new ObjectMapper();
             ParkingDetailVO parkingData = objectMapper.readValue(parkingDataJson, ParkingDetailVO.class);
+            String resolvedOwnCd = (ownCd != null && !ownCd.trim().isEmpty())
+                    ? ownCd.trim()
+                    : (parkingData.getOwnCd() != null && !parkingData.getOwnCd().trim().isEmpty())
+                    ? parkingData.getOwnCd().trim()
+                    : (parkingData.getPrkplceSe() != null ? parkingData.getPrkplceSe().trim() : null);
+
+            if (resolvedOwnCd == null || resolvedOwnCd.trim().isEmpty()) {
+                log.error("❌ 관리주체(소유주체) 코드가 없습니다.");
+                response.put("success", false);
+                response.put("message", "관리주체(소유주체) 코드가 필요합니다.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+            parkingData.setOwnCd(resolvedOwnCd.trim());
+            parkingData.setPrkplceSe(resolvedOwnCd.trim());
+            validateAdminCodes(parkingData);
+            log.info("✅ 파라미터 검증 완료 - ownCd={}, sidoCd={}, sigunguCd={}, emdCd={}, ldongCd={}",
+                    resolvedOwnCd.trim(), parkingData.getSidoCd(), parkingData.getSigunguCd(), parkingData.getEmdCd(), parkingData.getLdongCd());
 
             String prkPlceManageNo = parkingData.getPrkPlceManageNo();
             boolean isNewRecord = (prkPlceManageNo == null || prkPlceManageNo.trim().isEmpty());
@@ -213,7 +282,7 @@ public class PrkDefPlceInfoController {
                     operMbyCd = "1";
                 }
 
-                String prkplceSe = "1";
+                String prkplceSe = resolvedOwnCd;
                 String prkPlceType = "1";
 
                 log.info("📝 관리번호 생성 파라미터 - zipCode: {}, prkplceSe: {}, operMbyCd: {}, prkPlceType: {}",
@@ -229,6 +298,7 @@ public class PrkDefPlceInfoController {
                 }
 
                 parkingData.setPrkPlceManageNo(newManageNo);
+                parkingData.setPrkPlceType(prkPlceType);
                 log.info("✅ 생성된 주차장관리번호: {}", newManageNo);
 
                 String bizPerPrkMngNo = "BP" + System.currentTimeMillis();
@@ -239,9 +309,6 @@ public class PrkDefPlceInfoController {
                 parkingData.setPrkBizMngNo(prkBizMngNo);
                 log.info("✅ 사업관리번호: {}", prkBizMngNo);
 
-                String ldongCd = parkingData.getEmdCd();
-                parkingData.setLdongCd(ldongCd);
-
                 log.info("✅ 사용자정보 설정 완료 - userId: {}, IP: {}", userId, clientIp);
             } else {
                 log.info("🔄 노상주차장 수정 시작 - 관리번호: {}", prkPlceManageNo);
@@ -249,7 +316,7 @@ public class PrkDefPlceInfoController {
             }
 
             // 🔥 핵심 수정: DB 저장을 한 번에 처리하고 즉시 SN 확보
-            Integer prkPlceInfoSn = null;
+            Integer prkPlceInfoSn = parkingData.getPrkPlceInfoSn();
 
             if (isNewRecord) {
                 // 신규 등록 - INSERT 후 바로 VO에서 SN 가져오기
@@ -259,30 +326,21 @@ public class PrkDefPlceInfoController {
                 log.info("✅ DB INSERT 완료 - prkPlceInfoSn: {}", prkPlceInfoSn);
 
             } else {
-                // 수정 모드 - 기존 데이터에서 SN 조회 후 UPDATE
-                log.info("🔍 기존 prkPlceInfoSn 조회 - 관리번호: {}", prkPlceManageNo);
-                ParkingDetailVO existingData = prkDefPlceInfoService.getOnstreetParkingDetail(prkPlceManageNo);
+                // 수정 모드 - 전달된 SN 사용
+                log.info("🔍 기존 prkPlceInfoSn 확인 - 관리번호: {}", prkPlceManageNo);
 
-                if (existingData != null) {
-                    prkPlceInfoSn = existingData.getPrkPlceInfoSn();
-                    parkingData.setPrkPlceInfoSn(prkPlceInfoSn);
-                    log.info("✅ 기존 prkPlceInfoSn 획득: {}", prkPlceInfoSn);
-                } else {
-                    log.error("❌ 기존 데이터를 찾을 수 없습니다: {}", prkPlceManageNo);
-
-                    // 🔥 수정: 더 자세한 에러 정보 제공
+                if (prkPlceInfoSn == null) {
+                    log.error("❌ prkPlceInfoSn이 없습니다. 수정 불가 - 관리번호: {}", prkPlceManageNo);
                     response.put("success", false);
-                    response.put("message", "수정할 주차장 정보를 찾을 수 없습니다. 주차장 관리번호: " + prkPlceManageNo);
-                    response.put("errorCode", "DATA_NOT_FOUND");
+                    response.put("message", "수정하려면 prkPlceInfoSn이 필요합니다.");
+                    response.put("errorCode", "MISSING_INFO_SN");
                     response.put("prkPlceManageNo", prkPlceManageNo);
 
-                    log.error("💡 가능한 원인:");
-                    log.error("   1. 잘못된 주차장 관리번호");
-                    log.error("   2. 해당 사업에 속하지 않는 주차장");
-                    log.error("   3. 이미 삭제된 데이터");
-
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
                 }
+
+                parkingData.setPrkPlceInfoSn(prkPlceInfoSn);
+                log.info("✅ prkPlceInfoSn 확인 완료: {}", prkPlceInfoSn);
 
                 log.info("🔄 DB UPDATE 실행");
                 prkDefPlceInfoService.updateOnstreetParking(parkingData);
@@ -314,6 +372,8 @@ public class PrkDefPlceInfoController {
             response.put("success", true);
             response.put("message", isNewRecord ? "신규 등록되었습니다." : "수정되었습니다.");
             response.put("prkPlceManageNo", parkingData.getPrkPlceManageNo());
+            response.put("prkPlceInfoSn", parkingData.getPrkPlceInfoSn());
+            response.put("prkPlceType", parkingData.getPrkPlceType());
 
             log.info("✅✅✅ 노상주차장 저장 완료");
 
@@ -337,36 +397,22 @@ public class PrkDefPlceInfoController {
      * 🔥 노외주차장 상세 조회
      */
     @GetMapping("/offparking-detail")
-    @ResponseBody
-    public Map<String, Object> getOffstreetParkingDetail(@RequestParam String prkPlceManageNo) {
-        Map<String, Object> result = new HashMap<>();
-        try {
-            System.out.println("=== 노외주차장 상세 조회 요청: " + prkPlceManageNo + " ===");
+    public String getOffstreetParkingDetail(@RequestParam("prkPlceManageNo") String prkPlceManageNo,
+                                            @RequestParam("prkPlceInfoSn") Long prkPlceInfoSn,
+                                            @RequestParam(value = "status", required = false) String status,
+                                            Model model) {
+        log.info("=== 노외주차장 상세 조회 요청: {} / {} ===", prkPlceManageNo, prkPlceInfoSn);
+        ParkingDetailVO detail = prkDefPlceInfoService.getOffstreetParkingDetail(prkPlceManageNo, prkPlceInfoSn);
+        model.addAttribute("parking", detail);
+        model.addAttribute("statusCode", detail != null ? detail.getPrgsStsCd() : null);
 
-            ParkingDetailVO detail = prkDefPlceInfoService.getOffstreetParkingDetail(prkPlceManageNo);
-
-            if (detail != null) {
-                result.put("success", true);
-                result.put("data", detail);
-                System.out.println("✅ 노외주차장 상세 조회 성공");
-            } else {
-                result.put("success", false);
-                result.put("message", "주차장 정보를 찾을 수 없습니다.");
-                System.out.println("⚠️ 데이터 없음");
-            }
-        } catch (Exception e) {
-            System.err.println("❌ 노외주차장 상세 조회 실패: " + e.getMessage());
-            e.printStackTrace();
-            result.put("success", false);
-            result.put("message", "조회 중 오류가 발생했습니다: " + e.getMessage());
-        }
-        return result;
+        return "prk/offparking";
     }
 
     /**
      * 🔥 노외주차장 정보 저장/수정 (파일 업로드 포함)
      */
-    @PostMapping("/offparking-update")
+    @PostMapping(value = "/offparking-update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, Object>> updateOffstreetParking(
             @RequestPart("parkingData") String parkingDataJson,
             @RequestPart(value = "mainPhoto", required = false) MultipartFile mainPhoto,
@@ -375,6 +421,7 @@ public class PrkDefPlceInfoController {
             @RequestPart(value = "barrierPhoto", required = false) MultipartFile barrierPhoto,
             @RequestPart(value = "exitAlarmPhoto", required = false) MultipartFile exitAlarmPhoto,
             @RequestPart(value = "entrancePhoto", required = false) MultipartFile entrancePhoto,
+            @RequestParam(value = "ownCd", required = false) String ownCd,
             HttpServletRequest request,
             HttpSession session) {
 
@@ -407,6 +454,28 @@ public class PrkDefPlceInfoController {
             ObjectMapper objectMapper = new ObjectMapper();
             ParkingDetailVO parkingData = objectMapper.readValue(parkingDataJson, ParkingDetailVO.class);
 
+            String resolvedOwnCd = (ownCd != null && !ownCd.trim().isEmpty())
+                    ? ownCd.trim()
+                    : (parkingData.getOwnCd() != null && !parkingData.getOwnCd().trim().isEmpty())
+                    ? parkingData.getOwnCd().trim()
+                    : (parkingData.getPrkplceSe() != null ? parkingData.getPrkplceSe().trim() : null);
+
+            if (resolvedOwnCd == null || resolvedOwnCd.trim().isEmpty()) {
+                log.error("❌ 관리주체(소유주체) 코드가 없습니다.");
+                response.put("success", false);
+                response.put("message", "관리주체(소유주체) 코드가 필요합니다.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+            parkingData.setOwnCd(resolvedOwnCd.trim());
+            parkingData.setPrkplceSe(resolvedOwnCd.trim());
+            log.info("✅ 파라미터 검증 완료 - ownCd={}", resolvedOwnCd.trim());
+            validateAdminCodes(parkingData);
+            log.info("✅ 행정구역 파라미터 검증 완료 - sidoCd={}, sigunguCd={}, emdCd={}, ldongCd={}",
+                    parkingData.getSidoCd(), parkingData.getSigunguCd(), parkingData.getEmdCd(), parkingData.getLdongCd());
+            validateAdminCodes(parkingData);
+            log.info("✅ 행정구역 파라미터 검증 완료 - sidoCd={}, sigunguCd={}, emdCd={}, ldongCd={}",
+                    parkingData.getSidoCd(), parkingData.getSigunguCd(), parkingData.getEmdCd(), parkingData.getLdongCd());
+
             String prkPlceManageNo = parkingData.getPrkPlceManageNo();
             boolean isNewRecord = (prkPlceManageNo == null || prkPlceManageNo.trim().isEmpty());
 
@@ -432,7 +501,7 @@ public class PrkDefPlceInfoController {
                     operMbyCd = "1";
                 }
 
-                String prkplceSe = parkingData.getPrkplceSe();  // 관리주체(소유주체)
+                String prkplceSe = resolvedOwnCd;  // 관리주체(소유주체)
                 String prkPlceType = "2"; // 주차장유형 - 노외
 
                 log.info("📝 관리번호 생성 파라미터 - zipCode: {}, prkplceSe: {}, operMbyCd: {}, prkPlceType: {}",
@@ -448,6 +517,7 @@ public class PrkDefPlceInfoController {
                 }
 
                 parkingData.setPrkPlceManageNo(newManageNo);
+                parkingData.setPrkPlceType(prkPlceType);
                 log.info("✅ 생성된 주차장관리번호: {}", newManageNo);
 
                 String bizPerPrkMngNo = "BP" + System.currentTimeMillis();
@@ -458,9 +528,6 @@ public class PrkDefPlceInfoController {
                 parkingData.setPrkBizMngNo(prkBizMngNo);
                 log.info("✅ 사업관리번호: {}", prkBizMngNo);
 
-                //String ldongCd = parkingData.getEmdCd();
-                //parkingData.setLdongCd(ldongCd);
-
                 log.info("✅ 사용자정보 설정 완료 - userId: {}, IP: {}", userId, clientIp);
             } else {
                 log.info("🔄 노외주차장 수정 시작 - 관리번호: {}", prkPlceManageNo);
@@ -468,7 +535,7 @@ public class PrkDefPlceInfoController {
             }
 
             // 🔥 핵심: DB 저장을 한 번에 처리하고 즉시 SN 확보
-            Integer prkPlceInfoSn = null;
+            Integer prkPlceInfoSn = parkingData.getPrkPlceInfoSn();
 
             if (isNewRecord) {
                 // 신규 등록 - INSERT 후 바로 VO에서 SN 가져오기
@@ -478,24 +545,22 @@ public class PrkDefPlceInfoController {
                 log.info("✅ DB INSERT 완료 - prkPlceInfoSn: {}", prkPlceInfoSn);
 
             } else {
-                // 수정 모드 - 기존 데이터에서 SN 조회 후 UPDATE
-                log.info("🔍 기존 prkPlceInfoSn 조회 - 관리번호: {}", prkPlceManageNo);
-                ParkingDetailVO existingData = prkDefPlceInfoService.getOffstreetParkingDetail(prkPlceManageNo);
-                log.info("existingData.prkPlceInfoSn = {}", existingData != null ? existingData.getPrkPlceInfoSn() : null);
-                if (existingData != null) {
-                    prkPlceInfoSn = existingData.getPrkPlceInfoSn();
-                    parkingData.setPrkPlceInfoSn(prkPlceInfoSn);
-                    log.info("✅ 기존 prkPlceInfoSn 획득: {}", prkPlceInfoSn);
-                } else {
-                    log.error("❌ 기존 데이터를 찾을 수 없습니다: {}", prkPlceManageNo);
+                // 수정 모드 - 전달된 SN 사용
+                log.info("🔍 기존 prkPlceInfoSn 확인 - 관리번호: {}", prkPlceManageNo);
+
+                if (prkPlceInfoSn == null) {
+                    log.error("❌ prkPlceInfoSn이 없습니다. 수정 불가 - 관리번호: {}", prkPlceManageNo);
 
                     response.put("success", false);
-                    response.put("message", "수정할 주차장 정보를 찾을 수 없습니다. 주차장 관리번호: " + prkPlceManageNo);
-                    response.put("errorCode", "DATA_NOT_FOUND");
+                    response.put("message", "수정하려면 prkPlceInfoSn이 필요합니다.");
+                    response.put("errorCode", "MISSING_INFO_SN");
                     response.put("prkPlceManageNo", prkPlceManageNo);
 
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
                 }
+
+                parkingData.setPrkPlceInfoSn(prkPlceInfoSn);
+                log.info("✅ prkPlceInfoSn 확인 완료: {}", prkPlceInfoSn);
 
                 log.info("🔄 DB UPDATE 실행");
                 prkDefPlceInfoService.updateOffstreetParking(parkingData);
@@ -551,6 +616,7 @@ public class PrkDefPlceInfoController {
             response.put("success", true);
             response.put("message", isNewRecord ? "신규 등록되었습니다." : "수정되었습니다.");
             response.put("prkPlceManageNo", parkingData.getPrkPlceManageNo());
+            response.put("prkPlceInfoSn", parkingData.getPrkPlceInfoSn());
 
             log.info("✅✅✅ 노외주차장 저장 완료");
 
@@ -574,36 +640,22 @@ public class PrkDefPlceInfoController {
      * 🔥 부설주차장 상세 조회
      */
     @GetMapping("/buildparking-detail")
-    @ResponseBody
-    public Map<String, Object> getBuildParkingDetail(@RequestParam String prkPlceManageNo) {
-        Map<String, Object> result = new HashMap<>();
-        try {
-            System.out.println("=== 부설주차장 상세 조회 요청: " + prkPlceManageNo + " ===");
+    public String getBuildParkingDetail(@RequestParam("prkPlceManageNo") String prkPlceManageNo,
+                                        @RequestParam("prkPlceInfoSn") Long prkPlceInfoSn,
+                                        @RequestParam(value = "status", required = false) String status,
+                                        Model model) {
+        log.info("=== 부설주차장 상세 조회 요청: {} / {} ===", prkPlceManageNo, prkPlceInfoSn);
+        ParkingDetailVO detail = prkDefPlceInfoService.getBuildParkingDetail(prkPlceManageNo, prkPlceInfoSn);
+        model.addAttribute("parking", detail);
+        model.addAttribute("statusCode", detail != null ? detail.getPrgsStsCd() : null);
 
-            ParkingDetailVO detail = prkDefPlceInfoService.getBuildParkingDetail(prkPlceManageNo);
-
-            if (detail != null) {
-                result.put("success", true);
-                result.put("data", detail);
-                System.out.println("✅ 부설주차장 상세 조회 성공");
-            } else {
-                result.put("success", false);
-                result.put("message", "주차장 정보를 찾을 수 없습니다.");
-                System.out.println("⚠️ 데이터 없음");
-            }
-        } catch (Exception e) {
-            System.err.println("❌ 부설주차장 상세 조회 실패: " + e.getMessage());
-            e.printStackTrace();
-            result.put("success", false);
-            result.put("message", "조회 중 오류가 발생했습니다: " + e.getMessage());
-        }
-        return result;
+        return "prk/buildparking";
     }
 
     /**
      * 🔥 부설주차장 정보 저장/수정 (파일 업로드 포함)
      */
-    @PostMapping("/buildparking-update")
+    @PostMapping(value = "/buildparking-update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, Object>> updateBuildParking(
             @RequestPart("parkingData") String parkingDataJson,
             @RequestPart(value = "mainPhoto", required = false) MultipartFile mainPhoto,
@@ -612,6 +664,7 @@ public class PrkDefPlceInfoController {
             @RequestPart(value = "barrierPhoto", required = false) MultipartFile barrierPhoto,
             @RequestPart(value = "exitAlarmPhoto", required = false) MultipartFile exitAlarmPhoto,
             @RequestPart(value = "entrancePhoto", required = false) MultipartFile entrancePhoto,
+            @RequestParam(value = "ownCd", required = false) String ownCd,
             HttpServletRequest request,
             HttpSession session) {
 
@@ -642,6 +695,22 @@ public class PrkDefPlceInfoController {
             ObjectMapper objectMapper = new ObjectMapper();
             ParkingDetailVO parkingData = objectMapper.readValue(parkingDataJson, ParkingDetailVO.class);
 
+            String resolvedOwnCd = (ownCd != null && !ownCd.trim().isEmpty())
+                    ? ownCd.trim()
+                    : (parkingData.getOwnCd() != null && !parkingData.getOwnCd().trim().isEmpty())
+                    ? parkingData.getOwnCd().trim()
+                    : (parkingData.getPrkplceSe() != null ? parkingData.getPrkplceSe().trim() : null);
+
+            if (resolvedOwnCd == null || resolvedOwnCd.trim().isEmpty()) {
+                log.error("❌ 관리주체(소유주체) 코드가 없습니다.");
+                response.put("success", false);
+                response.put("message", "관리주체(소유주체) 코드가 필요합니다.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+            parkingData.setOwnCd(resolvedOwnCd.trim());
+            parkingData.setPrkplceSe(resolvedOwnCd.trim());
+            log.info("✅ 파라미터 검증 완료 - ownCd={}", resolvedOwnCd.trim());
+
             String prkPlceManageNo = parkingData.getPrkPlceManageNo();
             boolean isNewRecord = (prkPlceManageNo == null || prkPlceManageNo.trim().isEmpty());
 
@@ -669,7 +738,7 @@ public class PrkDefPlceInfoController {
                 }
 
                 // 2. 관리번호 생성 파라미터
-                String prkplceSe = parkingData.getPrkplceSe();  // 관리주체(소유주체) - 공영=1, 민영=2, 기타=9
+                String prkplceSe = resolvedOwnCd;  // 관리주체(소유주체) - 공영=1, 민영=2, 기타=9
                 String prkPlceType = "3"; // 주차장유형 - 부설=3
 
                 log.info("📝 관리번호 생성 파라미터 - zipCode: {}, prkplceSe: {}, operMbyCd: {}, prkPlceType: {}",
@@ -685,6 +754,7 @@ public class PrkDefPlceInfoController {
                 }
 
                 parkingData.setPrkPlceManageNo(newManageNo);
+                parkingData.setPrkPlceType(prkPlceType);
                 log.info("✅ 생성된 주차장관리번호: {}", newManageNo);
 
                 // 3. 사업별주차관리번호
@@ -697,10 +767,6 @@ public class PrkDefPlceInfoController {
                 parkingData.setPrkBizMngNo(prkBizMngNo);
                 log.info("✅ 사업관리번호: {}", prkBizMngNo);
 
-                // 5. 행정구역 코드 (읍면동 → ldongCd)
-                //String ldongCd = parkingData.getEmdCd();
-                //parkingData.setLdongCd(ldongCd);
-
                 log.info("✅ 사용자정보 설정 완료 - userId: {}, IP: {}", userId, clientIp);
             } else {
                 log.info("🔄 부설주차장 수정 시작 - 관리번호: {}", prkPlceManageNo);
@@ -708,7 +774,7 @@ public class PrkDefPlceInfoController {
             }
 
             // 🔥 핵심: DB 저장을 한 번에 처리하고 prkPlceInfoSn 확보
-            Integer prkPlceInfoSn = null;
+            Integer prkPlceInfoSn = parkingData.getPrkPlceInfoSn();
 
             if (isNewRecord) {
                 // 신규 등록 - INSERT 후 VO 에서 SN 확인
@@ -718,24 +784,22 @@ public class PrkDefPlceInfoController {
                 log.info("✅ DB INSERT 완료 - prkPlceInfoSn: {}", prkPlceInfoSn);
 
             } else {
-                // 수정 모드 - 기존 상세에서 SN 조회 후 UPDATE
-                log.info("🔍 기존 prkPlceInfoSn 조회 - 관리번호: {}", prkPlceManageNo);
-                ParkingDetailVO existingData = prkDefPlceInfoService.getBuildParkingDetail(prkPlceManageNo);
+                // 수정 모드 - 전달된 SN 사용
+                log.info("🔍 기존 prkPlceInfoSn 확인 - 관리번호: {}", prkPlceManageNo);
 
-                if (existingData != null) {
-                    prkPlceInfoSn = existingData.getPrkPlceInfoSn();
-                    parkingData.setPrkPlceInfoSn(prkPlceInfoSn);
-                    log.info("✅ 기존 prkPlceInfoSn 획득: {}", prkPlceInfoSn);
-                } else {
-                    log.error("❌ 기존 데이터를 찾을 수 없습니다: {}", prkPlceManageNo);
+                if (prkPlceInfoSn == null) {
+                    log.error("❌ prkPlceInfoSn이 없습니다. 수정 불가 - 관리번호: {}", prkPlceManageNo);
 
                     response.put("success", false);
-                    response.put("message", "수정할 주차장 정보를 찾을 수 없습니다. 주차장 관리번호: " + prkPlceManageNo);
-                    response.put("errorCode", "DATA_NOT_FOUND");
+                    response.put("message", "수정하려면 prkPlceInfoSn이 필요합니다.");
+                    response.put("errorCode", "MISSING_INFO_SN");
                     response.put("prkPlceManageNo", prkPlceManageNo);
 
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
                 }
+
+                parkingData.setPrkPlceInfoSn(prkPlceInfoSn);
+                log.info("✅ prkPlceInfoSn 확인 완료: {}", prkPlceInfoSn);
 
                 log.info("🔄 DB UPDATE 실행");
                 prkDefPlceInfoService.updateBuildParking(parkingData);
@@ -786,6 +850,7 @@ public class PrkDefPlceInfoController {
             response.put("success", true);
             response.put("message", isNewRecord ? "신규 등록되었습니다." : "수정되었습니다.");
             response.put("prkPlceManageNo", parkingData.getPrkPlceManageNo());
+            response.put("prkPlceInfoSn", parkingData.getPrkPlceInfoSn());
 
             log.info("✅✅✅ 부설주차장 저장 완료");
 
@@ -862,6 +927,10 @@ public class PrkDefPlceInfoController {
         Map<String, Object> result = new HashMap<>();
 
         try {
+            // 공백 제거
+            if (sidoCd != null) sidoCd = sidoCd.trim();
+            if (sigunguCd != null) sigunguCd = sigunguCd.trim();
+
             log.info("🔍 지도용 주차장 데이터 조회 - sidoCd: {}, sigunguCd: {}", sidoCd, sigunguCd);
 
             // 🔥 세션에서 userBizList 가져오기
@@ -876,10 +945,12 @@ public class PrkDefPlceInfoController {
             // 🔥 시도/시군구 파라미터 추가
             if (sidoCd != null && !sidoCd.isEmpty()) {
                 params.put("sidoCd", sidoCd);
+                params.put("sido", sidoCd); // 구 키 호환
                 log.info("✅ 시도 필터 적용: {}", sidoCd);
             }
             if (sigunguCd != null && !sigunguCd.isEmpty()) {
                 params.put("sigunguCd", sigunguCd);
+                params.put("sigungu", sigunguCd); // 구 키 호환
                 log.info("✅ 시군구 필터 적용: {}", sigunguCd);
             }
 
@@ -989,23 +1060,21 @@ public class PrkDefPlceInfoController {
             }
 
             // 🔥 파일 경로에서 실제 파일 읽기
-            String uploadBasePath = "/Users/isihyeong/upload/psim"; // 실제 업로드 경로
-            String filePath = uploadBasePath + "/" + photoInfo.get("filepath") + "/" + photoInfo.get("filename");
+            String relativePath = (String) photoInfo.get("filepath");
+            String storedFileName = (String) photoInfo.get("filename");
+            Resource resource = photoStorage.loadAsResource(relativePath, storedFileName);
 
-            Path path = Paths.get(filePath);
-            Resource resource = new UrlResource(path.toUri());
-
-            if (!resource.exists() || !resource.isReadable()) {
-                log.warn("⚠️ 파일을 읽을 수 없습니다: {}", filePath);
+            if (resource == null) {
+                log.warn("⚠️ 파일을 읽을 수 없습니다: {}/{}", relativePath, storedFileName);
                 return ResponseEntity.notFound().build();
             }
 
             String contentType = (String) photoInfo.get("contentType");
-            String fileName = (String) photoInfo.get("fileName");
+            String displayFileName = (String) photoInfo.get("fileName");
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.parseMediaType(contentType));
-            headers.setContentDispositionFormData("inline", fileName);
+            headers.setContentDispositionFormData("inline", displayFileName);
 
             log.info("✅ 이미지 반환 완료");
 
@@ -1039,23 +1108,21 @@ public class PrkDefPlceInfoController {
             }
 
             // 🔥 파일 경로에서 실제 파일 읽기
-            String uploadBasePath = "/upload/parking";
-            String filePath = uploadBasePath + "/" + photoInfo.get("filePath") + "/" + photoInfo.get("fileName");
+            String relativePath = (String) photoInfo.get("filePath");
+            String fileName = (String) photoInfo.get("fileName");
+            Resource resource = photoStorage.loadAsResource(relativePath, fileName);
 
-            Path path = Paths.get(filePath);
-            Resource resource = new UrlResource(path.toUri());
-
-            if (!resource.exists() || !resource.isReadable()) {
-                log.warn("⚠️ 파일을 읽을 수 없습니다: {}", filePath);
+            if (resource == null) {
+                log.warn("⚠️ 파일을 읽을 수 없습니다: {}/{}", relativePath, fileName);
                 return ResponseEntity.notFound().build();
             }
 
             String contentType = (String) photoInfo.get("contentType");
-            String fileName = (String) photoInfo.get("fileName");
+            String displayFileName = (String) photoInfo.get("fileName");
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.parseMediaType(contentType));
-            headers.setContentDispositionFormData("inline", fileName);
+            headers.setContentDispositionFormData("inline", displayFileName);
 
             log.info("✅ 이용실태 이미지 반환 완료");
 
@@ -1070,17 +1137,32 @@ public class PrkDefPlceInfoController {
     }
 
     @GetMapping("/onparking")
-    public String onParking() {
+    public String onParking(@RequestParam(value = "status", required = false) String status, org.springframework.ui.Model model) {
+        model.addAttribute("statusCode", status);
         return "prk/onparking";
     }
 
     @GetMapping("/offparking")
-    public String offParking() {
+    public String offParking(@RequestParam(value = "status", required = false) String status, org.springframework.ui.Model model) {
+        model.addAttribute("statusCode", status);
         return "prk/offparking";
     }
 
     @GetMapping("/buildparking")
-    public String buildParking() {
+    public String buildParking(@RequestParam(value = "status", required = false) String status, org.springframework.ui.Model model) {
+        model.addAttribute("statusCode", status);
         return "prk/buildparking";
+    }
+
+    private void validateAdminCodes(ParkingDetailVO parkingData) {
+        if (parkingData.getSidoCd() == null || parkingData.getSidoCd().trim().isEmpty()) {
+            throw new IllegalArgumentException("sidoCd(시도코드)는 필수입니다.");
+        }
+        if (parkingData.getSigunguCd() == null || parkingData.getSigunguCd().trim().isEmpty()) {
+            throw new IllegalArgumentException("sigunguCd(시군구코드)는 필수입니다.");
+        }
+        if (parkingData.getEmdCd() == null || parkingData.getEmdCd().trim().isEmpty()) {
+            throw new IllegalArgumentException("emdCd(읍면동코드)는 필수입니다.");
+        }
     }
 }

@@ -48,15 +48,17 @@ public class LoginController {
     @PostMapping("/login")
     public String login(@RequestParam("userId") String userId,
                         @RequestParam("password") String password,
+                        @RequestParam(value = "telNo", required = false) String telNo,
+                        @RequestParam(value = "certNo", required = false) String certNo,
                         //HttpSession session,
                         HttpServletRequest request,
                         RedirectAttributes redirectAttributes) {
 
-        System.out.println("🔐 로그인 시도: userId=" + userId);
+        System.out.println("🔐 로그인 시도");
 
         CoUserVO loginUser;
         try {
-            loginUser = loginService.login(userId, password);
+            loginUser = loginService.login(userId, password, telNo, certNo);
         } catch (Exception e) {
             System.err.println("❌ 로그인 처리 중 오류: " + e.getMessage());
             redirectAttributes.addFlashAttribute("finalErr", "인증 처리 중 오류가 발생했습니다.");
@@ -65,7 +67,7 @@ public class LoginController {
 
         if (loginUser == null) {
             System.out.println("❌ 로그인 실패: 잘못된 인증 정보");
-            redirectAttributes.addFlashAttribute("finalErr", "아이디 또는 비밀번호가 일치하지 않습니다.");
+            redirectAttributes.addFlashAttribute("finalErr", "아이디 혹은 비밀번호가 잘못되었습니다.");
             return "redirect:/";
         }
         // 1. 세션 고정 공격 방지를 위해 기존 세션을 무효화하고 새로운 세션을 생성합니다.
@@ -112,11 +114,11 @@ public class LoginController {
 
         // 🔥 세션 설정 검증 로그 강화
         System.out.println("🔍 세션 설정 확인:");
-        System.out.println("  - sessionId: " + session.getId());
+        System.out.println("  - sessionId: (masked)");
         System.out.println("  - LOGIN: " + session.getAttribute(SESSION_ATTR_LOGIN_FLAG));
-        System.out.println("  - userId: " + session.getAttribute("userId"));
-        System.out.println("  - loginUser: " + session.getAttribute(SESSION_ATTR_AUTHENTICATED_USER));
-        System.out.println("  - userBizList: " + session.getAttribute("userBizList")); // 🔥 추가
+        System.out.println("  - userId: (masked)");
+        System.out.println("  - loginUser: (masked)");
+        System.out.println("  - userBizList size: " + (session.getAttribute("userBizList") == null ? 0 : ((java.util.List<?>) session.getAttribute("userBizList")).size())); // 🔥 추가
 
         // 이전 페이지가 있으면 그곳으로, 없으면 index로
         String redirectUrl = (String) session.getAttribute("redirectAfterLogin");

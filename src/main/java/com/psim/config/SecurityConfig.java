@@ -17,16 +17,15 @@ public class SecurityConfig {
             // 로그인 및 시스템 경로
             "/", "/login", "/logout", "/error", "/health", "/favicon.ico", "/api/health",
             "/egovCrypto", "/egovCrypto/info", "/.well-known/**",
-            // 허용된 API
-            "/cmm/codes/**", "/api/**"
+            // 코드 조회 등 최소 공개 API
+            "/cmm/codes/**"
     };
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // CSRF 보호를 비활성화합니다. (API 서버로 사용하거나, 별도의 CSRF 토큰 처리를 할 경우)
-                // 만약 웹 애플리케이션의 보안이 중요하다면, CSRF 토큰을 클라이언트와 주고받는 방식으로 구현해야 합니다.
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf
+                        .ignoringAntMatchers("/api/**", "/prk/api/**", "/prk/**", "/login", "/logout", "/static/**", "/webjars/**"))
 
                 // 요청에 대한 접근 권한 설정
                 .authorizeHttpRequests(authz -> authz
@@ -34,13 +33,21 @@ public class SecurityConfig {
                         .anyRequest().authenticated()      // 그 외 모든 요청은 인증된 사용자만 접근 가능
                 )
 
-                // 🔥 X-Frame-Options 헤더 설정을 추가합니다.
-                // 기본값인 DENY 대신, 같은 출처(same-origin)의 프레임 로딩을 허용합니다.
-                .headers(headers -> headers
-                        .frameOptions(frameOptions -> frameOptions
-                                .sameOrigin()
-                        )
-                )
+                // 🔥 보안 헤더 강화
+                .headers(headers -> {
+                    headers.frameOptions().sameOrigin();
+                    headers.contentTypeOptions();
+                    headers.httpStrictTransportSecurity()
+                            .includeSubDomains(true)
+                            .maxAgeInSeconds(31536000);
+                    headers.cacheControl();
+                    headers.contentSecurityPolicy("default-src 'self'; " +
+                            "img-src 'self' data: blob: https://dapi.kakao.com https://map.kakao.com https://t1.daumcdn.net http://t1.daumcdn.net https://mts.daumcdn.net http://mts.daumcdn.net; " +
+                            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://dapi.kakao.com https://t1.daumcdn.net http://t1.daumcdn.net https://cdn.jsdelivr.net; " +
+                            "connect-src 'self' https://dapi.kakao.com https://t1.daumcdn.net http://t1.daumcdn.net; " +
+                            "frame-src 'self' https://postcode.map.daum.net http://postcode.map.daum.net; " +
+                            "style-src 'self' 'unsafe-inline'");
+                })
 
                 // .formLogin() 설정을 제거합니다.
                 // 대신, 인증이 필요한 페이지에 미인증 사용자가 접근했을 때 로그인 페이지("/")로 보내도록 설정합니다.
@@ -49,10 +56,20 @@ public class SecurityConfig {
                         .authenticationEntryPoint(new org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint("/"))
                 )
 
+                // 세션 타임아웃/만료 시 항상 루트로 리다이렉트
+                .sessionManagement(sm -> sm
+                        .invalidSessionUrl("/")
+                        .maximumSessions(1)
+                        .expiredUrl("/")
+                )
+
                 // 로그아웃 설정
                 .logout(logout -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessUrl("/") // 로그아웃 성공 시 이동할 경로
+                        .logoutSuccessUrl("/login?logout")
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID")
                         .permitAll()
                 );
 

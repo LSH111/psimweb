@@ -1,4 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="com.fasterxml.jackson.databind.ObjectMapper" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="ko">
@@ -17,32 +18,56 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/pages/onparking.css"/>
 
     <!-- 외부 라이브러리 (EXIF / 다음 우편번호) -->
-    <script src="https://cdn.jsdelivr.net/npm/exifr@7/dist/full.umd.js"></script>
+    <script src="${pageContext.request.contextPath}/static/vendor/exifr/full.umd.js"></script>
     <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <c:set var="statusCode" value="${empty param.status ? '' : param.status}"/>
+    <c:set var="isApproved" value="${statusCode eq '30'}"/>
+    <%
+        Object parkingObj = request.getAttribute("parking");
+        String parkingJson = "null";
+        try {
+            if (parkingObj != null) {
+                parkingJson = new ObjectMapper().writeValueAsString(parkingObj);
+            }
+        } catch (Exception ignored) {
+            parkingJson = "null";
+        }
+    %>
+    <script>
+        window.initialParking = <%= parkingJson %>;
+    </script>
 </head>
-<body>
+<body class="parking-detail-page" data-status="${not empty statusCode ? statusCode : (empty param.status ? '' : param.status)}">
 <div id="toast-container"></div>
 <div class="wrap">
     <header class="card head">
-        <div class="title" id="v_name">노상주차장 상세</div>
+        <div class="title" id="v_name"><c:out value="${empty parking.prkplceNm ? '노상주차장 상세' : parking.prkplceNm}"/></div>
         <span class="badge">노상</span>
-        <span class="muted mono" id="v_id">관리번호</span>
-        <span class="muted" id="v_addr"></span>
+        <span class="muted mono" id="v_id"><c:out value="${parking.prkPlceManageNo}"/></span>
+        <span class="muted" id="v_addr"><c:out value="${parking.dtadd}"/></span>
         <span class="actions" style="margin-left:auto">
         <button class="btn" onclick="window.print()">인쇄</button>
-        <button class="btn" id="btnSaveTop">저장</button>
+        <button class="btn" id="btnSaveTop" <c:if test="${isApproved}">disabled="disabled"</c:if>>저장</button>
       </span>
     </header>
+    <input type="hidden" id="statusCode" value="${not empty statusCode ? statusCode : (empty param.status ? '' : param.status)}"/>
+    <input type="hidden" id="prkPlceManageNo" value="<c:out value='${parking.prkPlceManageNo}'/>"/>
+    <input type="hidden" id="prkPlceInfoSn" value="<c:out value='${parking.prkPlceInfoSn}'/>"/>
+    <span style="display:none">
+        <c:out value="${parking.prkPlceManageNo}"/>
+        <c:out value="${parking.prkplceNm}"/>
+        <c:out value="${statusCode}"/>
+    </span>
     <section class="row">
         <!-- 기본정보 -->
         <div class="card">
             <h2>기본정보</h2>
             <div class="grid">
                 <div><label for="f_id">주차장관리번호</label>
-                    <div class="ctl"><input id="f_id" class="mono" type="text" readonly/></div>
+                    <div class="ctl"><input id="f_id" class="mono" type="text" value="<c:out value='${parking.prkPlceManageNo}'/>" readonly/></div>
                 </div>
                 <div><label for="f_name">주차장명</label>
-                    <div class="ctl"><input id="f_name" type="text" placeholder="예) 연남로 노상"/></div>
+                    <div class="ctl"><input id="f_name" type="text" value="<c:out value='${parking.prkplceNm}'/>" placeholder="예) 연남로 노상"/></div>
                 </div>
                 <!-- 🔥 진행상태를 select로 변경 -->
                 <div>
@@ -83,7 +108,7 @@
                     </div>
                 </div>
                 <!-- 🔥 우편번호 hidden 필드 추가 -->
-                <input type="hidden" id="f_zip"/>
+                <input type="hidden" id="f_zip" value="<c:out value='${parking.zip}'/>"/>
 
                 <!-- 🔥 리(里) 추가 -->
                 <div>
@@ -127,12 +152,12 @@
                 <!-- 주소: 지번/도로명 + 주소찾기 -->
                 <div style="grid-column:1/-1">
                     <label for="f_addr_jibun">지번 주소</label>
-                    <div class="ctl"><input id="f_addr_jibun" type="text" placeholder="예) 서울 마포구 연남동 123-45" readonly/>
+                    <div class="ctl"><input id="f_addr_jibun" type="text" value="<c:out value='${parking.dtadd}'/>" placeholder="예) 서울 마포구 연남동 123-45" readonly/>
                     </div>
                 </div>
                 <div style="grid-column:1/-1">
                     <label for="f_addr_road">도로명 주소</label>
-                    <div class="ctl"><input id="f_addr_road" type="text" placeholder="예) 서울 마포구 연남로 123" readonly/>
+                    <div class="ctl"><input id="f_addr_road" type="text" value="<c:out value='${parking.rnmadr}'/>" placeholder="예) 서울 마포구 연남로 123" readonly/>
                     </div>
                 </div>
                 <div style="grid-column:1/-1; display:flex; gap:8px">
@@ -164,11 +189,14 @@
                 <div style="grid-column:1/-1"><img id="preview" class="thumb" alt="사진 미리보기"/></div>
                 <!-- 🔥 저장된 사진 정보 표시 영역 추가 -->
                 <div id="photo_info" style="grid-column:1/-1"></div>
+                <!-- 🔥 업로드 진행/완료 분리 -->
+                <div id="uploadProgressContainer" style="grid-column:1/-1"></div>
+                <ul id="uploadedFileList" style="grid-column:1/-1" class="preview-list"></ul>
                 <div><label for="f_lat">위도</label>
-                    <div class="ctl"><input id="f_lat" class="mono" inputmode="decimal"/></div>
+                    <div class="ctl"><input id="f_lat" class="mono" inputmode="decimal" value="<c:out value='${parking.prkPlceLat}'/>"/></div>
                 </div>
                 <div><label for="f_lng">경도</label>
-                    <div class="ctl"><input id="f_lng" class="mono" inputmode="decimal"/></div>
+                    <div class="ctl"><input id="f_lng" class="mono" inputmode="decimal" value="<c:out value='${parking.prkPlceLon}'/>"/></div>
                 </div>
             </div>
         </div>
@@ -210,6 +238,17 @@
                                                   style="width:90px; margin-left:6px"/><span
                             class="suffix">면</span></label>
                 </div>
+            </div>
+
+            <!-- 관리주체(소유주체) // 변경: 입력 UI 추가 -->
+            <div style="grid-column:1/-1">
+                <label>관리주체(소유주체)</label>
+                <div class="radio-group" id="owner_group">
+                    <label><input type="radio" name="ownCd" value="1"/> <span>공영</span></label>
+                    <label><input type="radio" name="ownCd" value="2"/> <span>민영</span></label>
+                    <label><input type="radio" name="ownCd" value="9"/> <span>기타</span></label>
+                </div>
+                <input type="hidden" id="own_cd" name="ownCd" value="${parking.ownCd}"/>
             </div>
 
             <!-- 운영주체 -->
@@ -781,7 +820,7 @@
     <!-- 저장 버튼 섹션 -->
     <section class="card">
         <div class="actions" style="justify-content: center;">
-            <button class="btn btn-save" id="btnSave">💾 저장하기</button>
+            <button class="btn btn-save" id="btnSave" <c:if test="${isApproved}">disabled="disabled"</c:if>>💾 저장하기</button>
         </div>
     </section>
 </div>
@@ -804,6 +843,13 @@
         userId: '${loginUser.userId}'
     };
 </script>
-<script src="${pageContext.request.contextPath}/static/js/onparking.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/common/dom-utils.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/common/format-utils.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/common/code-api.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/common/ldong-util.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/common/upload-util.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/component/toast.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/component/modal.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/page/parking/onparking.js"></script>
 </body>
 </html>
