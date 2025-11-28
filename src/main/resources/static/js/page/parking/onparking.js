@@ -1,5 +1,4 @@
 /* onparking.js — 노상주차장 상세 페이지 (주간/야간 기능 + 동적 코드) */
-// TODO: 운영 환경에서는 console.log/console.warn 로그를 축소하거나 로깅 레벨로 전환 필요.
 
 // ========== 유틸 ==========
 const $ = (s) => document.querySelector(s);
@@ -539,7 +538,6 @@ const FormValidator = {
         const toast = document.getElementById('toast-container');
         if (toast) toast.innerHTML = '';
 
-        console.log('🧹 유효성 UI 초기화 완료 (값은 유지됨)');
     },
 
     /**
@@ -1289,7 +1287,6 @@ function generateLdongCd() {
     if (!ldongCd) {
         console.error('❌ 법정동코드 생성 실패:', sigunguCd, emdCd, liCd);
     } else {
-        console.log(`✅ 법정동코드 생성: ${ldongCd}`);
     }
     return ldongCd;
 }
@@ -1438,7 +1435,6 @@ function buildPayload() {
     const f_emd = document.getElementById('f_emd');
     // 🔥 법정동코드 생성
     const ldongCd = generateLdongCd();
-    console.log("!!!!!!!ldongCd : ", ldongCd);
 
     if (!ldongCd) {
         console.error('❌ 법정동코드 생성 실패');
@@ -1585,7 +1581,6 @@ function setupSignToggle() {
             const isVisible = radio.checked && (value === 'y' || value === '있음' || value === 'yes' || value === '1');
             signPhotoWrap.style.display = isVisible ? 'block' : 'none';
 
-            console.log('🖼️ 표지판 사진:', {
                 originalValue: radio.value,
                 normalizedValue: value,
                 checked: radio.checked,
@@ -1600,11 +1595,9 @@ function setupSignToggle() {
         const value = (checkedSign.value || '').trim().toLowerCase();
         const isVisible = value === 'y' || value === '있음' || value === 'yes' || value === '1';
         signPhotoWrap.style.display = isVisible ? 'block' : 'none';
-        console.log('🔧 초기 표지판 상태:', {value: checkedSign.value, visible: isVisible});
     } else {
         // 체크된 라디오가 없으면 기본적으로 숨김
         signPhotoWrap.style.display = 'none';
-        console.log('⚠️ 선택된 표지판 라디오 버튼 없음 - 기본 숨김');
     }
 
     // 표지판 사진 업로드 버튼 이벤트
@@ -1714,7 +1707,6 @@ function setupSlopeToggle() {
     }
 
     slopeInputWrap.style.display = isVisible ? 'block' : 'none';
-    console.log('📐 경사구간 입력:', { visible: isVisible });
 }*/
 
 // ========== 🔥 로딩 인디케이터 ==========
@@ -2528,11 +2520,9 @@ async function bindDataToForm(data) {
             sign_yes.checked = true;
             // 🔥 change 이벤트 트리거 추가
             sign_yes.dispatchEvent(new Event('change', {bubbles: true}));
-            console.log('✅ 표지판: 있음 선택');
         } else {
             sign_no.checked = true;
             sign_no.dispatchEvent(new Event('change', {bubbles: true}));
-            console.log('✅ 표지판: 없음 선택');
         }
     }
 
@@ -2725,7 +2715,6 @@ function setAllFieldsReadOnly(isReadOnly) {
             }
         }
     });
-    console.log(`🔒 모든 필드 ${isReadOnly ? 'ReadOnly' : '편집 가능'} 처리 완료`);
 }
 
 // 🔥 운영시간 바인딩 함수 (PRK_004 코드 기반)
@@ -3132,7 +3121,6 @@ function validateRequiredFields() {
 }
 
 async function doSave() {
-    console.log('🚀 저장 프로세스 시작');
 
     // 🔥 try 블록을 함수 시작 시점으로 이동하여 모든 에러를 포착
     try {
@@ -3201,7 +3189,6 @@ async function doSave() {
         const serverData = mapPayloadToServerFormat(payload);
 
         // 🔥 법정동코드 디버깅 로그
-        console.log('📦 전송 데이터 확인 (법정동코드):', serverData.ldongCd);
 
         if (!serverData.prkplceNm) throw new Error('주차장명이 비어있습니다');
         if (!serverData.zip) throw new Error('우편번호가 비어있습니다');
@@ -3473,7 +3460,6 @@ function mapPayloadToServerFormat(payload) {
     if (!ldongCd) {
         throw new Error('법정동코드(ldong_cd)는 10자리여야 합니다.');
     }
-    console.log(`🛠️ 법정동코드 매핑: 시군구(${sigunguCd}) + 읍면동(${emdCd}) => ldongCd(${ldongCd})`);
 
     const isNewRecord = !payload.id || payload.id.trim() === '';
     const prkBizMngNo = isNewRecord ? null : loadedBizMngNo;
@@ -3486,7 +3472,7 @@ function mapPayloadToServerFormat(payload) {
         prkPlceInfoSn: prkPlceInfoSn,
         prkplceNm: payload.name || '',
         prgsStsCd: payload.status || '10',
-        prkPlceType: '1',
+        prkPlceTypeCd || prkPlceType: '1',
         // 변경: 관리주체(소유주체) 코드 매핑
         prkplceSe: payload.ownCd || null,
 

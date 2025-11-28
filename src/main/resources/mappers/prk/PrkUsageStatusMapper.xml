@@ -62,6 +62,15 @@
         <if test="prkBizMngNo != null and prkBizMngNo != ''">
             AND t.prk_biz_mng_no = #{prkBizMngNo}
         </if>
+        <if test="searchYear != null and searchYear != ''">
+            AND TO_CHAR(t.examin_dd, 'YYYY') = #{searchYear}
+        </if>
+        <if test="searchSidoCode != null and searchSidoCode != ''">
+            AND b.sido_cd = #{searchSidoCode}
+        </if>
+        <if test="searchSigunguCode != null and searchSigunguCode != ''">
+            AND b.sigungu_cd = #{searchSigunguCode}
+        </if>
         <if test="searchVehicleNo != null and searchVehicleNo != ''">
             AND t.vhcle_no LIKE '%' || #{searchVehicleNo} || '%'
         </if>

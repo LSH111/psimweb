@@ -1,6 +1,4 @@
-// TODO: 운영 배포 시 console.log/console.warn 로그를 단계적으로 제거하거나 로그 레벨 제어하도록 정리 필요.
 window.reloadList = function () {
-    console.log('🔄 목록 새로고침 요청을 받았습니다.');
 
     // Case 1: 검색 폼을 submit하여 새로고침하는 경우 (전통적 방식)
     const searchForm = document.getElementById('searchForm');
@@ -63,7 +61,6 @@ window.closeNewParkingTabAndGoList = function () {
         } else {
             window.location.reload();
         }
-        console.log('✅ 신규 탭 닫기 + 목록 갱신 완료');
     } catch (e) {
         console.warn('⚠️ 신규 탭 닫기/목록 갱신 중 오류:', e);
         if (typeof window.reloadList === 'function') {
@@ -174,7 +171,6 @@ const CodeUtils = {
 
 // 이벤트 리스너 설정 함수
 function setupAreaSelectors() {
-    console.log('이벤트 리스너 설정 시작');
 
     const sidoSelect = document.getElementById('sido');
     const sigunguSelect = document.getElementById('sigungu');
@@ -187,17 +183,14 @@ function setupAreaSelectors() {
 
     sidoSelect.addEventListener('change', async (e) => {
         const sidoCd = e.target.value;
-        console.log('시도 선택됨:', sidoCd);
         await CodeUtils.loadSigunguList(sidoCd);
     });
 
     sigunguSelect.addEventListener('change', async (e) => {
         const sigunguCd = e.target.value;
-        console.log('시군구 선택됨:', sigunguCd);
         await CodeUtils.loadEmdList(sigunguCd);
     });
 
-    console.log('이벤트 리스너 설정 완료');
 }
 
 /* =========================
@@ -262,16 +255,10 @@ async function loadDataFromServer() {
         const data = await response.json();
 
         // 🔥 디버깅 로그 추가
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        console.log('📥 서버 응답 데이터:', data);
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
         if (data.success !== false) {
             DATA = (data.list || []).map((item, index) => {
                 // 🔥 각 항목 로그 출력
-                console.log(`\n[${index}] 주차장:`, item.prkplceNm);
-                console.log('  - prkPlceManageNo:', item.prkPlceManageNo);
-                console.log('  - prkPlceInfoSn:', item.prkPlceInfoSn);
 
                 // 🔥 prkPlceInfoSn이 없는 경우 경고
                 if (!item.prkPlceInfoSn) {
@@ -301,7 +288,6 @@ async function loadDataFromServer() {
                 console.error(`❌ prkPlceInfoSn이 null인 항목: ${nullCount}/${DATA.length}개`);
                 console.error('이 항목들은 전송 시 제외됩니다!');
             } else {
-                console.log(`✅ 모든 데이터에 prkPlceInfoSn이 있습니다 (${DATA.length}개)`);
             }
 
             if (data.totalCount !== undefined) {
@@ -730,11 +716,9 @@ function resetSearchForm() {
     currentPage = 1;
     loadDataFromServer();
 
-    console.log('검색 조건이 초기화되었습니다.');
 }
 
 window.goBackToMap = function () {
-    console.log('🔙 지도로 돌아가기 클릭');
     window.location.href = '/gis/parkingmap';
 };
 
@@ -744,13 +728,11 @@ function checkMapReturn() {
 
     if (isFromMap === 'true' && backButton) {
         backButton.style.display = 'block';
-        console.log('✅ 지도에서 온 방문 - 뒤로가기 버튼 표시');
     }
 }
 
 async function loadAndOpenParkingDetail(prkPlceManageNo, prkPlceType, prkPlceInfoSn) {
     try {
-        console.log('🔍 주차장 상세 탭 열기:', prkPlceManageNo, prkPlceInfoSn);
 
         if (!prkPlceManageNo || !prkPlceInfoSn) {
             throw new Error('prkPlceManageNo 혹은 prkPlceInfoSn이 없습니다.');
@@ -780,7 +762,6 @@ async function loadAndOpenParkingDetail(prkPlceManageNo, prkPlceType, prkPlceInf
    신규 주차장 추가 - 타입 선택 모달
    ========================= */
 function handleAddNewParking() {
-    console.log('🆕 신규 주차장 추가 버튼 클릭');
 
     const modalHTML = `
         <div id="parkingTypeModal" style="
@@ -928,7 +909,6 @@ function closeTypeModal() {
 }
 
 function openNewParkingTab(type) {
-    console.log('📝 신규 주차장 탭 열기:', type);
 
     const {tabBar, panelsWrap} = getTabHost();
     if (!tabBar || !panelsWrap) {
@@ -996,7 +976,6 @@ function openNewParkingTab(type) {
 
     activateTop(tabId);
 
-    console.log('✅ 신규 추가 탭 열림:', config.name);
     toast(`${config.name} 탭이 열렸습니다.`);
 }
 
@@ -1024,12 +1003,10 @@ async function init() {
         window.parkingDetailParams.parkingType) {
 
         const {openDetailId, parkingType, prkPlceInfoSn} = window.parkingDetailParams;
-        console.log('🔍 지도에서 상세보기 요청:', openDetailId, parkingType);
 
         setTimeout(() => {
             const parking = DATA.find(r => r.manageNo === openDetailId);
             if (parking) {
-                console.log('✅ 주차장 데이터 찾음:', parking);
                 ensureDetailTabTop(parking);
             } else {
                 console.warn('⚠️ 주차장 데이터를 찾을 수 없음:', openDetailId);

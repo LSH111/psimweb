@@ -175,7 +175,6 @@ function generateLdongCd() {
     if (!ldongCd) {
         console.error('❌ 법정동코드 생성 실패:', sigunguCd, emdCd, liCd);
     } else {
-        console.log(`✅ 법정동코드 생성: ${ldongCd}`);
     }
     return ldongCd;
 }
@@ -228,7 +227,6 @@ const RegionCodeLoader = {
                     option.textContent = item.codeNm;
                     statusSelect.appendChild(option);
                 });
-                console.log('✅ 진행상태 로드 완료:', result.data.length);
             }
         } catch (error) {
             console.error('❌ 진행상태 로드 실패:', error);
@@ -252,7 +250,6 @@ const RegionCodeLoader = {
                     option.textContent = item.codeNm;
                     sidoSelect.appendChild(option);
                 });
-                console.log('✅ 시도 목록 로드 완료:', result.data.length);
             }
         } catch (error) {
             console.error('❌ 시도 로드 실패:', error);
@@ -287,7 +284,6 @@ const RegionCodeLoader = {
                     sigunguSelect.appendChild(option);
                 });
                 sigunguSelect.disabled = false;
-                console.log('✅ 시군구 목록 로드 완료:', result.data.length);
             }
         } catch (error) {
             console.error('❌ 시군구 로드 실패:', error);
@@ -318,7 +314,6 @@ const RegionCodeLoader = {
                     emdSelect.appendChild(option);
                 });
                 emdSelect.disabled = false;
-                console.log('✅ 읍면동 목록 로드 완료:', result.data.length);
             }
         } catch (error) {
             console.error('❌ 읍면동 로드 실패:', error);
@@ -332,14 +327,12 @@ const RegionCodeLoader = {
 
         if (sidoSelect) {
             sidoSelect.addEventListener('change', (e) => {
-                console.log('🔄 시도 변경:', e.target.value);
                 this.loadSigunguList(e.target.value);
             });
         }
 
         if (sigunguSelect) {
             sigunguSelect.addEventListener('change', (e) => {
-                console.log('🔄 시군구 변경:', e.target.value);
                 this.loadEmdList(e.target.value);
             });
         }
@@ -350,12 +343,10 @@ const RegionCodeLoader = {
 const CodeLoader = {
     async loadDynamicCodes() {
         try {
-            console.log('=== 동적 코드 로드 시작 ===');
             const response = await fetch('/cmm/codes/dynamic-groups');
             const result = await response.json();
 
             if (result.success && result.groups) {
-                console.log('✅ 로드된 코드 그룹:', Object.keys(result.groups));
                 return result.groups;
             } else {
                 console.error('❌ 동적 코드 로드 실패:', result.message);
@@ -383,7 +374,6 @@ const CodeLoader = {
                 option.textContent = code.codeNm;
                 select.appendChild(option);
             });
-            console.log(`✅ ${selectId} 옵션 ${codes.length}개 추가`);
         }
     },
 
@@ -415,7 +405,6 @@ const CodeLoader = {
                 label.appendChild(span);
                 container.appendChild(label);
             });
-            console.log(`✅ ${containerId} 라디오 ${codes.length}개 추가`);
         }
     },
 
@@ -446,7 +435,6 @@ const CodeLoader = {
                 label.appendChild(span);
                 container.appendChild(label);
             });
-            console.log(`✅ ${containerId} 체크박스 ${codes.length}개 추가`);
         }
     },
 
@@ -484,7 +472,6 @@ const CodeLoader = {
                 container.appendChild(label);
             });
 
-            console.log(`✅ ${containerId} 라디오 버튼 ${codes.length}개 생성`);
         }
     },
 
@@ -549,7 +536,6 @@ const CodeLoader = {
         // PRK_004: 운영시간코드
         if (groups['PRK_004']) {
             window.OPERATION_TIME_CODES = groups['PRK_004'].codes;
-            console.log('✅ PRK_004 운영시간 코드 로드:', window.OPERATION_TIME_CODES);
 
             this.populateOperationTimeRadios('weekday', groups['PRK_004'].codes);
             this.populateOperationTimeRadios('saturday', groups['PRK_004'].codes);
@@ -594,7 +580,6 @@ const CodeLoader = {
             this.populateRadioGroup('#mech_prklot_oper_group', 'mechPrklotOper', groups['PRK_012'].codes);
         }
 
-        console.log('✅ 모든 동적 코드 적용 완료');
     }
 };
 
@@ -627,7 +612,6 @@ $('#btnFindAddr')?.addEventListener('click', () => {
     container.innerHTML = '';
     new daum.Postcode({
         oncomplete(data) {
-            console.log('🔍 다음 주소 API 응답:', data);
 
             // 🔥 주소 파싱 및 자동 입력
             parseAndFillAddress(data);
@@ -647,25 +631,21 @@ layer?.addEventListener('click', (e) => {
 // 🔥 주소 데이터 파싱 및 입력 함수
 async function parseAndFillAddress(data) {
     try {
-        console.log('📝 주소 파싱 시작', data);
 
         // 1. 우편번호
         const f_zip = document.getElementById('f_zip');
         if (f_zip && data.zonecode) {
             f_zip.value = data.zonecode;
-            console.log('✅ 우편번호:', data.zonecode);
         }
 
         // 2. 지번주소 / 도로명주소 먼저 입력
         if (f_addrJ && data.jibunAddress) {
             f_addrJ.value = data.jibunAddress;
-            console.log('✅ 지번주소:', data.jibunAddress);
         }
 
         if (f_addrR) {
             const roadAddr = data.roadAddress || data.autoRoadAddress || '';
             f_addrR.value = roadAddr;
-            console.log('✅ 도로명주소:', roadAddr);
         }
 
         // 3. 시도/시군구/읍면동 코드 매핑용 객체
@@ -676,7 +656,6 @@ async function parseAndFillAddress(data) {
             bname1: data.bname1,
             bname2: data.bname2
         };
-        console.log('🗺️ 행정구역 정보:', regionMap);
 
         // 4. 시도 선택 - 축약형을 정식 명칭으로 변환하여 매칭
         if (regionMap.sido) {
@@ -697,7 +676,6 @@ async function parseAndFillAddress(data) {
 
                 if (sidoOption) {
                     sidoSelect.value = sidoOption.value;
-                    console.log('✅ 시도 선택:', fullSidoName, '→', sidoOption.value);
                     sidoSelect.dispatchEvent(new Event('change'));
                     await new Promise(resolve => setTimeout(resolve, 500));
                 } else {
@@ -716,7 +694,6 @@ async function parseAndFillAddress(data) {
 
                 if (sigunguOption) {
                     sigunguSelect.value = sigunguOption.value;
-                    console.log('✅ 시군구 선택:', regionMap.sigungu, '→', sigunguOption.value);
                     sigunguSelect.dispatchEvent(new Event('change'));
                     await new Promise(resolve => setTimeout(resolve, 500));
                 } else {
@@ -736,7 +713,6 @@ async function parseAndFillAddress(data) {
 
                 if (emdOption) {
                     emdSelect.value = emdOption.value;
-                    console.log('✅ 읍면동 선택:', emdTargetName, '→', emdOption.value);
                     emdSelect.dispatchEvent(new Event('change'));
                 } else {
                     console.warn('⚠️ 읍면동을 찾을 수 없음:', emdTargetName);
@@ -757,7 +733,6 @@ async function parseAndFillAddress(data) {
                     riInput.value = riPart;
                 }
             }
-            if (riInput.value) console.log('✅ 리 입력:', riInput.value);
         }
 
         // 8. 산 여부 판단
@@ -768,7 +743,6 @@ async function parseAndFillAddress(data) {
                 radio.checked = true;
             }
         });
-        console.log('✅ 산 여부:', isMountain ? '산' : '일반');
 
         // 9. 본번/부번 파싱
         const jibunAddress = data.jibunAddress || '';
@@ -796,24 +770,20 @@ async function parseAndFillAddress(data) {
 
         if (mainNumInput) {
             mainNumInput.value = mainNum;
-            console.log('✅ 본번:', mainNum);
         }
         if (subNumInput) {
             subNumInput.value = subNum;
-            console.log('✅ 부번:', subNum);
         }
 
         // 10. 건물명 입력
         const buildingNameInput = $('#f_buildingName');
         if (buildingNameInput && data.buildingName) {
             buildingNameInput.value = data.buildingName;
-            console.log('✅ 건물명:', data.buildingName);
         }
 
         // 헤더 주소 업데이트
         updateHeaderAddr();
 
-        console.log('✅ 주소 파싱 및 입력 완료');
 
     } catch (error) {
         console.error('❌ 주소 파싱 오류:', error);
@@ -1133,7 +1103,6 @@ class FileUploadProgress {
 
     cancel() {
         this.hide();
-        console.log('업로드 취소됨');
     }
 
     updateProgress(percent) {
@@ -1327,13 +1296,11 @@ function setupMechPrklotOperToggle() {
 
             if (selectedValue === '03') {
                 operInputWrap.style.display = 'block';
-                console.log('✅ 작동여부 입력창 표시 (codeCd: 03)');
             } else {
                 operInputWrap.style.display = 'none';
                 if (operValueInput) {
                     operValueInput.value = '';
                 }
-                console.log('✅ 작동여부 입력창 숨김');
             }
         }
     });
@@ -1343,7 +1310,6 @@ function setupMechPrklotOperToggle() {
         operInputWrap.style.display = 'block';
     }
 
-    console.log('✅ 기계식주차장 작동여부 토글 설정 완료');
 }
 
 // ========== 🔥 운영주체 민간위탁/민간직영 토글 ==========
@@ -1362,7 +1328,6 @@ function setupOperationEntityToggle() {
         });
     });
 
-    console.log('✅ 운영주체 토글 설정 완료');
 }
 
 // ========== 🔥 시간제운영 처리 함수 ==========
@@ -1393,7 +1358,6 @@ function setupSignToggle() {
         radio.addEventListener('change', () => {
             const isVisible = radio.checked && (radio.value === 'Y' || radio.value === '있음');
             signPhotoWrap.style.display = isVisible ? 'block' : 'none';
-            console.log('🖼️ 표지판 사진:', {value: radio.value, visible: isVisible});
         });
     });
 
@@ -1472,7 +1436,6 @@ function setupFacilityPhotoToggles() {
         });
     });
 
-    console.log('✅ 시설 사진 토글 설정 완료');
 }
 
 // ========== 🔥 주차장 입구 사진 이벤트 ==========
@@ -1553,7 +1516,6 @@ function setupEntrancePhotoEvents() {
         }
     });
 
-    console.log('✅ 주차장 입구 사진 이벤트 설정 완료');
 }
 
 // ========== 🔥 사전점검 이벤트 ==========
@@ -1569,7 +1531,6 @@ function setupPreInspectionEvents() {
         });
     });
 
-    console.log('✅ 사전점검 이벤트 설정 완료');
 }
 
 // ========== 🔥 보행안전시설 활성화 ==========
@@ -1607,7 +1568,6 @@ function setupPedestrianSafetyEvents() {
     });
 
     checkTotalStalls();
-    console.log('✅ 보행안전시설 활성화 설정 완료');
 }
 
 // ========== 🔥 주차 첨두 시간대 검증 ==========
@@ -1661,7 +1621,6 @@ function setupPeakTimeValidation() {
         });
     }
 
-    console.log('✅ 주차 첨두 시간대 검증 설정 완료');
 }
 
 // ========== 🔥 전역 변수로 사업관리번호, 정보일련번호 저장 ==========
@@ -1815,22 +1774,18 @@ async function loadParkingDetailFromServer() {
         alert('서버와의 통신 중 오류가 발생했습니다.');
     } finally {
         LoadingIndicator.hide();
-        console.log('✅ 로딩 인디케이터 숨김');
     }
 }
 
 // 🔥 서버 데이터로 폼 채우기 ==========
 async function populateFormWithData(data) {
-    console.log('📝 폼 데이터 채우기 시작', data);
 
     // 🔥 사업관리번호, 정보일련번호 저장
     if (data.prkBizMngNo) {
         loadedBizMngNo = data.prkBizMngNo;
-        console.log('✅ 사업관리번호 저장:', loadedBizMngNo);
     }
     if (data.prkPlceInfoSn) {
         loadedPrkPlceInfoSn = data.prkPlceInfoSn;
-        console.log('✅ 정보일련번호 저장:', loadedPrkPlceInfoSn);
     }
 
     // 기본 정보
@@ -1843,7 +1798,6 @@ async function populateFormWithData(data) {
         const f_sido = $('#f_sido');
         if (f_sido) {
             f_sido.value = data.sidoCd;
-            console.log('✅ 시도코드 바인딩:', data.sidoCd);
 
             // 시군구 로드
             await RegionCodeLoader.loadSigunguList(data.sidoCd);
@@ -1852,7 +1806,6 @@ async function populateFormWithData(data) {
                 const f_sigungu = $('#f_sigungu');
                 if (f_sigungu) {
                     f_sigungu.value = data.sigunguCd;
-                    console.log('✅ 시군구코드 바인딩:', data.sigunguCd);
 
                     // 읍면동 로드
                     await RegionCodeLoader.loadEmdList(data.sigunguCd);
@@ -1861,7 +1814,6 @@ async function populateFormWithData(data) {
                         const f_emd = $('#f_emd');
                         if (f_emd) {
                             f_emd.value = data.emdCd;
-                            console.log('✅ 읍면동코드 바인딩:', data.emdCd);
                         }
                     }
                 }
@@ -1875,7 +1827,6 @@ async function populateFormWithData(data) {
     const f_zip = document.getElementById('f_zip');
     if (f_zip && data.zip) {
         f_zip.value = data.zip;
-        console.log('✅ 우편번호 바인딩:', data.zip);
     }
 
     if (f_lat) f_lat.value = data.prkPlceLat || '';
@@ -1943,11 +1894,9 @@ async function populateFormWithData(data) {
     const f_grade = $('#f_grade');
     if (f_grade && data.chrgGrdCd) {
         f_grade.value = data.chrgGrdCd;
-        console.log('✅ 급지구분 바인딩:', data.chrgGrdCd);
     }
 
     // 주차관리 시설 정보
-    console.log('📌 주차관리 시설 정보:', {
         표지판: data.prklotSignCd,
         발권기: data.tcktMchnYn,
         차단기: data.barrGteYn,
@@ -1994,7 +1943,6 @@ async function populateFormWithData(data) {
         }
     }
 
-    console.log('✅ 주차관리 시설 정보 바인딩 완료');
 
     // 주차 첨두 시간대
     if ($('#f_peak_day_start') && data.wkPeakStrTm) {
@@ -2072,7 +2020,6 @@ async function populateFormWithData(data) {
     const statusValue = (data.prgsStsCd || $('#f_status')?.value || serverStatusValue || '').trim();
     applyApprovalLock(statusValue);
 
-    console.log('✅ 폼 데이터 채우기 완료');
 }
 
 // ========== 🔥 모든 필드를 ReadOnly로 설정하는 함수 ==========
@@ -2138,7 +2085,6 @@ function setAllFieldsReadOnly(isReadOnly) {
         if (btn) btn.disabled = isReadOnly;
     });
 
-    console.log(`🔒 모든 필드 ${isReadOnly ? 'ReadOnly' : '편집 가능'} 처리 완료`);
 }
 
 // 🔥 좌표로 행정구역 정보 가져오기
@@ -2159,7 +2105,6 @@ async function convertCoordToRegion(longitude, latitude) {
                 document.getElementById('f_emd').value = result.emd;
             }
 
-            console.log('좌표->행정구역 변환 성공:', result);
 
             // 헤더 주소 업데이트
             updateHeaderAddr();
@@ -2195,7 +2140,6 @@ async function convertCoordToAddress(longitude, latitude) {
                 const f_zip = document.getElementById('f_zip');
                 if (f_zip) {
                     f_zip.value = result.zoneNo;
-                    console.log('📮 우편번호 저장:', result.zoneNo);
                 }
             }
 
@@ -2210,7 +2154,6 @@ async function convertCoordToAddress(longitude, latitude) {
             // 🔥 추가: 행정구역 정보도 함께 가져오기
             await convertCoordToRegion(longitude, latitude);
 
-            console.log('좌표->주소 변환 성공:', result);
 
             // 헤더 주소 업데이트
             updateHeaderAddr();
@@ -2278,7 +2221,6 @@ async function handlePhotoWithGPS(file) {
 // ========== 저장 함수 수정 ==========
 async function doSave() {
     try {
-        console.log('🚀 저장 프로세스 시작');
 
         const ownerTypeCode = document.querySelector('input[name="parkingType"]:checked')?.value;
         if (!ownerTypeCode) {
@@ -2294,14 +2236,11 @@ async function doSave() {
             showValidationErrors(validationErrors);
             return;
         }
-        console.log('✅ 유효성 검사 통과');
 
 
         const payload = buildPayload();
-        console.log('📝 생성된 Payload:', payload);
 
         const isNewRecord = !payload.id || payload.id.trim() === '';
-        console.log(isNewRecord ? '✨ 신규 등록 모드' : `✏️ 수정 모드 (ID: ${payload.id})`);
 
 
         const serverData = mapPayloadToServerFormat(payload);
@@ -2309,10 +2248,8 @@ async function doSave() {
         // 🔥 신규 등록 시 주차장관리번호를 보내지 않아야 서버에서 자동 생성됩니다. (onparking.js 참조)
         if (isNewRecord) {
             delete serverData.prkPlceManageNo;
-            console.log('🗑️ 신규 등록이므로 prkPlceManageNo 필드 제거');
         }
 
-        console.log('📤 서버 전송 데이터:', serverData);
 
 
         const formData = new FormData();
@@ -2337,17 +2274,14 @@ async function doSave() {
 
         if (libInput && libInput.files.length > 0) {
             formData.append(key, libInput.files[0]);
-            console.log(`📸 사진 추가 (${key}):`, libInput.files[0].name);
             appendUploadedFiles('#uploadedFileList', libInput.files);
         } else if (camInput && camInput.files.length > 0) {
             formData.append(key, camInput.files[0]);
-            console.log(`📸 사진 추가 (${key}):`, camInput.files[0].name);
             appendUploadedFiles('#uploadedFileList', camInput.files);
         }
     }
 
 
-        console.log('📡 서버에 데이터 전송 시작...');
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
             controller.abort();
@@ -2382,7 +2316,6 @@ async function doSave() {
         }
 
         const result = await response.json();
-        console.log('✅ 서버 응답:', result);
 
 
         if (result.success) {
@@ -2513,7 +2446,7 @@ function mapPayloadToServerFormat(payload) {
         pregnantPrkCnt: payload.stalls.pregnant,
 
         // 주차장 유형
-        prkPlceType: document.querySelector('input[name="parkingType"]:checked')?.value || '3',
+        prkPlceTypeCd || prkPlceType: document.querySelector('input[name="parkingType"]:checked')?.value || '3',
 
         operMbyCd: document.querySelector('input[name="operationEntity"]:checked')?.value,
         mgrOrg: $('#f_management_agency')?.value,
@@ -2602,30 +2535,22 @@ function validateRequiredFields() {
 }
 
 document.addEventListener('DOMContentLoaded', async function () {
-    console.log('=== 부설주차장 페이지 초기화 시작 ===');
 
     try {
-        console.log('Step 1: 초기화 시작');
         const prkPlceManageNo = document.getElementById('prkPlceManageNo')?.value || p.id;
         const isNewRecord = !prkPlceManageNo;
         if (serverStatusValue) {
             applyApprovalLock(serverStatusValue);
         }
 
-        console.log('Step 2: 공통 코드 로드 시작');
         await RegionCodeLoader.loadProgressStatus();
-        console.log('Step 2a: 진행상태 로드 완료');
 
         await RegionCodeLoader.loadSidoList();
-        console.log('Step 2b: 시도 목록 로드 완료');
 
         RegionCodeLoader.setupEventListeners();
-        console.log('Step 2c: 행정구역 리스너 설정 완료');
 
         await CodeLoader.applyAllDynamicCodes();
-        console.log('Step 2d: 동적 코드 적용 완료');
 
-        console.log('Step 3: UI 이벤트 리스너 설정 시작');
         setupMechPrklotOperToggle();
         setupOperationEntityToggle();
         setupTimeOperationEvents('weekday');
@@ -2637,7 +2562,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         setupPreInspectionEvents();
         setupPedestrianSafetyEvents();
         setupPeakTimeValidation();
-        console.log('Step 3a: UI 이벤트 리스너 설정 완료');
 
         // 전화번호 포맷팅 적용
     applyPhoneFormat(document.getElementById('f_management_tel'));
@@ -2646,7 +2570,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     bindMechanicalAutoRule();
     applyManagerAdminAutoRule();
 
-        console.log('Step 4: 저장 버튼 이벤트 리스너 등록');
         const btnSave = document.getElementById('btnSave');
         const btnSaveTop = document.getElementById('btnSaveTop');
 
@@ -2667,25 +2590,19 @@ document.addEventListener('DOMContentLoaded', async function () {
         } else {
             console.error('❌ btnSaveTop 요소를 찾을 수 없습니다!');
         }
-        console.log('Step 4a: 저장 버튼 이벤트 리스너 등록 완료');
 
-        console.log(`Step 5: 모드 분기 처리 (isNewRecord: ${isNewRecord})`);
         if (isNewRecord) {
-            console.log('✨ 신규 등록 모드입니다.');
             if (f_status) {
                 f_status.value = '10'; // '조사중' 코드
             }
         } else {
-            console.log(`✏️ 수정 모드입니다. (ID: ${prkPlceManageNo})`);
             await loadParkingDetailFromServer();
             const hiddenInfoSn = document.getElementById('prkPlceInfoSn')?.value || loadedPrkPlceInfoSn;
         if (hiddenInfoSn) {
             await reloadParkingPhotos(hiddenInfoSn);
         }
         }
-        console.log('Step 5a: 모드 분기 처리 완료');
 
-        console.log('=== 부설주차장 페이지 초기화 완료 ===');
 
     } catch (error) {
         console.error('❌ 페이지 초기화 중 심각한 오류 발생:', error);

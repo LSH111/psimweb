@@ -19,7 +19,6 @@
             userNm: '${userName}',
             mbtlnum: '${userTel}'
         };
-        console.log('🔧 전역 변수 초기화 완료:', { contextPath, sessionInfo });
     </script>
 
     <style>
@@ -257,7 +256,6 @@
 <!-- 🔥 4. Kakao Maps 로드 확인 -->
 <script>
     (function() {
-        console.log('🔍 Kakao Maps 로드 체크 시작');
 
         if (window.kakaoMapsLoadError) {
             console.error('❌ Kakao Maps API 스크립트 파일 로드 실패');
@@ -272,13 +270,9 @@
         const checkInterval = setInterval(function() {
             checkCount++;
 
-            console.log(`⏳ Kakao Maps 체크 ${checkCount}/${maxChecks}`);
-            console.log('- typeof kakao:', typeof kakao);
-            console.log('- typeof kakao.maps:', typeof kakao !== 'undefined' ? typeof kakao.maps : 'N/A');
 
             if (typeof kakao !== 'undefined' && typeof kakao.maps !== 'undefined') {
                 clearInterval(checkInterval);
-                console.log('✅ Kakao Maps API 로드 완료!');
                 window.kakaoMapsReady = true;
                 window.dispatchEvent(new Event('kakaoMapsLoaded'));
             } else if (checkCount >= maxChecks) {

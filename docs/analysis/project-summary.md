@@ -66,3 +66,4 @@ The project is a web application built using Spring Boot, designed to be package
 - It combines modern Spring Boot practices with traditional JSP views.
 - The presence of `egovframe.rte` dependencies indicates it may need to adhere to specific government software standards or reuse existing government framework components.
 - The WAR packaging and `provided` scope for Tomcat dependencies suggest deployment to a standalone servlet container is the primary target, rather than using the embedded Tomcat server for production.
+- A PlantUML class diagram is maintained at `src/test/resources/psim-class-diagram.puml`; from the project root run `mvn -Pdiagrams generate-resources` to get both SVG and XMI outputs (see `docs/analysis/class-diagram.md`).

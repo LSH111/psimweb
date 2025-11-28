@@ -289,7 +289,6 @@ const RegionCodeLoader = {
                     option.textContent = item.codeNm;
                     sidoSelect.appendChild(option);
                 });
-                console.log('✅ 시도 목록 로드 완료:', result.data.length);
             }
         } catch (error) {
             console.error('❌ 시도 로드 실패:', error);
@@ -324,7 +323,6 @@ const RegionCodeLoader = {
                     sigunguSelect.appendChild(option);
                 });
                 sigunguSelect.disabled = false;
-                console.log('✅ 시군구 목록 로드 완료:', result.data.length);
             }
         } catch (error) {
             console.error('❌ 시군구 로드 실패:', error);
@@ -355,7 +353,6 @@ const RegionCodeLoader = {
                     emdSelect.appendChild(option);
                 });
                 emdSelect.disabled = false;
-                console.log('✅ 읍면동 목록 로드 완료:', result.data.length);
             }
         } catch (error) {
             console.error('❌ 읍면동 로드 실패:', error);
@@ -369,14 +366,12 @@ const RegionCodeLoader = {
 
         if (sidoSelect) {
             sidoSelect.addEventListener('change', (e) => {
-                console.log('🔄 시도 변경:', e.target.value);
                 this.loadSigunguList(e.target.value);
             });
         }
 
         if (sigunguSelect) {
             sigunguSelect.addEventListener('change', (e) => {
-                console.log('🔄 시군구 변경:', e.target.value);
                 this.loadEmdList(e.target.value);
             });
         }
@@ -387,12 +382,10 @@ const RegionCodeLoader = {
 const CodeLoader = {
     async loadDynamicCodes() {
         try {
-            console.log('=== 동적 코드 로드 시작 ===');
             const response = await fetch('/cmm/codes/dynamic-groups');
             const result = await response.json();
 
             if (result.success && result.groups) {
-                console.log('✅ 로드된 코드 그룹:', Object.keys(result.groups));
                 return result.groups;
             } else {
                 console.error('❌ 동적 코드 로드 실패:', result.message);
@@ -420,7 +413,6 @@ const CodeLoader = {
                 option.textContent = code.codeNm;
                 select.appendChild(option);
             });
-            console.log(`✅ ${selectId} 옵션 ${codes.length}개 추가`);
         }
     },
 
@@ -451,7 +443,6 @@ const CodeLoader = {
                 label.appendChild(span);
                 container.appendChild(label);
             });
-            console.log(`✅ ${containerId} 라디오 ${codes.length}개 추가`);
         }
     },
 
@@ -482,7 +473,6 @@ const CodeLoader = {
                 label.appendChild(span);
                 container.appendChild(label);
             });
-            console.log(`✅ ${containerId} 체크박스 ${codes.length}개 추가`);
         }
     },
 
@@ -520,7 +510,6 @@ const CodeLoader = {
                 container.appendChild(label);
             });
 
-            console.log(`✅ ${containerId} 라디오 버튼 ${codes.length}개 생성`);
         }
     },
 
@@ -610,7 +599,6 @@ const CodeLoader = {
         // PRK_004: 운영시간코드
         if (groups['PRK_004']) {
             window.OPERATION_TIME_CODES = groups['PRK_004'].codes;
-            console.log('✅ PRK_004 운영시간 코드 로드:', window.OPERATION_TIME_CODES);
 
             this.populateOperationTimeRadios('day', 'weekday', groups['PRK_004'].codes);
             this.populateOperationTimeRadios('day', 'saturday', groups['PRK_004'].codes);
@@ -656,7 +644,6 @@ const CodeLoader = {
             this.populateRadioGroup('#vehicle_recognition_group', 'vehicleRecognition', groups['PRK_008'].codes);
         }
 
-        console.log('✅ 모든 동적 코드 적용 완료');
     }
 };
 
@@ -1387,7 +1374,6 @@ class FileUploadProgress {
 
     cancel() {
         this.hide();
-        console.log('업로드 취소됨');
     }
 
     updateProgress(percent) {
@@ -1605,7 +1591,6 @@ function toggleTimeSections() {
         if (element) element.style.display = isNightChecked ? 'block' : 'none';
     });
 
-    console.log('🔄 시간대 섹션 표시 업데이트:', {주간: isDayChecked, 야간: isNightChecked});
 }
 
 // ========== 운영방식 & 요금 섹션 제어 ==========
@@ -1805,7 +1790,6 @@ function generateLdongCd() {
     if (!ldongCd) {
         console.error('❌ 법정동코드 생성 실패:', sigunguCd, emdCd, liCd);
     } else {
-        console.log(`✅ 법정동코드 생성: ${ldongCd}`);
     }
     return ldongCd;
 }
@@ -1911,7 +1895,6 @@ function setupFacilityPhotoEvents() {
 
     facilities.forEach(setupFacility);
 
-    console.log('✅ 주차관리 시설 사진 이벤트 설정 완료');
 }
 
 async function handleFacilityPhoto(files, type) {
@@ -2012,7 +1995,6 @@ function setupPeakTimeValidation() {
         });
     }
 
-    console.log('✅ 주차 첨두 시간대 검증 설정 완료');
 }
 
 // ========== 주차장 입구 사진 이벤트 ==========
@@ -2102,7 +2084,6 @@ function setupEntrancePhotoEvents() {
         }
     });
 
-    console.log('✅ 주차장 입구 사진 이벤트 설정 완료');
 }
 
 // ========== 사전점검 이벤트 ==========
@@ -2128,7 +2109,6 @@ function setupPreInspectionEvents() {
             if (slopeOver7Wrap) {
                 const shouldShow = (this.value === 'Y' && this.checked);
                 slopeOver7Wrap.style.display = shouldShow ? 'block' : 'none';
-                console.log(`🔄 경사도 입력창 ${shouldShow ? '표시' : '숨김'}`);
             }
         });
     });
@@ -2185,7 +2165,6 @@ function setupPreInspectionEvents() {
         });
     });
 
-    console.log('✅ 사전점검 이벤트 설정 완료');
 }
 
 // ========== 보행안전시설 활성화 ==========
@@ -2224,7 +2203,6 @@ function setupPedestrianSafetyEvents() {
     });
 
     checkTotalStalls();
-    console.log('✅ 보행안전시설 활성화 설정 완료');
 }
 
 // ========== 🔥 전역 변수로 사업관리번호, 정보일련번호 저장 ==========
@@ -2294,22 +2272,18 @@ async function loadParkingDetailFromServer() {
         alert('서버와의 통신 중 오류가 발생했습니다.');
     } finally {
         LoadingIndicator.hide();
-        console.log('✅ 로딩 인디케이터 숨김');
     }
 }
 
 // ========== 🔥 서버 데이터로 폼 채우기 ==========
 async function populateFormWithData(data) {
-    console.log('📝 폼 데이터 채우기 시작', data);
 
     // 🔥 사업관리번호, 정보일련번호 저장
     if (data.prkBizMngNo) {
         loadedBizMngNo = data.prkBizMngNo;
-        console.log('✅ 사업관리번호 저장:', loadedBizMngNo);
     }
     if (data.prkPlceInfoSn) {
         loadedPrkPlceInfoSn = data.prkPlceInfoSn;
-        console.log('✅ 정보일련번호 저장:', loadedPrkPlceInfoSn);
     }
 
     // 기본 정보
@@ -2322,7 +2296,6 @@ async function populateFormWithData(data) {
         const f_sido = $('#f_sido');
         if (f_sido) {
             f_sido.value = data.sidoCd;
-            console.log('✅ 시도코드 바인딩:', data.sidoCd);
 
             // 시군구 로드
             await RegionCodeLoader.loadSigunguList(data.sidoCd);
@@ -2331,7 +2304,6 @@ async function populateFormWithData(data) {
                 const f_sigungu = $('#f_sigungu');
                 if (f_sigungu) {
                     f_sigungu.value = data.sigunguCd;
-                    console.log('✅ 시군구코드 바인딩:', data.sigunguCd);
 
                     // 읍면동 로드
                     await RegionCodeLoader.loadEmdList(data.sigunguCd);
@@ -2340,7 +2312,6 @@ async function populateFormWithData(data) {
                         const f_emd = $('#f_emd');
                         if (f_emd) {
                             f_emd.value = data.emdCd;
-                            console.log('✅ 읍면동코드 바인딩:', data.emdCd);
                         }
                     }
                 }
@@ -2356,7 +2327,6 @@ async function populateFormWithData(data) {
     const f_zip = document.getElementById('f_zip');
     if (f_zip && data.zip) {
         f_zip.value = data.zip;
-        console.log('✅ 우편번호 바인딩:', data.zip);
     }
 
     // 헤더 정보 업데이트
@@ -2457,7 +2427,6 @@ async function populateFormWithData(data) {
     if ($('#f_night_fee_monthly')) $('#f_night_fee_monthly').value = formatCurrency(data.ntFeeMnthPassPrc);
     if ($('#f_night_fee_halfyear')) $('#f_night_fee_halfyear').value = formatCurrency(data.ntFeeHfyrPassPrc);
 
-    console.log('💰 요금 데이터 바인딩 완료 (통화 포맷 적용)');
 
     // 🔥 운영시간 바인딩
     if (data.wkWkdyOperTmCd) {
@@ -2516,7 +2485,6 @@ async function populateFormWithData(data) {
     }
 
     // 🔥 주차관리 시설 정보 바인딩 (Y/N 라디오 버튼)
-    console.log('📌 주차관리 시설 정보:', {
         표지판: data.prklotSignYn,
         발권기: data.tcktMchnYn,
         차단기: data.barrGteYn,
@@ -2530,7 +2498,6 @@ async function populateFormWithData(data) {
         if (signRadio) {
             signRadio.checked = true;
             signRadio.dispatchEvent(new Event('change'));
-            console.log(`✅ 표지판: ${data.prklotSignYn}`);
         }
     }
 
@@ -2540,7 +2507,6 @@ async function populateFormWithData(data) {
         if (ticketRadio) {
             ticketRadio.checked = true;
             ticketRadio.dispatchEvent(new Event('change'));
-            console.log(`✅ 발권기: ${data.tcktMchnYn}`);
         }
     }
 
@@ -2550,7 +2516,6 @@ async function populateFormWithData(data) {
         if (barrierRadio) {
             barrierRadio.checked = true;
             barrierRadio.dispatchEvent(new Event('change'));
-            console.log(`✅ 차단기: ${data.barrGteYn}`);
         }
     }
 
@@ -2559,7 +2524,6 @@ async function populateFormWithData(data) {
         const vehRecognitionRadio = document.querySelector(`input[name="vehicleRecognition"][value="${data.vehRcgnTpCd}"]`);
         if (vehRecognitionRadio) {
             vehRecognitionRadio.checked = true;
-            console.log(`✅ 차량인식종류: ${data.vehRcgnTpCd}`);
         }
     }
 
@@ -2569,14 +2533,11 @@ async function populateFormWithData(data) {
         if (exitAlarmRadio) {
             exitAlarmRadio.checked = true;
             exitAlarmRadio.dispatchEvent(new Event('change'));
-            console.log(`✅ 출차알람: ${data.exitAlrmYn}`);
         }
     }
 
-    console.log('✅ 주차관리 시설 정보 바인딩 완료');
 
     // 🔥 주차 첨두 시간대 바인딩
-    console.log('📌 주차 첨두 시간대:', {
         주간시작: data.wkPeakStrTm,
         주간종료: data.wkPeakEndTm,
         주간대수: data.wkPrkVehCnt,
@@ -2609,15 +2570,12 @@ async function populateFormWithData(data) {
         $('#f_peak_night_count').value = data.ntPrkVehCnt || '';
     }
 
-    console.log('✅ 주차 첨두 시간대 바인딩 완료');
 
     // 🔥 주차장 입구 좌표 바인딩
     if ($('#f_entrance_lat')) $('#f_entrance_lat').value = data.prklotEntrLat || '';
     if ($('#f_entrance_lng')) $('#f_entrance_lng').value = data.prklotEntrLon || '';
-    console.log('✅ 주차장 입구 좌표 바인딩 완료');
 
     // 🔥 사전점검 정보 바인딩
-    console.log('📌 사전점검 정보:', {
         건물층수코드: data.bldg2fPrklotCd,
         추락방지시설: data.fallPrevFcltyYn,
         경사여부: data.slpYn,
@@ -2636,7 +2594,6 @@ async function populateFormWithData(data) {
         if (bldgFloorRadio) {
             bldgFloorRadio.checked = true;
             bldgFloorRadio.dispatchEvent(new Event('change'));
-            console.log(`✅ 건물층수: ${floorValue}`);
         }
     }
 
@@ -2645,7 +2602,6 @@ async function populateFormWithData(data) {
         const fallPrevRadio = document.querySelector(`input[name="fallPrevention"][value="${data.fallPrevFcltyYn}"]`);
         if (fallPrevRadio) {
             fallPrevRadio.checked = true;
-            console.log(`✅ 추락방지시설: ${data.fallPrevFcltyYn}`);
         }
     }
 
@@ -2655,7 +2611,6 @@ async function populateFormWithData(data) {
         if (slopeRadio) {
             slopeRadio.checked = true;
             slopeRadio.dispatchEvent(new Event('change'));
-            console.log(`✅ 경사여부: ${data.slpYn}`);
         }
     }
 
@@ -2669,10 +2624,8 @@ async function populateFormWithData(data) {
     if ($('#f_crosswalk_count')) $('#f_crosswalk_count').value = data.stopLineQty || '';
     if ($('#f_pedestrian_crossing_count')) $('#f_pedestrian_crossing_count').value = data.crswlkQty || '';
 
-    console.log('✅ 사전점검 정보 바인딩 완료');
 
     // 🔥 안전시설 바인딩 추가
-    console.log('📌 안전시설 정보:', {
         미끄럼방지시설: data.antislpFcltyYn,
         미끄럼주의표지판: data.slpCtnGuidSignYn
     });
@@ -2683,15 +2636,12 @@ async function populateFormWithData(data) {
 
     if (antislpFacilityChk) {
         antislpFacilityChk.checked = (data.antislpFcltyYn === 'Y');
-        console.log('✅ 미끄럼방지시설:', data.antislpFcltyYn === 'Y' ? '있음' : '없음');
     }
 
     if (slpGuideSignChk) {
         slpGuideSignChk.checked = (data.slpCtnGuidSignYn === 'Y');
-        console.log('✅ 미끄럼주의안내표지판:', data.slpCtnGuidSignYn === 'Y' ? '있음' : '없음');
     }
 
-    console.log('✅ 안전시설 정보 바인딩 완료');
 
     // 🔥 주간/야간 주차대수
     if ($('#f_day_parked_cnt')) $('#f_day_parked_cnt').value = data.wkPrkVehCnt || '';
@@ -2712,12 +2662,10 @@ async function populateFormWithData(data) {
         }
     }, 200);
 
-    console.log('✅ 폼 데이터 채우기 완료');
 }
 
 // ========== 🔥 운영시간 바인딩 함수 ==========
 function bindOperationTime(timeType, dayType, operTmCd, startTime, endTime) {
-    console.log(`🕐 운영시간 바인딩: ${timeType} ${dayType}`, {operTmCd, startTime, endTime});
 
     const capitalizedDayType = dayType.charAt(0).toUpperCase() + dayType.slice(1);
     const radioName = `${timeType}${capitalizedDayType}Operation`;
@@ -2726,7 +2674,6 @@ function bindOperationTime(timeType, dayType, operTmCd, startTime, endTime) {
     if (radioButton) {
         radioButton.checked = true;
         radioButton.dispatchEvent(new Event('change', {bubbles: true}));
-        console.log(`✅ ${radioName} = ${operTmCd}`);
     }
 
     if (operTmCd === '02' && startTime && endTime) {
@@ -2745,7 +2692,6 @@ function bindOperationTime(timeType, dayType, operTmCd, startTime, endTime) {
         if (endHourInput) endHourInput.value = parseInt(endHour, 10);
         if (endMinInput) endMinInput.value = parseInt(endMin, 10);
 
-        console.log(`✅ 시간제운영 시간 설정: ${startHour}:${startMin} ~ ${endHour}:${endMin}`);
     }
 }
 
@@ -2754,7 +2700,6 @@ function bindCheckboxes(name, codeString) {
     if (!codeString) return;
 
     const codes = codeString.split(',').map(c => c.trim()).filter(c => c);
-    console.log(`✅ 체크박스 바인딩: ${name} =`, codes);
 
     codes.forEach(code => {
         if (code === '04' || code === '기타') {
@@ -2846,7 +2791,6 @@ function setAllFieldsReadOnly(isReadOnly) {
         if (btn) btn.disabled = isReadOnly;
     });
 
-    console.log(`🔒 모든 필드 ${isReadOnly ? 'ReadOnly' : '편집 가능'} 처리 완료`);
 }
 
 // ========== 저장 ==========
@@ -2890,17 +2834,14 @@ function buildPayload() {
     payload.emdCd = $('#f_emd')?.value || null;
 
     // 🔥 폼에서 읽어온 값 로그
-    console.log('[buildPayload] form admin codes =', {
         f_sido: $('#f_sido')?.value,
         f_sigungu: $('#f_sigungu')?.value,
         f_emd: $('#f_emd')?.value
     });
-    console.log('[buildPayload] payload admin codes =', {
         sidoCd: payload.sidoCd,
         sigunguCd: payload.sigunguCd,
         emdCd: payload.emdCd
     });
-    console.log('[buildPayload] ownCd =', payload.ownCd);
 
     return payload;
 }
@@ -2909,32 +2850,24 @@ function buildPayload() {
 function validateRequiredFields() {
     const errors = [];
 
-    console.log('🔍 필수 입력 검증 시작');
 
     // 주차면수 검증
     const total = num(totalInput?.value);
-    console.log('   - 총 주차면수:', total);
     if (total === 0) {
         errors.push('- 주차면수를 입력해주세요');
-        console.log('   ❌ 주차면수 검증 실패');
     } else {
-        console.log('   ✅ 주차면수 검증 통과');
     }
 
     // 운영 정보 검증
     const ownRadio = document.querySelector('input[name="own"]:checked');
-    console.log('   - 운영주체:', ownRadio?.value || '선택 안됨');
     if (!ownRadio) {
         errors.push('- 운영주체를 선택해주세요');
-        console.log('   ❌ 운영주체 검증 실패');
     } else {
-        console.log('   ✅ 운영주체 검증 통과');
     }
 
     // 관리주체(소유주체) 검증
     // 변경: 관리주체(소유주체) 필수 검증
     const ownerCode = getSelectedOwnCd();
-    console.log('   - 관리주체(소유주체):', ownerCode || '선택 안됨');
     if (!ownerCode) {
         errors.push('• 관리주체(소유주체)를 선택해주세요');
     }
@@ -2948,17 +2881,12 @@ function validateRequiredFields() {
     // 시간대 검증
     const isDayChecked = $('#chk_day')?.checked;
     const isNightChecked = $('#chk_night')?.checked;
-    console.log('   - 주간 체크:', isDayChecked);
-    console.log('   - 야간 체크:', isNightChecked);
 
     if (!isDayChecked && !isNightChecked) {
         errors.push('- 주간 또는 야간 운영시간을 선택해주세요');
-        console.log('   ❌ 시간대 검증 실패');
     } else {
-        console.log('   ✅ 시간대 검증 통과');
     }
 
-    console.log('🔍 검증 결과:', errors.length === 0 ? '통과' : '실패', errors);
     return errors;
 }
 
@@ -2978,7 +2906,7 @@ function mapPayloadToServerFormat(payload) {
         prkPlceManageNo: payload.id,
         prkplceNm: payload.name,
         prgsStsCd: payload.status,
-        prkPlceType: '2', // 노외주차장 구분 코드
+        prkPlceTypeCd || prkPlceType: '2', // 노외주차장 구분 코드
         // 변경: 관리주체(소유주체) 코드 매핑
         prkplceSe: payload.ownCd,
 
@@ -3171,7 +3099,6 @@ async function convertCoordToAddress(longitude, latitude) {
                 const f_zip = document.getElementById('f_zip');
                 if (f_zip) {
                     f_zip.value = result.zoneNo;
-                    console.log('📮 우편번호 저장:', result.zoneNo);
                 }
             }
 
@@ -3186,7 +3113,6 @@ async function convertCoordToAddress(longitude, latitude) {
             // 🔥 추가: 행정구역 정보도 함께 가져오기
             await convertCoordToRegion(longitude, latitude);
 
-            console.log('좌표->주소 변환 성공:', result);
 
             // 헤더 주소 업데이트
             updateHeaderAddr();
@@ -3270,7 +3196,6 @@ async function handlePhotoWithGPS(file) {
                     const f_zip = document.getElementById('f_zip');
                     if (f_zip) {
                         f_zip.value = result.zoneNo;
-                        console.log('📮 우편번호 저장:', result.zoneNo);
                     }
                 }
 
@@ -3285,7 +3210,6 @@ async function handlePhotoWithGPS(file) {
                 // 🔥 추가: 행정구역 정보도 함께 가져오기
                 await convertCoordToRegion(longitude, latitude);
 
-                console.log('좌표->주소 변환 성공:', result);
 
                 // 헤더 주소 업데이트
                 updateHeaderAddr();
@@ -3353,7 +3277,6 @@ async function handlePhotoWithGPS(file) {
 
 // ========== 🔥 DOMContentLoaded - 맨 아래쪽에 위치 ==========
 document.addEventListener('DOMContentLoaded', async function () {
-    console.log('=== 노외주차장 페이지 초기화 시작 ===');
 
     try {
         if (serverStatusValue) {
@@ -3427,39 +3350,31 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
 
         // 🔥 6. 저장 버튼 이벤트 - 수정된 부분
-        console.log('===== 저장 버튼 이벤트 등록 시작 =====');
 
         const btnSave = document.getElementById('btnSave');
         const btnSaveTop = document.getElementById('btnSaveTop');
 
-        console.log('btnSave 존재:', !!btnSave);
-        console.log('btnSaveTop 존재:', !!btnSaveTop);
 
         if (btnSave) {
             btnSave.addEventListener('click', async function (e) {
-                console.log('🔥 btnSave 클릭됨!');
                 e.preventDefault();
                 e.stopPropagation();
                 await doSave();
             });
-            console.log('✅ btnSave 이벤트 등록 완료');
         } else {
             console.error('❌ btnSave를 찾을 수 없습니다!');
         }
 
         if (btnSaveTop) {
             btnSaveTop.addEventListener('click', async function (e) {
-                console.log('🔥 btnSaveTop 클릭됨!');
                 e.preventDefault();
                 e.stopPropagation();
                 await doSave();
             });
-            console.log('✅ btnSaveTop 이벤트 등록 완료');
         } else {
             console.error('❌ btnSaveTop를 찾을 수 없습니다!');
         }
 
-        console.log('=== 노외주차장 페이지 초기화 완료 ===');
 
     } catch (error) {
         console.error('❌ 초기화 중 오류:', error);
@@ -3469,7 +3384,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 // ========== 🔥 저장 함수 - doSave() ==========
 async function doSave() {
-    console.log('🚀🚀🚀 doSave 함수 시작! 🚀🚀🚀');
 
     // 1. 🔥 검증 초기화 (이전 에러 상태 제거)
     FormValidator.reset();
@@ -3524,30 +3438,23 @@ async function doSave() {
     }
 
     try {
-        console.log('1️⃣ 필수 입력 검증 시작');
         clearValidationErrors();
         const validationErrors = validateRequiredFields();
 
-        console.log('2️⃣ 검증 결과:', validationErrors);
 
         if (validationErrors.length > 0) {
-            console.log('❌ 검증 실패 - alert 표시');
             showValidationErrors(validationErrors);
             return;
         }
 
-        console.log('✅ 검증 통과 - payload 생성 시작');
 
         const payload = buildPayload();
-        console.log('3️⃣ payload 생성 완료:', payload);
 
         // 🔥 신규/수정 여부는 payload.id 유무로만 판단하고,
         //    관리번호가 비어 있어도 저장은 진행하게 둡니다.
         const isNewRecord = !payload.id || payload.id.trim() === '';
 
-        console.log('4️⃣ 서버 데이터 매핑 시작');
         const serverData = mapPayloadToServerFormat(payload);
-        console.log('5️⃣ 서버 데이터 매핑 완료:', serverData);
 
         if (isNewRecord) {
             delete serverData.prkPlceManageNo;
@@ -3568,11 +3475,9 @@ async function doSave() {
 
     if (mainPhotoLib && mainPhotoLib.files && mainPhotoLib.files.length > 0) {
         formData.append('mainPhoto', mainPhotoLib.files[0]);
-        console.log('📸 현장 사진 추가:', mainPhotoLib.files[0].name);
         appendUploadedFiles('#uploadedFileList', mainPhotoLib.files);
     } else if (mainPhotoCam && mainPhotoCam.files && mainPhotoCam.files.length > 0) {
         formData.append('mainPhoto', mainPhotoCam.files[0]);
-        console.log('📸 현장 사진 추가:', mainPhotoCam.files[0].name);
         appendUploadedFiles('#uploadedFileList', mainPhotoCam.files);
     }
 
@@ -3591,31 +3496,25 @@ async function doSave() {
 
             if (libInput && libInput.files && libInput.files.length > 0) {
                 formData.append(photo.key, libInput.files[0]);
-                console.log(`📸 ${photo.key} 추가:`, libInput.files[0].name);
                 appendUploadedFiles('#uploadedFileList', libInput.files);
             } else if (camInput && camInput.files && camInput.files.length > 0) {
                 formData.append(photo.key, camInput.files[0]);
-                console.log(`📸 ${photo.key} 추가:`, camInput.files[0].name);
                 appendUploadedFiles('#uploadedFileList', camInput.files);
             }
         });
 
-        console.log('6️⃣ FormData 생성 완료');
-        console.log('🌐 /prk/offparking-update 호출 시작');
 
         const response = await fetch('/prk/offparking-update', {
             method: 'POST',
             body: formData
         });
 
-        console.log('📡 응답 상태:', response.status, response.statusText);
 
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
         const result = await response.json();
-        console.log('📦 응답 데이터:', result);
 
         if (result.success) {
             const hiddenInfoSn = document.getElementById('prkPlceInfoSn')?.value;

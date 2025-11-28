@@ -109,12 +109,42 @@ public class PrkDefPlceInfoController {
     @ResponseBody
     public Map<String, Object> getParkingData(@RequestParam Map<String, Object> params, HttpSession session) {
         Map<String, Object> result = new HashMap<>();
-        log.info("🔍 주차장 데이터 조회 시작 - params: {}", params);
+        log.info("🔍 주차장 데이터 조회 시작 - raw params: {}", params);
+
+        // 입력 파라미터 정리/트림 후 새 Map 구성
+        Map<String, Object> cleanParams = new HashMap<>();
+        params.forEach((k, v) -> {
+            if (v == null) return;
+            String trimmed = v.toString().trim();
+            if (!trimmed.isEmpty()) {
+                cleanParams.put(k, trimmed);
+            }
+        });
+
+        // 시도/시군구 코드 키 통일(sidoCd/sigunguCd) + 구 키 호환(sido/sigungu)
+        String sido = (String) cleanParams.getOrDefault("sido", cleanParams.get("sidoCd"));
+        String sigungu = (String) cleanParams.getOrDefault("sigungu", cleanParams.get("sigunguCd"));
+        if (sido != null && !sido.isEmpty()) {
+            cleanParams.put("sidoCd", sido);
+            cleanParams.put("sido", sido);
+        }
+        if (sigungu != null && !sigungu.isEmpty()) {
+            cleanParams.put("sigunguCd", sigungu);
+            cleanParams.put("sigungu", sigungu);
+        }
+
+        // 읍면동 키 통일
+        String emd = (String) cleanParams.get("emd");
+        if (emd != null && emd.isEmpty()) {
+            cleanParams.remove("emd");
+        }
+
+        log.info("🧹 정리된 params: {}", cleanParams);
 
         // 🔥 세션에서 userBizList 가져와서 params에 추가 
         List<String> userBizList = (List<String>) session.getAttribute("userBizList");
         if (userBizList != null && !userBizList.isEmpty()) {
-            params.put("userBizList", userBizList);
+            cleanParams.put("userBizList", userBizList);
             log.info("✅ userBizList 추가: {}", userBizList);
         } else {
             log.warn("⚠️ userBizList가 비어있습니다");
@@ -122,7 +152,7 @@ public class PrkDefPlceInfoController {
 
         try {
             log.info("🔄 서비스 호출 시작");
-            List<ParkingListVO> list = prkDefPlceInfoService.getParkingList(params);
+            List<ParkingListVO> list = prkDefPlceInfoService.getParkingList(cleanParams);
             int totalCount = list.size();
 
             result.put("list", list);

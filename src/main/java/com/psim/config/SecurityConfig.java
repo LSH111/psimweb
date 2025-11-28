@@ -56,6 +56,13 @@ public class SecurityConfig {
                         .authenticationEntryPoint(new org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint("/"))
                 )
 
+                // 세션 타임아웃/만료 시 항상 루트로 리다이렉트
+                .sessionManagement(sm -> sm
+                        .invalidSessionUrl("/")
+                        .maximumSessions(1)
+                        .expiredUrl("/")
+                )
+
                 // 로그아웃 설정
                 .logout(logout -> logout
                         .logoutUrl("/logout")

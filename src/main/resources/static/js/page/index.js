@@ -2,6 +2,48 @@ document.addEventListener('DOMContentLoaded', () => {
     const sessionFilter = window.SESSION_FILTER || {};
     const isAdmin = !!sessionFilter.isAdmin;
 
+    /**
+     * Resolve the application context path so API calls work even when the app
+     * is deployed under a non-root context (e.g. /psim_web_war_exploded).
+     */
+    function normalizeBasePath(path) {
+        if (!path || path === '/') return '';
+        return path.endsWith('/') ? path.slice(0, -1) : path;
+    }
+
+    function detectBasePath() {
+        const candidate = window.contextPath || window.CONTEXT_PATH || '';
+        if (candidate) {
+            return normalizeBasePath(candidate);
+        }
+
+        const script = document.currentScript || document.querySelector('script[src*="/static/js/page/index.js"]');
+        if (script) {
+            const src = script.getAttribute('src') || '';
+            const idx = src.indexOf('/static/js/page/index.js');
+            if (idx > -1) {
+                return normalizeBasePath(src.substring(0, idx));
+            }
+        }
+
+        return '';
+    }
+
+    const basePath = detectBasePath();
+    if (!window.contextPath && basePath) {
+        window.contextPath = basePath;
+    }
+
+    function withBase(url) {
+        if (!url || url.startsWith('http://') || url.startsWith('https://') || url.startsWith('//')) {
+            return url;
+        }
+        if (basePath && url.startsWith('/')) {
+            return `${basePath}${url}`;
+        }
+        return url;
+    }
+
     // Parking filters
     const parkingSido = document.getElementById('parkingSido');
     const parkingSigungu = document.getElementById('parkingSigungu');
@@ -34,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     async function fetchData(url) {
         try {
-            const response = await fetch(url);
+            const response = await fetch(withBase(url));
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }

@@ -56,7 +56,6 @@
             // 주소 검색을 위한 지오코더 객체를 생성합니다.
             geocoder = new kakao.maps.services.Geocoder();
 
-            console.log('WebSquare용 Kakao Map 및 Geocoder가 성공적으로 초기화되었습니다.');
         }
 
         /**
@@ -149,7 +148,6 @@
                 return;
             }
 
-            console.log(`[지도 이동] 검색할 주소: "${address}", 확대 레벨: ${level}`);
 
             // geocoder.addressSearch를 사용하여 주소 문자열로 좌표를 검색합니다.
             geocoder.addressSearch(address, function (result, status) {
@@ -162,7 +160,6 @@
                     websquareMap.setCenter(coords);
                     // `setLevel` 함수로 지도의 확대 레벨을 조절합니다.
                     websquareMap.setLevel(level);
-                    console.log(`[지도 이동] 성공: '${address}' 위치로 이동했습니다.`);
                 } else {
                     // 주소 검색에 실패한 경우 콘솔에 에러 메시지를 출력합니다.
                     console.error(`[지도 오류] '${address}' 주소의 좌표 검색에 실패했습니다. (상태: ${status})`);

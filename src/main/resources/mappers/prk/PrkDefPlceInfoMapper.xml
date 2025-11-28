@@ -14,17 +14,27 @@
                 </foreach>
             </if>
             <!-- 시도/시군구 필터: sidoCd/sigunguCd 우선, 구 키(sido/sigungu)도 호환 -->
-            <if test="(sidoCd != null and sidoCd != '') or (sido != null and sido != '')">
-                AND tcl.sido_cd = CASE WHEN #{sidoCd} IS NOT NULL AND #{sidoCd} != '' THEN #{sidoCd} ELSE #{sido} END
+            <if test="sidoCd != null and sidoCd != ''">
+                AND tcl.sido_cd = #{sidoCd}
             </if>
-            <if test="(sigunguCd != null and sigunguCd != '') or (sigungu != null and sigungu != '')">
-                AND tcl.sigungu_cd = CASE WHEN #{sigunguCd} IS NOT NULL AND #{sigunguCd} != '' THEN #{sigunguCd} ELSE #{sigungu} END
+            <if test="(sidoCd == null or sidoCd == '') and (sido != null and sido != '')">
+                AND tcl.sido_cd = #{sido}
+            </if>
+
+            <if test="sigunguCd != null and sigunguCd != ''">
+                AND tcl.sigungu_cd = #{sigunguCd}
+            </if>
+            <if test="(sigunguCd == null or sigunguCd == '') and (sigungu != null and sigungu != '')">
+                AND tcl.sigungu_cd = #{sigungu}
             </if>
             <if test="emd != null and emd != ''">
                 AND tcl.emd_cd = #{emd}
             </if>
             <if test="prkNm != null and prkNm != ''">
                 AND tpdpi.prkplce_nm LIKE CONCAT('%', #{prkNm}, '%')
+            </if>
+            <if test="prkType != null and prkType != ''">
+                AND tpdpi.prk_plce_type = #{prkType}
             </if>
         </where>
     </sql>
