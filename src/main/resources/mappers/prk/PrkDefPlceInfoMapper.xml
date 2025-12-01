@@ -273,7 +273,7 @@
             lnm_sbno       = #{lnmSbno},
             mntn_yn        = #{mntnYn},
             li_cd          = #{liCd},
-            roadaddr       = #{roadaddr},
+            roadadd        = #{roadaddr},
             updt_dt        = NOW(),
             updusr_id      = #{updusrId},
             updusr_ip_addr = #{updusrIpAddr}
@@ -1154,7 +1154,7 @@
                                               lnm_sbno,
                                               mntn_yn,
                                               li_cd,
-                                              roadaddr,
+                                              roadadd,
                                               emd_cd,
                                               reg_dt,
                                               rgst_id,

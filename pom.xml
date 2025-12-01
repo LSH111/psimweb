@@ -294,7 +294,7 @@
     </dependencyManagement>
 
     <build>
-        <finalName>psim-web</finalName>
+        <finalName>spis</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
