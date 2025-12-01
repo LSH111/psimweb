@@ -140,14 +140,14 @@
     <nav id="main-gnb">
         <ul class="gnb">
             <li class="has-sub">
-                <a href="#">주차장</a>
+                <a href="#" aria-haspopup="true" aria-expanded="false">주차장</a>
                 <ul class="sub">
                     <li><a href="<c:url value='/prk/parkinglist'/>">주차장실태조사</a></li>
                     <li><a href="<c:url value='/prk/usage-status-list'/>">이용실태조사</a></li>
                 </ul>
             </li>
             <li class="has-sub">
-                <a href="#">지도</a>
+                <a href="#" aria-haspopup="true" aria-expanded="false">지도</a>
                 <ul class="sub">
                     <li><a href="<c:url value='/gis/parkingmap'/>">주차장지도</a></li>
                 </ul>

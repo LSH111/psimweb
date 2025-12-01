@@ -8,6 +8,24 @@
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
     <title>주차장 지도</title>
 
+    <!-- 외부 보안/확장 프로그램(SES/lockdown) 감지 및 안내 -->
+    <script>
+        (function() {
+            const hasSes = !!(window.lockdown || window.ses || window.Compartment);
+            const hasMozExtensionScript = Array.from(document.scripts || []).some(s => (s.src || '').startsWith('moz-extension://'));
+            if (hasSes || hasMozExtensionScript) {
+                console.warn('지도 로딩을 방해할 수 있는 보안 스크립트/확장 프로그램이 감지되었습니다.');
+                const msg = document.createElement('div');
+                msg.setAttribute('role', 'status');
+                msg.style.cssText = 'padding:12px;background:#fee2e2;color:#7f1d1d;border:1px solid #fecdd3;margin:8px 12px;border-radius:8px;';
+                msg.innerText = '지도 로딩을 방해할 수 있는 브라우저 확장 프로그램/보안 스크립트가 감지되었습니다. 확장 프로그램을 잠시 비활성화한 후 다시 시도하세요.';
+                document.addEventListener('DOMContentLoaded', () => {
+                    document.body.prepend(msg);
+                });
+            }
+        })();
+    </script>
+
     <script type="text/javascript">
         // 컨텍스트 경로 (예: /spis)
         const contextPath = '${pageContext.request.contextPath}';
@@ -842,6 +860,9 @@
         if (parking.sidoNm) locationParts.push(parking.sidoNm);
         if (parking.sigunguNm) locationParts.push(parking.sigunguNm);
         const locationDisplay = locationParts.join(' ') || '';
+        const detailUrl = contextPath + '/prk/parkinglist?openDetail=' +
+            encodeURIComponent(parking.prkPlceManageNo) +
+            '&type=' + encodeURIComponent(parking.prkPlceType);
 
         let content = '<div style="padding:15px;min-width:200px;max-width:300px;">';
         content += '<div style="font-weight:bold;font-size:14px;margin-bottom:8px;color:#1e40af;">';
@@ -862,8 +883,9 @@
         content += '<div style="font-size:12px;color:#666;margin-bottom:8px;">';
         content += parking.dtadd || '주소 정보 없음';
         content += '</div>';
-        content += '<a href="javascript:void(0);" ';
-        content += 'onclick="openParkingDetail(\'' + parking.prkPlceManageNo + '\', \'' + parking.prkPlceType + '\')" ';
+        content += '<a href="' + detailUrl + '" ';
+        content += 'onclick="openParkingDetail(\'' + parking.prkPlceManageNo + '\', \'' + parking.prkPlceType + '\'); return false;" ';
+        content += 'aria-label="주차장 상세보기" ';
         content += 'style="display:inline-block;padding:6px 12px;background:#2563eb;color:white;text-decoration:none;border-radius:4px;font-size:12px;cursor:pointer;">';
         content += '상세보기';
         content += '</a>';

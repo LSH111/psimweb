@@ -1,6 +1,7 @@
 package com.psim.web.cmm.service;
 
 import com.psim.web.cmm.vo.CoUserVO;
+import org.springframework.ui.ModelMap;
 
 import java.util.List;
 import java.util.Map;
@@ -26,4 +27,18 @@ public interface LoginService {
      * 🔥 사용자가 접근 가능한 사업관리번호 목록 조회
      */
     List<String> selectUserBizList(String srvyId);
+
+    /**
+     * 휴대폰 인증번호 발송 요청
+     * @param modelMap login[phone] 등을 포함한 모델맵
+     * @return 인증코드(성공) 또는 ERROR-xxx
+     */
+    String callCertify(ModelMap modelMap) throws Exception;
+
+    /**
+     * 휴대폰 인증번호 검증
+     * @param modelMap login[tel], login[certify] 등을 포함한 모델맵
+     * @return ""/OK(성공) 또는 ERROR-xxx
+     */
+    String checkCertify(ModelMap modelMap) throws Exception;
 }

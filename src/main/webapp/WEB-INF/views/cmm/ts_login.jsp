@@ -96,6 +96,7 @@
                     <button id="finalLoginBtn" class="btn btn-primary btn-lg" type="button" disabled>로그인</button>
                 </div>
             </section>
+            <input type="hidden" id="otpVerifiedFlag" name="otpVerifiedFlag" value="N"/>
         </form>
     </div>
 </main>
@@ -132,6 +133,7 @@
 
     const finalLoginBtn = $('#finalLoginBtn');
     const finalErr = $('#finalErr');
+    const otpVerifiedFlag = $('#otpVerifiedFlag');
 
     // 상태
     let otpSent = false;
@@ -140,14 +142,14 @@
     let otpExpireAt = 0;
     let countdown = null;
 
-    // 데모 자격증명
-    const TEST_ID = 'demo';
-    const TEST_PW = 'demo1234';
-    const TEST_OTP = '123456';
-
     // 메세지 유틸
     function show(el, msg){ if(!el) return; el.textContent = msg ?? el.textContent; el.classList.remove('hide'); }
     function hide(el){ if(!el) return; el.classList.add('hide'); el.textContent = ''; }
+
+    const ERROR_MSG = {
+        'ERROR-001': '인증 정보가 올바르지 않습니다. 다시 시도해 주세요.',
+        'ERROR-002': '인증 가능 시간이 지났거나 요청이 잘못되었습니다. 재전송 후 다시 시도해 주세요.'
+    };
 
     // 1) 다음(아이디) — 검증 없이 아래 섹션 펼치기
     nextIdBtn.addEventListener('click', ()=>{
@@ -193,67 +195,129 @@
             resendBtn.disabled = false;
             otpConfirmBtn.disabled = true;
             otpVerified = false;
+            otpVerifiedFlag.value = 'N';
             finalLoginBtn.disabled = true;
             show(otpErr, '인증코드 유효시간이 만료되었습니다. 재전송하세요.');
             hide(otpOk);
         }
     }
 
-    // OTP 전송 (전화번호는 최소 자리수만 확인)
+    // 공통: fetch wrapper
+    const postForm = (url, dataObj) => {
+        const body = new URLSearchParams();
+        Object.entries(dataObj).forEach(([k,v]) => body.append(k, v ?? ''));
+        return fetch(url, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            credentials: 'same-origin',
+            body
+        }).then(res => res.text());
+    };
+
+    // OTP 전송
     sendOtpBtn.addEventListener('click', async ()=>{
         hide(otpErr); hide(otpOk);
         const now = Date.now();
-        if(!phone.value || phone.value.length < 10){
+        const tel = phone.value.trim();
+        if(!tel || tel.length < 10){
             return show(otpErr, '휴대폰 번호(숫자만)를 정확히 입력하세요.');
         }
-        if(now - lastSendTs < 30000){
-            const left = Math.ceil((30000 - (now-lastSendTs))/1000);
+        if(now - lastSendTs < 5000){
+            const left = Math.ceil((5000 - (now-lastSendTs))/1000);
             return show(otpErr, `잠시 후 다시 시도하세요. (${left}s)`);
         }
-        await delay(150); // demo
         lastSendTs = now;
-        otpSent = true;
-        otpVerified = false;
-        finalLoginBtn.disabled = true;
-        otpBox.classList.remove('hide');
-        resendBtn.disabled = true;
-        otpConfirmBtn.disabled = true;
-        otp.value = '';
-        startTimer(120);
-        otp.focus();
-        show(otpOk, '인증코드를 전송했습니다. (테스트: 123456)');
+        sendOtpBtn.disabled = true;
+        sendOtpBtn.textContent = '전송 중...';
+        try {
+            const resp = (await postForm('<c:url value="/login/callCertify"/>', {'login[phone]': tel})).trim();
+            sendOtpBtn.textContent = '인증코드 전송';
+            sendOtpBtn.disabled = false;
+
+            if(resp.startsWith('ERROR')) {
+                const msg = ERROR_MSG[resp] || '인증번호 요청에 실패했습니다.';
+                return show(otpErr, msg);
+            }
+            // 정상: 숫자 코드
+            otpSent = true;
+            otpVerified = false;
+            otpVerifiedFlag.value = 'N';
+            finalLoginBtn.disabled = true;
+            otpBox.classList.remove('hide');
+            resendBtn.disabled = true;
+            otpConfirmBtn.disabled = true;
+            otp.value = '';
+            startTimer(180); // 3분
+            otp.focus();
+            show(otpOk, '인증코드를 전송했습니다. 도착한 코드를 입력하세요.');
+        } catch (e) {
+            sendOtpBtn.textContent = '인증코드 전송';
+            sendOtpBtn.disabled = false;
+            show(otpErr, '네트워크 오류가 발생했습니다. 잠시 후 다시 시도하세요.');
+        }
     });
 
     // 재전송
     resendBtn.addEventListener('click', ()=> sendOtpBtn.click());
 
-    // OTP 입력 & 검증(필수)
+    // OTP 입력 시 버튼 활성/비활성
     otp.addEventListener('input', ()=>{
         hide(otpErr); hide(otpOk);
         otp.value = otp.value.replace(/\\D/g,'').slice(0,6);
         otpConfirmBtn.disabled = otp.value.length !== 6;
         otpVerified = false;
+        otpVerifiedFlag.value = 'N';
         finalLoginBtn.disabled = true;
     });
 
-    // OTP 확인 버튼으로만 검증
+    // OTP 확인
     otpConfirmBtn.addEventListener('click', async ()=>{
         hide(otpErr); hide(otpOk);
-        if(otp.value.length !== 6){
+        const tel = phone.value.trim();
+        const code = otp.value.trim();
+        if(code.length !== 6){
             return show(otpErr, '인증코드 6자리를 모두 입력하세요.');
         }
-        await delay(120);
-        if(otp.value === TEST_OTP){
-            otpVerified = true;
-            if(countdown) clearInterval(countdown);
-            resendBtn.disabled = false;
-            show(otpOk, '인증코드 확인 완료.');
-            secFinal.classList.remove('hide');  // ▼ 최종 로그인 영역 펼침
-            finalLoginBtn.disabled = false;     // OTP 성공 시에만 활성화
-        } else {
+        otpConfirmBtn.disabled = true;
+        otpConfirmBtn.textContent = '확인 중...';
+        try {
+            const resp = (await postForm('<c:url value="/login/checkCertify"/>', {
+                'login[tel]': tel,
+                'login[certify]': code
+            })).trim();
+            otpConfirmBtn.textContent = '확인';
+            otpConfirmBtn.disabled = false;
+
+            if(resp === '' || resp.toUpperCase() === 'OK') {
+                otpVerified = true;
+                otpVerifiedFlag.value = 'Y';
+                if(countdown) clearInterval(countdown);
+                resendBtn.disabled = false;
+                show(otpOk, '인증코드 확인 완료.');
+                secFinal.classList.remove('hide');  // ▼ 최종 로그인 영역 펼침
+                finalLoginBtn.disabled = false;     // OTP 성공 시에만 활성화
+                hide(otpErr);
+                return;
+            }
+            if(resp.startsWith('ERROR')) {
+                const msg = ERROR_MSG[resp] || '인증코드가 올바르지 않거나 만료되었습니다.';
+                otpVerified = false;
+                otpVerifiedFlag.value = 'N';
+                finalLoginBtn.disabled = true;
+                return show(otpErr, msg);
+            }
+            // 알 수 없는 응답
             otpVerified = false;
+            otpVerifiedFlag.value = 'N';
             finalLoginBtn.disabled = true;
-            show(otpErr, '인증코드가 올바르지 않습니다. (테스트: 123456)');
+            show(otpErr, '인증 처리에 실패했습니다. 다시 시도해 주세요.');
+        } catch (e) {
+            otpConfirmBtn.textContent = '확인';
+            otpConfirmBtn.disabled = false;
+            otpVerified = false;
+            otpVerifiedFlag.value = 'N';
+            finalLoginBtn.disabled = true;
+            show(otpErr, '네트워크 오류가 발생했습니다. 잠시 후 다시 시도하세요.');
         }
     });
 
@@ -261,12 +325,10 @@
     finalLoginBtn.addEventListener('click', ()=>{
         hide(finalErr); hide(idErr); hide(pwErr);
 
-        // 필수 입력 간단 체크
         if(!loginId.value){ show(idErr, '아이디를 입력하세요.'); loginId.focus(); return; }
         if(!pw.value){ show(pwErr, '비밀번호를 입력하세요.'); pw.focus(); return; }
-        if(!otpVerified){ show(finalErr, '인증코드를 먼저 확인하세요.'); return; }
+        if(otpVerifiedFlag.value !== 'Y'){ show(finalErr, '휴대폰 인증을 완료해 주세요.'); return; }
 
-        // 모두 통과 시 폼 전송
         finalLoginBtn.disabled = true;
         finalLoginBtn.textContent = '로그인 중…';
         loginForm.submit();
@@ -274,7 +336,6 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         const finalErrEl = $('#finalErr');
-        // 서버에서 전달된 에러 메시지가 있으면 화면에 표시합니다.
         if (finalErrEl && finalErrEl.textContent.trim()) {
             secPw.classList.remove('hide');
             secPhone.classList.remove('hide');

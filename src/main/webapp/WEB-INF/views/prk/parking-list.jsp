@@ -119,7 +119,7 @@
 
                 <!-- 결과/탭 -->
                 <section class="result-panel one-card">
-                    <div class="summary krds-chip" id="summary">총 0건</div>
+                    <div class="summary krds-chip" id="summary" aria-live="polite">총 0건</div>
 
                     <div class="tabs krds-tabs" role="tablist" aria-label="목록">
                         <button id="tabList" class="tab-btn active" role="tab" aria-controls="panelList" aria-selected="true">목록</button>
@@ -131,19 +131,20 @@
                             <div id="cards" class="cards" aria-label="검색 결과 - 카드 목록"></div>
                             <div class="table-wrap" aria-label="검색 결과 - 테이블">
                                 <table>
+                                    <caption>주차장 검색 결과</caption>
                                     <thead>
                                     <tr>
-                                        <th style="width:64px" class="num">순번</th>
-                                        <th style="width:60px" class="check">
+                                        <th scope="col" style="width:64px" class="num">순번</th>
+                                        <th scope="col" style="width:60px" class="check">
                                             <input id="checkAll" type="checkbox" aria-label="현재 페이지 전체 선택"/>
                                         </th>
-                                        <th style="width:10%">주차장구분</th>
-                                        <th style="width:10%">진행상태</th>
-                                        <th style="width:12%">시도</th>
-                                        <th style="width:12%">시군구</th>
-                                        <th style="width:12%">읍면동</th>
-                                        <th>상세주소</th>
-                                        <th style="width:18%">주차장명</th>
+                                        <th scope="col" style="width:10%">주차장구분</th>
+                                        <th scope="col" style="width:10%">진행상태</th>
+                                        <th scope="col" style="width:12%">시도</th>
+                                        <th scope="col" style="width:12%">시군구</th>
+                                        <th scope="col" style="width:12%">읍면동</th>
+                                        <th scope="col">상세주소</th>
+                                        <th scope="col" style="width:18%">주차장명</th>
                                     </tr>
                                     </thead>
                                     <tbody id="tbody"></tbody>

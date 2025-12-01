@@ -20,4 +20,17 @@ public interface LoginMapper {
      * @return 사업관리번호 목록
      */
     List<String> selectUserBizList(@Param("srvyId") String srvyId);
+
+    /**
+     * 로그인 인증번호 SMS 발송 요청 기록
+     * @param param destInfo, msg 등을 포함한 파라미터
+     */
+    void sendSms(Map<String, Object> param);
+
+    /**
+     * 휴대폰번호로 사용자 조회
+     * @param phone 휴대폰 번호
+     * @return 사용자 정보(username, phone) 맵
+     */
+    Map<String, Object> selectUserByPhone(@Param("phone") String phone);
 }

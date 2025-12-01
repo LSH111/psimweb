@@ -23,6 +23,7 @@
     <c:set var="statusCode" value="${not empty param.status ? param.status : requestScope.statusCode}"/>
     <c:set var="isApproved" value="${statusCode eq '30'}"/>
     <c:set var="isRejected" value="${statusCode eq '반려' or statusCode eq '99' or statusCode eq 'PRK_013099' or parking.prgsStsRawCd eq '99' or parking.prgsStsRawCd eq 'PRK_013099'}"/>
+    <c:set var="isPending" value="${statusCode eq '20' or statusCode eq '승인대기' or parking.prgsStsRawCd eq '20'}"/>
     <%
         Object parkingObj = request.getAttribute("parking");
         String parkingJson = "null";
@@ -36,6 +37,19 @@
     %>
     <script>
         window.initialParking = <%= parkingJson %>;
+    </script>
+    <script>
+        // 승인대기 상태면 모든 입력/선택/버튼을 비활성화 (hidden 제외)
+        document.addEventListener('DOMContentLoaded', () => {
+            const pending = '${isPending}' === 'true';
+            if (!pending) return;
+            const nodes = document.querySelectorAll('input, select, textarea, button');
+            nodes.forEach(el => {
+                if (el.type === 'hidden') return;
+                el.setAttribute('disabled', 'disabled');
+                el.setAttribute('aria-disabled', 'true');
+            });
+        });
     </script>
 </head>
 <body class="parking-detail-page" data-status="${not empty statusCode ? statusCode : (empty param.status ? '' : param.status)}">

@@ -4,44 +4,40 @@
 
 <mapper namespace="com.psim.web.cmm.mapper.LoginMapper">
     <select id="findUserById" resultType="com.psim.web.cmm.vo.CoUserVO">
-        SELECT  user_id AS userId,
-                user_pw AS userPw,
-                user_nm AS userNm,
-                mbtlnum as mbtlnum,
-                sigungu_cd AS sigunguCd,
-                LEFT(TRIM(sigungu_cd), 2) AS sidoCd
-        FROM    cpk.tb_co_user
-        WHERE   user_id = #{userId}
+        SELECT user_id    AS userId,
+               user_pw    AS userPw,
+               user_nm    AS userNm,
+               mbtlnum    as mbtlnum,
+               sigungu_cd AS sigunguCd, LEFT (TRIM (sigungu_cd), 2) AS sidoCd
+        FROM cpk.tb_co_user
+        WHERE user_id = #{userId}
     </select>
 
     <select id="login" resultType="com.psim.web.cmm.vo.CoUserVO">
-        SELECT  user_id AS userId,
-                user_pw AS userPw,
-                user_nm AS userNm,
-                mbtlnum as mbtlnum,
-                sigungu_cd AS sigunguCd,
-            LEFT(TRIM(sigungu_cd), 2) AS sidoCd
-        FROM    cpk.tb_co_user
-        WHERE   user_id = #{userId}
-          AND   user_pw = #{password}
+        SELECT user_id    AS userId,
+               user_pw    AS userPw,
+               user_nm    AS userNm,
+               mbtlnum    as mbtlnum,
+               sigungu_cd AS sigunguCd, LEFT (TRIM (sigungu_cd), 2) AS sidoCd
+        FROM cpk.tb_co_user
+        WHERE user_id = #{userId}
+          AND user_pw = #{password}
     </select>
 
     <select id="loginWithHash" resultType="com.psim.web.cmm.vo.CoUserVO">
-        SELECT  user_id AS userId,
-                user_pw AS userPw,
-                user_nm AS userNm,
-                mbtlnum as mbtlnum,
-                sigungu_cd AS sigunguCd,
-            LEFT(TRIM(sigungu_cd), 2) AS sidoCd
-        FROM    cpk.tb_co_user
-        WHERE   user_id = #{userId}
-          AND   user_pw = #{hashedPassword}
+        SELECT user_id    AS userId,
+               user_pw    AS userPw,
+               user_nm    AS userNm,
+               mbtlnum    as mbtlnum,
+               sigungu_cd AS sigunguCd, LEFT (TRIM (sigungu_cd), 2) AS sidoCd
+        FROM cpk.tb_co_user
+        WHERE user_id = #{userId}
+          AND user_pw = #{hashedPassword}
     </select>
 
     <!-- 🔥 사용자가 접근 가능한 사업관리번호 목록 조회 -->
     <select id="selectUserBizList" parameterType="string" resultType="string">
-        SELECT DISTINCT
-            bpp.prk_biz_mng_no
+        SELECT DISTINCT bpp.prk_biz_mng_no
         FROM cpk.tb_biz_per_prklot_info bpp
                  INNER JOIN cpk.tb_prk_srvy_biz_info psb
                             ON bpp.prk_biz_mng_no = psb.prk_biz_mng_no
@@ -52,12 +48,11 @@
 
     <!-- 사용자의 사업정보 상세 조회 (사업명 포함) -->
     <select id="selectUserBizInfoList" parameterType="String" resultType="java.util.HashMap">
-        SELECT DISTINCT
-            psb.prk_biz_mng_no,
-            psb.biz_nm,
-            psb.biz_yy,
-            psb.sido_cd,
-            psb.sigungu_cd
+        SELECT DISTINCT psb.prk_biz_mng_no,
+                        psb.biz_nm,
+                        psb.biz_yy,
+                        psb.sido_cd,
+                        psb.sigungu_cd
         FROM tb_biz_per_prklot_info bpp
                  INNER JOIN tb_prk_srvy_biz_info psb
                             ON bpp.prk_biz_mng_no = psb.prk_biz_mng_no
@@ -65,4 +60,36 @@
           AND psb.use_yn = 'Y'
         ORDER BY psb.biz_yy DESC, psb.biz_nm
     </select>
+
+    <!-- 휴대폰 번호로 사용자 조회 (인증용) -->
+    <select id="selectUserByPhone" parameterType="string" resultType="java.util.HashMap">
+        SELECT user_id   AS userId,
+               user_nm   AS username,
+               mbtlnum   AS phone
+        FROM cpk.tb_co_user
+        WHERE regexp_replace(mbtlnum, '[^0-9]', '') = regexp_replace(#{phone}, '[^0-9]', '')
+        LIMIT 1
+    </select>
+
+    <!-- 로그인 sms -->
+    <insert id="sendSms" parameterType="map">
+        INSERT INTO cpk.INNO_TRAN (SCHEDULE_TYPE,
+                                   SUBJECT,
+                                   SEND_DATE,
+                                   NOW_DATE,
+                                   CALLBACK,
+                                   DEST_COUNT,
+                                   DEST_INFO,
+                                   MSG,
+                                   SEND_STATUS)
+        VALUES (0,
+                '[한국교통안전공단 인증문자]',
+                TO_CHAR(NOW(), 'YYYYMMDDHH24MISS'),
+                TO_CHAR(NOW(), 'YYYYMMDDHH24MISS'),
+                '07077268822',
+                1,
+                #{destInfo},
+                #{msg},
+                0)
+    </insert>
 </mapper>

@@ -15,7 +15,7 @@ public class SecurityConfig {
             // 정적 리소스
             "/static/**", "/resources/**", "/webjars/**", "/public/**", "/assets/**", "/css/**", "/js/**", "/img/**",
             // 로그인 및 시스템 경로
-            "/", "/login", "/logout", "/error", "/health", "/favicon.ico", "/api/health",
+            "/", "/login", "/login/**", "/logout", "/error", "/health", "/favicon.ico", "/api/health",
             "/egovCrypto", "/egovCrypto/info", "/.well-known/**",
             // 코드 조회 등 최소 공개 API
             "/cmm/codes/**"
@@ -25,7 +25,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf
-                        .ignoringAntMatchers("/api/**", "/prk/api/**", "/prk/**", "/login", "/logout", "/static/**", "/webjars/**"))
+                        .ignoringAntMatchers("/api/**", "/prk/api/**", "/prk/**", "/login", "/login/**", "/logout", "/static/**", "/webjars/**"))
 
                 // 요청에 대한 접근 권한 설정
                 .authorizeHttpRequests(authz -> authz
