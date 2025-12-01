@@ -25,6 +25,7 @@ public class ParkingDetailVO {
      * 기본 정보 (tb_prk_def_plce_info)
      * ======================================== */
     private String prgsStsCd;          // 진행상태코드
+    private String prgsStsRawCd;       // 진행상태 원본 코드
     private String prkPlceManageNo;    // 주차장관리번호
     private Integer prkPlceInfoSn;     // 주차장정보일련번호
     private String prkplceNm;          // 주차장명
@@ -59,6 +60,7 @@ public class ParkingDetailVO {
     private String bizPerPrkMngNo;     // 사업별주차관리번호
     private String survyId;            // 조사자ID
     private String survyDt;            // 조사일자
+    private String rejtRsn;            // 반려 사유
 
     /* ========================================
      * 공통 업데이트 정보
@@ -228,7 +230,7 @@ public class ParkingDetailVO {
     private String prkAreaDvCd;        // 주차구역구분코드 (실내/실외)
 
     // 🔥 부설주차장 추가 필드 (SQL 쿼리 기반)
-    private String prgsStsRawCd;       // 진행상태 원본 코드
+    //private String prgsStsRawCd;       // 진행상태 원본 코드
     //private String bdnbr;              // 건물번호 (지번)
     private String closedYn;           // 폐쇄여부
 
@@ -253,6 +255,64 @@ public class ParkingDetailVO {
     private String mechPrklotTpCd;     // 기계식주차장형태코드 (PRK_004)
     private String mechPrklotOperYn;   // 기계식주차장작동여부 (PRK_005)
     private Integer mechPrkInopCnt;    // 기계식주차불능대수
+    // 주차시설형태 총계
+    private Integer prkFcltyTpTotFlrCapa;   // 주차시설형태_총_층수
+    private Integer prkFcltyTpTotDeckCapa;  // 주차시설형태_총_면적
+    // 실내 자주식
+    private Integer indrSelfTotSpaceCnt;    // 실내자주식_총주차대수
+    private Integer indrSelfFlrCnt;         // 실내자주식_층수
+    private Integer indrSelfDeckCnt;        // 실내자주식_면적
+    // 실내 기계식
+    private Integer indrMechTotSpaceCnt;    // 실내기계식_총주차대수
+    private Integer indrMechFlrCnt;         // 실내기계식_층수
+    private Integer indrMechDeckCnt;        // 실내기계식_면적
+    // 실외 자주식
+    private Integer outdrSelfTotSpaceCnt;   // 실외자주식_총주차대수
+    private Integer outdrSelfFlrCnt;        // 실외자주식_층수
+    private Integer outdrSelfCheckCnt;      // 실외자주식_체크수
+    // 실외 기계식
+    private Integer outdrMechTotSpaceCnt;   // 실외기계식_총주차대수
+    private Integer outdrMechFlrCnt;        // 실외기계식_층수
+    private Integer outdrMechDeckCnt;       // 실외기계식_면적
+    // 운영시간 (부설주차장용 - 평일/토/공휴일)
+    private String wkdyOperTmCd;            // 평일운영시간코드 (PRK_006)
+    private String wkdyTmbasOperStrTm;      // 평일시간기반운영시작시간
+    private String wkdyTmbasOperEndTm;      // 평일시간기반운영종료시간
+    private String satOperTmCd;             // 토요일운영시간코드 (PRK_006)
+    private String satTmbasOperStrTm;       // 토요일시간기반운영시작시간
+    private String satTmbasOperEndTm;       // 토요일시간기반운영종료시간
+    private String hldyOperTmCd;            // 공휴일운영시간코드 (PRK_006)
+    private String hldyTmbasOperStrTm;      // 공휴일시간기반운영시작시간
+    private String hldyTmbasOperEndTm;      // 공휴일시간기반운영종료시간
+    // 요금 정보 (부설주차장용)
+    private String feeImpsCd;               // 요금부과코드 (PRK_007)
+    private Integer feeFrst30minPrc;        // 요금_최초30분가격
+    private Integer fee10minPrc;            // 요금_10분가격
+    private Integer fee1hrPrc;              // 요금_1시간가격
+    private Integer feeDayPrc;              // 요금_일일가격
+    private Integer feeMnthPassPrc;         // 요금_월정기권가격
+    private Integer feeHfyrPassPrc;         // 요금_반기권가격
+    private String feePayMthdCd;            // 요금지불방식코드
+    private String feePayMthdOthr;          // 요금지불방식기타
+    private String feeSetlMthdCd;           // 요금정산방식코드
+    // 시설 정보 (부설주차장용)
+    private String prklotSignCd;            // 주차장표지판코드
+    // 공개 정보
+    private String pblOpenYn;               // 대중공개여부
+    private String prklotInfoPrvsnCnstYn;   // 주차장정보제공동의여부
+    // 기계식주차장 안전관리
+    private String guidDocYn;               // 안내문유무
+    private String safeInspYn;              // 안전검사유무
+    private String mgrYn;                   // 관리인유무
+    private String admYn;                   // 관리자유무
+    // 급지
+    private String alZon;                   // 급지
+    private String chrgGrdCd;
+    /* ========================================
+     * 기타 공통 정보
+     * ======================================== */
+    private String partclrMatter;      // 특이사항 (비고)
+    private String rmk;                // 비고
 
     public void setPrkplceSe(String prkplceSe) {
         this.prkplceSe = prkplceSe;
@@ -268,75 +328,4 @@ public class ParkingDetailVO {
             this.prkplceSe = ownCd;
         }
     }
-
-    // 주차시설형태 총계
-    private Integer prkFcltyTpTotFlrCapa;   // 주차시설형태_총_층수
-    private Integer prkFcltyTpTotDeckCapa;  // 주차시설형태_총_면적
-
-    // 실내 자주식
-    private Integer indrSelfTotSpaceCnt;    // 실내자주식_총주차대수
-    private Integer indrSelfFlrCnt;         // 실내자주식_층수
-    private Integer indrSelfDeckCnt;        // 실내자주식_면적
-
-    // 실내 기계식
-    private Integer indrMechTotSpaceCnt;    // 실내기계식_총주차대수
-    private Integer indrMechFlrCnt;         // 실내기계식_층수
-    private Integer indrMechDeckCnt;        // 실내기계식_면적
-
-    // 실외 자주식
-    private Integer outdrSelfTotSpaceCnt;   // 실외자주식_총주차대수
-    private Integer outdrSelfFlrCnt;        // 실외자주식_층수
-    private Integer outdrSelfCheckCnt;      // 실외자주식_체크수
-
-    // 실외 기계식
-    private Integer outdrMechTotSpaceCnt;   // 실외기계식_총주차대수
-    private Integer outdrMechFlrCnt;        // 실외기계식_층수
-    private Integer outdrMechDeckCnt;       // 실외기계식_면적
-
-    // 운영시간 (부설주차장용 - 평일/토/공휴일)
-    private String wkdyOperTmCd;            // 평일운영시간코드 (PRK_006)
-    private String wkdyTmbasOperStrTm;      // 평일시간기반운영시작시간
-    private String wkdyTmbasOperEndTm;      // 평일시간기반운영종료시간
-
-    private String satOperTmCd;             // 토요일운영시간코드 (PRK_006)
-    private String satTmbasOperStrTm;       // 토요일시간기반운영시작시간
-    private String satTmbasOperEndTm;       // 토요일시간기반운영종료시간
-
-    private String hldyOperTmCd;            // 공휴일운영시간코드 (PRK_006)
-    private String hldyTmbasOperStrTm;      // 공휴일시간기반운영시작시간
-    private String hldyTmbasOperEndTm;      // 공휴일시간기반운영종료시간
-
-    // 요금 정보 (부설주차장용)
-    private String feeImpsCd;               // 요금부과코드 (PRK_007)
-    private Integer feeFrst30minPrc;        // 요금_최초30분가격
-    private Integer fee10minPrc;            // 요금_10분가격
-    private Integer fee1hrPrc;              // 요금_1시간가격
-    private Integer feeDayPrc;              // 요금_일일가격
-    private Integer feeMnthPassPrc;         // 요금_월정기권가격
-    private Integer feeHfyrPassPrc;         // 요금_반기권가격
-    private String feePayMthdCd;            // 요금지불방식코드
-    private String feePayMthdOthr;          // 요금지불방식기타
-    private String feeSetlMthdCd;           // 요금정산방식코드
-
-    // 시설 정보 (부설주차장용)
-    private String prklotSignCd;            // 주차장표지판코드
-
-    // 공개 정보
-    private String pblOpenYn;               // 대중공개여부
-    private String prklotInfoPrvsnCnstYn;   // 주차장정보제공동의여부
-
-    // 기계식주차장 안전관리
-    private String guidDocYn;               // 안내문유무
-    private String safeInspYn;              // 안전검사유무
-    private String mgrYn;                   // 관리인유무
-    private String admYn;                   // 관리자유무
-
-    // 급지
-    private String alZon;                   // 급지
-    private String chrgGrdCd;
-    /* ========================================
-     * 기타 공통 정보
-     * ======================================== */
-    private String partclrMatter;      // 특이사항 (비고)
-    private String rmk;                // 비고
 }

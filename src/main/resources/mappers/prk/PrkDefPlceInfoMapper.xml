@@ -146,6 +146,8 @@
     <select id="selectOnstreetParkingDetail" parameterType="map"
             resultType="com.psim.web.prk.vo.ParkingDetailVO">
         SELECT cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsCd
+             , tbppi.prgs_sts_cd                                as prgsStsRawCd
+             , tbppi.rejt_rsn                                   as rejtRsn
              , tpsbi.prk_biz_mng_no                             as prkBizMngNo
              , tpsbi.biz_nm                                     as bizNm
              , tpsbi.biz_yy                                     as bizYy
@@ -379,6 +381,8 @@
     <!-- 🔥 노외주차장 상세 조회 쿼리 -->
     <select id="selectOffstreetParkingDetail" parameterType="map" resultType="com.psim.web.prk.vo.ParkingDetailVO">
         SELECT cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsCd
+             , tbppi.prgs_sts_cd                                as prgsStsRawCd
+             , tbppi.rejt_rsn                                   as rejtRsn
              , tpsbi.prk_biz_mng_no                             as prkBizMngNo
              , tpdpi.prk_plce_info_sn                           AS prkPlceInfoSn
              , tpsbi.biz_nm                                     as bizNm
@@ -600,6 +604,7 @@
     <select id="selectBuildParkingDetail" parameterType="map" resultType="com.psim.web.prk.vo.ParkingDetailVO">
         SELECT cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsCd
              , tbppi.prgs_sts_cd                                as prgsStsRawCd
+             , tbppi.rejt_rsn                                   as rejtRsn
              , tbppi.biz_per_prk_mng_no                         as bizPerPrkMngNo
              , tpsbi.prk_biz_mng_no                             as prkBizMngNo
              , tpsbi.biz_nm                                     as bizNm

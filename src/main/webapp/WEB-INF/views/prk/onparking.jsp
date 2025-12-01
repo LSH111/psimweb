@@ -20,8 +20,9 @@
     <!-- 외부 라이브러리 (EXIF / 다음 우편번호) -->
     <script src="${pageContext.request.contextPath}/static/vendor/exifr/full.umd.js"></script>
     <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
-    <c:set var="statusCode" value="${empty param.status ? '' : param.status}"/>
+    <c:set var="statusCode" value="${not empty param.status ? param.status : requestScope.statusCode}"/>
     <c:set var="isApproved" value="${statusCode eq '30'}"/>
+    <c:set var="isRejected" value="${statusCode eq '반려' or statusCode eq '99' or statusCode eq 'PRK_013099' or parking.prgsStsRawCd eq '99' or parking.prgsStsRawCd eq 'PRK_013099'}"/>
     <%
         Object parkingObj = request.getAttribute("parking");
         String parkingJson = "null";
@@ -50,6 +51,14 @@
         <button class="btn" id="btnSaveTop" <c:if test="${isApproved}">disabled="disabled"</c:if>>저장</button>
       </span>
     </header>
+    <c:if test="${isRejected and not empty parking.rejtRsn}">
+        <div class="card" style="background:#fef2f2;border:1px solid #fecdd3;color:#7f1d1d;margin-bottom:16px;">
+            <div style="display:flex;gap:8px;align-items:flex-start;">
+                <span style="font-weight:700;">반려 사유</span>
+                <span style="white-space:pre-line;"><c:out value="${parking.rejtRsn}"/></span>
+            </div>
+        </div>
+    </c:if>
     <input type="hidden" id="statusCode" value="${not empty statusCode ? statusCode : (empty param.status ? '' : param.status)}"/>
     <input type="hidden" id="prkPlceManageNo" value="<c:out value='${parking.prkPlceManageNo}'/>"/>
     <input type="hidden" id="prkPlceInfoSn" value="<c:out value='${parking.prkPlceInfoSn}'/>"/>

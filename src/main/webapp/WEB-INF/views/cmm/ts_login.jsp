@@ -76,7 +76,10 @@
                             <input id="otp" class="input form-input mono" type="text" inputmode="numeric"
                                    pattern="\\d{6}" maxlength="6" placeholder="______" aria-describedby="otpHint"/>
                         </div>
-                        <button id="resendBtn" class="btn btn-secondary" type="button" disabled>재전송(60)</button>
+                        <div class="control inline-actions">
+                            <button id="otpConfirmBtn" class="btn btn-primary" type="button" disabled>확인</button>
+                            <button id="resendBtn" class="btn btn-secondary" type="button" disabled>재전송(60)</button>
+                        </div>
                     </div>
                     <span id="otpHint" class="hint">유효시간 <span id="timer" class="mono">02:00</span></span>
                 </div>
@@ -121,6 +124,7 @@
     const sendOtpBtn = $('#sendOtpBtn');
     const otpBox = $('#otpBox');
     const otp = $('#otp');
+    const otpConfirmBtn = $('#otpConfirmBtn');
     const resendBtn = $('#resendBtn');
     const timerEl = $('#timer');
     const otpErr = $('#otpErr');
@@ -187,6 +191,7 @@
         if(remain===0){
             clearInterval(countdown);
             resendBtn.disabled = false;
+            otpConfirmBtn.disabled = true;
             otpVerified = false;
             finalLoginBtn.disabled = true;
             show(otpErr, '인증코드 유효시간이 만료되었습니다. 재전송하세요.');
@@ -212,6 +217,7 @@
         finalLoginBtn.disabled = true;
         otpBox.classList.remove('hide');
         resendBtn.disabled = true;
+        otpConfirmBtn.disabled = true;
         otp.value = '';
         startTimer(120);
         otp.focus();
@@ -222,26 +228,32 @@
     resendBtn.addEventListener('click', ()=> sendOtpBtn.click());
 
     // OTP 입력 & 검증(필수)
-    otp.addEventListener('input', async ()=>{
+    otp.addEventListener('input', ()=>{
         hide(otpErr); hide(otpOk);
         otp.value = otp.value.replace(/\\D/g,'').slice(0,6);
-        if(otp.value.length === 6){
-            await delay(120);
-            if(otp.value === TEST_OTP){
-                otpVerified = true;
-                if(countdown) clearInterval(countdown);
-                resendBtn.disabled = false;
-                show(otpOk, '인증코드 확인 완료.');
-                secFinal.classList.remove('hide');  // ▼ 최종 로그인 영역 펼침
-                finalLoginBtn.disabled = false;     // OTP 성공 시에만 활성화
-            } else {
-                otpVerified = false;
-                show(otpErr, '인증코드가 올바르지 않습니다. (테스트: 123456)');
-                finalLoginBtn.disabled = true;
-            }
+        otpConfirmBtn.disabled = otp.value.length !== 6;
+        otpVerified = false;
+        finalLoginBtn.disabled = true;
+    });
+
+    // OTP 확인 버튼으로만 검증
+    otpConfirmBtn.addEventListener('click', async ()=>{
+        hide(otpErr); hide(otpOk);
+        if(otp.value.length !== 6){
+            return show(otpErr, '인증코드 6자리를 모두 입력하세요.');
+        }
+        await delay(120);
+        if(otp.value === TEST_OTP){
+            otpVerified = true;
+            if(countdown) clearInterval(countdown);
+            resendBtn.disabled = false;
+            show(otpOk, '인증코드 확인 완료.');
+            secFinal.classList.remove('hide');  // ▼ 최종 로그인 영역 펼침
+            finalLoginBtn.disabled = false;     // OTP 성공 시에만 활성화
         } else {
             otpVerified = false;
             finalLoginBtn.disabled = true;
+            show(otpErr, '인증코드가 올바르지 않습니다. (테스트: 123456)');
         }
     });
 
