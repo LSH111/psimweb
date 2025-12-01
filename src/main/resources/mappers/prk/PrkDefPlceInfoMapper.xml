@@ -162,7 +162,7 @@
              , tcl.lgal_emd_nm                                  as lgalEmdNm
              , tpdpi.zip                                        as zip
              , tpdpi.dtadd                                      as dtadd
-             , tpdpi.roadaddr                                   as rnmadr
+             , tpdpi.roadadd                                    as rnmadr
              , tpdpi.prk_plce_lat                               as prkPlceLat
              , tpdpi.prk_plce_lon                               as prkPlceLon
              -- 🔥 누락된 필드 추가
@@ -284,7 +284,7 @@
     <!-- 🔥 노상주차장 정보 업데이트 (tb_onstr_prklot_info) -->
     <update id="updateOnstrPrklotInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
         UPDATE cpk.tb_onstr_prklot_info
-        SET prkplce_se       = #{prkplceSe}
+        SET prkplce_se        = #{prkplceSe}
           , tot_prk_cnt       = #{totPrkCnt}
           , disab_prk_cnt     = #{disabPrkCnt}
           , compact_prk_cnt   = #{compactPrkCnt}
@@ -498,7 +498,7 @@
     <!-- 🔥 노외주차장 정보 업데이트 (tb_offstr_prklot_info) -->
     <update id="updateOffstrPrklotInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
         UPDATE cpk.tb_offstr_prklot_info
-        SET prkplce_se       = #{prkplceSe}
+        SET prkplce_se        = #{prkplceSe}
           , tot_prk_cnt       = #{totPrkCnt}
           , disab_prk_cnt     = #{disabPrkCnt}
           , compact_prk_cnt   = #{compactPrkCnt}
@@ -610,7 +610,7 @@
              , tpdpi.prk_plce_manage_no                         as prkPlceManageNo
              , tpdpi.prk_plce_type                              as prkPlceType
              , tpdpi.prkplce_nm                                 as prkplceNm
-             , tapi.prkplce_se                                 as ownCd
+             , tapi.prkplce_se                                  as ownCd
              , tcl.sido_cd                                      as sidoCd
              , tcl.sido_nm                                      as sidoNm
              , tcl.sigungu_cd                                   as sigunguCd
@@ -743,7 +743,7 @@
     <!-- 🔥 부설주차장 정보 업데이트 (tb_atch_prklot_info) -->
     <update id="updateAtchPrklotInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
         UPDATE cpk.tb_atch_prklot_info
-        SET prkplce_se       = #{prkplceSe}
+        SET prkplce_se        = #{prkplceSe}
           , tot_prk_cnt       = #{totPrkCnt}
           , disab_prk_cnt     = #{disabPrkCnt}
           , compact_prk_cnt   = #{compactPrkCnt}
