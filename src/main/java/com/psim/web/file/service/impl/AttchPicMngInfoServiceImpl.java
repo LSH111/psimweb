@@ -6,10 +6,10 @@ import com.psim.web.file.service.AttchPicMngInfoService;
 import com.psim.web.file.vo.AttchPicMngInfoVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.nio.file.InvalidPathException;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -69,9 +69,12 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             log.info("✅ 파일 저장 완료: {}", saved.savedFileName());
             return vo;
 
-        } catch (Exception e) {
-            log.error("❌ 파일 저장 실패", e);
-            throw new RuntimeException("파일 저장 중 오류가 발생했습니다.", e);
+        } catch (DataAccessException dae) {
+            log.error("❌ 파일 저장 실패 - DB 오류", dae);
+            throw new RuntimeException("파일 저장 중 데이터베이스 오류가 발생했습니다.", dae);
+        } catch (RuntimeException re) {
+            log.error("❌ 파일 저장 실패", re);
+            throw re;
         }
     }
 
@@ -161,9 +164,12 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             log.info("✅ 이용실태 파일 저장 완료 - cmplSn: {}, 파일: {}", cmplSn, saved.savedFileName());
             return vo;
 
-        } catch (Exception e) {
-            log.error("❌ 파일 저장 실패", e);
-            throw new RuntimeException("파일 저장 중 오류가 발생했습니다.", e);
+        } catch (DataAccessException dae) {
+            log.error("❌ 파일 저장 실패 - DB 오류", dae);
+            throw new RuntimeException("파일 저장 중 데이터베이스 오류가 발생했습니다.", dae);
+        } catch (RuntimeException re) {
+            log.error("❌ 파일 저장 실패", re);
+            throw re;
         }
     }
 
@@ -226,13 +232,12 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
 
                 log.info("✅ 파일 저장 완료: {}", vo.getFileNm());
 
-            } catch (Exception e) {
-                log.error("❌ 파일 저장 실패: {}", file.getOriginalFilename(), e);
-                try {
-                    throw new Exception("파일 저장 중 오류가 발생했습니다: " + e.getMessage(), e);
-                } catch (Exception ex) {
-                    throw new RuntimeException(ex);
-                }
+            } catch (DataAccessException dae) {
+                log.error("❌ 파일 저장 실패 - DB 오류: {}", file.getOriginalFilename(), dae);
+                throw new RuntimeException("파일 저장 중 데이터베이스 오류가 발생했습니다.", dae);
+            } catch (RuntimeException re) {
+                log.error("❌ 파일 저장 실패: {}", file.getOriginalFilename(), re);
+                throw re;
             }
         }
         return results;
@@ -336,8 +341,11 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             List<Map<String, Object>> photos = mapper.selectPhotosByPrkPlceInfoSn(prkPlceInfoSn);
             log.info("✅ 사진 {}개 조회 완료", photos.size());
             return photos;
-        } catch (Exception e) {
-            log.error("❌ 사진 목록 조회 실패", e);
+        } catch (DataAccessException dae) {
+            log.error("❌ 사진 목록 조회 실패 - DB 오류", dae);
+            return new ArrayList<>();
+        } catch (RuntimeException re) {
+            log.error("❌ 사진 목록 조회 실패", re);
             return new ArrayList<>();
         }
     }
@@ -367,8 +375,11 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             log.info("✅ 사진 파일 조회 완료 - 파일명: {}", photoInfo.get("fileName"));
             return photoInfo;
 
-        } catch (Exception e) {
-            log.error("❌ 사진 파일 조회 실패", e);
+        } catch (DataAccessException dae) {
+            log.error("❌ 사진 파일 조회 실패 - DB 오류", dae);
+            return null;
+        } catch (RuntimeException re) {
+            log.error("❌ 사진 파일 조회 실패", re);
             return null;
         }
     }
@@ -398,8 +409,11 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             log.info("✅ 사진 파일 조회 완료 - 파일명: {}", photoInfo.get("fileName"));
             return photoInfo;
 
-        } catch (Exception e) {
-            log.error("❌ 사진 파일 조회 실패", e);
+        } catch (DataAccessException dae) {
+            log.error("❌ 사진 파일 조회 실패 - DB 오류", dae);
+            return null;
+        } catch (RuntimeException re) {
+            log.error("❌ 사진 파일 조회 실패", re);
             return null;
         }
     }

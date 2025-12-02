@@ -1,28 +1,23 @@
-
 package com.psim.web.cmm.controller;
 
 import com.psim.web.cmm.service.CoCodeService;
 import com.psim.web.cmm.vo.CoCodeGroupVO;
 import com.psim.web.cmm.vo.CoCodeVO;
 import com.psim.web.cmm.vo.CoLdongVO;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RequestParam;
-
-import com.psim.web.cmm.service.CoCodeService;
-import com.psim.web.cmm.vo.CoCodeVO;
-
-import java.util.ArrayList;
-
+@Slf4j
 @Controller
 @RequestMapping("/cmm/codes")  // 이 라인을 추가해야 합니다
 public class CoCodeController {
@@ -53,11 +48,14 @@ public class CoCodeController {
             result.put("data", sidoList);
             System.out.println("=== 시도 목록 조회 성공 ===");
 
-        } catch (Exception e) {
-            System.err.println("=== 시도 목록 조회 중 오류 ===");
-            e.printStackTrace();
+        } catch (DataAccessException dae) {
+            log.error("=== 시도 목록 조회 중 DB 오류 ===", dae);
             result.put("success", false);
-            result.put("message", "시도 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
+            result.put("message", "시도 목록 조회 중 서버 오류가 발생했습니다.");
+        } catch (RuntimeException re) {
+            log.error("=== 시도 목록 조회 중 오류 ===", re);
+            result.put("success", false);
+            result.put("message", "시도 목록 조회 중 오류가 발생했습니다.");
         }
         return result;
     }
@@ -88,11 +86,14 @@ public class CoCodeController {
             result.put("success", true);
             result.put("data", sigunguList);
 
-        } catch (Exception e) {
-            System.err.println("=== 시군구 목록 조회 중 오류 ===");
-            e.printStackTrace();
+        } catch (DataAccessException dae) {
+            log.error("=== 시군구 목록 조회 중 DB 오류 ===", dae);
             result.put("success", false);
-            result.put("message", "시군구 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
+            result.put("message", "시군구 목록 조회 중 서버 오류가 발생했습니다.");
+        } catch (RuntimeException re) {
+            log.error("=== 시군구 목록 조회 중 오류 ===", re);
+            result.put("success", false);
+            result.put("message", "시군구 목록 조회 중 오류가 발생했습니다.");
         }
         return result;
     }
@@ -119,11 +120,14 @@ public class CoCodeController {
             result.put("success", true);
             result.put("data", emdList);
 
-        } catch (Exception e) {
-            System.err.println("=== 읍면동 목록 조회 중 오류 ===");
-            e.printStackTrace();
+        } catch (DataAccessException dae) {
+            log.error("=== 읍면동 목록 조회 중 DB 오류 ===", dae);
             result.put("success", false);
-            result.put("message", "읍면동 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
+            result.put("message", "읍면동 목록 조회 중 서버 오류가 발생했습니다.");
+        } catch (RuntimeException re) {
+            log.error("=== 읍면동 목록 조회 중 오류 ===", re);
+            result.put("success", false);
+            result.put("message", "읍면동 목록 조회 중 오류가 발생했습니다.");
         }
         return result;
     }
@@ -138,9 +142,14 @@ public class CoCodeController {
         try {
             result.put("success", true);
             result.put("data", coCodeService.getCodeListByGroup("P_PRKPLCE_SE"));
-        } catch (Exception e) {
+        } catch (DataAccessException dae) {
+            log.error("=== 주차형태 목록 조회 중 DB 오류 ===", dae);
             result.put("success", false);
-            result.put("message", "주차형태 목록 조회 실패: " + e.getMessage());
+            result.put("message", "주차형태 목록 조회 중 서버 오류가 발생했습니다.");
+        } catch (RuntimeException re) {
+            log.error("=== 주차형태 목록 조회 실패 ===", re);
+            result.put("success", false);
+            result.put("message", "주차형태 목록 조회 실패");
         }
         return result;
     }
@@ -167,11 +176,14 @@ public class CoCodeController {
             result.put("success", true);
             result.put("data", statusList);
             System.out.println("=== 진행상태 목록 조회 완료 ===");
-        } catch (Exception e) {
-            System.err.println("=== 진행상태 목록 조회 중 오류 ===");
-            e.printStackTrace();
+        } catch (DataAccessException dae) {
+            log.error("=== 진행상태 목록 조회 중 DB 오류 ===", dae);
             result.put("success", false);
-            result.put("message", "진행상태 목록 조회 실패: " + e.getMessage());
+            result.put("message", "진행상태 목록 조회 중 서버 오류가 발생했습니다.");
+        } catch (RuntimeException re) {
+            log.error("=== 진행상태 목록 조회 중 오류 ===", re);
+            result.put("success", false);
+            result.put("message", "진행상태 목록 조회 실패");
         }
         return result;
     }
@@ -217,11 +229,14 @@ public class CoCodeController {
                 result.put("message", "조회된 코드 그룹이 없습니다.");
             }
 
-        } catch (Exception e) {
-            System.err.println("=== 동적 코드 그룹 목록 조회 중 오류 ===");
-            e.printStackTrace();
+        } catch (DataAccessException dae) {
+            log.error("=== 동적 코드 그룹 목록 조회 중 DB 오류 ===", dae);
             result.put("success", false);
-            result.put("message", "코드 그룹 목록 조회 실패: " + e.getMessage());
+            result.put("message", "코드 그룹 목록 조회 중 서버 오류가 발생했습니다.");
+        } catch (RuntimeException re) {
+            log.error("=== 동적 코드 그룹 목록 조회 중 오류 ===", re);
+            result.put("success", false);
+            result.put("message", "코드 그룹 목록 조회 실패");
         }
         return result;
     }

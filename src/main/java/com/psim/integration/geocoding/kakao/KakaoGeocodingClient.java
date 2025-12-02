@@ -129,9 +129,12 @@ public class KakaoGeocodingClient implements GeocodingClient {
                     clazz
             );
             return response.getBody();
-        } catch (Exception e) {
+        } catch (org.springframework.web.client.RestClientException e) {
             log.error("카카오 지오코딩 호출 실패 - url: {}", url, e);
             throw new GeocodingException("카카오 지오코딩 호출 실패", e);
+        } catch (RuntimeException e) {
+            log.error("카카오 지오코딩 처리 중 알 수 없는 오류 - url: {}", url, e);
+            throw new GeocodingException("카카오 지오코딩 처리 오류", e);
         }
     }
 }

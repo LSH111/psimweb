@@ -97,11 +97,11 @@
     panel.setAttribute('role', 'tabpanel');
     panel.setAttribute('aria-labelledby', tabId);
     panel.hidden = true;
-    panel.innerHTML = `
+      panel.innerHTML = `
       <iframe class="detail-frame" title="상세: ${rec.nm}"
               style="width:100%;border:0;display:block;min-height:420px"
               loading="eager" allow="geolocation"
-              sandbox="allow-scripts allow-forms allow-same-origin"></iframe>
+              sandbox="allow-scripts allow-forms allow-same-origin allow-modals allow-popups"></iframe>
       <div class="no-page muted" style="padding:12px;display:none">페이지가 없습니다.</div>
     `;
     panelsWrap.appendChild(panel);

@@ -3,6 +3,7 @@ package com.psim.web.cmm.controller;
 import com.psim.web.cmm.service.LoginService;
 import com.psim.web.cmm.vo.CoUserVO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataAccessException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -59,8 +60,16 @@ public class LoginController {
         CoUserVO loginUser;
         try {
             loginUser = loginService.login(userId, password, telNo, certNo);
-        } catch (Exception e) {
-            System.err.println("❌ 로그인 처리 중 오류: " + e.getMessage());
+        } catch (IllegalArgumentException iae) {
+            System.err.println("❌ 로그인 파라미터 오류: " + iae.getMessage());
+            redirectAttributes.addFlashAttribute("finalErr", iae.getMessage());
+            return "redirect:/";
+        } catch (DataAccessException dae) {
+            System.err.println("❌ 로그인 처리 중 DB 오류: " + dae.getMessage());
+            redirectAttributes.addFlashAttribute("finalErr", "인증 처리 중 서버 오류가 발생했습니다.");
+            return "redirect:/";
+        } catch (RuntimeException re) {
+            System.err.println("❌ 로그인 처리 중 오류: " + re.getMessage());
             redirectAttributes.addFlashAttribute("finalErr", "인증 처리 중 오류가 발생했습니다.");
             return "redirect:/";
         }
@@ -103,10 +112,11 @@ public class LoginController {
             System.out.println("✅ 사업관리번호 목록 세션 저장 완료: " + userBizList.size() + "개");
             System.out.println("📋 사업번호 목록: " + userBizList);
 
-        } catch (Exception e) {
-            System.err.println("⚠️ 사업관리번호 조회 실패: " + e.getMessage());
-            e.printStackTrace();
-            // 실패해도 로그인은 진행 (빈 리스트로 처리)
+        } catch (DataAccessException dae) {
+            System.err.println("⚠️ 사업관리번호 조회 실패(DB): " + dae.getMessage());
+            session.setAttribute("userBizList", java.util.Collections.emptyList());
+        } catch (RuntimeException re) {
+            System.err.println("⚠️ 사업관리번호 조회 실패: " + re.getMessage());
             session.setAttribute("userBizList", java.util.Collections.emptyList());
         }
 

@@ -230,7 +230,7 @@
         sendOtpBtn.disabled = true;
         sendOtpBtn.textContent = '전송 중...';
         try {
-            const resp = (await postForm('<c:url value="/login/callCertify"/>', {'login[phone]': tel})).trim();
+            const resp = (await postForm('login/callCertify', {'login[phone]': tel})).trim();
             sendOtpBtn.textContent = '인증코드 전송';
             sendOtpBtn.disabled = false;
 
@@ -238,7 +238,7 @@
                 const msg = ERROR_MSG[resp] || '인증번호 요청에 실패했습니다.';
                 return show(otpErr, msg);
             }
-            // 정상: 숫자 코드
+            // 정상: 숫자 코드 (테스트 환경에서 화면에 표시)
             otpSent = true;
             otpVerified = false;
             otpVerifiedFlag.value = 'N';
@@ -249,7 +249,16 @@
             otp.value = '';
             startTimer(180); // 3분
             otp.focus();
-            show(otpOk, '인증코드를 전송했습니다. 도착한 코드를 입력하세요.');
+            const respDigits = (resp || '').replace(/[^0-9]/g, '');
+            const codeToShow = respDigits.length >= 4 ? respDigits : (resp || '코드 수신 실패');
+            show(otpOk, `인증코드를 전송했습니다. (테스트용 코드: ${codeToShow}) 도착한 코드를 입력하세요.`);
+            // 테스트용 코드 노출 (운영 전 실제 발송 미구축 시)
+            const testCodeEl = document.getElementById('testCode');
+            if (testCodeEl) {
+                testCodeEl.textContent = codeToShow;
+                testCodeEl.classList.remove('hide');
+            }
+            console.log('TEST CODE:', resp);
         } catch (e) {
             sendOtpBtn.textContent = '인증코드 전송';
             sendOtpBtn.disabled = false;
@@ -281,7 +290,7 @@
         otpConfirmBtn.disabled = true;
         otpConfirmBtn.textContent = '확인 중...';
         try {
-            const resp = (await postForm('<c:url value="/login/checkCertify"/>', {
+            const resp = (await postForm('login/checkCertify', {
                 'login[tel]': tel,
                 'login[certify]': code
             })).trim();

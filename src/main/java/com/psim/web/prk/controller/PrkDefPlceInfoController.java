@@ -7,8 +7,10 @@ import com.psim.web.file.service.AttchPicMngInfoService;
 import com.psim.web.prk.service.PrkDefPlceInfoService;
 import com.psim.web.prk.vo.ParkingDetailVO;
 import com.psim.web.prk.vo.ParkingListVO;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -53,20 +55,13 @@ public class PrkDefPlceInfoController {
             return "prk/parking-list";
         }
 
-        try {
-            // 🔥 상세보기 파라미터가 있으면 모델에 추가
-            if (openDetailId != null && !openDetailId.isEmpty()) {
-                model.addAttribute("openDetailId", openDetailId);
-                model.addAttribute("parkingType", parkingType);
-                log.info("🔍 상세보기 요청: ID={}, Type={}", openDetailId, parkingType);
-            }
-
-            return "prk/parking-list";
-        } catch (Exception e) {
-            log.error("❌ parkingList() error: {}", e.getMessage());
-            e.printStackTrace();
-            return "error";
+        // 🔥 상세보기 파라미터가 있으면 모델에 추가
+        if (openDetailId != null && !openDetailId.isEmpty()) {
+            model.addAttribute("openDetailId", openDetailId);
+            model.addAttribute("parkingType", parkingType);
+            log.info("🔍 상세보기 요청: ID={}, Type={}", openDetailId, parkingType);
         }
+        return "prk/parking-list";
     }
 
     /**
@@ -75,25 +70,20 @@ public class PrkDefPlceInfoController {
     @PostMapping(value = "/debug/xml", produces = MediaType.APPLICATION_XML_VALUE)
     @ResponseBody
     public String debugXml(@ModelAttribute ParkingDetailVO vo) {
-        try {
-            StringBuilder xmlBuilder = new StringBuilder();
-            xmlBuilder.append("<ParkingDetail>");
-            appendTag(xmlBuilder, "prkPlceManageNo", vo.getPrkPlceManageNo());
-            appendTag(xmlBuilder, "prkPlceInfoSn", vo.getPrkPlceInfoSn());
-            appendTag(xmlBuilder, "prkPlceType", vo.getPrkPlceType());
-            appendTag(xmlBuilder, "prkplceNm", vo.getPrkplceNm());
-            appendTag(xmlBuilder, "dtadd", vo.getDtadd());
-            appendTag(xmlBuilder, "prkPlceLat", vo.getPrkPlceLat());
-            appendTag(xmlBuilder, "prkPlceLon", vo.getPrkPlceLon());
-            appendTag(xmlBuilder, "totPrkCnt", vo.getTotPrkCnt());
-            xmlBuilder.append("</ParkingDetail>");
-            String xml = xmlBuilder.toString();
-            log.debug("🧪 Debug XML 생성 완료: {}", xml);
-            return xml;
-        } catch (Exception e) {
-            log.error("❌ XML 생성 실패", e);
-            throw new RuntimeException("XML 생성 실패: " + e.getMessage(), e);
-        }
+        StringBuilder xmlBuilder = new StringBuilder();
+        xmlBuilder.append("<ParkingDetail>");
+        appendTag(xmlBuilder, "prkPlceManageNo", vo.getPrkPlceManageNo());
+        appendTag(xmlBuilder, "prkPlceInfoSn", vo.getPrkPlceInfoSn());
+        appendTag(xmlBuilder, "prkPlceType", vo.getPrkPlceType());
+        appendTag(xmlBuilder, "prkplceNm", vo.getPrkplceNm());
+        appendTag(xmlBuilder, "dtadd", vo.getDtadd());
+        appendTag(xmlBuilder, "prkPlceLat", vo.getPrkPlceLat());
+        appendTag(xmlBuilder, "prkPlceLon", vo.getPrkPlceLon());
+        appendTag(xmlBuilder, "totPrkCnt", vo.getTotPrkCnt());
+        xmlBuilder.append("</ParkingDetail>");
+        String xml = xmlBuilder.toString();
+        log.debug("🧪 Debug XML 생성 완료: {}", xml);
+        return xml;
     }
 
     private void appendTag(StringBuilder sb, String tag, Object value) {
@@ -161,21 +151,22 @@ public class PrkDefPlceInfoController {
 
             log.info("✅ 데이터 조회 완료 - 총 {}건", totalCount);
 
-        } catch (Exception e) {
-            log.error("❌ 데이터 조회 실패", e);
-            // 🔥 상세 스택트레이스 로깅
-            log.error("예외 타입: {}", e.getClass().getName());
-            log.error("예외 메시지: {}", e.getMessage());
-
-            // 🔥 원인 추적
-            Throwable cause = e.getCause();
-            while (cause != null) {
-                log.error("  └─ Caused by: {} - {}", cause.getClass().getName(), cause.getMessage());
-                cause = cause.getCause();
-            }
-
+        } catch (DataAccessException dae) {
+            log.error("❌ 데이터 조회 실패 - DB 오류", dae);
             result.put("success", false);
-            result.put("message", "데이터 조회 중 오류가 발생했습니다: " + e.getMessage());
+            result.put("message", "데이터 조회 중 서버 오류가 발생했습니다.");
+            result.put("list", new ArrayList<>());
+            result.put("totalCount", 0);
+        } catch (IllegalArgumentException iae) {
+            log.error("❌ 데이터 조회 실패 - 잘못된 요청", iae);
+            result.put("success", false);
+            result.put("message", iae.getMessage());
+            result.put("list", new ArrayList<>());
+            result.put("totalCount", 0);
+        } catch (RuntimeException re) {
+            log.error("❌ 데이터 조회 실패", re);
+            result.put("success", false);
+            result.put("message", "데이터 조회 중 오류가 발생했습니다.");
             result.put("list", new ArrayList<>());
             result.put("totalCount", 0);
         }
@@ -361,7 +352,7 @@ public class PrkDefPlceInfoController {
                         attchPicService.uploadAndSaveFile(prkPlceInfoSn, "ON_SIGN", signPhoto);
                         log.info("✅ 표지판 사진 저장 완료");
                     }
-                } catch (Exception fileException) {
+                } catch (RuntimeException fileException) {
                     log.error("⚠️ 파일 저장 실패 (DB는 성공): {}", fileException.getMessage());
                     // 파일 저장 실패는 경고만 표시 - 전체 작업은 성공으로 간주
                 }
@@ -379,16 +370,25 @@ public class PrkDefPlceInfoController {
 
             return ResponseEntity.ok(response);
 
+        } catch (JsonProcessingException jpe) {
+            log.error("❌ 노상주차장 JSON 파싱 실패", jpe);
+            response.put("success", false);
+            response.put("message", "요청 데이터 형식이 올바르지 않습니다.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         } catch (IllegalArgumentException e) {
             log.error("❌ 입력값 검증 실패: {}", e.getMessage());
             response.put("success", false);
             response.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-
-        } catch (Exception e) {
-            log.error("❌❌❌ 노상주차장 저장 실패", e);
+        } catch (DataAccessException dae) {
+            log.error("❌❌❌ 노상주차장 저장 실패 - DB 오류", dae);
             response.put("success", false);
-            response.put("message", "저장 중 오류가 발생했습니다: " + e.getMessage());
+            response.put("message", "저장 중 서버 오류가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        } catch (RuntimeException re) {
+            log.error("❌❌❌ 노상주차장 저장 실패", re);
+            response.put("success", false);
+            response.put("message", "저장 중 오류가 발생했습니다.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
@@ -605,7 +605,7 @@ public class PrkDefPlceInfoController {
                         attchPicService.uploadAndSaveFile(prkPlceInfoSn, "OFF_ENTRANCE", entrancePhoto);
                         log.info("✅ 입구 사진 저장 완료");
                     }
-                } catch (Exception fileException) {
+                } catch (RuntimeException fileException) {
                     log.error("⚠️ 파일 저장 실패 (DB는 성공): {}", fileException.getMessage());
                     // 파일 저장 실패는 경고만 표시 - 전체 작업은 성공으로 간주
                 }
@@ -622,16 +622,25 @@ public class PrkDefPlceInfoController {
 
             return ResponseEntity.ok(response);
 
+        } catch (JsonProcessingException jpe) {
+            log.error("❌ 노외주차장 JSON 파싱 실패", jpe);
+            response.put("success", false);
+            response.put("message", "요청 데이터 형식이 올바르지 않습니다.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         } catch (IllegalArgumentException e) {
             log.error("❌ 입력값 검증 실패: {}", e.getMessage());
             response.put("success", false);
             response.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-
-        } catch (Exception e) {
-            log.error("❌❌❌ 노외주차장 저장 실패", e);
+        } catch (DataAccessException dae) {
+            log.error("❌❌❌ 노외주차장 저장 실패 - DB 오류", dae);
             response.put("success", false);
-            response.put("message", "저장 중 오류가 발생했습니다: " + e.getMessage());
+            response.put("message", "저장 중 서버 오류가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        } catch (RuntimeException re) {
+            log.error("❌❌❌ 노외주차장 저장 실패", re);
+            response.put("success", false);
+            response.put("message", "저장 중 오류가 발생했습니다.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
@@ -839,7 +848,7 @@ public class PrkDefPlceInfoController {
                         attchPicService.uploadAndSaveFile(prkPlceInfoSn, "BLD_ENTRANCE", entrancePhoto);
                         log.info("✅ 입구 사진 저장 완료");
                     }
-                } catch (Exception fileException) {
+                } catch (RuntimeException fileException) {
                     log.error("⚠️ 파일 저장 실패 (DB는 성공): {}", fileException.getMessage());
                     // 파일 저장 실패는 경고만 - 전체 저장은 성공 처리
                 }
@@ -856,16 +865,25 @@ public class PrkDefPlceInfoController {
 
             return ResponseEntity.ok(response);
 
+        } catch (JsonProcessingException jpe) {
+            log.error("❌ 부설주차장 JSON 파싱 실패", jpe);
+            response.put("success", false);
+            response.put("message", "요청 데이터 형식이 올바르지 않습니다.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         } catch (IllegalArgumentException e) {
             log.error("❌ 입력값 검증 실패: {}", e.getMessage());
             response.put("success", false);
             response.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-
-        } catch (Exception e) {
-            log.error("❌❌❌ 부설주차장 저장 실패", e);
+        } catch (DataAccessException dae) {
+            log.error("❌❌❌ 부설주차장 저장 실패 - DB 오류", dae);
             response.put("success", false);
-            response.put("message", "저장 중 오류가 발생했습니다: " + e.getMessage());
+            response.put("message", "저장 중 서버 오류가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        } catch (RuntimeException re) {
+            log.error("❌❌❌ 부설주차장 저장 실패", re);
+            response.put("success", false);
+            response.put("message", "저장 중 오류가 발생했습니다.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
@@ -963,8 +981,20 @@ public class PrkDefPlceInfoController {
 
             log.info("✅ 지도용 주차장 데이터 조회 완료: {}개", list.size());
 
-        } catch (Exception e) {
-            log.error("❌ 지도용 주차장 데이터 조회 오류", e);
+        } catch (DataAccessException dae) {
+            log.error("❌ 지도용 주차장 데이터 조회 오류 - DB 오류", dae);
+            result.put("success", false);
+            result.put("message", "데이터 조회 중 서버 오류가 발생했습니다.");
+            result.put("list", new ArrayList<>());
+            result.put("totalCount", 0);
+        } catch (IllegalArgumentException iae) {
+            log.error("❌ 지도용 주차장 데이터 조회 오류 - 잘못된 요청", iae);
+            result.put("success", false);
+            result.put("message", iae.getMessage());
+            result.put("list", new ArrayList<>());
+            result.put("totalCount", 0);
+        } catch (RuntimeException re) {
+            log.error("❌ 지도용 주차장 데이터 조회 오류", re);
             result.put("success", false);
             result.put("message", "데이터 조회 중 오류가 발생했습니다.");
             result.put("list", new ArrayList<>());
@@ -1002,10 +1032,18 @@ public class PrkDefPlceInfoController {
 
             log.info("✅ 상태 업데이트 완료: {}건", updatedCount);
 
-        } catch (Exception e) {
-            log.error("❌ 상태 업데이트 실패", e);
+        } catch (DataAccessException dae) {
+            log.error("❌ 상태 업데이트 실패 - DB 오류", dae);
             response.put("success", false);
-            response.put("message", "상태 업데이트 중 오류가 발생했습니다: " + e.getMessage());
+            response.put("message", "상태 업데이트 중 서버 오류가 발생했습니다.");
+        } catch (IllegalArgumentException iae) {
+            log.error("❌ 상태 업데이트 실패 - 잘못된 요청", iae);
+            response.put("success", false);
+            response.put("message", iae.getMessage());
+        } catch (RuntimeException re) {
+            log.error("❌ 상태 업데이트 실패", re);
+            response.put("success", false);
+            response.put("message", "상태 업데이트 중 오류가 발생했습니다.");
         }
 
         return response;
@@ -1029,10 +1067,18 @@ public class PrkDefPlceInfoController {
 
             log.info("✅ 사진 정보 조회 완료: {}개", photos.size());
 
-        } catch (Exception e) {
-            log.error("❌ 사진 정보 조회 실패", e);
+        } catch (DataAccessException dae) {
+            log.error("❌ 사진 정보 조회 실패 - DB 오류", dae);
             result.put("success", false);
-            result.put("message", "사진 정보 조회 중 오류가 발생했습니다: " + e.getMessage());
+            result.put("message", "사진 정보 조회 중 서버 오류가 발생했습니다.");
+        } catch (IllegalArgumentException iae) {
+            log.error("❌ 사진 정보 조회 실패 - 잘못된 요청", iae);
+            result.put("success", false);
+            result.put("message", iae.getMessage());
+        } catch (RuntimeException re) {
+            log.error("❌ 사진 정보 조회 실패", re);
+            result.put("success", false);
+            result.put("message", "사진 정보 조회 중 오류가 발생했습니다.");
         }
 
         return result;
@@ -1082,9 +1128,12 @@ public class PrkDefPlceInfoController {
                     .headers(headers)
                     .body(resource);
 
-        } catch (Exception e) {
-            log.error("❌ 이미지 조회 실패", e);
-            return ResponseEntity.internalServerError().build();
+        } catch (DataAccessException dae) {
+            log.error("❌ 이미지 조회 실패 - DB 오류", dae);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (RuntimeException re) {
+            log.error("❌ 이미지 조회 실패", re);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -1130,9 +1179,12 @@ public class PrkDefPlceInfoController {
                     .headers(headers)
                     .body(resource);
 
-        } catch (Exception e) {
-            log.error("❌ 이용실태 이미지 조회 실패", e);
-            return ResponseEntity.internalServerError().build();
+        } catch (DataAccessException dae) {
+            log.error("❌ 이용실태 이미지 조회 실패 - DB 오류", dae);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (RuntimeException re) {
+            log.error("❌ 이용실태 이미지 조회 실패", re);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 

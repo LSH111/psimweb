@@ -6,6 +6,7 @@ import com.psim.web.file.vo.AttchPicMngInfoVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -77,10 +78,15 @@ public class FileUploadController {
 
             return ResponseEntity.ok(result);
 
-        } catch (Exception e) {
-            log.error("❌ 파일 업로드 실패", e);
+        } catch (DataAccessException dae) {
+            log.error("❌ 파일 업로드 실패 - DB 오류", dae);
             result.put("success", false);
-            result.put("message", "파일 업로드 실패: " + e.getMessage());
+            result.put("message", "파일 업로드 중 서버 오류가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+        } catch (RuntimeException re) {
+            log.error("❌ 파일 업로드 실패", re);
+            result.put("success", false);
+            result.put("message", "파일 업로드 실패");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
         }
     }
@@ -126,10 +132,15 @@ public class FileUploadController {
 
             return ResponseEntity.ok(result);
 
-        } catch (Exception e) {
-            log.error("❌ 복수 파일 업로드 실패", e);
+        } catch (DataAccessException dae) {
+            log.error("❌ 복수 파일 업로드 실패 - DB 오류", dae);
             result.put("success", false);
-            result.put("message", "파일 업로드 실패: " + e.getMessage());
+            result.put("message", "파일 업로드 중 서버 오류가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+        } catch (RuntimeException re) {
+            log.error("❌ 복수 파일 업로드 실패", re);
+            result.put("success", false);
+            result.put("message", "파일 업로드 실패");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
         }
     }
@@ -164,10 +175,15 @@ public class FileUploadController {
 
             return ResponseEntity.ok(result);
 
-        } catch (Exception e) {
-            log.error("❌ 파일 목록 조회 실패", e);
+        } catch (DataAccessException dae) {
+            log.error("❌ 파일 목록 조회 실패 - DB 오류", dae);
             result.put("success", false);
-            result.put("message", "파일 목록 조회 실패: " + e.getMessage());
+            result.put("message", "파일 목록 조회 중 서버 오류가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+        } catch (RuntimeException re) {
+            log.error("❌ 파일 목록 조회 실패", re);
+            result.put("success", false);
+            result.put("message", "파일 목록 조회 실패");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
         }
     }
@@ -201,10 +217,15 @@ public class FileUploadController {
 
             return ResponseEntity.ok(result);
 
-        } catch (Exception e) {
-            log.error("❌ 파일 삭제 실패", e);
+        } catch (DataAccessException dae) {
+            log.error("❌ 파일 삭제 실패 - DB 오류", dae);
             result.put("success", false);
-            result.put("message", "파일 삭제 실패: " + e.getMessage());
+            result.put("message", "파일 삭제 중 서버 오류가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+        } catch (RuntimeException re) {
+            log.error("❌ 파일 삭제 실패", re);
+            result.put("success", false);
+            result.put("message", "파일 삭제 실패");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
         }
     }
@@ -259,8 +280,11 @@ public class FileUploadController {
                     .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + fileInfo.getRealFileNm() + "\"")
                     .body(resource);
 
-        } catch (Exception e) {
-            log.error("❌ 이미지 미리보기 실패", e);
+        } catch (DataAccessException dae) {
+            log.error("❌ 이미지 미리보기 실패 - DB 오류", dae);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (RuntimeException re) {
+            log.error("❌ 이미지 미리보기 실패", re);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

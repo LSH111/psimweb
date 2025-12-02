@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
@@ -34,8 +35,11 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
             List<ParkingListVO> result = prkDefPlceInfoMapper.selectParkingList(params);
             log.info("✅ 주차장 목록 조회 완료: {}건", result.size());
             return result;
-        } catch (Exception e) {
-            log.error("❌ 주차장 목록 조회 실패", e);
+        } catch (DataAccessException dae) {
+            log.error("❌ 주차장 목록 조회 실패 - DB 오류", dae);
+            return Collections.emptyList();
+        } catch (RuntimeException re) {
+            log.error("❌ 주차장 목록 조회 실패", re);
             return Collections.emptyList();
         }
     }
@@ -45,8 +49,11 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
         try {
             log.info("지도용 주차장 목록 조회");
             return prkDefPlceInfoMapper.selectParkingListForMap(params);
-        } catch (Exception e) {
-            log.error("❌ 지도용 목록 조회 실패", e);
+        } catch (DataAccessException dae) {
+            log.error("❌ 지도용 목록 조회 실패 - DB 오류", dae);
+            return Collections.emptyList();
+        } catch (RuntimeException re) {
+            log.error("❌ 지도용 목록 조회 실패", re);
             return Collections.emptyList();
         }
     }
@@ -59,8 +66,11 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
         try {
             log.info("노상주차장 상세 조회: {} / {}", prkPlceManageNo, prkPlceInfoSn);
             return prkDefPlceInfoMapper.selectOnstreetParkingDetail(prkPlceManageNo, prkPlceInfoSn);
-        } catch (Exception e) {
-            log.error("❌ 노상주차장 조회 실패", e);
+        } catch (DataAccessException dae) {
+            log.error("❌ 노상주차장 조회 실패 - DB 오류", dae);
+            return null;
+        } catch (RuntimeException re) {
+            log.error("❌ 노상주차장 조회 실패", re);
             return null;
         }
     }
@@ -71,8 +81,11 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
         try {
             log.info("노외주차장 상세 조회: {} / {}", prkPlceManageNo, prkPlceInfoSn);
             return prkDefPlceInfoMapper.selectOffstreetParkingDetail(prkPlceManageNo, prkPlceInfoSn);
-        } catch (Exception e) {
-            log.error("❌ 노외주차장 조회 실패", e);
+        } catch (DataAccessException dae) {
+            log.error("❌ 노외주차장 조회 실패 - DB 오류", dae);
+            return null;
+        } catch (RuntimeException re) {
+            log.error("❌ 노외주차장 조회 실패", re);
             return null;
         }
     }
@@ -83,8 +96,11 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
         try {
             log.info("부설주차장 상세 조회: {} / {}", prkPlceManageNo, prkPlceInfoSn);
             return prkDefPlceInfoMapper.selectBuildParkingDetail(prkPlceManageNo, prkPlceInfoSn);
-        } catch (Exception e) {
-            log.error("❌ 부설주차장 조회 실패", e);
+        } catch (DataAccessException dae) {
+            log.error("❌ 부설주차장 조회 실패 - DB 오류", dae);
+            return null;
+        } catch (RuntimeException re) {
+            log.error("❌ 부설주차장 조회 실패", re);
             return null;
         }
     }
@@ -131,7 +147,7 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
             try {
                 manageNo = prkDefPlceInfoMapper.generateParkingManageNo(zipCode, prkplceSe, operMbyCd, prkPlceType);
                 log.info("📤 DB 함수 반환값: [{}]", manageNo);
-            } catch (Exception dbException) {
+            } catch (DataAccessException dbException) {
                 log.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
                 log.error("❌❌❌ DB 함수 호출 중 예외 발생 ❌❌❌");
                 log.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -139,7 +155,6 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
                 log.error("예외 메시지: {}", dbException.getMessage());
                 log.error("상세 스택:", dbException);
 
-                // 🔥 SQL 관련 예외 정보 추출
                 Throwable cause = dbException.getCause();
                 while (cause != null) {
                     log.error("  └─ Caused by: {} - {}", cause.getClass().getName(), cause.getMessage());
@@ -162,11 +177,11 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
         } catch (IllegalArgumentException e) {
             log.error("❌ 파라미터 검증 실패: {}", e.getMessage());
             throw new RuntimeException("주차장 관리번호 생성 실패: " + e.getMessage(), e);
+        } catch (DataAccessException dae) {
+            log.error("❌ 주차장 관리번호 생성 중 DB 오류", dae);
+            throw new RuntimeException("주차장 관리번호 생성 실패: DB 오류", dae);
         } catch (RuntimeException e) {
             throw e;
-        } catch (Exception e) {
-            log.error("❌ 예상치 못한 예외 발생", e);
-            throw new RuntimeException("주차장 관리번호 생성 실패: " + e.getMessage(), e);
         }
     }
 
@@ -374,21 +389,16 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
 
             log.info("🎉🎉🎉 노상주차장 4단계 INSERT 모두 성공");
 
-        } catch (Exception e) {
+        } catch (DataAccessException dae) {
+            log.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            log.error("❌❌❌ 노상주차장 INSERT 실패 - DB 오류");
+            log.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            throw new RuntimeException("노상주차장 등록 실패: DB 오류", dae);
+        } catch (RuntimeException re) {
             log.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
             log.error("❌❌❌ 노상주차장 INSERT 실패");
             log.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-            log.error("예외 타입: {}", e.getClass().getName());
-            log.error("예외 메시지: {}", e.getMessage());
-            log.error("상세 스택:", e);
-
-            Throwable cause = e.getCause();
-            while (cause != null) {
-                log.error("  └─ Caused by: {} - {}", cause.getClass().getName(), cause.getMessage());
-                cause = cause.getCause();
-            }
-
-            throw new RuntimeException("노상주차장 등록 실패: " + e.getMessage(), e);
+            throw new RuntimeException("노상주차장 등록 실패: " + re.getMessage(), re);
         }
     }
 
@@ -439,21 +449,16 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
 
             log.info("🎉🎉🎉 노외주차장 4단계 INSERT 모두 성공");
 
-        } catch (Exception e) {
+        } catch (DataAccessException dae) {
+            log.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            log.error("❌❌❌ 노외주차장 INSERT 실패 - DB 오류");
+            log.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            throw new RuntimeException("노외주차장 등록 실패: DB 오류", dae);
+        } catch (RuntimeException re) {
             log.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
             log.error("❌❌❌ 노외주차장 INSERT 실패");
             log.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-            log.error("예외 타입: {}", e.getClass().getName());
-            log.error("예외 메시지: {}", e.getMessage());
-            log.error("상세 스택:", e);
-
-            Throwable cause = e.getCause();
-            while (cause != null) {
-                log.error("  └─ Caused by: {} - {}", cause.getClass().getName(), cause.getMessage());
-                cause = cause.getCause();
-            }
-
-            throw new RuntimeException("노외주차장 등록 실패: " + e.getMessage(), e);
+            throw new RuntimeException("노외주차장 등록 실패: " + re.getMessage(), re);
         }
     }
 
@@ -502,9 +507,12 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
             log.info("🎉🎉🎉 부설주차장 4단계 INSERT 모두 성공 - prkPlceManageNo={}, prkPlceInfoSn={}",
                     vo.getPrkPlceManageNo(), vo.getPrkPlceInfoSn());
 
-        } catch (Exception e) {
-            log.error("❌ 부설주차장 INSERT 실패", e);
-            throw new RuntimeException("부설주차장 등록 실패", e);
+        } catch (DataAccessException dae) {
+            log.error("❌ 부설주차장 INSERT 실패 - DB 오류", dae);
+            throw new RuntimeException("부설주차장 등록 실패: DB 오류", dae);
+        } catch (RuntimeException re) {
+            log.error("❌ 부설주차장 INSERT 실패", re);
+            throw new RuntimeException("부설주차장 등록 실패", re);
         }
     }
 
@@ -526,9 +534,12 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
             prkDefPlceInfoMapper.updateBizPerPrklotPrgsSts(parkingData);
 
             log.info("✅ 노상주차장 UPDATE 완료");
-        } catch (Exception e) {
-            log.error("❌ 노상주차장 UPDATE 실패", e);
-            throw new RuntimeException("노상주차장 수정 실패", e);
+        } catch (DataAccessException dae) {
+            log.error("❌ 노상주차장 UPDATE 실패 - DB 오류", dae);
+            throw new RuntimeException("노상주차장 수정 실패: DB 오류", dae);
+        } catch (RuntimeException re) {
+            log.error("❌ 노상주차장 UPDATE 실패", re);
+            throw new RuntimeException("노상주차장 수정 실패", re);
         }
     }
 
@@ -547,9 +558,12 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
             prkDefPlceInfoMapper.updateOffstrPrklotOperInfo(parkingData);
 
             log.info("✅ 노외주차장 UPDATE 완료");
-        } catch (Exception e) {
-            log.error("❌ 노외주차장 UPDATE 실패", e);
-            throw new RuntimeException("노외주차장 수정 실패", e);
+        } catch (DataAccessException dae) {
+            log.error("❌ 노외주차장 UPDATE 실패 - DB 오류", dae);
+            throw new RuntimeException("노외주차장 수정 실패: DB 오류", dae);
+        } catch (RuntimeException re) {
+            log.error("❌ 노외주차장 UPDATE 실패", re);
+            throw new RuntimeException("노외주차장 수정 실패", re);
         }
     }
 
@@ -569,9 +583,12 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
             prkDefPlceInfoMapper.updateBizPerPrklotPrgsSts(parkingData);
 
             log.info("✅ 부설주차장 UPDATE 완료");
-        } catch (Exception e) {
-            log.error("❌ 부설주차장 UPDATE 실패", e);
-            throw new RuntimeException("부설주차장 수정 실패", e);
+        } catch (DataAccessException dae) {
+            log.error("❌ 부설주차장 UPDATE 실패 - DB 오류", dae);
+            throw new RuntimeException("부설주차장 수정 실패: DB 오류", dae);
+        } catch (RuntimeException re) {
+            log.error("❌ 부설주차장 UPDATE 실패", re);
+            throw new RuntimeException("부설주차장 수정 실패", re);
         }
     }
 
@@ -592,9 +609,12 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
             int count = prkDefPlceInfoMapper.updateStatusToPending(params);
             log.info("✅ 상태 변경 완료: {}건", count);
             return count;
-        } catch (Exception e) {
-            log.error("❌ 상태 변경 실패", e);
-            throw new RuntimeException("상태 변경 실패", e);
+        } catch (DataAccessException dae) {
+            log.error("❌ 상태 변경 실패 - DB 오류", dae);
+            throw new RuntimeException("상태 변경 실패: DB 오류", dae);
+        } catch (RuntimeException re) {
+            log.error("❌ 상태 변경 실패", re);
+            throw new RuntimeException("상태 변경 실패", re);
         }
     }
 }

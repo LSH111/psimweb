@@ -77,7 +77,10 @@ public class FileSystemPhotoStorage implements PhotoStorage {
                 return null;
             }
             return resource;
-        } catch (Exception e) {
+        } catch (java.net.MalformedURLException e) {
+            log.warn("⚠️ 파일 경로 오류: {}/{}", relativePath, fileName, e);
+            return null;
+        } catch (RuntimeException e) {
             log.warn("⚠️ 파일 로드 실패: {}/{}", relativePath, fileName, e);
             return null;
         }
