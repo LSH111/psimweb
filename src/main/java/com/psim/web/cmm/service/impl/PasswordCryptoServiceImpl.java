@@ -4,7 +4,6 @@ import com.psim.web.cmm.service.PasswordCryptoService;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
 import java.security.MessageDigest;
 import java.util.Base64;
 
@@ -20,7 +19,7 @@ public class PasswordCryptoServiceImpl implements PasswordCryptoService {
             byte[] digest = md.digest(plainPassword.getBytes(StandardCharsets.UTF_8));
             // Base64 인코딩으로 변경
             return Base64.getEncoder().encodeToString(digest);
-        } catch (NoSuchAlgorithmException e) {
+        } catch (Exception e) {
             throw new IllegalStateException("SHA-256 해시 생성 실패", e);
         }
     }

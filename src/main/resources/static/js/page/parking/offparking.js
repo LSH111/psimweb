@@ -3444,13 +3444,13 @@ async function doSave() {
         const mainPhotoLib = document.getElementById('f_photo_lib');
         const mainPhotoCam = document.getElementById('f_photo_cam');
 
-        if (mainPhotoLib && mainPhotoLib.files && mainPhotoLib.files.length > 0) {
-            formData.append('mainPhoto', mainPhotoLib.files[0]);
-            appendUploadedFiles('#uploadedFileList', mainPhotoLib.files);
-        } else if (mainPhotoCam && mainPhotoCam.files && mainPhotoCam.files.length > 0) {
-            formData.append('mainPhoto', mainPhotoCam.files[0]);
-            appendUploadedFiles('#uploadedFileList', mainPhotoCam.files);
-        }
+    if (mainPhotoLib && mainPhotoLib.files && mainPhotoLib.files.length > 0) {
+        formData.append('mainPhoto', mainPhotoLib.files[0]);
+        appendUploadedFiles('#uploadedFileList', mainPhotoLib.files);
+    } else if (mainPhotoCam && mainPhotoCam.files && mainPhotoCam.files.length > 0) {
+        formData.append('mainPhoto', mainPhotoCam.files[0]);
+        appendUploadedFiles('#uploadedFileList', mainPhotoCam.files);
+    }
 
         // 표지판, 발권기, 차단기, 출차알람, 입구 사진도 동일하게 추가
         const photoFiles = [
@@ -3528,7 +3528,7 @@ function handlePostSave(isNew) {
             }
             window.opener.focus();
             window.close();
-
+            return;
         }
     } catch (e) {
         console.warn('부모 창 제어 중 오류:', e);
@@ -3657,7 +3657,6 @@ function renderUploadedList(photos) {
         list.appendChild(li);
     });
 }
-
 // 보조: 전역에 확실히 노출
 window.renderUploadedList = renderUploadedList;
 

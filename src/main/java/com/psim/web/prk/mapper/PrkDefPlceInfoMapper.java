@@ -32,8 +32,6 @@ public interface PrkDefPlceInfoMapper {
                                    @Param("operMbyCd") String operMbyCd,
                                    @Param("prkPlceType") String prkPlceType);
 
-    int countManageNo(@Param("prkPlceManageNo") String prkPlceManageNo);
-
     // 🔥 추가: 주차장정보일련번호 생성
     Integer generateParkingInfoSn(@Param("prkPlceManageNo") String prkPlceManageNo);
 

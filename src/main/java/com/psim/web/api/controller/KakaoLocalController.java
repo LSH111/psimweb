@@ -1,7 +1,6 @@
 package com.psim.web.api.controller;
 
 import com.psim.integration.geocoding.GeocodingClient;
-import com.psim.integration.geocoding.GeocodingException;
 import com.psim.integration.geocoding.model.GeoAddress;
 import com.psim.integration.geocoding.model.GeoCoordinate;
 import com.psim.integration.geocoding.model.GeoRegion;
@@ -52,15 +51,10 @@ public class KakaoLocalController {
             result.put("zoneNo", address.getZoneNo());
             return ResponseEntity.ok(result);
 
-        } catch (GeocodingException ge) {
-            log.error("좌표->주소 변환 에러", ge);
+        } catch (Exception e) {
+            log.error("좌표->주소 변환 에러", e);
             result.put("success", false);
-            result.put("message", ge.getMessage());
-            return ResponseEntity.status(500).body(result);
-        } catch (RuntimeException re) {
-            log.error("좌표->주소 변환 중 알 수 없는 오류", re);
-            result.put("success", false);
-            result.put("message", "주소 변환 중 오류가 발생했습니다.");
+            result.put("message", e.getMessage());
             return ResponseEntity.status(500).body(result);
         }
     }
@@ -71,9 +65,9 @@ public class KakaoLocalController {
      */
     @GetMapping("/address2coord")
     public ResponseEntity<Map<String, Object>> address2Coord(@RequestParam String address) {
-
+        
         Map<String, Object> result = new HashMap<>();
-
+        
         try {
             GeoCoordinate coordinate = geocodingClient.geocodeAddress(address)
                     .orElse(null);
@@ -89,16 +83,11 @@ public class KakaoLocalController {
             result.put("longitude", coordinate.getLongitude());
             result.put("latitude", coordinate.getLatitude());
             return ResponseEntity.ok(result);
-
-        } catch (GeocodingException ge) {
-            log.error("주소->좌표 변환 에러", ge);
+            
+        } catch (Exception e) {
+            log.error("주소->좌표 변환 에러", e);
             result.put("success", false);
-            result.put("message", ge.getMessage());
-            return ResponseEntity.status(500).body(result);
-        } catch (RuntimeException re) {
-            log.error("주소->좌표 변환 중 알 수 없는 오류", re);
-            result.put("success", false);
-            result.put("message", "좌표 변환 중 오류가 발생했습니다.");
+            result.put("message", e.getMessage());
             return ResponseEntity.status(500).body(result);
         }
     }
@@ -135,15 +124,10 @@ public class KakaoLocalController {
             result.put("message", "행정구역을 찾을 수 없습니다.");
             return ResponseEntity.ok(result);
 
-        } catch (GeocodingException ge) {
-            log.error("좌표->행정구역 변환 에러", ge);
+        } catch (Exception e) {
+            log.error("좌표->행정구역 변환 에러", e);
             result.put("success", false);
-            result.put("message", ge.getMessage());
-            return ResponseEntity.status(500).body(result);
-        } catch (RuntimeException re) {
-            log.error("좌표->행정구역 변환 중 알 수 없는 오류", re);
-            result.put("success", false);
-            result.put("message", "행정구역 변환 중 오류가 발생했습니다.");
+            result.put("message", e.getMessage());
             return ResponseEntity.status(500).body(result);
         }
     }

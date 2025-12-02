@@ -7,7 +7,6 @@ import com.psim.web.prk.service.PrkUsageStatusService;
 import com.psim.web.prk.vo.PrkUsageStatusVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -95,16 +94,8 @@ public class PrkUsageStatusController {
             result.put("page", vo.getPage());
             result.put("pageSize", vo.getPageSize());
 
-        } catch (DataAccessException dae) {
-            log.error("❌ 주차이용실태 목록 조회 DB 오류", dae);
-            result.put("success", false);
-            result.put("message", "목록 조회 중 서버 오류가 발생했습니다.");
-        } catch (IllegalArgumentException iae) {
-            log.error("❌ 주차이용실태 목록 조회 파라미터 오류", iae);
-            result.put("success", false);
-            result.put("message", iae.getMessage());
-        } catch (RuntimeException re) {
-            log.error("❌ 주차이용실태 목록 조회 오류", re);
+        } catch (Exception e) {
+            log.error("❌ 주차이용실태 목록 조회 오류", e);
             result.put("success", false);
             result.put("message", "목록 조회 중 오류가 발생했습니다.");
         }
@@ -126,12 +117,8 @@ public class PrkUsageStatusController {
             result.put("success", true);
             result.put("data", data);
 
-        } catch (DataAccessException dae) {
-            log.error("주차이용실태 상세 조회 DB 오류", dae);
-            result.put("success", false);
-            result.put("message", "상세 조회 중 서버 오류가 발생했습니다.");
-        } catch (RuntimeException re) {
-            log.error("주차이용실태 상세 조회 오류", re);
+        } catch (Exception e) {
+            log.error("주차이용실태 상세 조회 오류", e);
             result.put("success", false);
             result.put("message", "상세 조회 중 오류가 발생했습니다.");
         }
@@ -158,12 +145,8 @@ public class PrkUsageStatusController {
             result.put("files", fileList);
             result.put("count", fileList != null ? fileList.size() : 0);
 
-        } catch (DataAccessException dae) {
-            log.error("❌ 첨부파일 목록 조회 DB 오류", dae);
-            result.put("success", false);
-            result.put("message", "첨부파일 목록 조회 중 서버 오류가 발생했습니다.");
-        } catch (RuntimeException re) {
-            log.error("❌ 첨부파일 목록 조회 오류", re);
+        } catch (Exception e) {
+            log.error("❌ 첨부파일 목록 조회 오류", e);
             result.put("success", false);
             result.put("message", "첨부파일 목록 조회 중 오류가 발생했습니다.");
         }
@@ -253,18 +236,10 @@ public class PrkUsageStatusController {
                 result.put("message", "저장에 실패했습니다.");
             }
 
-        } catch (DataAccessException dae) {
-            log.error("❌ 저장 오류 - DB", dae);
+        } catch (Exception e) {
+            log.error("❌ 저장 오류", e);
             result.put("success", false);
-            result.put("message", "저장 중 서버 오류가 발생했습니다.");
-        } catch (IllegalArgumentException iae) {
-            log.error("❌ 저장 오류 - 잘못된 입력", iae);
-            result.put("success", false);
-            result.put("message", iae.getMessage());
-        } catch (RuntimeException re) {
-            log.error("❌ 저장 오류", re);
-            result.put("success", false);
-            result.put("message", "저장 중 오류가 발생했습니다.");
+            result.put("message", "저장 중 오류가 발생했습니다: " + e.getMessage());
         }
 
         return result;
@@ -284,12 +259,8 @@ public class PrkUsageStatusController {
             result.put("success", cnt > 0);
             result.put("message", cnt > 0 ? "삭제되었습니다." : "삭제에 실패했습니다.");
 
-        } catch (DataAccessException dae) {
-            log.error("주차이용실태 삭제 DB 오류", dae);
-            result.put("success", false);
-            result.put("message", "삭제 중 서버 오류가 발생했습니다.");
-        } catch (RuntimeException re) {
-            log.error("주차이용실태 삭제 오류", re);
+        } catch (Exception e) {
+            log.error("주차이용실태 삭제 오류", e);
             result.put("success", false);
             result.put("message", "삭제 중 오류가 발생했습니다.");
         }

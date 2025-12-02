@@ -230,7 +230,7 @@
         sendOtpBtn.disabled = true;
         sendOtpBtn.textContent = '전송 중...';
         try {
-            const resp = (await postForm('login/callCertify', {'login[phone]': tel})).trim();
+            const resp = (await postForm('<c:url value="/login/callCertify"/>', {'login[phone]': tel})).trim();
             sendOtpBtn.textContent = '인증코드 전송';
             sendOtpBtn.disabled = false;
 
@@ -290,7 +290,7 @@
         otpConfirmBtn.disabled = true;
         otpConfirmBtn.textContent = '확인 중...';
         try {
-            const resp = (await postForm('login/checkCertify', {
+            const resp = (await postForm('<c:url value="/login/checkCertify"/>', {
                 'login[tel]': tel,
                 'login[certify]': code
             })).trim();

@@ -7,7 +7,6 @@ import com.psim.web.cmm.service.PasswordCryptoService;
 import com.psim.web.cmm.vo.CoUserVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.ModelMap;
 
@@ -152,11 +151,8 @@ public class LoginServiceImpl implements LoginService {
             // 실제 발송 가능 시 아래 주석 해제
             // loginMapper.sendSms(param);
             // log.info("📨 sendSms called for phone={}, destInfo={}", usertel, param.get("destInfo"));
-        } catch (DataAccessException dae) {
-            log.error("❌ sendSms DB 실패", dae);
-            return "ERROR-002";
-        } catch (RuntimeException re) {
-            log.error("❌ sendSms 실패", re);
+        } catch (Exception e) {
+            log.error("❌ sendSms failed", e);
             return "ERROR-002";
         }
         // 테스트용: 생성된 코드도 함께 반환(운영 전 발송 미구축 환경에서만 사용)
