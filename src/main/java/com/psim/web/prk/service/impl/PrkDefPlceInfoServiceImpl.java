@@ -311,6 +311,18 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
                 vo.getSidoCd(), vo.getSigunguCd(), vo.getEmdCd(), vo.getLiCd(), vo.getLdongCd());
     }
 
+    private String ensureManageNoUnique(String prkPlceManageNo) {
+        if (prkPlceManageNo == null || prkPlceManageNo.trim().isEmpty()) {
+            throw new IllegalArgumentException("주차장 관리번호가 없습니다.");
+        }
+        String normalized = prkPlceManageNo.trim();
+        int count = prkDefPlceInfoMapper.countManageNo(normalized);
+        if (count > 0) {
+            throw new IllegalArgumentException("이미 등록된 주차장 관리번호입니다.");
+        }
+        return normalized;
+    }
+
     @Override
     @Transactional(
             propagation = Propagation.REQUIRED,
@@ -322,6 +334,7 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
         try {
             ensureOwnCd(vo);
             ensureAdminCodes(vo);
+            vo.setPrkPlceManageNo(ensureManageNoUnique(vo.getPrkPlceManageNo()));
             applyBizPerIdentifiers(vo);
             // 🔥 STEP 0: prkPlceInfoSn 생성
             log.info("🔵 [STEP 0/4] prkPlceInfoSn 생성 시작");
@@ -413,6 +426,7 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
         try {
             ensureOwnCd(vo);
             ensureAdminCodes(vo);
+            vo.setPrkPlceManageNo(ensureManageNoUnique(vo.getPrkPlceManageNo()));
             applyBizPerIdentifiers(vo);
             // 🔥 STEP 0: prkPlceInfoSn 생성
             log.info("🔵 [노외주차장 STEP 0/4] prkPlceInfoSn 생성 시작");
@@ -468,6 +482,7 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
         try {
             ensureOwnCd(vo);
             ensureAdminCodes(vo);
+            vo.setPrkPlceManageNo(ensureManageNoUnique(vo.getPrkPlceManageNo()));
             applyBizPerIdentifiers(vo);
             log.info("🆕 부설주차장 INSERT 시작 - 관리번호: {}", vo.getPrkPlceManageNo());
 

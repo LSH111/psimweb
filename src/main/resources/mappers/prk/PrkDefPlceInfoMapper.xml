@@ -1129,6 +1129,12 @@
                ) AS prk_plce_manage_no
     </select>
 
+    <select id="countManageNo" parameterType="string" resultType="int">
+        SELECT COUNT(1)
+        FROM cpk.tb_prk_def_plce_info
+        WHERE prk_plce_manage_no = #{prkPlceManageNo}
+    </select>
+
     <!-- 🔥 주차장정보일련번호 생성 (FOR UPDATE로 동시성 제어) -->
     <select id="generateParkingInfoSn" parameterType="string" resultType="int">
         SELECT COALESCE(MAX(prk_plce_info_sn), 0) + 1
