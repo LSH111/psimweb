@@ -355,6 +355,37 @@
             background: #eff6ff !important;
         }
 
+        /* 행정구역 배지 */
+        .region-badge {
+            position: absolute !important;
+            top: 20px !important;
+            right: 20px !important;
+            z-index: 12 !important;
+            background: rgba(255,255,255,0.92) !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 10px !important;
+            padding: 10px 14px !important;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.12) !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            color: #1e293b !important;
+            font-weight: 600 !important;
+            font-size: 13px !important;
+        }
+
+        .region-badge .pill {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 4px !important;
+            padding: 4px 8px !important;
+            background: #e0f2fe !important;
+            color: #0369a1 !important;
+            border-radius: 999px !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+        }
+
         /* 모바일 대응 */
         @media (max-width: 768px) {
             body > #map {
@@ -470,6 +501,10 @@
 <input type="hidden" id="loginSigunguCd" value="${loginSigunguCd}">
 <!-- 지도 영역 -->
 <div id="map">
+    <div id="regionBadge" class="region-badge" style="display:none;">
+        <span>행정구역</span>
+        <span class="pill" id="regionText"></span>
+    </div>
     <!-- 접을 수 있는 검색 패널 -->
     <div class="search-panel" id="searchPanel">
         <!-- 헤더 (항상 표시, 클릭하면 접기/펼치기) -->
@@ -554,6 +589,21 @@
         setTimeout(() => {
             resultEl.style.display = 'none';
         }, 5000);
+    }
+
+    function updateRegionBadge(sidoText, sigunguText) {
+        const badge = document.getElementById('regionBadge');
+        const textEl = document.getElementById('regionText');
+        const parts = [];
+        if (sidoText && sidoText !== '시도 선택') parts.push(sidoText.trim());
+        if (sigunguText && sigunguText !== '시군구 선택') parts.push(sigunguText.trim());
+
+        if (parts.length === 0) {
+            badge.style.display = 'none';
+            return;
+        }
+        textEl.textContent = parts.join(' ');
+        badge.style.display = 'flex';
     }
 
     // 좌표 유효성 체크
@@ -653,6 +703,7 @@
 
         const sidoText = sidoSelect.options[sidoSelect.selectedIndex]?.text || '';
         const sigunguText = sigunguSelect.options[sigunguSelect.selectedIndex]?.text || '';
+        updateRegionBadge(sidoText, sigunguText);
 
         console.log('🔍 검색 조건:', {
             sidoCd: sidoCd,
@@ -694,6 +745,7 @@
                 if (searchResult) {
                     searchResult.style.display = 'none';
                 }
+                updateRegionBadge(sidoText, sigunguText);
             } else {
                 displayParkingMarkers([]);
                 displayParkingList([]);
@@ -702,6 +754,8 @@
                 if (sigunguText && sigunguText !== '시군구 선택') {
                     searchCondition += ' ' + sigunguText;
                 }
+
+                updateRegionBadge(sidoText, sigunguText);
 
                 showSearchResult(`${searchCondition}: 검색 결과 없음`, true);
                 showMessage('검색 결과 없음', 'error');
@@ -908,9 +962,12 @@
         if (parking.sidoNm) locationParts.push(parking.sidoNm);
         if (parking.sigunguNm) locationParts.push(parking.sigunguNm);
         const locationDisplay = locationParts.join(' ') || '';
+        const hasKeys = parking.prkPlceManageNo && parking.prkPlceInfoSn;
+        const infoSnParam = parking.prkPlceInfoSn ? ('&prkPlceInfoSn=' + encodeURIComponent(parking.prkPlceInfoSn)) : '';
         const detailUrl = contextPath + '/prk/parkinglist?openDetail=' +
             encodeURIComponent(parking.prkPlceManageNo) +
-            '&type=' + encodeURIComponent(parking.prkPlceType);
+            '&type=' + encodeURIComponent(parking.prkPlceType || '') +
+            infoSnParam;
 
         let content = '<div style="padding:15px;min-width:200px;max-width:300px;">';
         content += '<div style="font-weight:bold;font-size:14px;margin-bottom:8px;color:#1e40af;">';
@@ -931,12 +988,16 @@
         content += '<div style="font-size:12px;color:#666;margin-bottom:8px;">';
         content += parking.dtadd || '주소 정보 없음';
         content += '</div>';
-        content += '<a href="' + detailUrl + '" ';
-        content += 'onclick="openParkingDetail(\'' + parking.prkPlceManageNo + '\', \'' + parking.prkPlceType + '\'); return false;" ';
-        content += 'aria-label="주차장 상세보기" ';
-        content += 'style="display:inline-block;padding:6px 12px;background:#2563eb;color:white;text-decoration:none;border-radius:4px;font-size:12px;cursor:pointer;">';
-        content += '상세보기';
-        content += '</a>';
+        if (hasKeys) {
+            content += '<a href="' + detailUrl + '" ';
+            content += 'onclick="openParkingDetail(\'' + parking.prkPlceManageNo + '\', \'' + parking.prkPlceType + '\', \'' + (parking.prkPlceInfoSn || '') + '\'); return false;" ';
+            content += 'aria-label="주차장 상세보기" ';
+            content += 'style="display:inline-block;padding:6px 12px;background:#2563eb;color:white;text-decoration:none;border-radius:4px;font-size:12px;cursor:pointer;">';
+            content += '상세보기';
+            content += '</a>';
+        } else {
+            content += '<div style="font-size:12px;color:#b91c1c;margin-top:4px;font-weight:600;">상세보기 불가 (관리번호/일련번호 누락)</div>';
+        }
         content += '</div>';
 
         const infowindow = new kakao.maps.InfoWindow({
@@ -948,7 +1009,11 @@
     }
 
     // 주차장 상세보기 함수
-    function openParkingDetail(prkPlceManageNo, prkPlceType) {
+    function openParkingDetail(prkPlceManageNo, prkPlceType, prkPlceInfoSn) {
+        if (!prkPlceManageNo || !prkPlceInfoSn) {
+            showMessage('관리번호/정보일련번호가 없어 상세를 열 수 없습니다.', 'error');
+            return;
+        }
         // 🔥 현재 지도 상태 저장
         sessionStorage.setItem('parkingMapReturn', 'true');
         sessionStorage.setItem('parkingMapCenter', JSON.stringify({
@@ -963,8 +1028,10 @@
         sessionStorage.setItem('parkingMapSido', sidoCd);
         sessionStorage.setItem('parkingMapSigungu', sigunguCd);
 
+        const infoSnParam = prkPlceInfoSn ? ('&prkPlceInfoSn=' + encodeURIComponent(prkPlceInfoSn)) : '';
         const url = contextPath + '/prk/parkinglist?openDetail=' + encodeURIComponent(prkPlceManageNo) +
-            '&type=' + encodeURIComponent(prkPlceType);
+            '&type=' + encodeURIComponent(prkPlceType || '') +
+            infoSnParam;
         window.location.href = url;
     }
 

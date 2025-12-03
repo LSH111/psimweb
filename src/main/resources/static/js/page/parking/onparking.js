@@ -82,14 +82,14 @@ function renderUploadedList(photos) {
     if (!list) return;
     list.innerHTML = '';
     (photos || []).forEach(p => {
+        const infoSn = p.prkPlceInfoSn || p.prk_plce_info_sn || p.prkplceinfosn;
+        const imgId = p.prkImgId || p.prk_img_id || p.prkimgid;
+        const seq = p.seqNo || p.seq_no || p.seqno;
+        const name = p.realFileNm || p.real_file_nm || p.realfilenm || p.fileNm || p.file_nm || p.filenm || '파일';
         const li = document.createElement('li');
         li.className = 'uploaded-file';
-        li.dataset.seqNo = p.seqNo || p.seq_no || '';
-        const name = p.realFileNm || p.real_file_nm || p.realfilenm || p.fileNm || p.file_nm || p.filename || p.fileName;
-        li.textContent = name || '파일';
-        const infoSn = p.prkPlceInfoSn || p.prk_plce_info_sn;
-        const imgId = p.prkImgId || p.prk_img_id;
-        const seq = p.seqNo || p.seq_no;
+        li.dataset.seqNo = seq || '';
+        li.textContent = name;
         if (infoSn && imgId && seq != null && typeof ImagePreview?.showWithDelay === 'function') {
             li.addEventListener('mouseenter', (e) => {
                 ImagePreview.showWithDelay(infoSn, imgId, seq, name, e, 300);
@@ -1916,7 +1916,7 @@ const ImagePreview = {
 
         try {
             // 🔥 URL 생성 - 정확한 파라미터 사용
-            const imageUrl = `/prk/photo?prkPlceInfoSn=${prkPlceInfoSn}&prkImgId=${prkImgId}&seqNo=${seqNo}`;
+            const imageUrl = withBase(`/prk/photo?prkPlceInfoSn=${prkPlceInfoSn}&prkImgId=${prkImgId}&seqNo=${seqNo}`);
             img.onload = () => {
                 loadingDiv.style.display = 'none';
                 img.style.display = 'block';

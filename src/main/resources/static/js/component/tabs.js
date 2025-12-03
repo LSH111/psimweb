@@ -52,8 +52,10 @@
       return;
     }
 
-    const tabId = `tab-${rec.manageNo}`;
-    const panelId = `panel-${rec.manageNo}`;
+    const infoSn = rec.prkPlceInfoSn || rec.infoSn;
+    const key = `${rec.manageNo || 'NO_MANAGE'}__${infoSn || ''}`;
+    const tabId = `tab-${key}`;
+    const panelId = `panel-${key}`;
 
     if (document.getElementById(tabId) && document.getElementById(panelId)) {
       activateTop(tabId);
@@ -116,7 +118,10 @@
       return;
     }
 
-    const infoSn = rec.prkPlceInfoSn || rec.infoSn;
+    if (!rec.manageNo || !infoSn) {
+      window.toast && toast('관리번호/정보일련번호가 없어 상세를 열 수 없습니다.');
+      return;
+    }
 
     if ((typeKey === 'on' || typeKey === 'build') && !infoSn) {
       window.toast && toast('상세를 열기 위한 prkPlceInfoSn이 없습니다.');

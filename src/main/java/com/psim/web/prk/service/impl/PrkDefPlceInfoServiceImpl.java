@@ -218,6 +218,21 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
         return candidate.trim();
     }
 
+    private void ensureManageNoUnique(ParkingDetailVO vo) {
+        String manageNo = vo.getPrkPlceManageNo();
+        if (manageNo == null || manageNo.trim().isEmpty()) {
+            throw new IllegalArgumentException("주차장관리번호가 없습니다.");
+        }
+        String normalized = manageNo.trim();
+        vo.setPrkPlceManageNo(normalized);
+
+        int exists = prkDefPlceInfoMapper.countByManageNo(normalized);
+        if (exists > 0) {
+            log.error("❌ 주차장관리번호 중복 감지: {}", normalized);
+            throw new IllegalArgumentException("주차장관리번호가 중복되어 등록할 수 없습니다.");
+        }
+    }
+
     private void applyBizPerIdentifiers(ParkingDetailVO vo) {
         String prkBizMngNo = vo.getPrkBizMngNo();
         if (prkBizMngNo != null && prkBizMngNo.trim().length() > 14) {
@@ -308,6 +323,7 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
             ensureOwnCd(vo);
             ensureAdminCodes(vo);
             applyBizPerIdentifiers(vo);
+            ensureManageNoUnique(vo);
             // 🔥 STEP 0: prkPlceInfoSn 생성
             log.info("🔵 [STEP 0/4] prkPlceInfoSn 생성 시작");
             Integer newSn = prkDefPlceInfoMapper.generateParkingInfoSn(vo.getPrkPlceManageNo());
@@ -404,6 +420,7 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
             ensureOwnCd(vo);
             ensureAdminCodes(vo);
             applyBizPerIdentifiers(vo);
+            ensureManageNoUnique(vo);
             // 🔥 STEP 0: prkPlceInfoSn 생성
             log.info("🔵 [노외주차장 STEP 0/4] prkPlceInfoSn 생성 시작");
             Integer newSn = prkDefPlceInfoMapper.generateParkingInfoSn(vo.getPrkPlceManageNo());
@@ -464,6 +481,7 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
             ensureOwnCd(vo);
             ensureAdminCodes(vo);
             applyBizPerIdentifiers(vo);
+            ensureManageNoUnique(vo);
             log.info("🆕 부설주차장 INSERT 시작 - 관리번호: {}", vo.getPrkPlceManageNo());
 
             // 🔵 STEP 0: prkPlceInfoSn 생성

@@ -3640,12 +3640,12 @@ function renderUploadedList(photos) {
     (photos || []).forEach(p => {
         const li = document.createElement('li');
         li.className = 'uploaded-file';
-        const infoSn = p.prkPlceInfoSn || p.prk_plce_info_sn || document.querySelector('#prkPlceInfoSn')?.value;
+        const infoSn = p.prkPlceInfoSn || p.prk_plce_info_sn || p.prkplceinfosn || document.querySelector('#prkPlceInfoSn')?.value;
         const imgId = p.prkImgId || p.prk_img_id || p.prkimgid;
         const seq = p.seqNo || p.seq_no || p.seqno;
         li.dataset.seqNo = seq ?? '';
-        const name = p.realFileNm || p.real_file_nm || p.realfilenm || p.fileNm || p.file_nm || p.filename || p.fileName;
-        li.textContent = name || '파일';
+        const name = p.realFileNm || p.real_file_nm || p.realfilenm || p.fileNm || p.file_nm || p.filenm || p.filename || p.fileName || '파일';
+        li.textContent = name;
         if (infoSn && imgId && seq != null && typeof ImagePreview?.showWithDelay === 'function') {
             li.addEventListener('mouseenter', (e) => {
                 ImagePreview.showWithDelay(infoSn, imgId, seq, name, e, 300);

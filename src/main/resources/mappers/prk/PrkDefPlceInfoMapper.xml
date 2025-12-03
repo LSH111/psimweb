@@ -40,7 +40,7 @@
     </sql>
 
     <select id="selectParkingList" parameterType="map" resultType="com.psim.web.prk.vo.ParkingListVO">
-        SELECT
+        SELECT DISTINCT
         cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsCd,
         tcl.sido_cd as sidoCd,
         tcl.sido_nm as sidoNm,
@@ -83,6 +83,13 @@
         LEFT JOIN cpk.tb_co_user tcu
         ON tbppi.srvy_id = tcu.user_id
         <include refid="parkingCommonWhere"/>
+    </select>
+
+    <!-- 🔍 주차장관리번호 존재 여부 확인 -->
+    <select id="countByManageNo" parameterType="string" resultType="int">
+        SELECT COUNT(1)
+        FROM cpk.tb_prk_def_plce_info
+        WHERE prk_plce_manage_no = #{prkPlceManageNo}
     </select>
 
     <select id="selectParkingDetail" parameterType="map" resultType="com.psim.web.prk.vo.ParkingListVO">
@@ -1074,7 +1081,7 @@
 
     <!-- 🔥 지도용 주차장 목록 조회 (좌표 포함 + 시도/시군구 필터) -->
     <select id="selectParkingListForMap" parameterType="map" resultType="com.psim.web.prk.vo.ParkingListVO">
-        SELECT
+        SELECT DISTINCT
         cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsCd,
         tcl.sido_cd as sidoCd,
         tcl.sido_nm as sidoNm,

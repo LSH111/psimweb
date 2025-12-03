@@ -104,6 +104,17 @@ public class PrkDefPlceInfoController {
         sb.append("</").append(tag).append(">");
     }
 
+    private String resolveBizManageNo(List<String> userBizList) {
+        if (userBizList == null || userBizList.isEmpty()) {
+            throw new IllegalArgumentException("사업관리번호 정보가 없습니다. 다시 로그인 후 시도해 주세요.");
+        }
+        String first = userBizList.get(0);
+        if (first == null || first.trim().isEmpty()) {
+            throw new IllegalArgumentException("사업관리번호가 비어 있습니다. 관리자에게 문의하세요.");
+        }
+        return first.trim();
+    }
+
     // AJAX로 주차장 목록 데이터 조회 (페이징 제거)
     @GetMapping("/parking-data")
     @ResponseBody
@@ -305,7 +316,7 @@ public class PrkDefPlceInfoController {
                 parkingData.setBizPerPrkMngNo(bizPerPrkMngNo);
                 log.info("✅ 사업별주차관리번호: {}", bizPerPrkMngNo);
 
-                String prkBizMngNo = userBizList.get(0);
+                String prkBizMngNo = resolveBizManageNo(userBizList);
                 parkingData.setPrkBizMngNo(prkBizMngNo);
                 log.info("✅ 사업관리번호: {}", prkBizMngNo);
 
@@ -524,7 +535,7 @@ public class PrkDefPlceInfoController {
                 parkingData.setBizPerPrkMngNo(bizPerPrkMngNo);
                 log.info("✅ 사업별주차관리번호: {}", bizPerPrkMngNo);
 
-                String prkBizMngNo = userBizList.get(0);
+                String prkBizMngNo = resolveBizManageNo(userBizList);
                 parkingData.setPrkBizMngNo(prkBizMngNo);
                 log.info("✅ 사업관리번호: {}", prkBizMngNo);
 
@@ -763,7 +774,7 @@ public class PrkDefPlceInfoController {
                 log.info("✅ 사업별주차관리번호: {}", bizPerPrkMngNo);
 
                 // 4. 사업관리번호 (세션에서 1건 사용)
-                String prkBizMngNo = userBizList.get(0);
+                String prkBizMngNo = resolveBizManageNo(userBizList);
                 parkingData.setPrkBizMngNo(prkBizMngNo);
                 log.info("✅ 사업관리번호: {}", prkBizMngNo);
 
@@ -1059,9 +1070,12 @@ public class PrkDefPlceInfoController {
                 return ResponseEntity.notFound().build();
             }
 
-            // 🔥 파일 경로에서 실제 파일 읽기
-            String relativePath = (String) photoInfo.get("filepath");
-            String storedFileName = (String) photoInfo.get("filename");
+            // 🔥 파일 경로에서 실제 파일 읽기 (키 케이스 다양성 대응)
+            String relativePath = (String) photoInfo.get("filePath");
+            if (relativePath == null) relativePath = (String) photoInfo.get("filepath");
+            String storedFileName = (String) photoInfo.get("fileName");
+            if (storedFileName == null) storedFileName = (String) photoInfo.get("filename");
+            if (storedFileName == null) storedFileName = (String) photoInfo.get("filenm");
             Resource resource = photoStorage.loadAsResource(relativePath, storedFileName);
 
             if (resource == null) {
@@ -1071,6 +1085,8 @@ public class PrkDefPlceInfoController {
 
             String contentType = (String) photoInfo.get("contentType");
             String displayFileName = (String) photoInfo.get("fileName");
+            if (displayFileName == null) displayFileName = (String) photoInfo.get("filename");
+            if (displayFileName == null) displayFileName = (String) photoInfo.get("realFileNm");
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.parseMediaType(contentType));

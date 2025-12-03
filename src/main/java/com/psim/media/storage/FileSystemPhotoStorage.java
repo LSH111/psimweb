@@ -71,9 +71,14 @@ public class FileSystemPhotoStorage implements PhotoStorage {
     @Override
     public Resource loadAsResource(String relativePath, String fileName) {
         try {
+            if (relativePath == null || fileName == null) {
+                log.warn("⚠️ loadAsResource 호출 시 경로/파일명이 없습니다. relativePath={}, fileName={}", relativePath, fileName);
+                return null;
+            }
             Path path = Paths.get(uploadBasePath, relativePath, fileName);
             Resource resource = new UrlResource(path.toUri());
             if (!resource.exists() || !resource.isReadable()) {
+                log.warn("⚠️ 파일을 찾을 수 없거나 읽을 수 없습니다: {}", path);
                 return null;
             }
             return resource;

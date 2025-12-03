@@ -269,9 +269,7 @@ async function loadDataFromServer() {
         // 🔥 디버깅 로그 추가
 
         if (data.success !== false) {
-            DATA = (data.list || []).map((item, index) => {
-                // 🔥 각 항목 로그 출력
-
+            const mapped = (data.list || []).map((item, index) => {
                 // 🔥 prkPlceInfoSn이 없는 경우 경고
                 if (!item.prkPlceInfoSn) {
                     console.warn(`⚠️ [${index}] ${item.prkplceNm}에 prkPlceInfoSn이 없습니다!`);
@@ -292,6 +290,14 @@ async function loadDataFromServer() {
                 };
             });
 
+            const missingManageNo = mapped.filter(item => !item.manageNo);
+            if (missingManageNo.length > 0) {
+                console.warn(`⚠️ 주차장관리번호가 없는 항목 ${missingManageNo.length}건을 목록에서 제외합니다.`);
+                toast(`관리번호 없는 ${missingManageNo.length}건을 제외하고 표시합니다.`);
+            }
+
+            DATA = mapped.filter(item => !!item.manageNo);
+
             filtered = [...DATA];
 
             // 🔥 prkPlceInfoSn이 null인 항목 카운트
@@ -302,9 +308,7 @@ async function loadDataFromServer() {
             } else {
             }
 
-            if (data.totalCount !== undefined) {
-                updateSummary(data.totalCount);
-            }
+            updateSummary(DATA.length);
 
             render();
         } else {
@@ -364,7 +368,7 @@ function render() {
         const seq = start + i + 1;
         const checked = selected.has(r.manageNo) ? 'checked' : '';
         return `
-      <tr data-id="${r.manageNo}">
+      <tr data-id="${r.manageNo}" data-info-sn="${r.prkPlceInfoSn ?? ''}">
         <td class="num">${seq}</td>
         <td class="check">
           <input type="checkbox" class="row-check" name="selectedPrk" value="${r.manageNo}" ${checked} aria-label="선택: ${r.nm}" />
@@ -384,7 +388,7 @@ function render() {
     cards.innerHTML = pageRows.map(r => {
         const checked = selected.has(r.manageNo) ? 'checked' : '';
         return `
-      <article class="card parking-item" data-id="${r.manageNo}" aria-label="${r.nm}">
+      <article class="card parking-item" data-id="${r.manageNo}" data-info-sn="${r.prkPlceInfoSn ?? ''}" aria-label="${r.nm}">
         <label class="checkbox-wrap">
           <input
             type="checkbox"
@@ -682,8 +686,15 @@ function bindOpenDetailHandlers(pageRows) {
         const tr = e.target.closest('tr');
         if (!tr) return;
         const id = tr.dataset.id;
-        const rec = pageRows.find(r => r.manageNo === id);
-        if (rec) ensureDetailTabTop(rec);
+        const infoSn = tr.dataset.infoSn;
+        const rec = pageRows.find(r => r.manageNo === id && String(r.prkPlceInfoSn ?? '') === infoSn);
+        if (rec) {
+            if (!rec.manageNo || !rec.prkPlceInfoSn) {
+                toast('관리번호/정보일련번호가 없어 상세를 열 수 없습니다.');
+                return;
+            }
+            ensureDetailTabTop(rec);
+        }
     };
 
     cards.onclick = (e) => {
@@ -691,8 +702,15 @@ function bindOpenDetailHandlers(pageRows) {
         const card = e.target.closest('.card');
         if (!card) return;
         const id = card.dataset.id;
-        const rec = pageRows.find(r => r.manageNo === id);
-        if (rec) ensureDetailTabTop(rec);
+        const infoSn = card.dataset.infoSn;
+        const rec = pageRows.find(r => r.manageNo === id && String(r.prkPlceInfoSn ?? '') === infoSn);
+        if (rec) {
+            if (!rec.manageNo || !rec.prkPlceInfoSn) {
+                toast('관리번호/정보일련번호가 없어 상세를 열 수 없습니다.');
+                return;
+            }
+            ensureDetailTabTop(rec);
+        }
     };
 }
 

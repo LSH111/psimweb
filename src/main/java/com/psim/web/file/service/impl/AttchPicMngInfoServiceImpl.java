@@ -364,6 +364,17 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             String contentType = determineContentType(extNm);
             photoInfo.put("contentType", contentType);
 
+            // 필드명 정규화 (소문자 키만 있는 경우 대비)
+            if (!photoInfo.containsKey("fileName") && photoInfo.containsKey("filename")) {
+                photoInfo.put("fileName", photoInfo.get("filename"));
+            }
+            if (!photoInfo.containsKey("filePath") && photoInfo.containsKey("filepath")) {
+                photoInfo.put("filePath", photoInfo.get("filepath"));
+            }
+            if (!photoInfo.containsKey("realFileNm") && photoInfo.containsKey("real_file_nm")) {
+                photoInfo.put("realFileNm", photoInfo.get("real_file_nm"));
+            }
+
             log.info("✅ 사진 파일 조회 완료 - 파일명: {}", photoInfo.get("fileName"));
             return photoInfo;
 

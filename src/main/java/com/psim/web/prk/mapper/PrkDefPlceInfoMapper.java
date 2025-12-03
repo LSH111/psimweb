@@ -26,6 +26,9 @@ public interface PrkDefPlceInfoMapper {
     ParkingDetailVO selectBuildParkingDetail(@Param("prkPlceManageNo") String prkPlceManageNo,
                                              @Param("prkPlceInfoSn") Long prkPlceInfoSn);
 
+    // 🔍 주차장관리번호 존재 여부 확인
+    int countByManageNo(@Param("prkPlceManageNo") String prkPlceManageNo);
+
     // ========== 신규 등록 ==========
     String generateParkingManageNo(@Param("zipCode") String zipCode,
                                    @Param("prkplceSe") String prkplceSe,

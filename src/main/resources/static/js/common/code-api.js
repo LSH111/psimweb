@@ -79,9 +79,33 @@
 
   async function loadJson(path, basePath = defaultBasePath) {
     const targetUrl = buildUrl(path, basePath);
+
+    // 세션 캐시 (페이지 이동 간 재사용) - TTL 10분
+    const cacheKey = `codeapi:${targetUrl}`;
+    try {
+      const cachedRaw = sessionStorage.getItem(cacheKey);
+      if (cachedRaw) {
+        const cached = JSON.parse(cachedRaw);
+        const age = Date.now() - (cached.ts || 0);
+        if (cached.data && age < 10 * 60 * 1000) { // 10분 유효
+          return cached.data;
+        }
+      }
+    } catch (e) {
+      // 캐시 읽기 실패는 무시
+    }
+
     const res = await fetch(targetUrl);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res.json();
+    const json = await res.json();
+
+    try {
+      sessionStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), data: json }));
+    } catch (e) {
+      // 저장 실패 무시 (용량 초과 등)
+    }
+
+    return json;
   }
 
   async function loadStatusList(basePath) {
