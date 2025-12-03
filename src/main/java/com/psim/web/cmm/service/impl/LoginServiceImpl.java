@@ -149,8 +149,8 @@ public class LoginServiceImpl implements LoginService {
         try {
             log.info("📨 sendSms (TEST MODE) destInfo={}, msg={}", param.get("destInfo"), param.get("msg"));
             // 실제 발송 가능 시 아래 주석 해제
-            // loginMapper.sendSms(param);
-            // log.info("📨 sendSms called for phone={}, destInfo={}", usertel, param.get("destInfo"));
+            loginMapper.sendSms(param);
+            log.info("📨 sendSms called for phone={}, destInfo={}", usertel, param.get("destInfo"));
         } catch (Exception e) {
             log.error("❌ sendSms failed", e);
             return "ERROR-002";

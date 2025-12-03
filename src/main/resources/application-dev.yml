@@ -1,6 +1,6 @@
 server:
   servlet:
-    context-path: /  # 루트 경로 유지
+    context-path: ${SERVER_SERVLET_CONTEXT_PATH:/}  # 기본은 루트, 필요 시 환경변수로 변경
 spring:
   mvc:
     view:

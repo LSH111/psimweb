@@ -90,7 +90,9 @@ logging:
 server:
   port: ${PORT:8080}
   servlet:
-    context-path: /
+    # 운영/프록시 환경에서 원하는 컨텍스트 경로를 붙일 수 있도록 환경변수로 설정
+    # 예: SERVER_SERVLET_CONTEXT_PATH=/spis
+    context-path: ${SERVER_SERVLET_CONTEXT_PATH:/}
     encoding:
       charset: UTF-8
       enabled: true

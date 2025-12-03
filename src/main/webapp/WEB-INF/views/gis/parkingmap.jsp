@@ -10,7 +10,7 @@
 
     <!-- 외부 보안/확장 프로그램(SES/lockdown) 감지 및 안내 -->
     <script>
-        (function() {
+        (function () {
             const hasSes = !!(window.lockdown || window.ses || window.Compartment);
             const hasMozExtensionScript = Array.from(document.scripts || []).some(s => (s.src || '').startsWith('moz-extension://'));
             if (hasSes || hasMozExtensionScript) {
@@ -210,6 +210,11 @@
             transition: all 0.2s !important;
         }
 
+        .parking-item.disabled {
+            opacity: 0.6 !important;
+            cursor: default !important;
+        }
+
         .parking-item:hover {
             background: #eff6ff !important;
             border-color: #3b82f6 !important;
@@ -263,6 +268,21 @@
             font-size: 11px !important;
             color: #94a3b8 !important;
             line-height: 1.4 !important;
+        }
+
+        .parking-item-info {
+            margin-bottom: 8px !important;
+            padding: 8px 10px !important;
+            border: 1px dashed #cbd5e1 !important;
+            background: #f8fafc !important;
+            color: #475569 !important;
+            border-radius: 6px !important;
+            font-size: 12px !important;
+        }
+
+        .parking-item-location.no-coord {
+            color: #b91c1c !important;
+            font-weight: 600 !important;
         }
 
         .parking-list-empty {
@@ -536,6 +556,14 @@
         }, 5000);
     }
 
+    // 좌표 유효성 체크
+    function hasCoordinates(parking) {
+        if (!parking) return false;
+        const lat = parseFloat(parking.prkPlceLat);
+        const lon = parseFloat(parking.prkPlceLon);
+        return Number.isFinite(lat) && Number.isFinite(lon);
+    }
+
     // 시도 목록 로드 (항상 호출)
     function loadSidoList(defaultSidoCd) {
         const sidoSelect = document.getElementById('searchSido');
@@ -700,14 +728,18 @@
         headerEl.style.display = 'flex';
         countEl.textContent = parkingList.length + '개';
 
-        const validParkings = parkingList.filter(p => p.prkPlceLat && p.prkPlceLon);
+        const validParkings = parkingList.filter(hasCoordinates);
+        const missingCoordsCount = parkingList.length - validParkings.length;
 
-        if (validParkings.length === 0) {
-            itemsContainer.innerHTML = '<div class="parking-list-empty">표시할 수 있는 주차장이 없습니다</div>';
-            return;
+        let infoHtml = '';
+        if (missingCoordsCount > 0) {
+            infoHtml = '<div class="parking-item-info">좌표 정보가 없는 ' + missingCoordsCount + '건은 지도 이동/표시가 불가합니다.</div>';
         }
 
-        itemsContainer.innerHTML = validParkings.map(parking => {
+        itemsContainer.innerHTML = infoHtml + parkingList.map(parking => {
+            const lat = parseFloat(parking.prkPlceLat);
+            const lon = parseFloat(parking.prkPlceLon);
+            const hasCoord = Number.isFinite(lat) && Number.isFinite(lon);
             const locationParts = [];
             if (parking.sidoNm) locationParts.push(parking.sidoNm);
             if (parking.sigunguNm) locationParts.push(parking.sigunguNm);
@@ -717,14 +749,23 @@
                 parking.prkPlceType === '02' ? 'type-02' :
                     parking.prkPlceType === '03' ? 'type-03' : '';
 
-            let html = '<div class="parking-item" onclick="moveToParking(' + parking.prkPlceLat + ', ' + parking.prkPlceLon + ', \'' + escapeHtml(parking.prkplceNm) + '\', \'' + parking.prkPlceManageNo + '\', \'' + parking.prkPlceType + '\')">';
+            const itemClasses = hasCoord ? 'parking-item' : 'parking-item disabled';
+            const onClickAttr = hasCoord
+                ? ' onclick="moveToParking(' + lat + ', ' + lon + ', \'' + escapeHtml(parking.prkplceNm) + '\', \'' + parking.prkPlceManageNo + '\', \'' + parking.prkPlceType + '\')"'
+                : '';
+
+            let html = '<div class="' + itemClasses + '"' + onClickAttr + '>';
             html += '<div class="parking-item-name">';
             html += escapeHtml(parking.prkplceNm);
             html += '<span class="parking-item-type ' + typeClass + '">' + getParkingTypeText(parking.prkPlceType) + '</span>';
             html += '</div>';
 
             if (locationDisplay) {
-                html += '<div class="parking-item-location">📍 ' + escapeHtml(locationDisplay) + '</div>';
+                const locClass = hasCoord ? 'parking-item-location' : 'parking-item-location no-coord';
+                const suffix = hasCoord ? '' : ' (좌표 없음)';
+                html += '<div class="' + locClass + '">📍 ' + escapeHtml(locationDisplay) + suffix + '</div>';
+            } else if (!hasCoord) {
+                html += '<div class="parking-item-location no-coord">좌표 정보 없음 (지도 표시 불가)</div>';
             }
 
             html += '<div class="parking-item-address">' + escapeHtml(parking.dtadd || '주소 정보 없음') + '</div>';
@@ -736,14 +777,21 @@
 
     // 주차장으로 이동
     function moveToParking(lat, lng, name, manageNo, type) {
-        const position = new kakao.maps.LatLng(parseFloat(lat), parseFloat(lng));
+        const latNum = parseFloat(lat);
+        const lngNum = parseFloat(lng);
+        if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) {
+            showMessage('이 주차장은 좌표 정보가 없어 지도 이동이 불가합니다.', 'error');
+            return;
+        }
+
+        const position = new kakao.maps.LatLng(latNum, lngNum);
         map.setCenter(position);
         map.setLevel(3);
 
         const targetMarker = parkingMarkers.find(marker => {
             const markerPos = marker.getPosition();
-            return Math.abs(markerPos.getLat() - lat) < 0.00001 &&
-                Math.abs(markerPos.getLng() - lng) < 0.00001;
+            return Math.abs(markerPos.getLat() - latNum) < 0.00001 &&
+                Math.abs(markerPos.getLng() - lngNum) < 0.00001;
         });
 
         if (targetMarker) {
@@ -933,7 +981,13 @@
         parkingMarkers.forEach(marker => marker.setMap(null));
         parkingMarkers = [];
 
-        const validParkings = parkingList.filter(p => p.prkPlceLat && p.prkPlceLon);
+        const validParkings = (parkingList || [])
+            .map(p => ({
+                ...p,
+                lat: parseFloat(p.prkPlceLat),
+                lng: parseFloat(p.prkPlceLon)
+            }))
+            .filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lng));
 
         console.log('📍 유효한 좌표를 가진 주차장:', validParkings.length + '개');
 
@@ -942,18 +996,14 @@
         const bounds = new kakao.maps.LatLngBounds();
 
         validParkings.forEach(parking => {
-            const marker = createParkingMarker({
-                ...parking,
-                lat: parseFloat(parking.prkPlceLat),
-                lng: parseFloat(parking.prkPlceLon)
-            });
+            const marker = createParkingMarker(parking);
 
             marker.setMap(map);
             parkingMarkers.push(marker);
 
             bounds.extend(new kakao.maps.LatLng(
-                parseFloat(parking.prkPlceLat),
-                parseFloat(parking.prkPlceLon)
+                parking.lat,
+                parking.lng
             ));
         });
 
@@ -1069,8 +1119,8 @@
                 const zoomControl = new kakao.maps.ZoomControl();
                 map.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
 
+                map.relayout();
                 console.log('✅ 카카오맵 로드 완료');
-
                 const searchSido = document.getElementById('searchSido');
                 const searchSigungu = document.getElementById('searchSigungu');
                 const regionSearchBtn = document.getElementById('regionSearchBtn');
