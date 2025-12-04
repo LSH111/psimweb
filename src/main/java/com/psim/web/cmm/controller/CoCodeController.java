@@ -1,27 +1,20 @@
-
 package com.psim.web.cmm.controller;
 
 import com.psim.web.cmm.service.CoCodeService;
 import com.psim.web.cmm.vo.CoCodeGroupVO;
 import com.psim.web.cmm.vo.CoCodeVO;
 import com.psim.web.cmm.vo.CoLdongVO;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.psim.web.cmm.service.CoCodeService;
-import com.psim.web.cmm.vo.CoCodeVO;
-
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/cmm/codes")  // 이 라인을 추가해야 합니다
@@ -53,9 +46,12 @@ public class CoCodeController {
             result.put("data", sidoList);
             System.out.println("=== 시도 목록 조회 성공 ===");
 
-        } catch (Exception e) {
+        } catch (DataAccessException dae) {
+            System.err.println("=== 시도 목록 조회 중 DB 오류 ===");
+            result.put("success", false);
+            result.put("message", "시도 목록 조회 중 DB 오류가 발생했습니다.");
+        } catch (RuntimeException e) {
             System.err.println("=== 시도 목록 조회 중 오류 ===");
-            e.printStackTrace();
             result.put("success", false);
             result.put("message", "시도 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
         }
@@ -90,7 +86,6 @@ public class CoCodeController {
 
         } catch (Exception e) {
             System.err.println("=== 시군구 목록 조회 중 오류 ===");
-            e.printStackTrace();
             result.put("success", false);
             result.put("message", "시군구 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
         }
@@ -121,7 +116,6 @@ public class CoCodeController {
 
         } catch (Exception e) {
             System.err.println("=== 읍면동 목록 조회 중 오류 ===");
-            e.printStackTrace();
             result.put("success", false);
             result.put("message", "읍면동 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
         }

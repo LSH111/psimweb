@@ -2540,60 +2540,56 @@ function validateRequiredFields() {
 
 document.addEventListener('DOMContentLoaded', async function () {
 
+    const prkPlceManageNo = document.getElementById('prkPlceManageNo')?.value || p.id;
+    const isNewRecord = !prkPlceManageNo;
+
+    // 이벤트/토글 선적용: 네트워크 실패 시에도 버튼 동작 보장
+    setupMechPrklotOperToggle();
+    setupOperationEntityToggle();
+    setupTimeOperationEvents('weekday');
+    setupTimeOperationEvents('saturday');
+    setupTimeOperationEvents('holiday');
+    setupSignToggle();
+    setupFacilityPhotoToggles();
+    setupEntrancePhotoEvents();
+    setupPreInspectionEvents();
+    setupPedestrianSafetyEvents();
+    setupPeakTimeValidation();
+
+    applyPhoneFormat(document.getElementById('f_management_tel'));
+    bindMechanicalAutoRule();
+    applyManagerAdminAutoRule();
+
+    const btnSave = document.getElementById('btnSave');
+    const btnSaveTop = document.getElementById('btnSaveTop');
+
+    if (btnSave) {
+        btnSave.addEventListener('click', function (e) {
+            e.preventDefault();
+            doSave();
+        });
+    } else {
+        console.error('❌ btnSave 요소를 찾을 수 없습니다!');
+    }
+
+    if (btnSaveTop) {
+        btnSaveTop.addEventListener('click', function (e) {
+            e.preventDefault();
+            doSave();
+        });
+    } else {
+        console.error('❌ btnSaveTop 요소를 찾을 수 없습니다!');
+    }
+
     try {
-        const prkPlceManageNo = document.getElementById('prkPlceManageNo')?.value || p.id;
-        const isNewRecord = !prkPlceManageNo;
         if (serverStatusValue) {
             applyApprovalLock(serverStatusValue);
         }
 
         await RegionCodeLoader.loadProgressStatus();
-
         await RegionCodeLoader.loadSidoList();
-
         RegionCodeLoader.setupEventListeners();
-
         await CodeLoader.applyAllDynamicCodes();
-
-        setupMechPrklotOperToggle();
-        setupOperationEntityToggle();
-        setupTimeOperationEvents('weekday');
-        setupTimeOperationEvents('saturday');
-        setupTimeOperationEvents('holiday');
-        setupSignToggle();
-        setupFacilityPhotoToggles();
-        setupEntrancePhotoEvents();
-        setupPreInspectionEvents();
-        setupPedestrianSafetyEvents();
-        setupPeakTimeValidation();
-
-        // 전화번호 포맷팅 적용
-    applyPhoneFormat(document.getElementById('f_management_tel'));
-
-    // 기계식 주차면수 기반 관리인/관리자 자동 규칙 바인딩
-    bindMechanicalAutoRule();
-    applyManagerAdminAutoRule();
-
-        const btnSave = document.getElementById('btnSave');
-        const btnSaveTop = document.getElementById('btnSaveTop');
-
-        if (btnSave) {
-            btnSave.addEventListener('click', function (e) {
-                e.preventDefault();
-                doSave();
-            });
-        } else {
-            console.error('❌ btnSave 요소를 찾을 수 없습니다!');
-        }
-
-        if (btnSaveTop) {
-            btnSaveTop.addEventListener('click', function (e) {
-                e.preventDefault();
-                doSave();
-            });
-        } else {
-            console.error('❌ btnSaveTop 요소를 찾을 수 없습니다!');
-        }
 
         if (isNewRecord) {
             if (f_status) {
@@ -2602,16 +2598,20 @@ document.addEventListener('DOMContentLoaded', async function () {
         } else {
             await loadParkingDetailFromServer();
             const hiddenInfoSn = document.getElementById('prkPlceInfoSn')?.value || loadedPrkPlceInfoSn;
-        if (hiddenInfoSn) {
-            await reloadParkingPhotos(hiddenInfoSn);
-        }
+            if (hiddenInfoSn) {
+                const section = document.querySelector('[data-section="photo-info"]');
+                if (section) {
+                    section.scrollIntoView({behavior: 'smooth'});
+                }
+            }
         }
 
+        setupApprovalButtons();
 
-    } catch (error) {
-        console.error('❌ 페이지 초기화 중 심각한 오류 발생:', error);
-        alert('페이지 초기화 중 오류가 발생했습니다. 개발자 콘솔을 확인해주세요.');
+    } catch (e) {
+        console.error('❌ 페이지 초기화 중 오류', e);
     }
+
 });
 
 /**
@@ -2747,4 +2747,9 @@ async function reloadParkingPhotos(infoSn) {
     } catch (e) {
         console.warn('⚠️ 파일 목록 재조회 실패:', e);
     }
+}
+
+// 승인/결재 버튼 세팅 (미구현 시 안전한 더미)
+function setupApprovalButtons() {
+    // 필요한 경우 실제 구현을 연결
 }

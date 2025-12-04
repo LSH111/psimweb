@@ -126,7 +126,7 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             Integer prkPlceInfoSn,
             String prkImgId
     ) {
-        return mapper.selectAttchPicMngInfoList(prkPlceInfoSn, prkImgId, null);
+        return mapper.selectAttchPicMngInfoList(prkPlceInfoSn, sanitizeIdentifier(prkImgId), null);
     }
 
     @Override

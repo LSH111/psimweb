@@ -8,8 +8,9 @@
         const serverCtx = ('${pageContext.request.contextPath}' || '').replace(/\/$/, '');
         const locMatch = window.location.pathname.match(/^\/[^/]+/);
         const locCtx = locMatch ? locMatch[0] : '';
-        // 접속 경로와 서버 컨텍스트가 다르면 접속 경로 우선
-        window.contextPath = window.contextPath || (locCtx && locCtx !== '/' && locCtx !== serverCtx ? locCtx : serverCtx);
+        // 접속 경로와 서버 컨텍스트가 다르면 접속 경로 우선, 둘 다 비면 /spis 로 강제
+        const resolved = (locCtx && locCtx !== '/' && locCtx !== serverCtx) ? locCtx : (serverCtx || '/spis');
+        window.contextPath = window.contextPath || resolved;
     })();
 </script>
 <style>
@@ -150,6 +151,7 @@
                 <a href="#" aria-haspopup="true" aria-expanded="false">지도</a>
                 <ul class="sub">
                     <li><a href="<c:url value='/gis/parkingmap'/>">주차장지도</a></li>
+                    <li><a href="<c:url value='/gis/parkingmap_alt'/>">주차장지도(대안)</a></li>
                 </ul>
             </li>
         </ul>

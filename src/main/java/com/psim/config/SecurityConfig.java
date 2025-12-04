@@ -18,7 +18,9 @@ public class SecurityConfig {
             "/", "/login", "/login/**", "/logout", "/error", "/health", "/favicon.ico", "/api/health",
             "/egovCrypto", "/egovCrypto/info", "/.well-known/**",
             // 코드 조회 등 최소 공개 API
-            "/cmm/codes/**"
+            "/cmm/codes/**",
+            // 지도 대안 뷰
+            "/gis/parkingmap_alt"
     };
 
     @Bean
@@ -42,9 +44,9 @@ public class SecurityConfig {
                             .maxAgeInSeconds(31536000);
                     headers.cacheControl();
                     headers.contentSecurityPolicy("default-src 'self'; " +
-                            "img-src 'self' data: blob: https://dapi.kakao.com https://map.kakao.com https://t1.daumcdn.net http://t1.daumcdn.net https://mts.daumcdn.net http://mts.daumcdn.net; " +
-                            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://dapi.kakao.com https://t1.daumcdn.net http://t1.daumcdn.net https://cdn.jsdelivr.net; " +
-                            "connect-src 'self' https://dapi.kakao.com https://t1.daumcdn.net http://t1.daumcdn.net; " +
+                            "img-src 'self' data: blob: https://dapi.kakao.com https://map.kakao.com https://t1.daumcdn.net http://t1.daumcdn.net https://mts.daumcdn.net http://mts.daumcdn.net https://ssl.daumcdn.net https://map.daumcdn.net https://map*.daumcdn.net http://map*.daumcdn.net; " +
+                            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://dapi.kakao.com http://dapi.kakao.com https://t1.daumcdn.net http://t1.daumcdn.net https://cdn.jsdelivr.net; " +
+                            "connect-src 'self' https://dapi.kakao.com http://dapi.kakao.com https://t1.daumcdn.net http://t1.daumcdn.net https://map.kakao.com http://map.kakao.com https://map*.daumcdn.net http://map*.daumcdn.net https://ssl.daumcdn.net; " +
                             "frame-src 'self' https://postcode.map.daum.net http://postcode.map.daum.net; " +
                             "style-src 'self' 'unsafe-inline'");
                 })

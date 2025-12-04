@@ -22,6 +22,16 @@ public interface PrkDefPlceInfoService {
      */
     List<ParkingListVO> getParkingListForMap(Map<String, Object> params);
 
+    /**
+     * 지도용 주차장 목록 건수 조회 (필터 반영)
+     */
+    int countParkingListForMap(Map<String, Object> params);
+
+    /**
+     * 좌표가 있는 전체 주차장 건수
+     */
+    int countParkingListForMapAll();
+
     // ========== 상세 조회 ==========
     /**
      * 노상주차장 상세 조회

@@ -149,11 +149,12 @@ public class FileUploadController {
         Map<String, Object> result = new HashMap<>();
 
         try {
-            log.info("📂 파일 목록 조회: prkPlceInfoSn={}, prkImgId={}", prkPlceInfoSn, prkImgId);
+            String safePrkImgId = sanitize(prkImgId);
+            log.info("📂 파일 목록 조회: prkPlceInfoSn={}, prkImgId={}", prkPlceInfoSn, safePrkImgId);
 
             List<AttchPicMngInfoVO> fileList = attchPicService.getAttchPicMngInfoList(
                     prkPlceInfoSn,
-                    prkImgId
+                    safePrkImgId
             );
 
             result.put("success", true);
@@ -209,6 +210,12 @@ public class FileUploadController {
         }
     }
 
+    // 간단한 입력값 이스케이프(태그/스크립트 제거)
+    private String sanitize(String input) {
+        if (input == null) return null;
+        return input.replaceAll("[<>\"'`;]", "");
+    }
+
     /**
      * 🔥 이미지 파일 조회 (미리보기용)
      * @param cmplSn 단속일련번호
@@ -259,6 +266,12 @@ public class FileUploadController {
                     .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + fileInfo.getRealFileNm() + "\"")
                     .body(resource);
 
+        } catch (org.springframework.dao.DataAccessException dae) {
+            log.error("❌ 이미지 미리보기 DB 실패", dae);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (IllegalArgumentException iae) {
+            log.warn("⚠️ 잘못된 이미지 요청 파라미터", iae);
+            return ResponseEntity.badRequest().build();
         } catch (Exception e) {
             log.error("❌ 이미지 미리보기 실패", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

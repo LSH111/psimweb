@@ -51,6 +51,26 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
         }
     }
 
+    @Override
+    public int countParkingListForMap(Map<String, Object> params) {
+        try {
+            return prkDefPlceInfoMapper.countParkingListForMap(params);
+        } catch (Exception e) {
+            log.error("❌ 지도용 목록 건수 조회 실패", e);
+            return 0;
+        }
+    }
+
+    @Override
+    public int countParkingListForMapAll() {
+        try {
+            return prkDefPlceInfoMapper.countParkingListForMapAll();
+        } catch (Exception e) {
+            log.error("❌ 전체 지도용 건수 조회 실패", e);
+            return 0;
+        }
+    }
+
     // ========== 상세 조회 ==========
 
     @Override

@@ -16,6 +16,10 @@ public interface PrkDefPlceInfoMapper {
 
     List<ParkingListVO> selectParkingListForMap(Map<String, Object> params);
 
+    int countParkingListForMap(Map<String, Object> params);
+
+    int countParkingListForMapAll();
+
     // ========== 상세 조회 ==========
     ParkingDetailVO selectOnstreetParkingDetail(@Param("prkPlceManageNo") String prkPlceManageNo,
                                                 @Param("prkPlceInfoSn") Long prkPlceInfoSn);

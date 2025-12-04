@@ -33,8 +33,24 @@
             <if test="prkNm != null and prkNm != ''">
                 AND tpdpi.prkplce_nm LIKE CONCAT('%', #{prkNm}, '%')
             </if>
+            <if test="keyword != null and keyword != ''">
+                <choose>
+                    <when test="keywordType != null and keywordType == 'addr'">
+                        AND (tpdpi.dtadd LIKE CONCAT('%', #{keyword}, '%'))
+                    </when>
+                    <otherwise>
+                        AND tpdpi.prkplce_nm LIKE CONCAT('%', #{keyword}, '%')
+                    </otherwise>
+                </choose>
+            </if>
             <if test="prkType != null and prkType != ''">
                 AND tpdpi.prk_plce_type = #{prkType}
+            </if>
+            <if test="prkPlceType != null and prkPlceType != ''">
+                AND tpdpi.prk_plce_type = #{prkPlceType}
+            </if>
+            <if test="prgsStsCd != null and prgsStsCd != ''">
+                AND tbppi.prgs_sts_cd = #{prgsStsCd}
             </if>
         </where>
     </sql>
@@ -387,108 +403,108 @@
 
     <!-- 🔥 노외주차장 상세 조회 쿼리 -->
     <select id="selectOffstreetParkingDetail" parameterType="map" resultType="com.psim.web.prk.vo.ParkingDetailVO">
-        SELECT DISTINCT FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsCd
-                      , tbppi.prgs_sts_cd                            as prgsStsRawCd
-                      , tbppi.rejt_rsn                               as rejtRsn
-                      , tpsbi.prk_biz_mng_no                         as prkBizMngNo
-                      , tpdpi.prk_plce_info_sn                       AS prkPlceInfoSn
-                      , tpsbi.biz_nm                                 as bizNm
-                      , tpsbi.biz_yy                                 as bizYy
-                      , tpsbi.biz_exc_st_dt                          as bizExcStDt
-                      , tpsbi.biz_exc_ed_dt                          as bizExcEdDt
-                      , tpdpi.prk_plce_manage_no                     as prkPlceManageNo
-                      , tpdpi.prkplce_nm                             as prkplceNm
-                      , tcl.sido_cd                                  as sidoCd
-                      , tcl.sido_nm                                  as sidoNm
-                      , tcl.sigungu_cd                               as sigunguCd
-                      , tcl.sigungu_nm                               as sigunguNm
-                      , tcl.emd_cd                                   as emdCd
-                      , tcl.lgal_emd_nm                              as lgalEmdNm
-                      , tpdpi.dtadd                                  as dtadd
-                      , tpdpi.prk_plce_lat                           as prkPlceLat
-                      , tpdpi.prk_plce_lon                           as prkPlceLon
-                      , topi.tot_prk_cnt                             as totPrkCnt
-                      , topi.disab_prk_cnt                           as disabPrkCnt
-                      , topi.compact_prk_cnt                         as compactPrkCnt
-                      , topi.eco_prk_cnt                             as ecoPrkCnt
-                      , topi.pregnant_prk_cnt                        as pregnantPrkCnt
-                      , topi.prk_oper_mthd_cd                        as prkOperMthdCd
-                      , topi.oper_mby_cd                             as operMbyCd
-                      , topi.mgr_org                                 as mgrOrg
-                      , topi.mgr_org_tel_no                          as mgrOrgTelNo
-                      , topi.subordn_opertn_cd                       as subordnOpertnCd
-                      , topoi.dynt_dv_cd                             as dyntDvCd
-                      , topoi.wk_zon                                 as wkZon
-                      , topoi.wk_wkdy_oper_tm_cd                     as wkWkdyOperTmCd
-                      , topoi.wk_wkdy_oper_star_tm                   as wkWkdyOperStarTm
-                      , topoi.wk_wkdy_oper_end_tm                    as wkWkdyOperEndTm
-                      , topoi.wk_sat_oper_tm_cd                      as wkSatOperTmCd
-                      , topoi.wk_sat_oper_star_tm                    as wkSatOperStarTm
-                      , topoi.wk_sat_oper_end_tm                     as wkSatOperEndTm
-                      , topoi.wk_hldy_oper_tm_cd                     as wkHldyOperTmCd
-                      , topoi.wk_hldy_oper_star_tm                   as wkHldyOperStarTm
-                      , topoi.wk_hldy_oper_end_tm                    as wkHldyOperEndTm
-                      , topoi.nt_zon                                 as ntZon
-                      , topoi.nt_wkdy_oper_tm_cd                     as ntWkdyOperTmCd
-                      , topoi.nt_wkdy_oper_star_tm                   as ntWkdyOperStarTm
-                      , topoi.nt_wkdy_oper_end_tm                    as ntWkdyOperEndTm
-                      , topoi.nt_sat_oper_tm_cd                      as ntSatOperTmCd
-                      , topoi.nt_sat_oper_star_tm                    as ntSatOperStarTm
-                      , topoi.nt_sat_oper_end_tm                     as ntSatOperEndTm
-                      , topoi.nt_hldy_oper_tm_cd                     as ntHldyOperTmCd
-                      , topoi.nt_hldy_oper_star_tm                   as ntHldyOperStarTm
-                      , topoi.nt_hldy_oper_end_tm                    as ntHldyOperEndTm
-                      , topoi.wk_fee_aply_cd                         as wkFeeAplyCd
-                      , topoi.wk_res_day_fee                         as wkResDayFee
-                      , topoi.wk_res_wk_fee                          as wkResWkFee
-                      , topoi.wk_res_ft_fee                          as wkResFtFee
-                      , topoi.wk_res_nt_fee                          as wkResNtFee
-                      , topoi.wk_gn_frst_30m_fee                     as wkGnFrst30mFee
-                      , topoi.wk_gn_int_10m_fee                      as wkGnInt10mFee
-                      , topoi.wk_gn_1h_fee                           as wkGn1hFee
-                      , topoi.wk_gn_day_fee                          as wkGnDayFee
-                      , topoi.wk_fee_mthd_cd                         as wkFeeMthdCd
-                      , topoi.wk_fee_stlmt_mthd_cd                   as wkFeeStlmtMthdCd
-                      , topoi.nt_fee_aply_cd                         as ntFeeAplyCd
-                      , topoi.nt_fee_stlmt_mthd_cd                   as ntFeeStlmtMthdCd
-                      , topoi.nt_res_day_fee                         as ntResDayFee
-                      , topoi.nt_res_wk_fee                          as ntResWkFee
-                      , topoi.nt_res_ft_fee                          as ntResFtFee
-                      , topoi.nt_res_nt_fee                          as ntResNtFee
-                      , topoi.nt_gn_frst_30m_fee                     as ntGnFrst30mFee
-                      , topoi.nt_gn_int_10m_fee                      as ntGnInt10mFee
-                      , topoi.nt_gn_1h_fee                           as ntGn1hFee
-                      , topoi.nt_gn_day_fee                          as ntGnDayFee
-                      , topoi.nt_fee_mthd_cd                         as ntFeeMthdCd
-                      , topoi.prklot_sign_yn                         as prklotSignYn
-                      , topoi.tckt_mchn_yn                           as tcktMchnYn
-                      , topoi.barr_gte_yn                            as barrGteYn
-                      , topoi.exit_alrm_yn                           as exitAlrmYn
-                      , topoi.veh_rcgn_tp_cd                         as vehRcgnTpCd
-                      , topoi.wk_peak_str_tm                         as wkPeakStrTm
-                      , topoi.wk_peak_end_tm                         as wkPeakEndTm
-                      , topoi.wk_prk_veh_cnt                         as wkPrkVehCnt
-                      , topoi.nt_peak_str_tm                         as ntPeakStrTm
-                      , topoi.nt_peak_end_tm                         as ntPeakEndTm
-                      , topoi.nt_prk_veh_cnt                         as ntPrkVehCnt
-                      , topoi.prklot_entr_lat                        as prklotEntrLat
-                      , topoi.prklot_entr_lon                        as prklotEntrLon
-                      , topoi.bldg_2f_prklot_cd                      as bldg2fPrklotCd
-                      , topoi.fall_prev_fclty_yn                     as fallPrevFcltyYn
-                      , topoi.slp_yn                                 as slpYn
-                      , topoi.slp_7gt_area_cnt                       as slp7gtAreaCnt
-                      , topoi.antislp_fclty_yn                       as antislpFcltyYn
-                      , topoi.slp_ctn_guid_sign_yn                   as slpCtnGuidSignYn
-                      , topoi.spd_bump_qty                           as spdBumpQty
-                      , topoi.stop_line_qty                          as stopLineQty
-                      , topoi.crswlk_qty                             as crswlkQty
-                      , topoi.partclr_matter                         as partclrMatter
-                      , topoi.wk_fee_mnth_pass_prc                   as wkFeeMnthPassPrc
-                      , topoi.nt_fee_mnth_pass_prc                   as ntFeeMnthPassPrc
-                      , topoi.wk_fee_hfyr_pass_prc                   as wkFeeHfyrPassPrc
-                      , topoi.nt_fee_hfyr_pass_prc                   as ntFeeHfyrPassPrc
-                      , topoi.wk_fee_pay_mthd_othr                   as wkFeePayMthdOthr
-                      , topoi.nt_fee_pay_mthd_othr                   as ntFeePayMthdOthr
+        SELECT DISTINCT cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsCd
+                      , tbppi.prgs_sts_cd                                as prgsStsRawCd
+                      , tbppi.rejt_rsn                                   as rejtRsn
+                      , tpsbi.prk_biz_mng_no                             as prkBizMngNo
+                      , tpdpi.prk_plce_info_sn                           AS prkPlceInfoSn
+                      , tpsbi.biz_nm                                     as bizNm
+                      , tpsbi.biz_yy                                     as bizYy
+                      , tpsbi.biz_exc_st_dt                              as bizExcStDt
+                      , tpsbi.biz_exc_ed_dt                              as bizExcEdDt
+                      , tpdpi.prk_plce_manage_no                         as prkPlceManageNo
+                      , tpdpi.prkplce_nm                                 as prkplceNm
+                      , tcl.sido_cd                                      as sidoCd
+                      , tcl.sido_nm                                      as sidoNm
+                      , tcl.sigungu_cd                                   as sigunguCd
+                      , tcl.sigungu_nm                                   as sigunguNm
+                      , tcl.emd_cd                                       as emdCd
+                      , tcl.lgal_emd_nm                                  as lgalEmdNm
+                      , tpdpi.dtadd                                      as dtadd
+                      , tpdpi.prk_plce_lat                               as prkPlceLat
+                      , tpdpi.prk_plce_lon                               as prkPlceLon
+                      , topi.tot_prk_cnt                                 as totPrkCnt
+                      , topi.disab_prk_cnt                               as disabPrkCnt
+                      , topi.compact_prk_cnt                             as compactPrkCnt
+                      , topi.eco_prk_cnt                                 as ecoPrkCnt
+                      , topi.pregnant_prk_cnt                            as pregnantPrkCnt
+                      , topi.prk_oper_mthd_cd                            as prkOperMthdCd
+                      , topi.oper_mby_cd                                 as operMbyCd
+                      , topi.mgr_org                                     as mgrOrg
+                      , topi.mgr_org_tel_no                              as mgrOrgTelNo
+                      , topi.subordn_opertn_cd                           as subordnOpertnCd
+                      , topoi.dynt_dv_cd                                 as dyntDvCd
+                      , topoi.wk_zon                                     as wkZon
+                      , topoi.wk_wkdy_oper_tm_cd                         as wkWkdyOperTmCd
+                      , topoi.wk_wkdy_oper_star_tm                       as wkWkdyOperStarTm
+                      , topoi.wk_wkdy_oper_end_tm                        as wkWkdyOperEndTm
+                      , topoi.wk_sat_oper_tm_cd                          as wkSatOperTmCd
+                      , topoi.wk_sat_oper_star_tm                        as wkSatOperStarTm
+                      , topoi.wk_sat_oper_end_tm                         as wkSatOperEndTm
+                      , topoi.wk_hldy_oper_tm_cd                         as wkHldyOperTmCd
+                      , topoi.wk_hldy_oper_star_tm                       as wkHldyOperStarTm
+                      , topoi.wk_hldy_oper_end_tm                        as wkHldyOperEndTm
+                      , topoi.nt_zon                                     as ntZon
+                      , topoi.nt_wkdy_oper_tm_cd                         as ntWkdyOperTmCd
+                      , topoi.nt_wkdy_oper_star_tm                       as ntWkdyOperStarTm
+                      , topoi.nt_wkdy_oper_end_tm                        as ntWkdyOperEndTm
+                      , topoi.nt_sat_oper_tm_cd                          as ntSatOperTmCd
+                      , topoi.nt_sat_oper_star_tm                        as ntSatOperStarTm
+                      , topoi.nt_sat_oper_end_tm                         as ntSatOperEndTm
+                      , topoi.nt_hldy_oper_tm_cd                         as ntHldyOperTmCd
+                      , topoi.nt_hldy_oper_star_tm                       as ntHldyOperStarTm
+                      , topoi.nt_hldy_oper_end_tm                        as ntHldyOperEndTm
+                      , topoi.wk_fee_aply_cd                             as wkFeeAplyCd
+                      , topoi.wk_res_day_fee                             as wkResDayFee
+                      , topoi.wk_res_wk_fee                              as wkResWkFee
+                      , topoi.wk_res_ft_fee                              as wkResFtFee
+                      , topoi.wk_res_nt_fee                              as wkResNtFee
+                      , topoi.wk_gn_frst_30m_fee                         as wkGnFrst30mFee
+                      , topoi.wk_gn_int_10m_fee                          as wkGnInt10mFee
+                      , topoi.wk_gn_1h_fee                               as wkGn1hFee
+                      , topoi.wk_gn_day_fee                              as wkGnDayFee
+                      , topoi.wk_fee_mthd_cd                             as wkFeeMthdCd
+                      , topoi.wk_fee_stlmt_mthd_cd                       as wkFeeStlmtMthdCd
+                      , topoi.nt_fee_aply_cd                             as ntFeeAplyCd
+                      , topoi.nt_fee_stlmt_mthd_cd                       as ntFeeStlmtMthdCd
+                      , topoi.nt_res_day_fee                             as ntResDayFee
+                      , topoi.nt_res_wk_fee                              as ntResWkFee
+                      , topoi.nt_res_ft_fee                              as ntResFtFee
+                      , topoi.nt_res_nt_fee                              as ntResNtFee
+                      , topoi.nt_gn_frst_30m_fee                         as ntGnFrst30mFee
+                      , topoi.nt_gn_int_10m_fee                          as ntGnInt10mFee
+                      , topoi.nt_gn_1h_fee                               as ntGn1hFee
+                      , topoi.nt_gn_day_fee                              as ntGnDayFee
+                      , topoi.nt_fee_mthd_cd                             as ntFeeMthdCd
+                      , topoi.prklot_sign_yn                             as prklotSignYn
+                      , topoi.tckt_mchn_yn                               as tcktMchnYn
+                      , topoi.barr_gte_yn                                as barrGteYn
+                      , topoi.exit_alrm_yn                               as exitAlrmYn
+                      , topoi.veh_rcgn_tp_cd                             as vehRcgnTpCd
+                      , topoi.wk_peak_str_tm                             as wkPeakStrTm
+                      , topoi.wk_peak_end_tm                             as wkPeakEndTm
+                      , topoi.wk_prk_veh_cnt                             as wkPrkVehCnt
+                      , topoi.nt_peak_str_tm                             as ntPeakStrTm
+                      , topoi.nt_peak_end_tm                             as ntPeakEndTm
+                      , topoi.nt_prk_veh_cnt                             as ntPrkVehCnt
+                      , topoi.prklot_entr_lat                            as prklotEntrLat
+                      , topoi.prklot_entr_lon                            as prklotEntrLon
+                      , topoi.bldg_2f_prklot_cd                          as bldg2fPrklotCd
+                      , topoi.fall_prev_fclty_yn                         as fallPrevFcltyYn
+                      , topoi.slp_yn                                     as slpYn
+                      , topoi.slp_7gt_area_cnt                           as slp7gtAreaCnt
+                      , topoi.antislp_fclty_yn                           as antislpFcltyYn
+                      , topoi.slp_ctn_guid_sign_yn                       as slpCtnGuidSignYn
+                      , topoi.spd_bump_qty                               as spdBumpQty
+                      , topoi.stop_line_qty                              as stopLineQty
+                      , topoi.crswlk_qty                                 as crswlkQty
+                      , topoi.partclr_matter                             as partclrMatter
+                      , topoi.wk_fee_mnth_pass_prc                       as wkFeeMnthPassPrc
+                      , topoi.nt_fee_mnth_pass_prc                       as ntFeeMnthPassPrc
+                      , topoi.wk_fee_hfyr_pass_prc                       as wkFeeHfyrPassPrc
+                      , topoi.nt_fee_hfyr_pass_prc                       as ntFeeHfyrPassPrc
+                      , topoi.wk_fee_pay_mthd_othr                       as wkFeePayMthdOthr
+                      , topoi.nt_fee_pay_mthd_othr                       as ntFeePayMthdOthr
         FROM cpk.tb_prk_def_plce_info tpdpi
                  INNER JOIN cpk.tb_offstr_prklot_info topi
                             ON tpdpi.prk_plce_manage_no = topi.prk_plce_manage_no
@@ -1082,7 +1098,8 @@
     <!-- 🔥 지도용 주차장 목록 조회 (좌표 포함 + 시도/시군구 필터) -->
     <select id="selectParkingListForMap" parameterType="map" resultType="com.psim.web.prk.vo.ParkingListVO">
         SELECT DISTINCT
-        cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsCd,
+        tbppi.prgs_sts_cd as prgsStsCd,
+        cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsNm,
         tcl.sido_cd as sidoCd,
         tcl.sido_nm as sidoNm,
         tcl.sigungu_cd as sigunguCd,
@@ -1092,6 +1109,7 @@
         tpdpi.zip as zip,
         tpdpi.dtadd as dtadd,
         tcu.user_nm as userNm,
+        tpdpi.prk_plce_type as prkPlceTypeCd,
         cpk.FN_GET_CODE_NM(tpdpi.prk_plce_type, 'P_PRKPLCE_SE') as prkPlceType,
         tpdpi.prkplce_nm as prkplceNm,
         tbppi.biz_per_prk_mng_no as bizPerPrkMngNo,
@@ -1099,7 +1117,128 @@
         tbppi.prk_plce_manage_no as prkPlceManageNo,
         tbppi.prk_plce_info_sn as prkPlceInfoSn,
         tpdpi.prk_plce_lat as prkPlceLat,
-        tpdpi.prk_plce_lon as prkPlceLon
+        tpdpi.prk_plce_lon as prkPlceLon,
+
+        --------------------------------------------------------------------
+        -- 주차면 수 (팝업에서 문장으로 조합)
+        --------------------------------------------------------------------
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN tapi.tot_prk_cnt
+        WHEN '2' THEN toffpi.tot_prk_cnt
+        WHEN '1' THEN tonpi.tot_prk_cnt
+        ELSE NULL
+        END AS totPrkCnt,
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN tapi.disab_prk_cnt
+        WHEN '2' THEN toffpi.disab_prk_cnt
+        WHEN '1' THEN tonpi.disab_prk_cnt
+        ELSE NULL
+        END AS disabPrkCnt,
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN tapi.eco_prk_cnt
+        WHEN '2' THEN toffpi.eco_prk_cnt
+        WHEN '1' THEN tonpi.eco_prk_cnt
+        ELSE NULL
+        END AS ecoPrkCnt,
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN tapi.compact_prk_cnt
+        WHEN '2' THEN toffpi.compact_prk_cnt
+        WHEN '1' THEN tonpi.compact_prk_cnt
+        ELSE NULL
+        END AS compactPrkCnt,
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN tapi.pregnant_prk_cnt
+        WHEN '2' THEN toffpi.pregnant_prk_cnt
+        WHEN '1' THEN tonpi.pregnant_prk_cnt
+        ELSE NULL
+        END AS pregnantPrkCnt,
+
+        --------------------------------------------------------------------
+        -- 대표 운영시간(평일 기준)만 가져오기
+        -- 3번(부설) : 단일 평일 시간
+        -- 2번/1번 : 주간/야간 평일 시간
+        --------------------------------------------------------------------
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN tapoi.wkdy_oper_tm_cd
+        WHEN '2' THEN topoi.wk_wkdy_oper_tm_cd
+        WHEN '1' THEN topoi2.wk_wkdy_oper_tm_cd
+        ELSE NULL
+        END AS dayWkdyOperTmCd,
+
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN tapoi.wkdy_tmbas_oper_str_tm
+        WHEN '2' THEN topoi.wk_wkdy_oper_star_tm
+        WHEN '1' THEN topoi2.wk_wkdy_oper_star_tm
+        ELSE NULL
+        END AS dayWkdyStartTm,
+
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN tapoi.wkdy_tmbas_oper_end_tm
+        WHEN '2' THEN topoi.wk_wkdy_oper_end_tm
+        WHEN '1' THEN topoi2.wk_wkdy_oper_end_tm
+        ELSE NULL
+        END AS dayWkdyEndTm,
+
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN NULL -- 3번은 주/야 구분 없음
+        WHEN '2' THEN topoi.nt_wkdy_oper_tm_cd
+        WHEN '1' THEN topoi2.nt_wkdy_oper_tm_cd
+        ELSE NULL
+        END AS nightWkdyOperTmCd,
+
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN NULL
+        WHEN '2' THEN topoi.nt_wkdy_oper_star_tm
+        WHEN '1' THEN topoi2.nt_wkdy_oper_star_tm
+        ELSE NULL
+        END AS nightWkdyStartTm,
+
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN NULL
+        WHEN '2' THEN topoi.nt_wkdy_oper_end_tm
+        WHEN '1' THEN topoi2.nt_wkdy_oper_end_tm
+        ELSE NULL
+        END AS nightWkdyEndTm
+
+        FROM cpk.tb_prk_def_plce_info tpdpi
+        INNER JOIN cpk.tb_co_ldong tcl
+        ON tpdpi.ldong_cd = tcl.ldong_cd
+        INNER JOIN cpk.tb_biz_per_prklot_info tbppi
+        ON tpdpi.prk_plce_manage_no = tbppi.prk_plce_manage_no
+        AND tpdpi.prk_plce_info_sn = tbppi.prk_plce_info_sn
+        AND tbppi.prgs_sts_cd IN ('00', '10', '20', '30', '99')
+        AND tbppi.prgs_sts_cd IS NOT NULL
+        INNER JOIN cpk.tb_co_user tcu
+        ON tbppi.srvy_id = tcu.user_id
+        LEFT JOIN cpk.tb_atch_prklot_info tapi
+        ON tpdpi.prk_plce_manage_no = tapi.prk_plce_manage_no
+        AND tpdpi.prk_plce_info_sn = tapi.prk_plce_info_sn
+        LEFT JOIN cpk.tb_atch_prklot_oper_info tapoi
+        ON tpdpi.prk_plce_manage_no = tapoi.prk_plce_manage_no
+        AND tpdpi.prk_plce_info_sn = tapoi.prk_plce_info_sn
+        LEFT JOIN cpk.tb_offstr_prklot_info toffpi
+        ON tpdpi.prk_plce_manage_no = toffpi.prk_plce_manage_no
+        AND tpdpi.prk_plce_info_sn = toffpi.prk_plce_info_sn
+        LEFT JOIN cpk.tb_offstr_prklot_oper_info topoi
+        ON tpdpi.prk_plce_manage_no = topoi.prk_plce_manage_no
+        AND tpdpi.prk_plce_info_sn = topoi.prk_plce_info_sn
+        LEFT JOIN cpk.tb_onstr_prklot_info tonpi
+        ON tpdpi.prk_plce_manage_no = tonpi.prk_plce_manage_no
+        AND tpdpi.prk_plce_info_sn = tonpi.prk_plce_info_sn
+        LEFT JOIN cpk.tb_onstr_prklot_oper_info topoi2
+        ON tpdpi.prk_plce_manage_no = topoi2.prk_plce_manage_no
+        AND tpdpi.prk_plce_info_sn = topoi2.prk_plce_info_sn
+        <include refid="parkingCommonWhere"/>
+        <!-- 🔥 좌표가 있는 주차장만 조회 -->
+        AND tpdpi.prk_plce_lat IS NOT NULL
+        AND tpdpi.prk_plce_lon IS NOT NULL
+        AND tpdpi.prk_plce_lat != ''
+        AND tpdpi.prk_plce_lon != ''
+        ORDER BY tpdpi.prkplce_nm ASC
+    </select>
+
+    <select id="countParkingListForMap" parameterType="map" resultType="int">
+        SELECT COUNT(1)
         FROM cpk.tb_prk_def_plce_info tpdpi
         LEFT JOIN cpk.tb_co_ldong tcl
         ON tpdpi.ldong_cd = tcl.ldong_cd
@@ -1109,12 +1248,19 @@
         LEFT JOIN cpk.tb_co_user tcu
         ON tbppi.srvy_id = tcu.user_id
         <include refid="parkingCommonWhere"/>
-        <!-- 🔥 좌표가 있는 주차장만 조회 -->
         AND tpdpi.prk_plce_lat IS NOT NULL
         AND tpdpi.prk_plce_lon IS NOT NULL
         AND tpdpi.prk_plce_lat != ''
         AND tpdpi.prk_plce_lon != ''
-        ORDER BY tpdpi.prkplce_nm ASC
+    </select>
+
+    <select id="countParkingListForMapAll" resultType="int">
+        SELECT COUNT(1)
+        FROM cpk.tb_prk_def_plce_info tpdpi
+        WHERE tpdpi.prk_plce_lat IS NOT NULL
+          AND tpdpi.prk_plce_lon IS NOT NULL
+          AND tpdpi.prk_plce_lat != ''
+        AND tpdpi.prk_plce_lon != ''
     </select>
 
     <update id="updateStatusToPending" parameterType="map">

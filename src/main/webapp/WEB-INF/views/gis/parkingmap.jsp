@@ -8,24 +8,6 @@
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
     <title>주차장 지도</title>
 
-    <!-- 외부 보안/확장 프로그램(SES/lockdown) 감지 및 안내 -->
-    <script>
-        (function () {
-            const hasSes = !!(window.lockdown || window.ses || window.Compartment);
-            const hasMozExtensionScript = Array.from(document.scripts || []).some(s => (s.src || '').startsWith('moz-extension://'));
-            if (hasSes || hasMozExtensionScript) {
-                console.warn('지도 로딩을 방해할 수 있는 보안 스크립트/확장 프로그램이 감지되었습니다.');
-                const msg = document.createElement('div');
-                msg.setAttribute('role', 'status');
-                msg.style.cssText = 'padding:12px;background:#fee2e2;color:#7f1d1d;border:1px solid #fecdd3;margin:8px 12px;border-radius:8px;';
-                msg.innerText = '지도 로딩을 방해할 수 있는 브라우저 확장 프로그램/보안 스크립트가 감지되었습니다. 확장 프로그램을 잠시 비활성화한 후 다시 시도하세요.';
-                document.addEventListener('DOMContentLoaded', () => {
-                    document.body.prepend(msg);
-                });
-            }
-        })();
-    </script>
-
     <script type="text/javascript">
         // 컨텍스트 경로 (예: /spis)
         const contextPath = '${pageContext.request.contextPath}';
@@ -210,11 +192,6 @@
             transition: all 0.2s !important;
         }
 
-        .parking-item.disabled {
-            opacity: 0.6 !important;
-            cursor: default !important;
-        }
-
         .parking-item:hover {
             background: #eff6ff !important;
             border-color: #3b82f6 !important;
@@ -268,21 +245,6 @@
             font-size: 11px !important;
             color: #94a3b8 !important;
             line-height: 1.4 !important;
-        }
-
-        .parking-item-info {
-            margin-bottom: 8px !important;
-            padding: 8px 10px !important;
-            border: 1px dashed #cbd5e1 !important;
-            background: #f8fafc !important;
-            color: #475569 !important;
-            border-radius: 6px !important;
-            font-size: 12px !important;
-        }
-
-        .parking-item-location.no-coord {
-            color: #b91c1c !important;
-            font-weight: 600 !important;
         }
 
         .parking-list-empty {
@@ -353,37 +315,6 @@
             border-left: 4px solid #3b82f6 !important;
             color: #2563eb !important;
             background: #eff6ff !important;
-        }
-
-        /* 행정구역 배지 */
-        .region-badge {
-            position: absolute !important;
-            top: 20px !important;
-            right: 20px !important;
-            z-index: 12 !important;
-            background: rgba(255,255,255,0.92) !important;
-            border: 1px solid #cbd5e1 !important;
-            border-radius: 10px !important;
-            padding: 10px 14px !important;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.12) !important;
-            display: flex !important;
-            align-items: center !important;
-            gap: 8px !important;
-            color: #1e293b !important;
-            font-weight: 600 !important;
-            font-size: 13px !important;
-        }
-
-        .region-badge .pill {
-            display: inline-flex !important;
-            align-items: center !important;
-            gap: 4px !important;
-            padding: 4px 8px !important;
-            background: #e0f2fe !important;
-            color: #0369a1 !important;
-            border-radius: 999px !important;
-            font-size: 12px !important;
-            font-weight: 700 !important;
         }
 
         /* 모바일 대응 */
@@ -501,10 +432,6 @@
 <input type="hidden" id="loginSigunguCd" value="${loginSigunguCd}">
 <!-- 지도 영역 -->
 <div id="map">
-    <div id="regionBadge" class="region-badge" style="display:none;">
-        <span>행정구역</span>
-        <span class="pill" id="regionText"></span>
-    </div>
     <!-- 접을 수 있는 검색 패널 -->
     <div class="search-panel" id="searchPanel">
         <!-- 헤더 (항상 표시, 클릭하면 접기/펼치기) -->
@@ -571,7 +498,7 @@
     function showMessage(text, type = 'info') {
         const messageEl = document.getElementById('statusMessage');
         messageEl.textContent = text;
-        messageEl.className = `status-message ${type}`;
+        messageEl.className = 'status-message ' + type;
         messageEl.style.display = 'block';
 
         setTimeout(() => {
@@ -589,29 +516,6 @@
         setTimeout(() => {
             resultEl.style.display = 'none';
         }, 5000);
-    }
-
-    function updateRegionBadge(sidoText, sigunguText) {
-        const badge = document.getElementById('regionBadge');
-        const textEl = document.getElementById('regionText');
-        const parts = [];
-        if (sidoText && sidoText !== '시도 선택') parts.push(sidoText.trim());
-        if (sigunguText && sigunguText !== '시군구 선택') parts.push(sigunguText.trim());
-
-        if (parts.length === 0) {
-            badge.style.display = 'none';
-            return;
-        }
-        textEl.textContent = parts.join(' ');
-        badge.style.display = 'flex';
-    }
-
-    // 좌표 유효성 체크
-    function hasCoordinates(parking) {
-        if (!parking) return false;
-        const lat = parseFloat(parking.prkPlceLat);
-        const lon = parseFloat(parking.prkPlceLon);
-        return Number.isFinite(lat) && Number.isFinite(lon);
     }
 
     // 시도 목록 로드 (항상 호출)
@@ -703,7 +607,6 @@
 
         const sidoText = sidoSelect.options[sidoSelect.selectedIndex]?.text || '';
         const sigunguText = sigunguSelect.options[sigunguSelect.selectedIndex]?.text || '';
-        updateRegionBadge(sidoText, sigunguText);
 
         console.log('🔍 검색 조건:', {
             sidoCd: sidoCd,
@@ -739,13 +642,13 @@
 
                 displayParkingMarkers(result.list);
                 displayParkingList(result.list);
-                showMessage(`✅ ${result.list.length}개 주차장 표시`, 'success');
+                var cnt = (result.list && result.list.length) ? result.list.length : 0;
+                showMessage('✅ ' + cnt + '개 주차장 표시', 'success');
 
                 const searchResult = document.getElementById('searchResult');
                 if (searchResult) {
                     searchResult.style.display = 'none';
                 }
-                updateRegionBadge(sidoText, sigunguText);
             } else {
                 displayParkingMarkers([]);
                 displayParkingList([]);
@@ -755,9 +658,7 @@
                     searchCondition += ' ' + sigunguText;
                 }
 
-                updateRegionBadge(sidoText, sigunguText);
-
-                showSearchResult(`${searchCondition}: 검색 결과 없음`, true);
+                showSearchResult(searchCondition + ': 검색 결과 없음', true);
                 showMessage('검색 결과 없음', 'error');
             }
         } catch (error) {
@@ -782,18 +683,7 @@
         headerEl.style.display = 'flex';
         countEl.textContent = parkingList.length + '개';
 
-        const validParkings = parkingList.filter(hasCoordinates);
-        const missingCoordsCount = parkingList.length - validParkings.length;
-
-        let infoHtml = '';
-        if (missingCoordsCount > 0) {
-            infoHtml = '<div class="parking-item-info">좌표 정보가 없는 ' + missingCoordsCount + '건은 지도 이동/표시가 불가합니다.</div>';
-        }
-
-        itemsContainer.innerHTML = infoHtml + parkingList.map(parking => {
-            const lat = parseFloat(parking.prkPlceLat);
-            const lon = parseFloat(parking.prkPlceLon);
-            const hasCoord = Number.isFinite(lat) && Number.isFinite(lon);
+        itemsContainer.innerHTML = parkingList.map(parking => {
             const locationParts = [];
             if (parking.sidoNm) locationParts.push(parking.sidoNm);
             if (parking.sigunguNm) locationParts.push(parking.sigunguNm);
@@ -803,23 +693,15 @@
                 parking.prkPlceType === '02' ? 'type-02' :
                     parking.prkPlceType === '03' ? 'type-03' : '';
 
-            const itemClasses = hasCoord ? 'parking-item' : 'parking-item disabled';
-            const onClickAttr = hasCoord
-                ? ' onclick="moveToParking(' + lat + ', ' + lon + ', \'' + escapeHtml(parking.prkplceNm) + '\', \'' + parking.prkPlceManageNo + '\', \'' + parking.prkPlceType + '\')"'
-                : '';
-
-            let html = '<div class="' + itemClasses + '"' + onClickAttr + '>';
+            let html = '<div class="parking-item" onclick="moveToParking(' + parking.prkPlceLat + ', ' + parking.prkPlceLon + ', \'' + escapeHtml(parking.prkplceNm) + '\', \'' + parking.prkPlceManageNo + '\', \'' + parking.prkPlceType + '\')">';
             html += '<div class="parking-item-name">';
             html += escapeHtml(parking.prkplceNm);
             html += '<span class="parking-item-type ' + typeClass + '">' + getParkingTypeText(parking.prkPlceType) + '</span>';
             html += '</div>';
 
             if (locationDisplay) {
-                const locClass = hasCoord ? 'parking-item-location' : 'parking-item-location no-coord';
-                const suffix = hasCoord ? '' : ' (좌표 없음)';
-                html += '<div class="' + locClass + '">📍 ' + escapeHtml(locationDisplay) + suffix + '</div>';
-            } else if (!hasCoord) {
-                html += '<div class="parking-item-location no-coord">좌표 정보 없음 (지도 표시 불가)</div>';
+                const noCoord = (!parking.prkPlceLat || !parking.prkPlceLon);
+                html += '<div class="parking-item-location">📍 ' + escapeHtml(locationDisplay) + (noCoord ? ' (좌표 없음)' : '') + '</div>';
             }
 
             html += '<div class="parking-item-address">' + escapeHtml(parking.dtadd || '주소 정보 없음') + '</div>';
@@ -831,21 +713,14 @@
 
     // 주차장으로 이동
     function moveToParking(lat, lng, name, manageNo, type) {
-        const latNum = parseFloat(lat);
-        const lngNum = parseFloat(lng);
-        if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) {
-            showMessage('이 주차장은 좌표 정보가 없어 지도 이동이 불가합니다.', 'error');
-            return;
-        }
-
-        const position = new kakao.maps.LatLng(latNum, lngNum);
+        const position = new kakao.maps.LatLng(parseFloat(lat), parseFloat(lng));
         map.setCenter(position);
         map.setLevel(3);
 
         const targetMarker = parkingMarkers.find(marker => {
             const markerPos = marker.getPosition();
-            return Math.abs(markerPos.getLat() - latNum) < 0.00001 &&
-                Math.abs(markerPos.getLng() - lngNum) < 0.00001;
+            return Math.abs(markerPos.getLat() - lat) < 0.00001 &&
+                Math.abs(markerPos.getLng() - lng) < 0.00001;
         });
 
         if (targetMarker) {
@@ -909,34 +784,19 @@
         });
     }
 
-    // 주차장 타입별 마커 이미지 경로 반환 (코드 01/02/03 우선)
-    /*function getParkingMarkerImage(prkPlceType) {
-        const type = (prkPlceType ?? '').toString().trim();
-
-        let color = 'blue'; // 기본값
-        if (['노상', '01', '1', 'on', 'ON'].includes(type)) {
-            return `/static/img/prking/marker-red-P-64.svg`;
-        } else if (['노외', '02', '2', 'off', 'OFF'].includes(type)) {
-            return `/static/img/prking/marker-blue-P-64.svg`;
-        } else if (['부설', '03', '3', 'build', 'BUILD', 'bld', 'BLD'].includes(type)) {
-            return `/static/img/prking/marker-green-P-64.svg`;
-        }
-    }*/
-    function getParkingMarkerImage(prkPlceType) {
+    // 진행상태별 마커 이미지 반환 (10=조사중:파랑, 20=승인대기:주황, 30=승인완료:빨강, 99=반려:회색)
+    function getStatusMarkerImage(prgsStsCd) {
         const base = '<c:url value="/static/img/prking"/>';
-        const type = (prkPlceType ?? '').toString().trim();
-
-        if (['노상', '01', '1', 'on', 'ON'].includes(type)) return base + '/marker-red-P-64.svg';
-        if (['노외', '02', '2', 'off', 'OFF'].includes(type)) return base + '/marker-blue-P-64.svg';
-        if (['부설', '03', '3', 'build', 'BUILD', 'bld', 'BLD'].includes(type)) return base + '/marker-green-P-64.svg';
-
-        return base + '/marker-blue-P-64.svg'; // fallback
+        const cd = (prgsStsCd || '').toString().trim();
+        if (cd === '20') return base + '/marker-orange-P-64.svg'; // 승인대기
+        if (cd === '30') return base + '/marker-red-P-64.svg';    // 승인완료
+        if (cd === '99') return base + '/marker-gray-P-64.svg';   // 반려
+        return base + '/marker-blue-P-64.svg';                    // 기본/조사중
     }
 
     // 주차장 마커 생성
     function createParkingMarker(parking) {
-        const typeForMarker = parking.prkPlceTypeCd || parking.prkPlceType;
-        const imageSrc = getParkingMarkerImage(typeForMarker);
+        const imageSrc = getStatusMarkerImage(parking.prgsStsCd);
         const imageSize = new kakao.maps.Size(64, 64);
         const imageOption = {offset: new kakao.maps.Point(16, 32)};
 
@@ -956,48 +816,152 @@
         return marker;
     }
 
+    // HHMM → HH:MM 형태로 포맷
+    function formatTime(hhmm) {
+        if (!hhmm) return '';
+        var s = String(hhmm);
+        if (s.length === 4) {
+            return s.substring(0, 2) + ':' + s.substring(2, 4);
+        }
+        return s;
+    }
+
+    // 주차면수 한 줄 요약
+    function buildCapacityText(parking) {
+        var total = parking.totPrkCnt || 0;
+        var parts = [];
+
+        if (parking.disabPrkCnt) {
+            parts.push('장애인:' + parking.disabPrkCnt);
+        }
+        if (parking.ecoPrkCnt) {
+            parts.push('친환경:' + parking.ecoPrkCnt);
+        }
+        if (parking.compactPrkCnt) {
+            parts.push('경차:' + parking.compactPrkCnt);
+        }
+        if (parking.pregnantPrkCnt) {
+            parts.push('임산부:' + parking.pregnantPrkCnt);
+        }
+
+        var text = '주차면수 ' + total;
+        if (parts.length > 0) {
+            text += ' (' + parts.join(', ') + ')';
+        }
+        return text;
+    }
+
+    // 운영시간 한 줄 요약 (평일 기준)
+    function buildOperTimeText(parking) {
+        var typeCd = parking.prkPlceTypeCd || parking.prkPlceType; // 숫자코드(1/2/3) 가정
+
+        var dayStart = parking.dayWkdyStartTm;
+        var dayEnd = parking.dayWkdyEndTm;
+        var nightStart = parking.nightWkdyStartTm;
+        var nightEnd = parking.nightWkdyEndTm;
+
+        // 운영시간 정보가 전혀 없으면
+        if (!dayStart && !dayEnd && !nightStart && !nightEnd) {
+            return '운영시간 정보 없음';
+        }
+
+        var parts = [];
+
+        if (typeCd === '3') {
+            // 3번(부설) : 주/야 구분 없음 → 평일만 표시
+            if (dayStart && dayEnd) {
+                parts.push('평일 ' + formatTime(dayStart) + ' ~ ' + formatTime(dayEnd));
+            } else {
+                parts.push('평일 운영시간 정보 없음');
+            }
+        } else {
+            // 1, 2번 : 주/야간 구분
+            if (dayStart && dayEnd) {
+                parts.push('평일 주간 ' + formatTime(dayStart) + ' ~ ' + formatTime(dayEnd));
+            }
+            if (nightStart && nightEnd) {
+                parts.push('야간 ' + formatTime(nightStart) + ' ~ ' + formatTime(nightEnd));
+            }
+            if (parts.length === 0) {
+                parts.push('운영시간 정보 없음');
+            }
+        }
+
+        return '운영시간 ' + parts.join(', ');
+    }
+
+    // 팝업용 전체 요약 문자열
+    function buildParkingSummary(parking) {
+        const cap = buildCapacityText(parking);
+        const oper = buildOperTimeText(parking);
+
+        return {
+            capacity: cap,
+            operate: oper
+        };
+    }
+
     // 주차장 정보 인포윈도우 표시
     function showParkingInfo(parking, marker) {
         const locationParts = [];
         if (parking.sidoNm) locationParts.push(parking.sidoNm);
         if (parking.sigunguNm) locationParts.push(parking.sigunguNm);
         const locationDisplay = locationParts.join(' ') || '';
-        const hasKeys = parking.prkPlceManageNo && parking.prkPlceInfoSn;
-        const infoSnParam = parking.prkPlceInfoSn ? ('&prkPlceInfoSn=' + encodeURIComponent(parking.prkPlceInfoSn)) : '';
-        const detailUrl = contextPath + '/prk/parkinglist?openDetail=' +
-            encodeURIComponent(parking.prkPlceManageNo) +
-            '&type=' + encodeURIComponent(parking.prkPlceType || '') +
-            infoSnParam;
 
-        let content = '<div style="padding:15px;min-width:200px;max-width:300px;">';
+        let content = '<div style="padding:14px;min-width:250px;max-width:340px;min-height:195px;max-height:200px;word-break:break-all;line-height:1.5;">';
+
+        // 제목
         content += '<div style="font-weight:bold;font-size:14px;margin-bottom:8px;color:#1e40af;">';
         content += parking.prkplceNm;
         content += '</div>';
-        content += '<div style="font-size:12px;color:#666;margin-bottom:4px;">';
+
+        // 상태/유형 배지
+        const statusText = parking.prgsStsNm || (statusNames[parking.prgsStsCd] || '미정');
+        content += '<div style="font-size:12px;color:#666;margin-bottom:8px;">';
+        content += '<span style="display:inline-block;padding:3px 8px;background:#eef2ff;border-radius:999px;font-size:11px;font-weight:700;margin-right:6px;">';
+        content += statusText;
+        content += '</span>';
         content += '<span style="display:inline-block;padding:2px 6px;background:#e0e7ff;border-radius:4px;font-size:11px;margin-right:4px;">';
-        content += getParkingTypeText(parking.prkPlceType);
+        content += getParkingTypeText(parking.prkPlceType || parking.prkPlceTypeCd);
         content += '</span>';
         content += '</div>';
 
+        // ▶ 여기: 주차면수 + 세부 항목(장애인/친환경/경차/임산부)
+        const summary = buildParkingSummary(parking);
+        content += '<div style="font-size:12px;color:#444;line-height:1.5;margin-bottom:8px;">';
+        content += '<div>' + summary.capacity + '</div>';
+        // 세부 항목을 같은 블록의 다음 줄에 표시
+        const detailParts = [];
+        if (parking.disabPrkCnt) detailParts.push('장애인 ' + parking.disabPrkCnt);
+        if (parking.ecoPrkCnt) detailParts.push('친환경 ' + parking.ecoPrkCnt);
+        if (parking.compactPrkCnt) detailParts.push('경차 ' + parking.compactPrkCnt);
+        if (parking.pregnantPrkCnt) detailParts.push('임산부 ' + parking.pregnantPrkCnt);
+        if (detailParts.length > 0) {
+            content += '<div style="color:#6b7280;font-size:12px;margin-top:2px;">' + detailParts.join(' · ') + '</div>';
+        }
+        // 운영시간은 한 줄 아래에 따로 표시
+        content += '<div style="margin-top:6px;">' + summary.operate + '</div>';
+        content += '</div>';
+
+        // 위치
         if (locationDisplay) {
             content += '<div style="font-size:12px;color:#666;margin-bottom:4px;font-weight:500;">';
-            content += '📍 ' + locationDisplay;
+            content += '📍 ' + locationDisplay + parking.dtadd;
             content += '</div>';
         }
 
-        content += '<div style="font-size:12px;color:#666;margin-bottom:8px;">';
+        // (기존 dtadd 는 주소/등록일 등 용도로 쓰고 계셨으니 그대로 둡니다)
+        /*content += '<div style="font-size:12px;color:#666;margin-bottom:8px;">';
         content += parking.dtadd || '주소 정보 없음';
-        content += '</div>';
-        if (hasKeys) {
-            content += '<a href="' + detailUrl + '" ';
-            content += 'onclick="openParkingDetail(\'' + parking.prkPlceManageNo + '\', \'' + parking.prkPlceType + '\', \'' + (parking.prkPlceInfoSn || '') + '\'); return false;" ';
-            content += 'aria-label="주차장 상세보기" ';
-            content += 'style="display:inline-block;padding:6px 12px;background:#2563eb;color:white;text-decoration:none;border-radius:4px;font-size:12px;cursor:pointer;">';
-            content += '상세보기';
-            content += '</a>';
-        } else {
-            content += '<div style="font-size:12px;color:#b91c1c;margin-top:4px;font-weight:600;">상세보기 불가 (관리번호/일련번호 누락)</div>';
-        }
+        content += '</div>';*/
+
+        // 상세보기 버튼
+        content += '<a href="javascript:void(0);" ';
+        content += 'onclick="openParkingDetail(\'' + parking.prkPlceManageNo + '\', \'' + (parking.prkPlceType || parking.prkPlceTypeCd) + '\')" ';
+        content += 'style="display:inline-block;padding:6px 12px;background:#2563eb;color:white;text-decoration:none;border-radius:4px;font-size:12px;cursor:pointer;">';
+        content += '상세보기';
+        content += '</a>';
+
         content += '</div>';
 
         const infowindow = new kakao.maps.InfoWindow({
@@ -1009,11 +973,7 @@
     }
 
     // 주차장 상세보기 함수
-    function openParkingDetail(prkPlceManageNo, prkPlceType, prkPlceInfoSn) {
-        if (!prkPlceManageNo || !prkPlceInfoSn) {
-            showMessage('관리번호/정보일련번호가 없어 상세를 열 수 없습니다.', 'error');
-            return;
-        }
+    function openParkingDetail(prkPlceManageNo, prkPlceType) {
         // 🔥 현재 지도 상태 저장
         sessionStorage.setItem('parkingMapReturn', 'true');
         sessionStorage.setItem('parkingMapCenter', JSON.stringify({
@@ -1028,10 +988,8 @@
         sessionStorage.setItem('parkingMapSido', sidoCd);
         sessionStorage.setItem('parkingMapSigungu', sigunguCd);
 
-        const infoSnParam = prkPlceInfoSn ? ('&prkPlceInfoSn=' + encodeURIComponent(prkPlceInfoSn)) : '';
         const url = contextPath + '/prk/parkinglist?openDetail=' + encodeURIComponent(prkPlceManageNo) +
-            '&type=' + encodeURIComponent(prkPlceType || '') +
-            infoSnParam;
+            '&type=' + encodeURIComponent(prkPlceType);
         window.location.href = url;
     }
 
@@ -1048,13 +1006,7 @@
         parkingMarkers.forEach(marker => marker.setMap(null));
         parkingMarkers = [];
 
-        const validParkings = (parkingList || [])
-            .map(p => ({
-                ...p,
-                lat: parseFloat(p.prkPlceLat),
-                lng: parseFloat(p.prkPlceLon)
-            }))
-            .filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lng));
+        const validParkings = parkingList.filter(p => p.prkPlceLat && p.prkPlceLon);
 
         console.log('📍 유효한 좌표를 가진 주차장:', validParkings.length + '개');
 
@@ -1063,14 +1015,18 @@
         const bounds = new kakao.maps.LatLngBounds();
 
         validParkings.forEach(parking => {
-            const marker = createParkingMarker(parking);
+            const marker = createParkingMarker({
+                ...parking,
+                lat: parseFloat(parking.prkPlceLat),
+                lng: parseFloat(parking.prkPlceLon)
+            });
 
             marker.setMap(map);
             parkingMarkers.push(marker);
 
             bounds.extend(new kakao.maps.LatLng(
-                parking.lat,
-                parking.lng
+                parseFloat(parking.prkPlceLat),
+                parseFloat(parking.prkPlceLon)
             ));
         });
 
@@ -1186,8 +1142,8 @@
                 const zoomControl = new kakao.maps.ZoomControl();
                 map.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
 
-                map.relayout();
                 console.log('✅ 카카오맵 로드 완료');
+
                 const searchSido = document.getElementById('searchSido');
                 const searchSigungu = document.getElementById('searchSigungu');
                 const regionSearchBtn = document.getElementById('regionSearchBtn');
@@ -1287,7 +1243,7 @@
                 return;
             }
 
-            const address = `${sido.trim()} ${sigungu.trim()}`.trim();
+            const address = (sido ? sido.trim() : '') + ' ' + (sigungu ? sigungu.trim() : '');
             if (!address) {
                 console.warn('로그인 지역정보 없음 (address empty)');
                 resolve(false);
@@ -1343,7 +1299,7 @@
                 const sidoSelect = document.getElementById('searchSido');
                 if (sidoSelect) {
                     // ⭐ 시도 선택 전 옵션 확인
-                    const sidoOption = sidoSelect.querySelector(`option[value="${sidoCd}"]`);
+                    const sidoOption = sidoSelect.querySelector('option[value="' + sidoCd + '"]');
                     if (sidoOption) {
                         sidoSelect.value = sidoCd;
                         console.log('✅ 시도 복원:', sidoCd);
@@ -1357,7 +1313,7 @@
                             if (sigunguSelect) {
                                 // 짧은 대기 후 시군구 선택
                                 setTimeout(() => {
-                                    const sigunguOption = sigunguSelect.querySelector(`option[value="${sigunguCd}"]`);
+                                    const sigunguOption = sigunguSelect.querySelector('option[value="' + sigunguCd + '"]');
                                     if (sigunguOption) {
                                         sigunguSelect.value = sigunguCd;
                                         console.log('✅ 시군구 복원:', sigunguCd);

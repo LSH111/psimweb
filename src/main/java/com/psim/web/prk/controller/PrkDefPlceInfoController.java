@@ -154,12 +154,20 @@ public class PrkDefPlceInfoController {
 
         // 🔥 세션에서 userBizList 가져와서 params에 추가 
         List<String> userBizList = (List<String>) session.getAttribute("userBizList");
-        if (userBizList != null && !userBizList.isEmpty()) {
-            cleanParams.put("userBizList", userBizList);
-            log.info("✅ userBizList 추가: {}", userBizList);
-        } else {
-            log.warn("⚠️ userBizList가 비어있습니다");
+        if (userBizList == null || userBizList.isEmpty()) {
+            String msg = "사업관리번호 정보가 없습니다. 다시 로그인해 주세요.";
+            log.warn("⚠️ {}", msg);
+            result.put("success", false);
+            result.put("message", msg);
+            result.put("list", new ArrayList<>());
+            result.put("totalCount", 0);
+            return result;
         }
+        // 필수 사업관리번호 필터 주입
+        String resolvedBizNo = resolveBizManageNo(userBizList);
+        cleanParams.put("userBizList", userBizList);
+        cleanParams.put("prkBizMngNo", resolvedBizNo);
+        log.info("✅ userBizList 추가 및 prkBizMngNo 강제: {}", resolvedBizNo);
 
         try {
             log.info("🔄 서비스 호출 시작");
@@ -933,6 +941,7 @@ public class PrkDefPlceInfoController {
     public Map<String, Object> getParkingMapData(
             @RequestParam(required = false) String sidoCd,
             @RequestParam(required = false) String sigunguCd,
+            @RequestParam(required = false) String prkPlceType,
             HttpSession session) {
 
         Map<String, Object> result = new HashMap<>();
@@ -963,6 +972,9 @@ public class PrkDefPlceInfoController {
                 params.put("sigunguCd", sigunguCd);
                 params.put("sigungu", sigunguCd); // 구 키 호환
                 log.info("✅ 시군구 필터 적용: {}", sigunguCd);
+            }
+            if (prkPlceType != null && !prkPlceType.isEmpty()) {
+                params.put("prkPlceType", prkPlceType);
             }
 
             // 좌표가 있는 주차장만 조회
