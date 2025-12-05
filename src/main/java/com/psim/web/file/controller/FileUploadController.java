@@ -46,6 +46,7 @@ public class FileUploadController {
     @PostMapping("/upload")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> uploadFile(
+            @RequestParam("prkPlceManageNo") String prkPlceManageNo,
             @RequestParam("prkPlceInfoSn") Integer prkPlceInfoSn,
             @RequestParam("prkImgId") String prkImgId,
             @RequestParam("file") MultipartFile file
@@ -53,8 +54,8 @@ public class FileUploadController {
         Map<String, Object> result = new HashMap<>();
 
         try {
-            log.info("📤 파일 업로드 시작: prkPlceInfoSn={}, prkImgId={}, fileName={}",
-                    prkPlceInfoSn, prkImgId, file.getOriginalFilename());
+            log.info("📤 파일 업로드 시작: prkPlceManageNo={}, prkPlceInfoSn={}, prkImgId={}, fileName={}",
+                    prkPlceManageNo, prkPlceInfoSn, prkImgId, file.getOriginalFilename());
 
             if (file == null || file.isEmpty()) {
                 result.put("success", false);
@@ -64,6 +65,7 @@ public class FileUploadController {
 
             // 파일 저장
             AttchPicMngInfoVO savedFile = attchPicService.uploadAndSaveFile(
+                    prkPlceManageNo,
                     prkPlceInfoSn,
                     prkImgId,
                     file
@@ -95,6 +97,7 @@ public class FileUploadController {
     @PostMapping("/upload-multiple")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> uploadMultipleFiles(
+            @RequestParam("prkPlceManageNo") String prkPlceManageNo,
             @RequestParam("prkPlceInfoSn") Integer prkPlceInfoSn,
             @RequestParam("prkImgId") String prkImgId,
             @RequestParam("files") List<MultipartFile> files
@@ -102,8 +105,8 @@ public class FileUploadController {
         Map<String, Object> result = new HashMap<>();
 
         try {
-            log.info("📤 복수 파일 업로드 시작: prkPlceInfoSn={}, prkImgId={}, 파일수={}",
-                    prkPlceInfoSn, prkImgId, files.size());
+            log.info("📤 복수 파일 업로드 시작: prkPlceManageNo={}, prkPlceInfoSn={}, prkImgId={}, 파일수={}",
+                    prkPlceManageNo, prkPlceInfoSn, prkImgId, files.size());
 
             if (files == null || files.isEmpty()) {
                 result.put("success", false);
@@ -113,6 +116,7 @@ public class FileUploadController {
 
             // 파일 목록 저장
             List<AttchPicMngInfoVO> savedFiles = attchPicService.uploadAndSaveFiles(
+                    prkPlceManageNo,
                     prkPlceInfoSn,
                     prkImgId,
                     files

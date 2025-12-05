@@ -22,12 +22,14 @@ public interface AttchPicMngInfoService {
 
     /**
      * 파일 업로드 및 정보 저장 (주차장용)
+     * @param prkPlceManageNo 주차장 관리번호
      * @param prkPlceInfoSn 주차장 정보 일련번호
      * @param prkImgId 이미지 구분 ID (예: "ON_MAIN")
      * @param file 업로드 파일
      * @return 저장된 파일 정보
      */
     AttchPicMngInfoVO uploadAndSaveFile(
+            String prkPlceManageNo,
             Integer prkPlceInfoSn,
             String prkImgId,
             MultipartFile file
@@ -35,12 +37,14 @@ public interface AttchPicMngInfoService {
 
     /**
      * 파일 업로드 및 정보 저장 (주차장용 - 복수)
+     * @param prkPlceManageNo 주차장 관리번호
      * @param prkPlceInfoSn 주차장 정보 일련번호
      * @param prkImgId 이미지 구분 ID
      * @param files 업로드 파일 목록
      * @return 저장된 파일 정보 목록
      */
     List<AttchPicMngInfoVO> uploadAndSaveFiles(
+            String prkPlceManageNo,
             Integer prkPlceInfoSn,
             String prkImgId,
             List<MultipartFile> files

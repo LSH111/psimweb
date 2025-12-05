@@ -39,7 +39,7 @@ class AttchPicMngInfoServiceImplIT {
     void uploadAndSaveFiles_emptyList_returnsEmpty() {
         List<MultipartFile> files = Collections.emptyList();
 
-        List<AttchPicMngInfoVO> result = service.uploadAndSaveFiles(1, "TEST", files);
+        List<AttchPicMngInfoVO> result = service.uploadAndSaveFiles("PRK-MNG-NO", 1, "TEST", files);
 
         assertThat(result).isEmpty();
     }

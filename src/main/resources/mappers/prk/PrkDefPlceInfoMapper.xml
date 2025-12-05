@@ -109,7 +109,7 @@
     </select>
 
     <select id="selectParkingDetail" parameterType="map" resultType="com.psim.web.prk.vo.ParkingListVO">
-        SELECT
+        SELECT DISTINCT
         cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsCd,
         tcl.sido_cd as sidoCd,
         tcl.sido_nm as sidoNm,
@@ -203,6 +203,7 @@
                       , topi.pregnant_prk_cnt                            as pregnantPrkCnt
                       , topi.prk_oper_mthd_cd                            as prkOperMthdCd
                       , topi.oper_mby_cd                                 as operMbyCd
+                      , topi.trut_comp_nm                                as trutCompNm
                       , topi.mgr_org                                     as mgrOrg
                       , topi.mgr_org_tel_no                              as mgrOrgTelNo
                       , topi.subordn_opertn_cd                           as subordnOpertnCd
@@ -309,14 +310,14 @@
     <!-- 🔥 노상주차장 정보 업데이트 (tb_onstr_prklot_info) -->
     <update id="updateOnstrPrklotInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
         UPDATE cpk.tb_onstr_prklot_info
-        SET prkplce_se        = #{prkplceSe}
-          , tot_prk_cnt       = #{totPrkCnt}
+        SET tot_prk_cnt       = #{totPrkCnt}
           , disab_prk_cnt     = #{disabPrkCnt}
           , compact_prk_cnt   = #{compactPrkCnt}
           , eco_prk_cnt       = #{ecoPrkCnt}
           , pregnant_prk_cnt  = #{pregnantPrkCnt}
           , prk_oper_mthd_cd  = #{prkOperMthdCd}
           , oper_mby_cd       = #{operMbyCd}
+          , trut_comp_nm      = #{trutCompNm}
           , mgr_org           = #{mgrOrg}
           , mgr_org_tel_no    = #{mgrOrgTelNo}
           , subordn_opertn_cd = #{subordnOpertnCd}
@@ -505,6 +506,11 @@
                       , topoi.nt_fee_hfyr_pass_prc                       as ntFeeHfyrPassPrc
                       , topoi.wk_fee_pay_mthd_othr                       as wkFeePayMthdOthr
                       , topoi.nt_fee_pay_mthd_othr                       as ntFeePayMthdOthr
+                      , case topi.oper_mby_cd
+                            when '04' then topi.trut_comp_nm
+                            when '05' then topi.dirt_comp_nm
+                            else null
+            end                                                          as compNm
         FROM cpk.tb_prk_def_plce_info tpdpi
                  INNER JOIN cpk.tb_offstr_prklot_info topi
                             ON tpdpi.prk_plce_manage_no = topi.prk_plce_manage_no
@@ -665,10 +671,10 @@
                       , tapi.trut_comp_nm                                as trutCompNm
                       , tapi.dirt_comp_nm                                as dirtCompNm
                       -- 부설주차장 운영 정보
-                      , tapoi.prmisn_dt                                  as prmisnDt
-                      , tapoi.use_insp_dt                                as useInspDt
-                      , tapoi.plot_ar                                    as plotAr
-                      , tapoi.myeon_ar                                   as myeonAr
+                      , tapi.prmisn_dt                                   as prmisnDt
+                      , tapi.use_insp_dt                                 as useInspDt
+                      , tapi.plot_ar                                     as plotAr
+                      , tapi.myeon_ar                                    as myeonAr
                       , tapoi.mech_prklot_tp_cd                          as mechPrklotTpCd
                       , tapoi.mech_prklot_oper_yn                        as mechPrklotOperYn
                       , tapoi.mech_prk_inop_cnt                          as mechPrkInopCnt
@@ -685,7 +691,7 @@
                       -- 실외 자주식
                       , tapoi.outdr_self_tot_space_cnt                   as outdrSelfTotSpaceCnt
                       , tapoi.outdr_self_flr_cnt                         as outdrSelfFlrCnt
-                      , tapoi.outdr_self_check_cnt                       as outdrSelfCheckCnt
+                      --, tapoi.outdr_self_check_cnt                       as outdrSelfCheckCnt
                       -- 실외 기계식
                       , tapoi.outdr_mech_tot_space_cnt                   as outdrMechTotSpaceCnt
                       , tapoi.outdr_mech_flr_cnt                         as outdrMechFlrCnt
@@ -727,7 +733,7 @@
                       , tapoi.prklot_entr_lat                            as prklotEntrLat
                       , tapoi.prklot_entr_lon                            as prklotEntrLon
                       -- 🔥 급지 정보 추가
-                      , tapoi.al_zon                                     as chrgGrdCd
+                      , tapi.al_zon                                      as chrgGrdCd
                       -- 기타 정보
                       , tapoi.pbl_open_yn                                as pblOpenYn
                       , tapoi.prklot_info_prvsn_cnst_yn                  as prklotInfoPrvsnCnstYn

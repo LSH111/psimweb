@@ -196,13 +196,27 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
             ownCd = vo.getPrkplceSe();
         }
         if (ownCd == null || ownCd.trim().isEmpty()) {
-            throw new IllegalArgumentException("관리주체(소유주체) 코드가 필요합니다.");
+            // 입력이 없으면 공영(1)으로 기본 설정
+            ownCd = "1";
+            log.warn("⚠️ 관리주체 코드가 없어 기본값(1)으로 설정합니다.");
         }
         String normalized = ownCd.trim();
         vo.setOwnCd(normalized);
         vo.setPrkplceSe(normalized);
         log.info("✅ 파라미터 검증 완료 - ownCd={}", normalized);
         return normalized;
+    }
+
+    private String clean(String value, int maxLength) {
+        if (value == null) return null;
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) return null;
+        if (maxLength > 0 && trimmed.length() > maxLength) {
+            String cut = trimmed.substring(0, maxLength);
+            log.warn("⚠️ 길이 제한({})으로 값이 잘립니다. 원본='{}', 결과='{}'", maxLength, trimmed, cut);
+            return cut;
+        }
+        return trimmed;
     }
 
     private void ensureAdminCodes(ParkingDetailVO vo) {
@@ -217,17 +231,18 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
         }
     }
 
-    private String truncate(String value, int maxLength) {
-        if (value == null) {
-            return null;
+    private String normalizeCodeList(String codes, int maxLength) {
+        if (codes == null) return null;
+        String[] parts = codes.split(",");
+        StringBuilder sb = new StringBuilder();
+        for (String p : parts) {
+            String token = p.trim();
+            if (token.isEmpty()) continue;
+            if (token.startsWith("기타")) continue;
+            if (sb.length() > 0) sb.append(",");
+            sb.append(token);
         }
-        String trimmed = value.trim();
-        if (trimmed.length() <= maxLength) {
-            return trimmed;
-        }
-        String result = trimmed.substring(0, maxLength);
-        log.warn("⚠️ 길이 제한으로 값이 잘립니다. max={}, 원본='{}', 결과='{}'", maxLength, trimmed, result);
-        return result;
+        return clean(sb.toString(), maxLength);
     }
 
     private String buildBizPerPrkMngNo(ParkingDetailVO vo) {
@@ -577,6 +592,7 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
         try {
             ensureOwnCd(parkingData);
             ensureAdminCodes(parkingData);
+            sanitizeOffstreetOperLengths(parkingData);
             log.info("🔄 노외주차장 UPDATE: {}", parkingData.getPrkPlceManageNo());
             applyLdongCd(parkingData);
 
@@ -611,6 +627,32 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
             log.error("❌ 부설주차장 UPDATE 실패", e);
             throw new RuntimeException("부설주차장 수정 실패", e);
         }
+    }
+
+    private void sanitizeOffstreetOperLengths(ParkingDetailVO vo) {
+        // 좌표/시간 등 길이 제한 필드 방어 (DB는 varchar(11) 등)
+        vo.setPrklotEntrLat(clean(vo.getPrklotEntrLat(), 11));
+        vo.setPrklotEntrLon(clean(vo.getPrklotEntrLon(), 11));
+        vo.setWkPeakStrTm(clean(vo.getWkPeakStrTm(), 11));
+        vo.setWkPeakEndTm(clean(vo.getWkPeakEndTm(), 11));
+        vo.setNtPeakStrTm(clean(vo.getNtPeakStrTm(), 11));
+        vo.setNtPeakEndTm(clean(vo.getNtPeakEndTm(), 11));
+        vo.setWkFeePayMthdOthr(clean(vo.getWkFeePayMthdOthr(), 11));
+        vo.setNtFeePayMthdOthr(clean(vo.getNtFeePayMthdOthr(), 11));
+        vo.setWkFeeMthdCd(normalizeCodeList(vo.getWkFeeMthdCd(), 11));
+        vo.setNtFeeMthdCd(normalizeCodeList(vo.getNtFeeMthdCd(), 11));
+        vo.setWkFeeStlmtMthdCd(normalizeCodeList(vo.getWkFeeStlmtMthdCd(), 11));
+        vo.setNtFeeStlmtMthdCd(normalizeCodeList(vo.getNtFeeStlmtMthdCd(), 11));
+        vo.setPrklotSignYn(clean(vo.getPrklotSignYn(), 1));
+        vo.setTcktMchnYn(clean(vo.getTcktMchnYn(), 1));
+        vo.setBarrGteYn(clean(vo.getBarrGteYn(), 1));
+        vo.setExitAlrmYn(clean(vo.getExitAlrmYn(), 1));
+        vo.setVehRcgnTpCd(clean(vo.getVehRcgnTpCd(), 11));
+        vo.setBldg2fPrklotCd(clean(vo.getBldg2fPrklotCd(), 11));
+        vo.setFallPrevFcltyYn(clean(vo.getFallPrevFcltyYn(), 1));
+        vo.setSlpYn(clean(vo.getSlpYn(), 1));
+        vo.setAntislpFcltyYn(clean(vo.getAntislpFcltyYn(), 1));
+        vo.setSlpCtnGuidSignYn(clean(vo.getSlpCtnGuidSignYn(), 1));
     }
 
     // ========== 상태 변경 ==========

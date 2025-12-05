@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?><XMI xmlns:UML="href://org.omg/UML/1.3" xmi.version="1.1">
+<XMI.header>
+<XMI.documentation>
+<XMI.exporter>PlantUML</XMI.exporter>
+<XMI.exporterVersion>1.2024.7</XMI.exporterVersion>
+</XMI.documentation>
+<XMI.metamodel xmi.name="UML" xmi.version="1.4"/>
+</XMI.header>
+<XMI.content>
+<UML:Model name="PlantUML" xmi.id="model1">
+<UML:Namespace.ownedElement>
+<UML:Class name="PsimWebApplication" xmi.id="cl0003">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="SecurityConfig" xmi.id="cl0006">
+<UML:ModelElement.stereotype>
+<UML:Stereotype name="config"/>
+</UML:ModelElement.stereotype>
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="WebMvcConfig" xmi.id="cl0007">
+<UML:ModelElement.stereotype>
+<UML:Stereotype name="config"/>
+</UML:ModelElement.stereotype>
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="DatabaseConfig" xmi.id="cl0008">
+<UML:ModelElement.stereotype>
+<UML:Stereotype name="config"/>
+</UML:ModelElement.stereotype>
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="DatabaseMonitoringConfig" xmi.id="cl0009">
+<UML:ModelElement.stereotype>
+<UML:Stereotype name="config"/>
+</UML:ModelElement.stereotype>
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="DatabaseHealthIndicator" xmi.id="cl0010">
+<UML:ModelElement.stereotype>
+<UML:Stereotype name="health"/>
+</UML:ModelElement.stereotype>
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="RestClientConfig" xmi.id="cl0011">
+<UML:ModelElement.stereotype>
+<UML:Stereotype name="config"/>
+</UML:ModelElement.stereotype>
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="MyBatisConfig" xmi.id="cl0012">
+<UML:ModelElement.stereotype>
+<UML:Stereotype name="config"/>
+</UML:ModelElement.stereotype>
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="AuthInterceptor" xmi.id="cl0013">
+<UML:ModelElement.stereotype>
+<UML:Stereotype name="interceptor"/>
+</UML:ModelElement.stereotype>
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class isInterface="true" name="PhotoStorage" xmi.id="cl0015">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="FileSystemPhotoStorage" xmi.id="cl0016">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class isInterface="true" name="GeocodingClient" xmi.id="cl0019">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="KakaoGeocodingClient" xmi.id="cl0020">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="GeocodingConfig" xmi.id="cl0021">
+<UML:ModelElement.stereotype>
+<UML:Stereotype name="config"/>
+</UML:ModelElement.stereotype>
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="KakaoGeocodingProperties" xmi.id="cl0022">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="GeocodingException" xmi.id="cl0023">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="GeoAddress" xmi.id="cl0024">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="GeoCoordinate" xmi.id="cl0025">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="GeoRegion" xmi.id="cl0026">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="KakaoLocalController" xmi.id="cl0035">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class isInterface="true" name="KakaoLocalService" xmi.id="cl0037">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="KakaoLocalServiceImpl" xmi.id="cl0039">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="KakaoCoord2AddressResponse" xmi.id="cl0041">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="KakaoCoord2RegionResponse" xmi.id="cl0042">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="KakaoAddress2CoordResponse" xmi.id="cl0043">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="IndexController" xmi.id="cl0052">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="LoginController" xmi.id="cl0053">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="CoCodeController" xmi.id="cl0054">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="ErrorPageController" xmi.id="cl0055">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class isInterface="true" name="IndexService" xmi.id="cl0057">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class isInterface="true" name="LoginService" xmi.id="cl0058">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class isInterface="true" name="CoCodeService" xmi.id="cl0059">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class isInterface="true" name="PasswordCryptoService" xmi.id="cl0060">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class isInterface="true" name="LoginAttemptPolicy" xmi.id="cl0061">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="IndexServiceImpl" xmi.id="cl0063">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="LoginServiceImpl" xmi.id="cl0064">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="CoCodeServiceImpl" xmi.id="cl0065">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="PasswordCryptoServiceImpl" xmi.id="cl0066">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="InMemoryLoginAttemptPolicy" xmi.id="cl0067">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="IndexMapper" xmi.id="cl0069">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="LoginMapper" xmi.id="cl0070">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="CoCodeMapper" xmi.id="cl0071">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="CoUserMapper" xmi.id="cl0072">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="CoUserVO" xmi.id="cl0074">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="CoAuthVO" xmi.id="cl0075">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="CoAuthMenuVO" xmi.id="cl0076">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="CoAuthTargetVO" xmi.id="cl0077">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="CoMenuVO" xmi.id="cl0078">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="CoCodeVO" xmi.id="cl0079">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="CoCodeGroupVO" xmi.id="cl0080">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="CoLdongVO" xmi.id="cl0081">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="CoAddrVO" xmi.id="cl0082">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="CoAddrJibunVO" xmi.id="cl0083">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="CoZipVO" xmi.id="cl0084">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="CoComboVO" xmi.id="cl0085">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="GlobalExceptionHandler" xmi.id="cl0087">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="RestExceptionHandler" xmi.id="cl0088">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="AuthFilter" xmi.id="cl0090">
+<UML:ModelElement.stereotype>
+<UML:Stereotype name="deprecated"/>
+</UML:ModelElement.stereotype>
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="PrkDefPlceInfoController" xmi.id="cl0117">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="PrkUsageStatusController" xmi.id="cl0118">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class isInterface="true" name="PrkDefPlceInfoService" xmi.id="cl0120">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class isInterface="true" name="PrkUsageStatusService" xmi.id="cl0121">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="PrkDefPlceInfoServiceImpl" xmi.id="cl0123">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="PrkUsageStatusServiceImpl" xmi.id="cl0124">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="PrkDefPlceInfoMapper" xmi.id="cl0126">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="PrkUsageStatusMapper" xmi.id="cl0127">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="ParkingListVO" xmi.id="cl0129">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="ParkingDetailVO" xmi.id="cl0130">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="PrkUsageStatusVO" xmi.id="cl0131">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="FileUploadController" xmi.id="cl0143">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class isInterface="true" name="AttchPicMngInfoService" xmi.id="cl0145">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="AttchPicMngInfoServiceImpl" xmi.id="cl0147">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="AttchPicMngInfoMapper" xmi.id="cl0149">
+<UML:Classifier.feature/>
+</UML:Class>
+<UML:Class name="AttchPicMngInfoVO" xmi.id="cl0151">
+<UML:Classifier.feature/>
+</UML:Class>
+</UML:Namespace.ownedElement>
+</UML:Model>
+</XMI.content>
+</XMI>

@@ -224,35 +224,6 @@ function applyPhoneFormat(input) {
     });
 }
 
-// 🔥 관리주체(소유주체) 코드 정규화/선택 헬퍼
-function normalizeOwnCdValue(raw) {
-    if (raw === undefined || raw === null) return '';
-    const value = String(raw).trim();
-    if (!value) return '';
-    if (value.includes('공영')) return '1';
-    if (value.includes('민영') || value.includes('민간')) return '2';
-    if (value.includes('기타')) return '9';
-    const stripped = value.replace(/^0+/, '');
-    return ['1', '2', '9'].includes(stripped) ? stripped : '';
-}
-
-function applyOwnCdSelection(rawValue) {
-    const normalized = normalizeOwnCdValue(rawValue);
-    if (!normalized) return;
-    const radio = document.querySelector(`input[name="ownCd"][value="${normalized}"]`);
-    if (radio) {
-        radio.checked = true;
-    }
-    const hiddenOwn = document.getElementById('own_cd');
-    if (hiddenOwn) {
-        hiddenOwn.value = normalized;
-    }
-}
-
-function getSelectedOwnCd() {
-    return document.querySelector('input[name="ownCd"]:checked')?.value || '';
-}
-
 // ========== 🔥 행정구역 코드 로더 추가 ==========
 const RegionCodeLoader = {
     // 진행상태 로드
@@ -444,6 +415,7 @@ const CodeLoader = {
                 input.type = 'radio';
                 input.name = radioName;
                 input.value = code.codeCd;
+                input.dataset.codeName = code.codeNm || '';
                 if (index === 0) input.checked = true;
 
                 span.textContent = code.codeNm;
@@ -591,18 +563,28 @@ const CodeLoader = {
 
         // PRK_002: 운영주체
         if (groups['PRK_002']) {
+            console.log('PRK_002 운영주체 codes:', groups['PRK_002'].codes);
             this.populateRadioGroup('#own_group', 'own', groups['PRK_002'].codes);
             setTimeout(() => {
                 const ownRadios = $$('input[name="own"]');
                 const ownWrap = $('#own_company_wrap');
                 const ownCompany = $('#f_own_company');
+                const syncCompanyInput = () => {
+                    const checked = ownRadios.find(r => r.checked);
+                    const codeCd = (checked?.value || '').trim();
+                    const codeNm = checked?.dataset.codeName || '';
+                    const isPrivate = checked && (codeCd === '04' || codeCd === '05' || codeNm.includes('민간') || codeCd.includes('민간'));
+                    if (ownWrap) ownWrap.hidden = !isPrivate;
+                };
                 ownRadios.forEach(r => {
                     r.addEventListener('change', () => {
-                        const isPrivate = r.value.includes('민간') && r.checked;
+                        const codeNm = r.dataset.codeName || '';
+                        const codeCd = (r.value || '').trim();
+                        const isPrivate = r.checked && (codeCd === '04' || codeCd === '05' || codeNm.includes('민간') || codeCd.includes('민간'));
                         if (ownWrap) ownWrap.hidden = !isPrivate;
-                        if (!isPrivate && ownCompany) ownCompany.value = '';
                     });
                 });
+                syncCompanyInput();
             }, 100);
         }
 
@@ -1074,8 +1056,16 @@ async function convertCoordToAddress(longitude, latitude) {
 
 // ========== 사진 업로드/좌표 ==========
 const inLib = $('#f_photo_lib'), inCam = $('#f_photo_cam');
-$('#btnPickFromLibrary')?.addEventListener('click', () => inLib?.click());
-$('#btnTakePhoto')?.addEventListener('click', () => inCam?.click());
+$('#btnPickFromLibrary')?.addEventListener('click', () => {
+    const input = document.getElementById('f_photo_lib');
+    console.log('btnPickFromLibrary click', {input, disabled: input?.disabled});
+    if (input) input.click();
+});
+$('#btnTakePhoto')?.addEventListener('click', () => {
+    const input = document.getElementById('f_photo_cam');
+    console.log('btnTakePhoto click', {input, disabled: input?.disabled});
+    if (input) input.click();
+});
 $('#btnUseGeolocation')?.addEventListener('click', async () => {
     const c = await geoFromDevice();
     if (c && f_lat && f_lng) {
@@ -2332,7 +2322,6 @@ async function populateFormWithData(data) {
     if (f_addrR) f_addrR.value = data.dtadd || '';
     if (f_lat) f_lat.value = data.prkPlceLat || '';
     if (f_lng) f_lng.value = data.prkPlceLon || '';
-    applyOwnCdSelection(data.ownCd || data.prkplceSe);
     // 🔥 우편번호 바인딩
     const f_zip = document.getElementById('f_zip');
     if (f_zip && data.zip) {
@@ -2364,6 +2353,14 @@ async function populateFormWithData(data) {
         if (ownRadio) {
             ownRadio.checked = true;
             ownRadio.dispatchEvent(new Event('change'));
+        }
+        if (data.operMbyCd === '04' || data.operMbyCd === '05') {
+            const ownWrap = $('#own_company_wrap');
+            const ownCompany = $('#f_own_company');
+            if (ownWrap) ownWrap.hidden = false;
+            if (ownCompany) {
+                ownCompany.value = data.compNm || data.trutCompNm || data.dirtCompNm || '';
+            }
         }
     }
 
@@ -2704,7 +2701,9 @@ function bindCheckboxes(name, codeString) {
 function isApprovedStatus(value) {
     if (!value) return false;
     const v = value.toString().trim();
-    return v === '30' || v === '승인' || v.toUpperCase() === 'APPROVED';
+    const upper = v.toUpperCase();
+    return v === '30' || v === '20' || v === '승인' || v === '승인대기' || v === '승인대기중'
+        || upper === 'APPROVED' || upper === 'APPROVAL_PENDING';
 }
 
 function applyApprovalLock(statusValue) {
@@ -2748,13 +2747,31 @@ function setAllFieldsReadOnly(isReadOnly) {
     // Select 박스
     const selects = $$('select');
     selects.forEach(select => {
-        select.disabled = isReadOnly;
+        if (isReadOnly) {
+            select.disabled = true;
+            select.style.backgroundColor = '#f3f4f6';
+            select.style.cursor = 'not-allowed';
+            select.style.pointerEvents = 'none';
+        } else {
+            select.disabled = false;
+            select.style.backgroundColor = '';
+            select.style.cursor = '';
+            select.style.pointerEvents = '';
+        }
     });
 
     // 라디오/체크박스
     const radiosAndChecks = $$('input[type="radio"], input[type="checkbox"]');
     radiosAndChecks.forEach(input => {
-        input.disabled = isReadOnly;
+        if (isReadOnly) {
+            input.disabled = true;
+            input.style.cursor = 'not-allowed';
+            input.style.pointerEvents = 'none';
+        } else {
+            input.disabled = false;
+            input.style.cursor = '';
+            input.style.pointerEvents = '';
+        }
     });
 
     // 파일 업로드 버튼
@@ -2769,7 +2786,18 @@ function setAllFieldsReadOnly(isReadOnly) {
     ];
     fileButtons.forEach(selector => {
         const btn = $(selector);
-        if (btn) btn.disabled = isReadOnly;
+        if (btn) {
+            btn.disabled = isReadOnly;
+            if (isReadOnly) {
+                btn.style.cursor = 'not-allowed';
+                btn.style.opacity = '0.5';
+                btn.style.pointerEvents = 'none';
+            } else {
+                btn.style.cursor = '';
+                btn.style.opacity = '';
+                btn.style.pointerEvents = '';
+            }
+        }
     });
 
 }
@@ -2789,9 +2817,8 @@ function buildPayload() {
         status: f_status?.value,
         type: '노외',
         operationType: selectedOp,
-        // 변경: 관리주체(소유주체) 코드 포함
-        ownCd: getSelectedOwnCd(),
         ldongCd: generateLdongCd(),
+        companyName: $('#f_own_company')?.value?.trim() || '',
         times: {
             day: isDayChecked,
             night: isNightChecked
@@ -2836,13 +2863,6 @@ function validateRequiredFields() {
     } else {
     }
 
-    // 관리주체(소유주체) 검증
-    // 변경: 관리주체(소유주체) 필수 검증
-    const ownerCode = getSelectedOwnCd();
-    if (!ownerCode) {
-        errors.push('• 관리주체(소유주체)를 선택해주세요');
-    }
-
     // 행정구역 코드
     const ldongCd = generateLdongCd();
     if (!ldongCd) {
@@ -2878,9 +2898,9 @@ function mapPayloadToServerFormat(payload) {
         prkplceNm: payload.name,
         prgsStsCd: payload.status,
         prkPlceType: payload.prkPlceType || payload.type || '2', // 노외주차장 구분 코드
-        // 변경: 관리주체(소유주체) 코드 매핑
-        prkplceSe: payload.ownCd,
-
+        prkplceSe: '2',
+        trutCompNm: null,
+        dirtCompNm: null,
         sidoCd: f_sido?.value || null,
         sigunguCd: f_sigungu?.value || null,
         emdCd: f_emd?.value || null,
@@ -2928,6 +2948,11 @@ function mapPayloadToServerFormat(payload) {
         // 운영방식
         prkOperMthdCd: payload.operationType
     };
+    if (serverData.operMbyCd === '04') {
+        serverData.trutCompNm = payload.companyName || null;
+    } else if (serverData.operMbyCd === '05') {
+        serverData.dirtCompNm = payload.companyName || null;
+    }
     console.log('serverData ::::', serverData);
     // 주간 데이터
     if (payload.times.day && payload.day) {
@@ -3382,8 +3407,13 @@ async function doSave() {
 
     // --- (E) 조건부 검증 (예: 민간위탁일 때 업체명 필수) ---
     const ownRadio = document.querySelector('input[name="own"]:checked');
-    if (ownRadio && ownRadio.value.includes('민간')) {
-        isValid = FormValidator.check('#f_own_company', '위탁 업체명을 입력해주세요') && isValid;
+    if (ownRadio) {
+        const codeCd = (ownRadio.value || '').trim();
+        const codeNm = ownRadio.dataset.codeName || '';
+        const isPrivate = codeCd === '04' || codeCd === '05';
+        if (isPrivate) {
+            isValid = FormValidator.check('#f_own_company', '위탁 업체명을 입력해주세요') && isValid;
+        }
     }
 
     // --- (F) 관리기관 정보 ---
@@ -3433,8 +3463,6 @@ async function doSave() {
 
         // 🔥 FormData 생성
         const formData = new FormData();
-        formData.append('ownCd', payload.ownCd || '');
-
         // JSON 데이터를 Blob으로 추가
         formData.append('parkingData', new Blob([JSON.stringify(serverData)], {
             type: 'application/json'
@@ -3444,13 +3472,13 @@ async function doSave() {
         const mainPhotoLib = document.getElementById('f_photo_lib');
         const mainPhotoCam = document.getElementById('f_photo_cam');
 
-    if (mainPhotoLib && mainPhotoLib.files && mainPhotoLib.files.length > 0) {
-        formData.append('mainPhoto', mainPhotoLib.files[0]);
-        appendUploadedFiles('#uploadedFileList', mainPhotoLib.files);
-    } else if (mainPhotoCam && mainPhotoCam.files && mainPhotoCam.files.length > 0) {
-        formData.append('mainPhoto', mainPhotoCam.files[0]);
-        appendUploadedFiles('#uploadedFileList', mainPhotoCam.files);
-    }
+        if (mainPhotoLib && mainPhotoLib.files && mainPhotoLib.files.length > 0) {
+            formData.append('mainPhoto', mainPhotoLib.files[0]);
+            appendUploadedFiles('#uploadedFileList', mainPhotoLib.files);
+        } else if (mainPhotoCam && mainPhotoCam.files && mainPhotoCam.files.length > 0) {
+            formData.append('mainPhoto', mainPhotoCam.files[0]);
+            appendUploadedFiles('#uploadedFileList', mainPhotoCam.files);
+        }
 
         // 표지판, 발권기, 차단기, 출차알람, 입구 사진도 동일하게 추가
         const photoFiles = [
@@ -3528,7 +3556,7 @@ function handlePostSave(isNew) {
             }
             window.opener.focus();
             window.close();
-            return;
+
         }
     } catch (e) {
         console.warn('부모 창 제어 중 오류:', e);
@@ -3657,6 +3685,7 @@ function renderUploadedList(photos) {
         list.appendChild(li);
     });
 }
+
 // 보조: 전역에 확실히 노출
 window.renderUploadedList = renderUploadedList;
 

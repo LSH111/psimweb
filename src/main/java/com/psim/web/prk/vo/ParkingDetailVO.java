@@ -242,6 +242,7 @@ public class ParkingDetailVO {
     // 위탁/직영 회사명
     private String trutCompNm;         // 위탁회사명
     private String dirtCompNm;         // 직영회사명
+    private String compNm;             // 운영주체별 표시용 회사명 (위탁/직영 매핑)
 
     // 허가 및 검사 정보
     private String prmisnDt;           // 허가일자

@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class AttchPicMngInfoVO {
+    private String prkPlceManageNo;     // 주차장 관리번호
     private Integer prkPlceInfoSn;      // 주차장 정보 일련번호
     private String prkPlceType;         // 주차장 구분 (01:노상, 02:노외, 03:부설)
     private String prkOperType;         // 운영 타입

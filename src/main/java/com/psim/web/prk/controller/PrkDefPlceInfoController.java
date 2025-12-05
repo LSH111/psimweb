@@ -265,10 +265,8 @@ public class PrkDefPlceInfoController {
                     : (parkingData.getPrkplceSe() != null ? parkingData.getPrkplceSe().trim() : null);
 
             if (resolvedOwnCd == null || resolvedOwnCd.trim().isEmpty()) {
-                log.error("❌ 관리주체(소유주체) 코드가 없습니다.");
-                response.put("success", false);
-                response.put("message", "관리주체(소유주체) 코드가 필요합니다.");
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+                resolvedOwnCd = "1"; // 입력이 없으면 기본값(공영)으로 처리
+                log.warn("⚠️ 관리주체 코드가 없어 기본값으로 대체합니다: {}", resolvedOwnCd);
             }
             parkingData.setOwnCd(resolvedOwnCd.trim());
             parkingData.setPrkplceSe(resolvedOwnCd.trim());
@@ -371,13 +369,13 @@ public class PrkDefPlceInfoController {
                 try {
                     if (mainPhoto != null && !mainPhoto.isEmpty()) {
                         log.info("📸 현장 사진 저장 시작: {}", mainPhoto.getOriginalFilename());
-                        attchPicService.uploadAndSaveFile(prkPlceInfoSn, "ON_MAIN", mainPhoto);
+                        attchPicService.uploadAndSaveFile(parkingData.getPrkPlceManageNo(), prkPlceInfoSn, "ON_MAIN", mainPhoto);
                         log.info("✅ 현장 사진 저장 완료");
                     }
 
                     if (signPhoto != null && !signPhoto.isEmpty()) {
                         log.info("📸 표지판 사진 저장 시작: {}", signPhoto.getOriginalFilename());
-                        attchPicService.uploadAndSaveFile(prkPlceInfoSn, "ON_SIGN", signPhoto);
+                        attchPicService.uploadAndSaveFile(parkingData.getPrkPlceManageNo(), prkPlceInfoSn, "ON_SIGN", signPhoto);
                         log.info("✅ 표지판 사진 저장 완료");
                     }
                 } catch (Exception fileException) {
@@ -591,37 +589,37 @@ public class PrkDefPlceInfoController {
                 try {
                     if (mainPhoto != null && !mainPhoto.isEmpty()) {
                         log.info("📸 현장 사진 저장 시작: {}", mainPhoto.getOriginalFilename());
-                        attchPicService.uploadAndSaveFile(prkPlceInfoSn, "OFF_MAIN", mainPhoto);
+                        attchPicService.uploadAndSaveFile(prkPlceManageNo, prkPlceInfoSn, "OFF_MAIN", mainPhoto);
                         log.info("✅ 현장 사진 저장 완료");
                     }
 
                     if (signPhoto != null && !signPhoto.isEmpty()) {
                         log.info("📸 표지판 사진 저장 시작: {}", signPhoto.getOriginalFilename());
-                        attchPicService.uploadAndSaveFile(prkPlceInfoSn, "OFF_SIGN", signPhoto);
+                        attchPicService.uploadAndSaveFile(prkPlceManageNo, prkPlceInfoSn, "OFF_SIGN", signPhoto);
                         log.info("✅ 표지판 사진 저장 완료");
                     }
 
                     if (ticketPhoto != null && !ticketPhoto.isEmpty()) {
                         log.info("📸 발권기 사진 저장 시작: {}", ticketPhoto.getOriginalFilename());
-                        attchPicService.uploadAndSaveFile(prkPlceInfoSn, "OFF_TICKET", ticketPhoto);
+                        attchPicService.uploadAndSaveFile(prkPlceManageNo, prkPlceInfoSn, "OFF_TICKET", ticketPhoto);
                         log.info("✅ 발권기 사진 저장 완료");
                     }
 
                     if (barrierPhoto != null && !barrierPhoto.isEmpty()) {
                         log.info("📸 차단기 사진 저장 시작: {}", barrierPhoto.getOriginalFilename());
-                        attchPicService.uploadAndSaveFile(prkPlceInfoSn, "OFF_BARRIER", barrierPhoto);
+                        attchPicService.uploadAndSaveFile(prkPlceManageNo, prkPlceInfoSn, "OFF_BARRIER", barrierPhoto);
                         log.info("✅ 차단기 사진 저장 완료");
                     }
 
                     if (exitAlarmPhoto != null && !exitAlarmPhoto.isEmpty()) {
                         log.info("📸 출차알람 사진 저장 시작: {}", exitAlarmPhoto.getOriginalFilename());
-                        attchPicService.uploadAndSaveFile(prkPlceInfoSn, "OFF_EXIT_ALARM", exitAlarmPhoto);
+                        attchPicService.uploadAndSaveFile(prkPlceManageNo, prkPlceInfoSn, "OFF_EXIT_ALARM", exitAlarmPhoto);
                         log.info("✅ 출차알람 사진 저장 완료");
                     }
 
                     if (entrancePhoto != null && !entrancePhoto.isEmpty()) {
                         log.info("📸 입구 사진 저장 시작: {}", entrancePhoto.getOriginalFilename());
-                        attchPicService.uploadAndSaveFile(prkPlceInfoSn, "OFF_ENTRANCE", entrancePhoto);
+                        attchPicService.uploadAndSaveFile(prkPlceManageNo, prkPlceInfoSn, "OFF_ENTRANCE", entrancePhoto);
                         log.info("✅ 입구 사진 저장 완료");
                     }
                 } catch (Exception fileException) {
@@ -830,32 +828,32 @@ public class PrkDefPlceInfoController {
                 try {
                     if (mainPhoto != null && !mainPhoto.isEmpty()) {
                         log.info("📸 현장 사진 저장 시작: {}", mainPhoto.getOriginalFilename());
-                        attchPicService.uploadAndSaveFile(prkPlceInfoSn, "BLD_MAIN", mainPhoto);
+                        attchPicService.uploadAndSaveFile(prkPlceManageNo, prkPlceInfoSn, "BLD_MAIN", mainPhoto);
                         log.info("✅ 현장 사진 저장 완료");
                     }
                     if (signPhoto != null && !signPhoto.isEmpty()) {
                         log.info("📸 표지판 사진 저장 시작: {}", signPhoto.getOriginalFilename());
-                        attchPicService.uploadAndSaveFile(prkPlceInfoSn, "BLD_SIGN", signPhoto);
+                        attchPicService.uploadAndSaveFile(prkPlceManageNo, prkPlceInfoSn, "BLD_SIGN", signPhoto);
                         log.info("✅ 표지판 사진 저장 완료");
                     }
                     if (ticketPhoto != null && !ticketPhoto.isEmpty()) {
                         log.info("📸 발권기 사진 저장 시작: {}", ticketPhoto.getOriginalFilename());
-                        attchPicService.uploadAndSaveFile(prkPlceInfoSn, "BLD_TICKET", ticketPhoto);
+                        attchPicService.uploadAndSaveFile(prkPlceManageNo, prkPlceInfoSn, "BLD_TICKET", ticketPhoto);
                         log.info("✅ 발권기 사진 저장 완료");
                     }
                     if (barrierPhoto != null && !barrierPhoto.isEmpty()) {
                         log.info("📸 차단기 사진 저장 시작: {}", barrierPhoto.getOriginalFilename());
-                        attchPicService.uploadAndSaveFile(prkPlceInfoSn, "BLD_BARRIER", barrierPhoto);
+                        attchPicService.uploadAndSaveFile(prkPlceManageNo, prkPlceInfoSn, "BLD_BARRIER", barrierPhoto);
                         log.info("✅ 차단기 사진 저장 완료");
                     }
                     if (exitAlarmPhoto != null && !exitAlarmPhoto.isEmpty()) {
                         log.info("📸 출차알람 사진 저장 시작: {}", exitAlarmPhoto.getOriginalFilename());
-                        attchPicService.uploadAndSaveFile(prkPlceInfoSn, "BLD_EXIT_ALARM", exitAlarmPhoto);
+                        attchPicService.uploadAndSaveFile(prkPlceManageNo, prkPlceInfoSn, "BLD_EXIT_ALARM", exitAlarmPhoto);
                         log.info("✅ 출차알람 사진 저장 완료");
                     }
                     if (entrancePhoto != null && !entrancePhoto.isEmpty()) {
                         log.info("📸 입구 사진 저장 시작: {}", entrancePhoto.getOriginalFilename());
-                        attchPicService.uploadAndSaveFile(prkPlceInfoSn, "BLD_ENTRANCE", entrancePhoto);
+                        attchPicService.uploadAndSaveFile(prkPlceManageNo, prkPlceInfoSn, "BLD_ENTRANCE", entrancePhoto);
                         log.info("✅ 입구 사진 저장 완료");
                     }
                 } catch (Exception fileException) {

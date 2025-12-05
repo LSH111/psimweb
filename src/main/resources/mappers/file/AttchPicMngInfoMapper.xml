@@ -28,6 +28,7 @@
     <!-- 🔥 INSERT - cmpl_sn 추가 -->
     <insert id="insertAttchPicMngInfo" parameterType="com.psim.web.file.vo.AttchPicMngInfoVO">
         INSERT INTO cpk.tb_attch_pic_mng_info (
+            prk_plce_manage_no,
             prk_plce_info_sn,
             prk_plce_type,
             prk_oper_type,
@@ -43,6 +44,7 @@
             rgst_id,
             rgst_ip_addr
         ) VALUES (
+                     #{prkPlceManageNo},
                      #{prkPlceInfoSn},
                      #{prkPlceType},
                      #{prkOperType},
@@ -63,6 +65,7 @@
     <!-- 🔥 SELECT - cmpl_sn으로도 조회 가능 -->
     <select id="selectAttchPicMngInfoList" resultType="com.psim.web.file.vo.AttchPicMngInfoVO">
         SELECT
+        prk_plce_manage_no AS prkPlceManageNo,
         prk_plce_info_sn AS prkPlceInfoSn,
         prk_plce_type AS prkPlceType,
         prk_oper_type AS prkOperType,
@@ -82,6 +85,9 @@
         updusr_ip_addr AS updusrIpAddr
         FROM cpk.tb_attch_pic_mng_info
         WHERE 1=1
+        <if test="prkPlceManageNo != null and prkPlceManageNo != ''">
+            AND prk_plce_manage_no = #{prkPlceManageNo}
+        </if>
         <if test="prkPlceInfoSn != null">
             AND prk_plce_info_sn = #{prkPlceInfoSn}
         </if>

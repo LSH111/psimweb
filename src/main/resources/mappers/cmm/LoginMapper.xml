@@ -4,32 +4,35 @@
 
 <mapper namespace="com.psim.web.cmm.mapper.LoginMapper">
     <select id="findUserById" resultType="com.psim.web.cmm.vo.CoUserVO">
-        SELECT user_id    AS userId,
-               user_pw    AS userPw,
-               user_nm    AS userNm,
-               mbtlnum    as mbtlnum,
-               sigungu_cd AS sigunguCd, LEFT (TRIM (sigungu_cd), 2) AS sidoCd
+        SELECT user_id      AS userId,
+               user_pw      AS userPw,
+               user_nm      AS userNm,
+               mbtlnum      as mbtlnum,
+               user_ty_code as userTyCode,
+               sigungu_cd   AS sigunguCd, LEFT (TRIM (sigungu_cd), 2) AS sidoCd
         FROM cpk.tb_co_user
         WHERE user_id = #{userId}
     </select>
 
     <select id="login" resultType="com.psim.web.cmm.vo.CoUserVO">
-        SELECT user_id    AS userId,
-               user_pw    AS userPw,
-               user_nm    AS userNm,
-               mbtlnum    as mbtlnum,
-               sigungu_cd AS sigunguCd, LEFT (TRIM (sigungu_cd), 2) AS sidoCd
+        SELECT user_id      AS userId,
+               user_pw      AS userPw,
+               user_nm      AS userNm,
+               mbtlnum      as mbtlnum,
+               user_ty_code as userTyCode,
+               sigungu_cd   AS sigunguCd, LEFT (TRIM (sigungu_cd), 2) AS sidoCd
         FROM cpk.tb_co_user
         WHERE user_id = #{userId}
           AND user_pw = #{password}
     </select>
 
     <select id="loginWithHash" resultType="com.psim.web.cmm.vo.CoUserVO">
-        SELECT user_id    AS userId,
-               user_pw    AS userPw,
-               user_nm    AS userNm,
-               mbtlnum    as mbtlnum,
-               sigungu_cd AS sigunguCd, LEFT (TRIM (sigungu_cd), 2) AS sidoCd
+        SELECT user_id      AS userId,
+               user_pw      AS userPw,
+               user_nm      AS userNm,
+               mbtlnum      as mbtlnum,
+               user_ty_code as userTyCode,
+               sigungu_cd   AS sigunguCd, LEFT (TRIM (sigungu_cd), 2) AS sidoCd
         FROM cpk.tb_co_user
         WHERE user_id = #{userId}
           AND user_pw = #{hashedPassword}
@@ -63,12 +66,12 @@
 
     <!-- 휴대폰 번호로 사용자 조회 (인증용) -->
     <select id="selectUserByPhone" parameterType="string" resultType="java.util.HashMap">
-        SELECT user_id   AS userId,
-               user_nm   AS username,
-               mbtlnum   AS phone
+        SELECT user_id      AS userId,
+               user_nm      AS username,
+               mbtlnum      AS phone,
+               user_ty_code AS userTyCode
         FROM cpk.tb_co_user
-        WHERE regexp_replace(mbtlnum, '[^0-9]', '') = regexp_replace(#{phone}, '[^0-9]', '')
-        LIMIT 1
+        WHERE regexp_replace(mbtlnum, '[^0-9]', '') = regexp_replace(#{phone}, '[^0-9]', '') LIMIT 1
     </select>
 
     <!-- 로그인 sms -->
@@ -86,7 +89,7 @@
                 '[한국교통안전공단 인증문자]',
                 TO_CHAR(NOW(), 'YYYYMMDDHH24MISS'),
                 TO_CHAR(NOW(), 'YYYYMMDDHH24MISS'),
-                '07077268822',
+                '0544403073',
                 1,
                 #{destInfo},
                 #{msg},

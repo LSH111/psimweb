@@ -286,9 +286,6 @@
 </script>
 
 <!-- 🔥 5. 공통 → 컴포넌트 → 페이지 스크립트 -->
-<script src="${pageContext.request.contextPath}/static/js/common/dom-utils.js"></script>
-<script src="${pageContext.request.contextPath}/static/js/common/format-utils.js"></script>
-<script src="${pageContext.request.contextPath}/static/js/common/code-api.js"></script>
 <script src="${pageContext.request.contextPath}/static/js/component/toast.js"></script>
 <script src="${pageContext.request.contextPath}/static/js/component/modal.js"></script>
 <script src="${pageContext.request.contextPath}/static/js/page/usage-status-list.js"></script>

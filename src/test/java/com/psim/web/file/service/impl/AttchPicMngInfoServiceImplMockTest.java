@@ -48,7 +48,7 @@ class AttchPicMngInfoServiceImplMockTest {
                 .thenReturn(new PhotoStorage.SaveResult("PRK/20250101", "uuid.png", "png"));
         when(mapper.selectMaxSeqNo(anyInt(), anyString())).thenReturn(1);
 
-        AttchPicMngInfoVO vo = service.uploadAndSaveFile(1, "MAIN", multipartFile);
+        AttchPicMngInfoVO vo = service.uploadAndSaveFile("PRK-MNG-NO", 1, "MAIN", multipartFile);
 
         assertThat(vo.getFileNm()).isEqualTo("uuid.png");
         assertThat(vo.getFilePath()).isEqualTo("PRK/20250101");
@@ -60,7 +60,7 @@ class AttchPicMngInfoServiceImplMockTest {
     void uploadAndSaveFile_empty_throws() {
         when(multipartFile.isEmpty()).thenReturn(true);
         assertThrows(IllegalArgumentException.class, () ->
-                service.uploadAndSaveFile(1, "MAIN", multipartFile));
+                service.uploadAndSaveFile("PRK-MNG-NO", 1, "MAIN", multipartFile));
     }
 
     @Test
@@ -117,7 +117,7 @@ class AttchPicMngInfoServiceImplMockTest {
         when(multipartFile.getSize()).thenReturn(1024L);
 
         assertThrows(IllegalArgumentException.class, () ->
-                service.uploadAndSaveFile(1, "MAIN", multipartFile));
+                service.uploadAndSaveFile("PRK-MNG-NO", 1, "MAIN", multipartFile));
     }
 
     @Test
@@ -128,7 +128,7 @@ class AttchPicMngInfoServiceImplMockTest {
         when(multipartFile.getSize()).thenReturn(11 * 1024 * 1024L);
 
         assertThrows(IllegalArgumentException.class, () ->
-                service.uploadAndSaveFile(1, "MAIN", multipartFile));
+                service.uploadAndSaveFile("PRK-MNG-NO", 1, "MAIN", multipartFile));
     }
 
     @Test
@@ -139,6 +139,6 @@ class AttchPicMngInfoServiceImplMockTest {
         when(multipartFile.getSize()).thenReturn(1024L);
 
         assertThrows(RuntimeException.class, () ->
-                service.uploadAndSaveFile(1, "../MAIN", multipartFile));
+                service.uploadAndSaveFile("PRK-MNG-NO", 1, "../MAIN", multipartFile));
     }
 }

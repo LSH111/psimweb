@@ -8,17 +8,10 @@
         const serverCtx = ('${pageContext.request.contextPath}' || '').replace(/\/$/, '');
         const locMatch = window.location.pathname.match(/^\/[^/]+/);
         const locCtx = locMatch ? locMatch[0] : '';
-        // 접속 경로와 서버 컨텍스트가 다르면 접속 경로 우선, 둘 다 비면 /spis 로 강제
-        const resolved = (locCtx && locCtx !== '/' && locCtx !== serverCtx) ? locCtx : (serverCtx || '/spis');
-        window.contextPath = window.contextPath || resolved;
+        // 접속 경로와 서버 컨텍스트가 다르면 접속 경로 우선
+        window.contextPath = window.contextPath || (locCtx && locCtx !== '/' && locCtx !== serverCtx ? locCtx : serverCtx);
     })();
 </script>
-<!-- 공통 유틸 JS (페이지별 중복 로드 방지) -->
-<script src="${pageContext.request.contextPath}/static/js/common/dom-utils.js" defer></script>
-<script src="${pageContext.request.contextPath}/static/js/common/format-utils.js" defer></script>
-<script src="${pageContext.request.contextPath}/static/js/common/code-api.js" defer></script>
-<script src="${pageContext.request.contextPath}/static/js/common/ldong-util.js" defer></script>
-<script src="${pageContext.request.contextPath}/static/js/common/upload-util.js" defer></script>
 <style>
     /* GNB two-level menu */
     nav .gnb { list-style:none; margin:0; padding:0; display:flex; gap: 20px; }
@@ -147,17 +140,16 @@
     <nav id="main-gnb">
         <ul class="gnb">
             <li class="has-sub">
-                <a href="#" aria-haspopup="true" aria-expanded="false">주차장</a>
+                <a href="#">주차장</a>
                 <ul class="sub">
                     <li><a href="<c:url value='/prk/parkinglist'/>">주차장실태조사</a></li>
                     <li><a href="<c:url value='/prk/usage-status-list'/>">이용실태조사</a></li>
                 </ul>
             </li>
             <li class="has-sub">
-                <a href="#" aria-haspopup="true" aria-expanded="false">지도</a>
+                <a href="#">지도</a>
                 <ul class="sub">
                     <li><a href="<c:url value='/gis/parkingmap'/>">주차장지도</a></li>
-                    <li><a href="<c:url value='/gis/parkingmap_alt'/>">주차장지도(대안)</a></li>
                 </ul>
             </li>
         </ul>

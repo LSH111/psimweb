@@ -1,0 +1,69 @@
+/* Grid system: responsive columns/gutter/margins for JSP pages
+ * Breakpoints (min columns): xsmall 0–359=4, small 360–767=4, medium 768–1023=8, large 1024–1279=12, xlarge 1280–1439=12, xxlarge 1440+=12
+ * Gutter: 16px (default), Margin: 16px (xsmall/small), 24px (medium+)
+ */
+
+/* Base tokens */
+:root {
+  --grid-gutter: 16px;
+  --grid-margin-mobile: 16px;
+  --grid-margin-desktop: 24px;
+}
+
+/* Breakpoint-driven tokens */
+@media (max-width: 359px) {
+  :root { --grid-cols: 4; --grid-margin: var(--grid-margin-mobile); }
+}
+
+@media (min-width: 360px) and (max-width: 767px) {
+  :root { --grid-cols: 4; --grid-margin: var(--grid-margin-mobile); }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  :root { --grid-cols: 8; --grid-margin: var(--grid-margin-desktop); }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  :root { --grid-cols: 12; --grid-margin: var(--grid-margin-desktop); }
+}
+
+@media (min-width: 1280px) and (max-width: 1439px) {
+  :root { --grid-cols: 12; --grid-margin: var(--grid-margin-desktop); }
+}
+
+@media (min-width: 1440px) {
+  :root { --grid-cols: 12; --grid-margin: var(--grid-margin-desktop); }
+}
+
+/* Grid container */
+.layout-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-cols, 4), minmax(0, 1fr));
+  column-gap: var(--grid-gutter);
+  row-gap: var(--grid-gutter);
+  padding-left: var(--grid-margin, var(--grid-margin-mobile));
+  padding-right: var(--grid-margin, var(--grid-margin-mobile));
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Column span helpers (1..12). If span exceeds available cols, the browser clamps it. */
+[class*="col-span-"] { grid-column: span 1; }
+.col-span-1  { grid-column: span 1; }
+.col-span-2  { grid-column: span 2; }
+.col-span-3  { grid-column: span 3; }
+.col-span-4  { grid-column: span 4; }
+.col-span-5  { grid-column: span 5; }
+.col-span-6  { grid-column: span 6; }
+.col-span-7  { grid-column: span 7; }
+.col-span-8  { grid-column: span 8; }
+.col-span-9  { grid-column: span 9; }
+.col-span-10 { grid-column: span 10; }
+.col-span-11 { grid-column: span 11; }
+.col-span-12 { grid-column: span 12; }
+
+/* Optional: full-bleed variant that ignores page margins */
+.layout-grid.full-bleed {
+  padding-left: 0;
+  padding-right: 0;
+}

@@ -991,7 +991,7 @@ function openNewParkingTab(type) {
         <iframe class="detail-frame" title="${config.name}"
                 style="width:100%;border:0;display:block;min-height:420px"
                 loading="eager" allow="geolocation"
-                sandbox="allow-scripts allow-forms allow-same-origin"></iframe>
+                sandbox="allow-scripts allow-forms allow-same-origin allow-modals"></iframe>
     `;
     panelsWrap.appendChild(panel);
 

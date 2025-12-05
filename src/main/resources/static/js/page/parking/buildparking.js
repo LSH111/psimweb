@@ -525,7 +525,7 @@ const CodeLoader = {
 
         // PRK_001: 관리주체(소유주체) - (공영/민영 등)
         if (groups['PRK_001']) {
-            this.populateRadioGroup('#owner_type_group', 'ownerType', groups['PRK_001'].codes);
+            this.populateRadioGroup('#owner_group', 'ownCd', groups['PRK_001'].codes);
         }
 
         // PRK_015: 급지구분
@@ -2030,7 +2030,9 @@ async function populateFormWithData(data) {
 function isApprovedStatus(value) {
     if (!value) return false;
     const v = value.toString().trim();
-    return v === '30' || v === '승인' || v.toUpperCase() === 'APPROVED';
+    const upper = v.toUpperCase();
+    return v === '30' || v === '20' || v === '승인' || v === '승인대기' || v === '승인대기중'
+        || upper === 'APPROVED' || upper === 'APPROVAL_PENDING';
 }
 
 function applyApprovalLock(statusValue) {
@@ -2067,12 +2069,30 @@ function setAllFieldsReadOnly(isReadOnly) {
 
     const selects = $$('select');
     selects.forEach(select => {
-        select.disabled = isReadOnly;
+        if (isReadOnly) {
+            select.disabled = true;
+            select.style.backgroundColor = '#f3f4f6';
+            select.style.cursor = 'not-allowed';
+            select.style.pointerEvents = 'none';
+        } else {
+            select.disabled = false;
+            select.style.backgroundColor = '';
+            select.style.cursor = '';
+            select.style.pointerEvents = '';
+        }
     });
 
     const radiosAndChecks = $$('input[type="radio"], input[type="checkbox"]');
     radiosAndChecks.forEach(input => {
-        input.disabled = isReadOnly;
+        if (isReadOnly) {
+            input.disabled = true;
+            input.style.cursor = 'not-allowed';
+            input.style.pointerEvents = 'none';
+        } else {
+            input.disabled = false;
+            input.style.cursor = '';
+            input.style.pointerEvents = '';
+        }
     });
 
     const fileButtons = [
@@ -2086,7 +2106,18 @@ function setAllFieldsReadOnly(isReadOnly) {
     ];
     fileButtons.forEach(selector => {
         const btn = $(selector);
-        if (btn) btn.disabled = isReadOnly;
+        if (btn) {
+            btn.disabled = isReadOnly;
+            if (isReadOnly) {
+                btn.style.cursor = 'not-allowed';
+                btn.style.opacity = '0.5';
+                btn.style.pointerEvents = 'none';
+            } else {
+                btn.style.cursor = '';
+                btn.style.opacity = '';
+                btn.style.pointerEvents = '';
+            }
+        }
     });
 
 }

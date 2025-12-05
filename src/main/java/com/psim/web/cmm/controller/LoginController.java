@@ -70,6 +70,15 @@ public class LoginController {
             redirectAttributes.addFlashAttribute("finalErr", "아이디 혹은 비밀번호가 잘못되었습니다.");
             return "redirect:/";
         }
+
+        // 사용자 유형(5, 6)만 로그인 허용
+        String userTyCode = loginUser.getUserTyCode();
+        if (!"5".equals(userTyCode) && !"6".equals(userTyCode)) {
+            System.out.println("❌ 로그인 실패: 허용되지 않은 사용자 유형 userTyCode=" + userTyCode);
+            redirectAttributes.addFlashAttribute("finalErr", "로그인 권한이 없는 사용자 유형입니다. 담당자에게 문의하세요.");
+            return "redirect:/";
+        }
+
         // 1. 세션 고정 공격 방지를 위해 기존 세션을 무효화하고 새로운 세션을 생성합니다.
         HttpSession oldSession = request.getSession(false);
         if (oldSession != null) {

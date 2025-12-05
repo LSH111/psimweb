@@ -40,10 +40,14 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
     @Override
     @Transactional
     public AttchPicMngInfoVO uploadAndSaveFile(
+            String prkPlceManageNo,
             Integer prkPlceInfoSn,
             String prkImgId,
             MultipartFile file
     ) {
+        if (prkPlceManageNo == null || prkPlceManageNo.trim().isEmpty()) {
+            throw new IllegalArgumentException("prkPlceManageNo가 없습니다. 파일을 저장할 수 없습니다.");
+        }
         if (prkPlceInfoSn == null) {
             throw new IllegalArgumentException("prkPlceInfoSn이 없습니다. 파일을 저장할 수 없습니다.");
         }
@@ -55,6 +59,7 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             String extension = getFileExtension(file.getOriginalFilename());
 
             AttchPicMngInfoVO vo = new AttchPicMngInfoVO();
+            vo.setPrkPlceManageNo(prkPlceManageNo);
             vo.setPrkPlceInfoSn(prkPlceInfoSn);
             vo.setPrkImgId(safePrkImgId);
             vo.setSeqNo(getNextSeqNo(prkPlceInfoSn, prkImgId));
@@ -78,12 +83,16 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
     @Override
     @Transactional
     public List<AttchPicMngInfoVO> uploadAndSaveFiles(
+            String prkPlceManageNo,
             Integer prkPlceInfoSn,
             String prkImgId,
             List<MultipartFile> files
     ) {
         if (prkPlceInfoSn == null) {
             throw new IllegalArgumentException("prkPlceInfoSn이 없습니다. 파일을 저장할 수 없습니다.");
+        }
+        if (prkPlceManageNo == null || prkPlceManageNo.trim().isEmpty()) {
+            throw new IllegalArgumentException("prkPlceManageNo가 없습니다. 파일을 저장할 수 없습니다.");
         }
         List<AttchPicMngInfoVO> result = new ArrayList<>();
 
@@ -94,7 +103,7 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
 
         for (MultipartFile file : files) {
             if (!file.isEmpty()) {
-                result.add(uploadAndSaveFile(prkPlceInfoSn, safePrkImgId, file));
+                result.add(uploadAndSaveFile(prkPlceManageNo, prkPlceInfoSn, safePrkImgId, file));
             }
         }
 
