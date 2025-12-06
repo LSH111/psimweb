@@ -57,12 +57,14 @@ public interface AttchPicMngInfoService {
 
     /**
      * 파일 업로드 및 정보 저장 (이용실태용)
-     * @param cmplSn 실태조사일련번호
+     * @param prkPlceManageNo 주차장 관리번호(=prkBizMngNo)
+     * @param cmplSn 실태조사일련번호(=prkPlceInfoSn 대체)
      * @param prkImgId 이미지 구분 ID
      * @param file 업로드 파일
      * @return 저장된 파일 정보
      */
     AttchPicMngInfoVO uploadAndSaveFileForUsage(
+            String prkPlceManageNo,
             String cmplSn,
             String prkImgId,
             MultipartFile file
@@ -70,7 +72,8 @@ public interface AttchPicMngInfoService {
 
     /**
      * 파일 업로드 및 정보 저장 (이용실태용 - 복수)
-     * @param cmplSn 실태조사일련번호
+     * @param prkPlceManageNo 주차장 관리번호(=prkBizMngNo)
+     * @param cmplSn 실태조사일련번호(=prkPlceInfoSn 대체)
      * @param prkImgId 이미지 구분 ID
      * @param files 업로드 파일 목록
      * @param userId 등록자 ID
@@ -78,6 +81,7 @@ public interface AttchPicMngInfoService {
      * @return 저장된 파일 정보 목록
      */
     List<AttchPicMngInfoVO> uploadAndSaveFilesForUsage(
+            String prkPlceManageNo,
             String cmplSn,
             String prkImgId,
             List<MultipartFile> files,

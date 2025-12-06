@@ -101,9 +101,9 @@ class AttchPicMngInfoServiceImplMockTest {
         when(photoStorage.save(anyString(), any(MultipartFile.class)))
                 .thenReturn(new PhotoStorage.SaveResult("USG/20250101", "a.png", "png"))
                 .thenReturn(new PhotoStorage.SaveResult("USG/20250101", "b.jpg", "jpg"));
-        when(mapper.selectMaxSeqNoForUsage(anyString(), anyString())).thenReturn(0);
+        when(mapper.selectMaxSeqNoForUsage(anyInt(), anyString())).thenReturn(0);
 
-        List<AttchPicMngInfoVO> result = service.uploadAndSaveFilesForUsage("CMPL", "USG", Arrays.asList(file1, file2), "user", "127.0.0.1");
+        List<AttchPicMngInfoVO> result = service.uploadAndSaveFilesForUsage("PRK-MNG-NO", "CMPL", "USG", Arrays.asList(file1, file2), "user", "127.0.0.1");
 
         assertThat(result).hasSize(2);
         verify(mapper, times(2)).insertAttchPicMngInfo(any(AttchPicMngInfoVO.class));

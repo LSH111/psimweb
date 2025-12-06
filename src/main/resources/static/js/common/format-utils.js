@@ -1,22 +1,35 @@
 // 상태 뱃지/텍스트 등을 위한 포맷 유틸
 (function () {
-  function badgeStatus(status) {
-    if (status === 'APPROVED' || status === '승인') return '<span class="badge status appr">승인</span>';
-    if (status === 'PENDING' || status === '진행중') return '<span class="badge status pend">진행중</span>';
-    if (status === 'REJECTED' || status === '반려') return '<span class="badge status reject">반려</span>';
-    if (status === 'TEMP' || status === '임시저장') return '<span class="badge">임시저장</span>';
-    return '<span class="badge">' + (status ?? '') + '</span>';
-  }
-
-  const statusMap = {
-    '01': '승인',
-    '02': '진행중',
-    '03': '반려',
-    '04': '임시저장'
+  const statusTextMap = {
+    '00': '작성전',
+    '10': '조사중',
+    '20': '승인대기',
+    '30': '승인',
+    '99': '반려'
   };
 
-  function getStatusText(statusCode) {
-    return statusMap[statusCode] || statusCode || '-';
+  function normalizeStatusCode(codeOrName) {
+    const val = (codeOrName || '').toString().trim();
+    if (statusTextMap[val]) return val;
+    // 역매핑: 이름이 들어온 경우 코드 반환
+    const found = Object.entries(statusTextMap).find(([, name]) => name === val);
+    return found ? found[0] : val;
+  }
+
+  function getStatusText(statusCodeOrName) {
+    const code = normalizeStatusCode(statusCodeOrName);
+    return statusTextMap[code] || statusCodeOrName || '-';
+  }
+
+  function badgeStatus(statusCodeOrName) {
+    const code = normalizeStatusCode(statusCodeOrName);
+    const text = getStatusText(code);
+    if (code === '30') return '<span class="badge status appr">' + text + '</span>';
+    if (code === '20') return '<span class="badge status pend">' + text + '</span>';
+    if (code === '99') return '<span class="badge status reject">' + text + '</span>';
+    if (code === '10') return '<span class="badge">' + text + '</span>';
+    if (code === '00') return '<span class="badge">' + text + '</span>';
+    return '<span class="badge">' + (text ?? '') + '</span>';
   }
 
   function getCurrentDateString() {

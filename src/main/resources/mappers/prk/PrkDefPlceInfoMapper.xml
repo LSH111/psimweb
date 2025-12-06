@@ -57,7 +57,8 @@
 
     <select id="selectParkingList" parameterType="map" resultType="com.psim.web.prk.vo.ParkingListVO">
         SELECT DISTINCT
-        cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsCd,
+        tbppi.prgs_sts_cd as prgsStsCd,
+        cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsNm,
         tcl.sido_cd as sidoCd,
         tcl.sido_nm as sidoNm,
         tcl.sigungu_cd as sigunguCd,
@@ -110,7 +111,8 @@
 
     <select id="selectParkingDetail" parameterType="map" resultType="com.psim.web.prk.vo.ParkingListVO">
         SELECT DISTINCT
-        cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsCd,
+        tbppi.prgs_sts_cd as prgsStsCd,
+        cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsNm,
         tcl.sido_cd as sidoCd,
         tcl.sido_nm as sidoNm,
         tcl.sigungu_cd as sigunguCd,
@@ -168,7 +170,8 @@
     <!-- 노상주차장 상세 조회 쿼리 -->
     <select id="selectOnstreetParkingDetail" parameterType="map"
             resultType="com.psim.web.prk.vo.ParkingDetailVO">
-        SELECT DISTINCT cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsCd
+        SELECT DISTINCT tbppi.prgs_sts_cd                                as prgsStsCd
+                      , cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsNm
                       , tbppi.prgs_sts_cd                                as prgsStsRawCd
                       , tbppi.rejt_rsn                                   as rejtRsn
                       , tpsbi.prk_biz_mng_no                             as prkBizMngNo
@@ -404,7 +407,8 @@
 
     <!-- 🔥 노외주차장 상세 조회 쿼리 -->
     <select id="selectOffstreetParkingDetail" parameterType="map" resultType="com.psim.web.prk.vo.ParkingDetailVO">
-        SELECT DISTINCT cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsCd
+        SELECT DISTINCT tbppi.prgs_sts_cd                                as prgsStsCd
+                      , cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsNm
                       , tbppi.prgs_sts_cd                                as prgsStsRawCd
                       , tbppi.rejt_rsn                                   as rejtRsn
                       , tpsbi.prk_biz_mng_no                             as prkBizMngNo
@@ -514,8 +518,10 @@
         FROM cpk.tb_prk_def_plce_info tpdpi
                  INNER JOIN cpk.tb_offstr_prklot_info topi
                             ON tpdpi.prk_plce_manage_no = topi.prk_plce_manage_no
+                                AND tpdpi.prk_plce_info_sn = topi.prk_plce_info_sn
                  INNER JOIN cpk.tb_offstr_prklot_oper_info topoi
                             ON topi.prk_plce_manage_no = topoi.prk_plce_manage_no
+                                AND topoi.prk_plce_info_sn = topi.prk_plce_info_sn
                  LEFT JOIN cpk.tb_co_ldong tcl
                            ON tpdpi.ldong_cd = tcl.ldong_cd
                  INNER JOIN cpk.tb_biz_per_prklot_info tbppi
@@ -787,6 +793,11 @@
           , mgr_org           = #{mgrOrg}
           , mgr_org_tel_no    = #{mgrOrgTelNo}
           , subordn_opertn_cd = #{subordnOpertnCd}
+          , prmisn_dt         = #{prmisnDt}
+          , use_insp_dt       = #{useInspDt}
+          , plot_ar           = #{plotAr}
+          , myeon_ar          = #{myeonAr}
+          , al_zon            = #{chrgGrdCd}
           , updt_dt           = NOW()
           , updusr_id         = #{updusrId}
           , updusr_ip_addr    = #{updusrIpAddr}
@@ -802,6 +813,16 @@
           , barr_gte_yn          = #{barrGteYn}
           , exit_alrm_yn         = #{exitAlrmYn}
           , veh_rcgn_tp_cd       = #{vehRcgnTpCd}
+          , fee_imps_cd          = #{feeImpsCd}
+          , fee_frst_30min_prc   = #{feeFrst30minPrc}
+          , fee_10min_prc        = #{fee10minPrc}
+          , fee_1hr_prc          = #{fee1hrPrc}
+          , fee_day_prc          = #{feeDayPrc}
+          , fee_mnth_pass_prc    = #{feeMnthPassPrc}
+          , fee_hfyr_pass_prc    = #{feeHfyrPassPrc}
+          , fee_pay_mthd_cd      = #{feePayMthdCd}
+          , fee_pay_mthd_othr    = #{feePayMthdOthr}
+          , fee_setl_mthd_cd     = #{feeSetlMthdCd}
           , wk_peak_str_tm       = #{wkPeakStrTm}
           , wk_peak_end_tm       = #{wkPeakEndTm}
           , wk_prk_veh_cnt       = #{wkPrkVehCnt}
@@ -818,7 +839,6 @@
           , spd_bump_qty         = #{spdBumpQty}
           , stop_line_qty        = #{stopLineQty}
           , crswlk_qty           = #{crswlkQty}
-          , al_zon               = #{chrgGrdCd}
           , partclr_matter       = #{partclrMatter}
           , updt_dt              = NOW()
           , updusr_id            = #{updusrId}
@@ -898,6 +918,7 @@
                                                     wk_res_day_fee,
                                                     wk_res_wk_fee,
                                                     wk_res_ft_fee,
+                                                    wk_res_nt_fee,
                                                     wk_gn_frst_30m_fee,
                                                     wk_gn_int_10m_fee,
                                                     wk_gn_1h_fee,
@@ -976,6 +997,7 @@
                 #{wkResDayFee},
                 #{wkResWkFee},
                 #{wkResFtFee},
+                #{wkResNtFee},
                 #{wkGnFrst30mFee},
                 #{wkGnInt10mFee},
                 #{wkGn1hFee},
@@ -1035,25 +1057,26 @@
                                              tot_prk_cnt, disab_prk_cnt, compact_prk_cnt, eco_prk_cnt, pregnant_prk_cnt,
                                              oper_mby_cd, mgr_org, mgr_org_tel_no, subordn_opertn_cd,
                                              trut_comp_nm, dirt_comp_nm,
+                                             prmisn_dt, use_insp_dt, plot_ar, myeon_ar, al_zon,
                                              reg_dt, rgst_id, rgst_ip_addr,
                                              updt_dt, updusr_id, updusr_ip_addr)
         VALUES (#{prkPlceManageNo}, #{prkPlceInfoSn}, #{prkplceSe},
                 #{totPrkCnt}, #{disabPrkCnt}, #{compactPrkCnt}, #{ecoPrkCnt}, #{pregnantPrkCnt},
                 #{operMbyCd}, #{mgrOrg}, #{mgrOrgTelNo}, #{subordnOpertnCd},
                 #{trutCompNm}, #{dirtCompNm},
+                #{prmisnDt}, #{useInspDt}, #{plotAr}, #{myeonAr}, #{chrgGrdCd},
                 NOW(), #{updusrId}, #{updusrIpAddr},
                 NOW(), #{updusrId}, #{updusrIpAddr})
     </insert>
 
     <!-- 부설주차장 운영 정보 INSERT -->
     <insert id="insertAtchPrklotOperInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
-        INSERT INTO cpk.tb_atch_prklot_oper_info (prk_plce_manage_no, prk_plce_info_sn, prmisn_dt, use_insp_dt, plot_ar,
-                                                  myeon_ar,
+        INSERT INTO cpk.tb_atch_prklot_oper_info (prk_plce_manage_no, prk_plce_info_sn,
                                                   mech_prklot_tp_cd, mech_prklot_oper_yn, mech_prk_inop_cnt,
                                                   prk_fclty_tp_tot_flr_capa, prk_fclty_tp_tot_deck_capa,
                                                   indr_self_tot_space_cnt, indr_self_flr_cnt, indr_self_deck_cnt,
                                                   indr_mech_tot_space_cnt, indr_mech_flr_cnt, indr_mech_deck_cnt,
-                                                  outdr_self_tot_space_cnt, outdr_self_flr_cnt, outdr_self_check_cnt,
+                                                  outdr_self_tot_space_cnt, outdr_self_flr_cnt,
                                                   outdr_mech_tot_space_cnt, outdr_mech_flr_cnt, outdr_mech_deck_cnt,
                                                   wkdy_oper_tm_cd, wkdy_tmbas_oper_str_tm, wkdy_tmbas_oper_end_tm,
                                                   sat_oper_tm_cd, sat_tmbas_oper_str_tm, sat_tmbas_oper_end_tm,
@@ -1070,16 +1093,15 @@
                                                   fall_prev_fclty_yn, slp_yn, antislp_fclty_yn, slp_ctn_guid_sign_yn,
                                                   spd_bump_qty, stop_line_qty, crswlk_qty,
                                                   guid_doc_yn, safe_insp_yn, mgr_yn, adm_yn,
-                                                  al_zon,
                                                   partclr_matter,
                                                   reg_dt, rgst_id, rgst_ip_addr,
                                                   updt_dt, updusr_id, updusr_ip_addr)
-        VALUES (#{prkPlceManageNo}, #{prkPlceInfoSn}, #{prmisnDt}, #{useInspDt}, #{plotAr}, #{myeonAr},
+        VALUES (#{prkPlceManageNo}, #{prkPlceInfoSn},
                 #{mechPrklotTpCd}, #{mechPrklotOperYn}, #{mechPrkInopCnt},
                 #{prkFcltyTpTotFlrCapa}, #{prkFcltyTpTotDeckCapa},
                 #{indrSelfTotSpaceCnt}, #{indrSelfFlrCnt}, #{indrSelfDeckCnt},
                 #{indrMechTotSpaceCnt}, #{indrMechFlrCnt}, #{indrMechDeckCnt},
-                #{outdrSelfTotSpaceCnt}, #{outdrSelfFlrCnt}, #{outdrSelfCheckCnt},
+                #{outdrSelfTotSpaceCnt}, #{outdrSelfFlrCnt},
                 #{outdrMechTotSpaceCnt}, #{outdrMechFlrCnt}, #{outdrMechDeckCnt},
                 #{wkdyOperTmCd}, #{wkdyTmbasOperStrTm}, #{wkdyTmbasOperEndTm},
                 #{satOperTmCd}, #{satTmbasOperStrTm}, #{satTmbasOperEndTm},
@@ -1095,7 +1117,6 @@
                 #{fallPrevFcltyYn}, #{slpYn}, #{antislpFcltyYn}, #{slpCtnGuidSignYn},
                 #{spdBumpQty}, #{stopLineQty}, #{crswlkQty},
                 #{guidDocYn}, #{safeInspYn}, #{mgrYn}, #{admYn},
-                #{chrgGrdCd},
                 #{partclrMatter},
                 NOW(), #{updusrId}, #{updusrIpAddr},
                 NOW(), #{updusrId}, #{updusrIpAddr})
@@ -1384,7 +1405,6 @@
     <insert id="insertOnstrPrklotInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
         INSERT INTO cpk.tb_onstr_prklot_info (prk_plce_manage_no,
                                               prk_plce_info_sn,
-                                              prkplce_se,
                                               tot_prk_cnt,
                                               disab_prk_cnt,
                                               compact_prk_cnt,
@@ -1403,7 +1423,6 @@
                                               updusr_ip_addr)
         VALUES (#{prkPlceManageNo},
                 #{prkPlceInfoSn},
-                #{prkplceSe},
                 #{totPrkCnt},
                 #{disabPrkCnt},
                 #{compactPrkCnt},

@@ -753,11 +753,16 @@
     // ========== 우편번호 검색 ==========
     function openPostcode() {
         const layer = $('#postcodeLayer');
-        if (!layer) return;
+        const container = $('#postcodeContainer');
+        if (!layer || !container) return;
+        if (!window.daum || !window.daum.Postcode) {
+            toast && toast('주소 검색 스크립트가 아직 로드되지 않았습니다. 잠시 후 다시 시도해주세요.');
+            return;
+        }
 
         layer.style.display = 'block';
 
-        new daum.Postcode({
+        const postcode = new daum.Postcode({
             oncomplete: async function(data) {
 
                 try {
@@ -907,9 +912,15 @@
 
                 layer.style.display = 'none';
             },
+            onclose: function() {
+                layer.style.display = 'none';
+            },
             width: '100%',
             height: '100%'
-        }).embed($('#postcodeContainer'));
+        });
+
+        // 레이어에 직접 임베드해 항상 같은 영역에서 표시
+        postcode.embed(container, {autoClose: false});
     }
 
     // ========== 전역 노출 ==========

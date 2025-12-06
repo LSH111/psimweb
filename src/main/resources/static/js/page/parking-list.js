@@ -211,6 +211,7 @@ function setupAreaSelectors() {
 let DATA = [];
 const MAX_DETAIL_TABS = 8;
 const PAGE_SIZE_DEFAULT = 20;
+const NON_SENDABLE_STATUSES = new Set(['APPROVED', 'PENDING']);
 
 function getPageSize() {
     return PAGE_SIZE_DEFAULT;
@@ -223,22 +224,42 @@ const selected = new Set();
 const $id = (id) => document.getElementById(id);
 const $one = (sel, root = document) => root.querySelector(sel);
 const $all = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+const STATUS_TEXT_MAP = {
+    '00': '작성전',
+    '10': '조사중',
+    '20': '승인대기',
+    '30': '승인',
+    '99': '반려'
+};
+const STATUS_BLOCK_LIST = new Set(['20', '30']);
+const STATUS_NAME_TO_CODE = Object.entries(STATUS_TEXT_MAP).reduce((acc, [cd, nm]) => {
+    acc[nm] = cd;
+    return acc;
+}, {});
+const normalizeStatus = (status) => {
+    const raw = String(status || '').trim();
+    if (STATUS_TEXT_MAP[raw]) return raw;               // already code
+    if (STATUS_NAME_TO_CODE[raw]) return STATUS_NAME_TO_CODE[raw]; // 한글명 -> 코드
+    return raw;
+};
+const isNonSendableStatus = (status) => STATUS_BLOCK_LIST.has(normalizeStatus(status));
 
 function updateSendButtonState() {
     const sendBtn = $id('sendBtn');
     if (!sendBtn) return;
-    const checkedCount = document.querySelectorAll('input[name="selectedPrk"]:checked').length;
+    const checkedCount = selected.size;
     sendBtn.disabled = checkedCount === 0;
 }
 
 function syncSelectedFromDOM() {
     const checkedValues = Array.from(document.querySelectorAll('input[name="selectedPrk"]:checked'))
         .map(chk => chk.value);
+    const uniqueValues = [...new Set(checkedValues)];
     selected.clear();
-    checkedValues.forEach(v => selected.add(v));
+    uniqueValues.forEach(v => selected.add(v));
     syncHeaderCheck();
     updateSendButtonState();
-    return checkedValues;
+    return uniqueValues;
 }
 
 /* =========================
@@ -279,6 +300,7 @@ async function loadDataFromServer() {
                     nm: item.prkplceNm || '',
                     type: item.prkPlceType || '',
                     status: item.prgsStsCd || '',
+                    statusNm: item.prgsStsNm || '',
                     sido: item.sidoNm || '',
                     sigungu: item.sigunguNm || '',
                     emd: item.lgalEmdNm || '',
@@ -311,6 +333,7 @@ async function loadDataFromServer() {
             updateSummary(DATA.length);
 
             render();
+            pruneSelected();
         } else {
             throw new Error(data.message || '데이터 로드 실패');
         }
@@ -346,6 +369,22 @@ function updateSummary(totalCount) {
     }
 }
 
+function pruneSelected() {
+    let removed = 0;
+    selected.forEach(id => {
+        const rec = DATA.find(p => p.manageNo === id);
+        const statusCode = normalizeStatus(rec?.status || rec?.statusNm);
+        if (!rec || isNonSendableStatus(statusCode)) {
+            selected.delete(id);
+            removed += 1;
+        }
+    });
+    if (removed > 0) {
+        toast(`승인/승인대기 또는 없는 항목 ${removed}건을 전송 대상에서 제외했습니다.`);
+    }
+    updateSendButtonState();
+}
+
 async function applyFilter() {
     currentPage = 1;
     await loadDataFromServer();
@@ -366,15 +405,23 @@ function render() {
 
     tbody.innerHTML = pageRows.map((r, i) => {
         const seq = start + i + 1;
+        const statusCode = normalizeStatus(r.status || r.statusNm);
+        const statusNm = STATUS_TEXT_MAP[statusCode] || r.statusNm || r.status || '';
+        const blocked = isNonSendableStatus(statusCode);
+        if (blocked && selected.has(r.manageNo)) selected.delete(r.manageNo);
         const checked = selected.has(r.manageNo) ? 'checked' : '';
+        const disabled = blocked ? 'disabled' : '';
+        const blockedMsg = blocked ? ' (승인/승인대기 제외)' : '';
         return `
-      <tr data-id="${r.manageNo}" data-info-sn="${r.prkPlceInfoSn ?? ''}">
+      <tr data-id="${r.manageNo}" data-info-sn="${r.prkPlceInfoSn ?? ''}" data-status="${statusCode}">
         <td class="num">${seq}</td>
         <td class="check">
-          <input type="checkbox" class="row-check" name="selectedPrk" value="${r.manageNo}" ${checked} aria-label="선택: ${r.nm}" />
+          <label class="row-check-wrap" aria-label="선택: ${r.nm}${blockedMsg}">
+            <input type="checkbox" class="row-check" name="selectedPrk" value="${r.manageNo}" ${checked} ${disabled} aria-label="선택: ${r.nm}${blockedMsg}" />
+          </label>
         </td>
         <td>${r.type}</td>
-        <td>${FormatUtils.badgeStatus(r.status)}</td>
+        <td>${FormatUtils.badgeStatus(statusCode || statusNm)}</td>
         <td>${r.sido}</td>
         <td>${r.sigungu}</td>
         <td>${r.emd}</td>
@@ -386,16 +433,21 @@ function render() {
     }).join('');
 
     cards.innerHTML = pageRows.map(r => {
+        const statusCode = normalizeStatus(r.status || r.statusNm);
+        const statusNm = STATUS_TEXT_MAP[statusCode] || r.statusNm || r.status || '';
+        const blocked = isNonSendableStatus(statusCode);
+        if (blocked && selected.has(r.manageNo)) selected.delete(r.manageNo);
         const checked = selected.has(r.manageNo) ? 'checked' : '';
+        const disabled = blocked ? 'disabled' : '';
         return `
-      <article class="card parking-item" data-id="${r.manageNo}" data-info-sn="${r.prkPlceInfoSn ?? ''}" aria-label="${r.nm}">
-        <label class="checkbox-wrap">
+      <article class="card parking-item" data-id="${r.manageNo}" data-info-sn="${r.prkPlceInfoSn ?? ''}" data-status="${statusCode}" aria-label="${r.nm}">
+        <label class="checkbox-wrap" aria-label="선택: ${r.nm}">
           <input
             type="checkbox"
             class="card-check"
             name="selectedPrk"
             value="${r.manageNo}"
-            ${checked}
+            ${checked} ${disabled}
             aria-label="선택: ${r.nm}" />
         </label>
         <div class="card-body info">
@@ -403,7 +455,7 @@ function render() {
             <div class="muted">${r.manageNo}</div>
           </div>
           <div class="name">${r.nm}</div>
-          <div class="card-meta"><span class="badge">${r.type}</span> · ${FormatUtils.badgeStatus(r.status)}</div>
+          <div class="card-meta"><span class="badge">${r.type}</span> · ${FormatUtils.badgeStatus(statusCode || statusNm)}</div>
           <div class="location muted">${r.sido} ${r.sigungu} ${r.emd}</div>
           <div class="addr">${r.addr}</div>
         </div>
@@ -431,6 +483,15 @@ function bindRowChecks() {
         chk.addEventListener('change', (e) => {
             const tr = e.target.closest('tr');
             const id = tr.dataset.id;
+            const status = tr.dataset.status;
+            if (isNonSendableStatus(status)) {
+                e.target.checked = false;
+                selected.delete(id);
+                toast('승인/승인대기 상태는 전송 대상에서 제외됩니다.');
+                syncHeaderCheck();
+                updateSendButtonState();
+                return;
+            }
             if (e.target.checked) selected.add(id);
             else selected.delete(id);
             syncHeaderCheck();
@@ -450,6 +511,15 @@ function bindCardChecks() {
         chk.addEventListener('change', (e) => {
             const card = e.target.closest('.card');
             const id = card.dataset.id;
+            const status = card.dataset.status;
+            if (isNonSendableStatus(status)) {
+                e.target.checked = false;
+                selected.delete(id);
+                toast('승인/승인대기 상태는 전송 대상에서 제외됩니다.');
+                syncHeaderCheck();
+                updateSendButtonState();
+                return;
+            }
             if (e.target.checked) selected.add(id);
             else selected.delete(id);
             const row = tbody.querySelector(`tr[data-id="${id}"] .row-check`);
@@ -461,13 +531,15 @@ function bindCardChecks() {
 }
 
 function syncHeaderCheck() {
-    const tbody = $id('tbody'),
-        checkAll = $id('checkAll');
-    if (!tbody || !checkAll) return;
-    const visible = Array.from(tbody.querySelectorAll('tr')).map(tr => tr.dataset.id);
+    const checkAll = $id('checkAll');
+    if (!checkAll) return;
+    const visible = Array.from(document.querySelectorAll('.card.parking-item'))
+        .filter(card => !isNonSendableStatus(card.dataset.status))
+        .map(card => card.dataset.id);
     const allChecked = visible.length > 0 && visible.every(id => selected.has(id));
     checkAll.checked = allChecked;
     checkAll.indeterminate = !allChecked && visible.some(id => selected.has(id));
+    checkAll.disabled = visible.length === 0;
 }
 
 (function () {
@@ -477,16 +549,21 @@ function syncHeaderCheck() {
             const tbody = $id('tbody'),
                 cards = $id('cards');
             if (!tbody || !cards) return;
-            const visible = Array.from(tbody.querySelectorAll('tr')).map(tr => tr.dataset.id);
+            const visible = Array.from(document.querySelectorAll('.card.parking-item'))
+                .filter(card => !isNonSendableStatus(card.dataset.status))
+                .map(card => card.dataset.id);
             if (checkAll.checked) visible.forEach(id => selected.add(id));
             else visible.forEach(id => selected.delete(id));
             tbody.querySelectorAll('.row-check').forEach(chk => {
                 const id = chk.closest('tr').dataset.id;
-                chk.checked = selected.has(id);
+                const blocked = isNonSendableStatus(chk.closest('tr').dataset.status);
+                chk.checked = !blocked && selected.has(id);
             });
-            visible.forEach(id => {
-                const cardChk = cards.querySelector(`.card[data-id="${id}"] .card-check`);
-                if (cardChk) cardChk.checked = selected.has(id);
+            cards.querySelectorAll('.card-check').forEach(chk => {
+                const card = chk.closest('.card');
+                const id = card?.dataset?.id;
+                const blocked = isNonSendableStatus(card?.dataset?.status);
+                chk.checked = !blocked && selected.has(id);
             });
             syncHeaderCheck();
             updateSendButtonState();
@@ -581,13 +658,22 @@ async function exportCSV() {
 
 async function sendSelected() {
     const checkedValues = syncSelectedFromDOM();
+    const filteredValues = checkedValues.filter(id => {
+        const rec = DATA.find(p => p.manageNo === id);
+        const statusCode = normalizeStatus(rec?.status || rec?.statusNm);
+        return rec && !isNonSendableStatus(statusCode);
+    });
 
-    if (checkedValues.length === 0) {
+    if (filteredValues.length !== checkedValues.length) {
+        toast('승인/승인대기 상태는 전송 대상에서 자동 제외됩니다.');
+    }
+
+    if (filteredValues.length === 0) {
         toast('전송할 항목이 없습니다. (선택 0)');
         return;
     }
 
-    const parkingList = checkedValues.map(manageNo => {
+    const parkingList = filteredValues.map(manageNo => {
         const parking = DATA.find(p => p.manageNo === manageNo);
         return {
             prkPlceManageNo: manageNo,
@@ -602,7 +688,7 @@ async function sendSelected() {
 
     showConfirmModal({
         title: '전송 확인',
-        message: `선택한 ${checkedValues.length}개의 주차장을 승인 대기 상태로 변경하시겠습니까?`,
+        message: `선택한 ${filteredValues.length}개의 주차장을 승인 대기 상태로 변경하시겠습니까?`,
         confirmText: '확인',
         cancelText: '취소',
         onConfirm: async () => {

@@ -20,6 +20,7 @@
     <!-- 외부 라이브러리 (EXIF / 다음 우편번호) -->
     <script src="${pageContext.request.contextPath}/static/vendor/exifr/full.umd.js"></script>
     <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <script src="${pageContext.request.contextPath}/static/js/common/ldong-util.js"></script>
     <c:set var="statusCode" value="${not empty param.status ? param.status : requestScope.statusCode}"/>
     <c:set var="isApproved" value="${statusCode eq '30'}"/>
     <c:set var="isRejected"
@@ -498,17 +499,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- 관리주체(소유주체) // 변경: 입력 UI 추가 -->
-                <div class="subsection">
-                    <h3 class="subsection-title">관리주체(소유주체)</h3>
-                    <div class="radio-group" id="owner_group">
-                        <label><input type="radio" name="ownCd" value="1"/> <span>공영</span></label>
-                        <label><input type="radio" name="ownCd" value="2"/> <span>민영</span></label>
-                        <label><input type="radio" name="ownCd" value="9"/> <span>기타</span></label>
-                    </div>
-                    <input type="hidden" id="own_cd" name="ownCd" value="${parking.ownCd}"/>
                 </div>
 
                 <!-- 운영주체 -->
@@ -990,6 +980,18 @@
                     <div class="radio-group" id="fall_prevention_group">
                         <label><input type="radio" name="fallPrevention" value="Y"/> <span>있음</span></label>
                         <label><input type="radio" name="fallPrevention" value="N"/> <span>없음</span></label>
+                    </div>
+                    <div id="fall_photo_wrap" class="photo-upload-zone" style="margin-top:8px; display:none;">
+                        <input id="f_fall_photo_lib" type="file" accept="image/*,image/heic,image/heif" style="display:none"/>
+                        <input id="f_fall_photo_cam" type="file" accept="image/*" capture="environment" style="display:none"/>
+                        <div class="file-upload-buttons">
+                            <button type="button" class="btn light" id="btnFallPhotoLibrary">📁 사진첩에서 선택</button>
+                            <button type="button" class="btn ghost" id="btnFallPhotoCamera">📷 카메라 촬영</button>
+                            <button type="button" class="btn ghost" id="btnClearFallPhoto">🗑️ 초기화</button>
+                        </div>
+                        <div style="margin-top:8px;">
+                            <img id="fall_preview" class="thumb" alt="추락방지시설 사진" style="display:none;"/>
+                        </div>
                     </div>
                 </div>
 

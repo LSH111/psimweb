@@ -141,22 +141,27 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
     @Override
     @Transactional
     public AttchPicMngInfoVO uploadAndSaveFileForUsage(
+            String prkPlceManageNo,
             String cmplSn,
             String prkImgId,
             MultipartFile file
     ) {
+        if (prkPlceManageNo == null || prkPlceManageNo.trim().isEmpty()) {
+            throw new IllegalArgumentException("prkPlceManageNo가 없습니다. 파일을 저장할 수 없습니다.");
+        }
         validateFile(file);
         String safePrkImgId = sanitizeIdentifier(prkImgId);
+        Integer infoSn = parseInfoSn(cmplSn);
 
         try {
             PhotoStorage.SaveResult saved = photoStorage.save(safePrkImgId, file);
             String extension = getFileExtension(file.getOriginalFilename());
 
             AttchPicMngInfoVO vo = new AttchPicMngInfoVO();
-            vo.setCmplSn(cmplSn);
+            vo.setPrkPlceManageNo(prkPlceManageNo);
+            vo.setPrkPlceInfoSn(infoSn);
             vo.setPrkImgId(safePrkImgId);
-            vo.setAttachType("USAGE");
-            vo.setSeqNo(getNextSeqNoForUsage(cmplSn, prkImgId));
+            vo.setSeqNo(getNextSeqNoForUsage(infoSn, prkImgId));
             vo.setRealFileNm(file.getOriginalFilename());
             vo.setFileNm(saved.savedFileName());
             vo.setFilePath(saved.relativePath());
@@ -182,6 +187,7 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
     @Transactional
     @Override
     public List<AttchPicMngInfoVO> uploadAndSaveFilesForUsage(
+            String prkPlceManageNo,
             String cmplSn,
             String prkImgId,
             List<MultipartFile> files,
@@ -191,9 +197,13 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
         if (files == null || files.isEmpty()) {
             throw new IllegalArgumentException("파일 목록이 비어있습니다.");
         }
+        if (prkPlceManageNo == null || prkPlceManageNo.trim().isEmpty()) {
+            throw new IllegalArgumentException("prkPlceManageNo가 없습니다. 파일을 저장할 수 없습니다.");
+        }
 
         List<AttchPicMngInfoVO> results = new ArrayList<>();
-        int seqNo = getNextSeqNoForUsage(cmplSn, prkImgId);
+        Integer infoSn = parseInfoSn(cmplSn);
+        int seqNo = getNextSeqNoForUsage(infoSn, prkImgId);
         String safePrkImgId = sanitizeIdentifier(prkImgId);
 
         for (MultipartFile file : files) {
@@ -212,10 +222,10 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
 
                 // DB 저장
                 AttchPicMngInfoVO vo = new AttchPicMngInfoVO();
-                vo.setCmplSn(cmplSn);
+                vo.setPrkPlceManageNo(prkPlceManageNo);
+                vo.setPrkPlceInfoSn(infoSn);
                 vo.setPrkImgId(safePrkImgId);
                 vo.setSeqNo(seqNo);
-                vo.setAttachType("USAGE");
 
                 String originalFileName = file.getOriginalFilename();
                 String extension = getFileExtension(originalFileName);
@@ -252,7 +262,8 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             String cmplSn,
             String prkImgId
     ) {
-        return mapper.selectAttchPicMngInfoListByCmplSn(cmplSn, prkImgId);
+        Integer infoSn = parseInfoSn(cmplSn);
+        return mapper.selectAttchPicMngInfoListByCmplSn(infoSn, prkImgId);
     }
 
     @Override
@@ -262,7 +273,8 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             String prkImgId,
             Integer seqNo
     ) {
-        List<AttchPicMngInfoVO> files = mapper.selectAttchPicMngInfoListByCmplSn(cmplSn, prkImgId);
+        Integer infoSn = parseInfoSn(cmplSn);
+        List<AttchPicMngInfoVO> files = mapper.selectAttchPicMngInfoListByCmplSn(infoSn, prkImgId);
 
         for (AttchPicMngInfoVO file : files) {
             if (seqNo == null || file.getSeqNo().equals(seqNo)) {
@@ -270,7 +282,7 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             }
         }
 
-        mapper.deleteAttchPicMngInfo(null, prkImgId, seqNo);
+        mapper.deleteAttchPicMngInfo(infoSn, prkImgId, seqNo);
 
         log.info("✅ 이용실태 파일 삭제 완료: {} 건", files.size());
     }
@@ -280,7 +292,8 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             String cmplSn,
             String prkImgId
     ) {
-        return mapper.selectAttchPicMngInfoListByCmplSn(cmplSn, prkImgId);
+        Integer infoSn = parseInfoSn(cmplSn);
+        return mapper.selectAttchPicMngInfoListByCmplSn(infoSn, prkImgId);
     }
 
     // ========== Private Helper Methods ==========
@@ -296,8 +309,8 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
     /**
      * 🔥 다음 시퀀스 번호 조회 (이용실태용) - 수정
      */
-    private Integer getNextSeqNoForUsage(String cmplSn, String prkImgId) {
-        Integer maxSeqNo = mapper.selectMaxSeqNoForUsage(cmplSn, prkImgId);
+    private Integer getNextSeqNoForUsage(Integer prkPlceInfoSn, String prkImgId) {
+        Integer maxSeqNo = mapper.selectMaxSeqNoForUsage(prkPlceInfoSn, prkImgId);
         return (maxSeqNo == null) ? 1 : maxSeqNo + 1;
     }
 
@@ -333,6 +346,14 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             throw new InvalidPathException(trimmed, "경로 이동 문자는 허용되지 않습니다.");
         }
         return trimmed;
+    }
+
+    private Integer parseInfoSn(String cmplSn) {
+        try {
+            return Integer.parseInt(cmplSn);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("cmplSn을 숫자로 변환할 수 없습니다: " + cmplSn);
+        }
     }
 
     /**
@@ -402,7 +423,8 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             log.info("📷 사진 파일 조회 (이용실태) - cmplSn: {}, prkImgId: {}, seqNo: {}",
                     cmplSn, prkImgId, seqNo);
 
-            Map<String, Object> photoInfo = mapper.selectPhotoFileForUsage(cmplSn, prkImgId, seqNo);
+            Integer infoSn = parseInfoSn(cmplSn);
+            Map<String, Object> photoInfo = mapper.selectPhotoFileForUsage(infoSn, prkImgId, seqNo);
 
             if (photoInfo == null) {
                 log.warn("⚠️ 사진을 찾을 수 없음: cmplSn={}, prkImgId={}, seqNo={}",

@@ -974,6 +974,19 @@
                     <label><input type="radio" name="fallPrevention" value="Y"/> <span>있음</span></label>
                     <label><input type="radio" name="fallPrevention" value="N"/> <span>없음</span></label>
                 </div>
+                <!-- 추락방지시설 사진 업로드 -->
+                <div id="fall_photo_wrap" class="photo-upload-zone" style="margin-top:8px; display:none;">
+                    <input id="f_fall_photo_lib" type="file" accept="image/*,image/heic,image/heif" style="display:none"/>
+                    <input id="f_fall_photo_cam" type="file" accept="image/*" capture="environment" style="display:none"/>
+                    <div class="file-upload-buttons">
+                        <button type="button" class="btn light" id="btnFallPhotoLibrary">📁 사진첩에서 선택</button>
+                        <button type="button" class="btn ghost" id="btnFallPhotoCamera">📷 카메라 촬영</button>
+                        <button type="button" class="btn ghost" id="btnClearFallPhoto">🗑️ 초기화</button>
+                    </div>
+                    <div style="margin-top:8px;">
+                        <img id="fall_preview" class="thumb" alt="추락방지시설 사진" style="display:none;"/>
+                    </div>
+                </div>
             </div>
 
             <!-- 주차방향시설 유무 -->
@@ -982,6 +995,19 @@
                 <div class="radio-group" id="parking_guide_group">
                     <label><input type="radio" name="parkingGuide" value="Y"/> <span>있음</span></label>
                     <label><input type="radio" name="parkingGuide" value="N" checked/> <span>없음</span></label>
+                </div>
+                <!-- 주차방향시설 사진 업로드 -->
+                <div id="parking_guide_photo_wrap" class="photo-upload-zone" style="margin-top:8px; display:none;">
+                    <input id="f_parking_guide_photo_lib" type="file" accept="image/*,image/heic,image/heif" style="display:none"/>
+                    <input id="f_parking_guide_photo_cam" type="file" accept="image/*" capture="environment" style="display:none"/>
+                    <div class="file-upload-buttons">
+                        <button type="button" class="btn light" id="btnParkingGuidePhotoLibrary">📁 사진첩에서 선택</button>
+                        <button type="button" class="btn ghost" id="btnParkingGuidePhotoCamera">📷 카메라 촬영</button>
+                        <button type="button" class="btn ghost" id="btnClearParkingGuidePhoto">🗑️ 초기화</button>
+                    </div>
+                    <div style="margin-top:8px;">
+                        <img id="parking_guide_preview" class="thumb" alt="주차방향시설 사진" style="display:none;"/>
+                    </div>
                 </div>
             </div>
 

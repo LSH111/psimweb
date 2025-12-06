@@ -157,7 +157,7 @@
              #{vhcleNo},
              #{vhctyCd},
              #{lawGbn},
-             #{lawGbn},
+             #{lawCd},
              #{plceLat},
              #{plceLon},
              #{hdInoutCd},

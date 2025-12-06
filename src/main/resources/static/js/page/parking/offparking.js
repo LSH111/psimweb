@@ -12,6 +12,20 @@ const withBase = (url) => {
     return url;
 };
 
+// 업로드 리스트 유틸이 없을 때 안전 가드 (onparking.js 동일 패턴)
+if (typeof window.appendUploadedFiles === 'undefined') {
+    window.appendUploadedFiles = function (listSelector, files) {
+        const list = document.querySelector(listSelector || '#uploadedFileList');
+        if (!list || !files) return;
+        Array.from(files).forEach((file) => {
+            const li = document.createElement('li');
+            li.className = 'uploaded-file';
+            li.textContent = file.name || file.filename || '파일';
+            list.appendChild(li);
+        });
+    };
+}
+
 function params() {
     const sp = new URLSearchParams(location.search);
     return new Proxy({}, {get: (_, k) => sp.get(k) || ''});
@@ -1890,6 +1904,24 @@ function setupFacilityPhotoEvents() {
             btnLibId: 'btnExitAlarmPhotoLibrary',
             btnCamId: 'btnExitAlarmPhotoCamera',
             btnClearId: 'btnClearExitAlarmPhoto'
+        },
+        {
+            type: 'fall_prevention',
+            libId: 'f_fall_photo_lib',
+            camId: 'f_fall_photo_cam',
+            previewId: 'fall_preview',
+            btnLibId: 'btnFallPhotoLibrary',
+            btnCamId: 'btnFallPhotoCamera',
+            btnClearId: 'btnClearFallPhoto'
+        },
+        {
+            type: 'parking_guide',
+            libId: 'f_parking_guide_photo_lib',
+            camId: 'f_parking_guide_photo_cam',
+            previewId: 'parking_guide_preview',
+            btnLibId: 'btnParkingGuidePhotoLibrary',
+            btnCamId: 'btnParkingGuidePhotoCamera',
+            btnClearId: 'btnClearParkingGuidePhoto'
         }
     ];
 
@@ -1905,7 +1937,9 @@ async function handleFacilityPhoto(files, type) {
         'sign': $('#sign_preview'),
         'ticket': $('#ticket_preview'),
         'barrier': $('#barrier_preview'),
-        'exit_alarm': $('#exit_alarm_preview')
+        'exit_alarm': $('#exit_alarm_preview'),
+        'fall_prevention': $('#fall_preview'),
+        'parking_guide': $('#parking_guide_preview')
     };
 
     const preview = previewMap[type];
@@ -1927,7 +1961,9 @@ async function handleFacilityPhoto(files, type) {
         'sign': $('#sign_preview'),
         'ticket': $('#ticket_preview'),
         'barrier': $('#barrier_preview'),
-        'exit_alarm': $('#exit_alarm_preview')
+        'exit_alarm': $('#exit_alarm_preview'),
+        'fall_prevention': $('#fall_preview'),
+        'parking_guide': $('#parking_guide_preview')
     };
 
     const preview = previewMap[type];
@@ -2135,6 +2171,25 @@ function setupPreInspectionEvents() {
             }
         });
     });
+    if (signPhotoWrap) {
+        const checked = signRadios.find(r => r.checked && r.value === 'Y');
+        signPhotoWrap.style.display = checked ? 'block' : 'none';
+    }
+
+    // 추락방지시설 사진 토글
+    const fallRadios = $$('input[name="fallPrevention"]');
+    const fallPhotoWrap = $('#fall_photo_wrap');
+    fallRadios.forEach(radio => {
+        radio.addEventListener('change', function () {
+            if (fallPhotoWrap) {
+                fallPhotoWrap.style.display = (this.value === 'Y' && this.checked) ? 'block' : 'none';
+            }
+        });
+    });
+    if (fallPhotoWrap) {
+        const checkedFall = fallRadios.find(r => r.checked && r.value === 'Y');
+        fallPhotoWrap.style.display = checkedFall ? 'block' : 'none';
+    }
 
     const ticketRadios = $$('input[name="ticketMachine"]');
     const ticketPhotoWrap = $('#ticket_photo_wrap');
@@ -2145,6 +2200,10 @@ function setupPreInspectionEvents() {
             }
         });
     });
+    if (ticketPhotoWrap) {
+        const checked = ticketRadios.find(r => r.checked && r.value === 'Y');
+        ticketPhotoWrap.style.display = checked ? 'block' : 'none';
+    }
 
     const barrierPhotoWrap = $('#barrier_photo_wrap');
     barrierRadios.forEach(radio => {
@@ -2154,6 +2213,10 @@ function setupPreInspectionEvents() {
             }
         });
     });
+    if (barrierPhotoWrap) {
+        const checkedBarrier = barrierRadios.find(r => r.checked && r.value === 'Y');
+        barrierPhotoWrap.style.display = checkedBarrier ? 'block' : 'none';
+    }
 
     const exitAlarmRadios = $$('input[name="exitAlarm"]');
     const exitAlarmPhotoWrap = $('#exit_alarm_photo_wrap');
@@ -2164,6 +2227,25 @@ function setupPreInspectionEvents() {
             }
         });
     });
+    if (exitAlarmPhotoWrap) {
+        const checkedExit = exitAlarmRadios.find(r => r.checked && r.value === 'Y');
+        exitAlarmPhotoWrap.style.display = checkedExit ? 'block' : 'none';
+    }
+
+    // 주차방향시설 사진 토글
+    const parkingGuideRadios = $$('input[name="parkingGuide"]');
+    const parkingGuidePhotoWrap = $('#parking_guide_photo_wrap');
+    parkingGuideRadios.forEach(radio => {
+        radio.addEventListener('change', function () {
+            if (parkingGuidePhotoWrap) {
+                parkingGuidePhotoWrap.style.display = (this.value === 'Y' && this.checked) ? 'block' : 'none';
+            }
+        });
+    });
+    if (parkingGuidePhotoWrap) {
+        const checkedGuide = parkingGuideRadios.find(r => r.checked && r.value === 'Y');
+        parkingGuidePhotoWrap.style.display = checkedGuide ? 'block' : 'none';
+    }
 
 }
 
@@ -2782,7 +2864,9 @@ function setAllFieldsReadOnly(isReadOnly) {
         '#btnSignPhotoLibrary', '#btnSignPhotoCamera', '#btnClearSignPhoto',
         '#btnTicketPhotoLibrary', '#btnTicketPhotoCamera', '#btnClearTicketPhoto',
         '#btnBarrierPhotoLibrary', '#btnBarrierPhotoCamera', '#btnClearBarrierPhoto',
-        '#btnExitAlarmPhotoLibrary', '#btnExitAlarmPhotoCamera', '#btnClearExitAlarmPhoto'
+        '#btnExitAlarmPhotoLibrary', '#btnExitAlarmPhotoCamera', '#btnClearExitAlarmPhoto',
+        '#btnFallPhotoLibrary', '#btnFallPhotoCamera', '#btnClearFallPhoto',
+        '#btnParkingGuidePhotoLibrary', '#btnParkingGuidePhotoCamera', '#btnClearParkingGuidePhoto'
     ];
     fileButtons.forEach(selector => {
         const btn = $(selector);
@@ -3486,7 +3570,9 @@ async function doSave() {
             {lib: 'f_ticket_photo_lib', cam: 'f_ticket_photo_cam', key: 'ticketPhoto'},
             {lib: 'f_barrier_photo_lib', cam: 'f_barrier_photo_cam', key: 'barrierPhoto'},
             {lib: 'f_exit_alarm_photo_lib', cam: 'f_exit_alarm_photo_cam', key: 'exitAlarmPhoto'},
-            {lib: 'f_entrance_photo_lib', cam: 'f_entrance_photo_cam', key: 'entrancePhoto'}
+            {lib: 'f_entrance_photo_lib', cam: 'f_entrance_photo_cam', key: 'entrancePhoto'},
+            {lib: 'f_fall_photo_lib', cam: 'f_fall_photo_cam', key: 'fallPrevPhoto'},
+            {lib: 'f_parking_guide_photo_lib', cam: 'f_parking_guide_photo_cam', key: 'parkingGuidePhoto'}
         ];
 
         photoFiles.forEach(photo => {
@@ -3687,14 +3773,66 @@ function renderUploadedList(photos) {
 }
 
 // 보조: 전역에 확실히 노출
-window.renderUploadedList = renderUploadedList;
+    window.renderUploadedList = renderUploadedList;
+
+function normalizeImgId(p) {
+    const direct = (p.prkImgId || p.prk_img_id || p.prkimgid || '').toString().trim();
+    if (direct) return direct.toUpperCase();
+    const path = (p.filePath || p.file_path || '').toString();
+    const match = path.match(/OFF_[A-Z_]+/i);
+    if (match && match[0]) return match[0].toUpperCase();
+    return '';
+}
+
+function applyPhotoPreviews(infoSn, photos) {
+    const previewMap = {
+        OFF_MAIN: 'preview',
+        OFF_SIGN: 'sign_preview',
+        OFF_TICKET: 'ticket_preview',
+        OFF_BARRIER: 'barrier_preview',
+        OFF_EXIT_ALARM: 'exit_alarm_preview',
+        OFF_ENTRANCE: 'entrance_preview',
+        OFF_FALL_PREV: 'fall_preview',
+        OFF_PARK_GUIDE: 'parking_guide_preview'
+    };
+    // 초기화
+    Object.values(previewMap).forEach(id => {
+        const img = document.getElementById(id);
+        if (img) {
+            img.removeAttribute('src');
+            img.style.display = 'none';
+        }
+    });
+
+    const firstByType = {};
+    (photos || []).forEach(p => {
+        const imgId = normalizeImgId(p);
+        if (!imgId) return;
+        if (!firstByType[imgId]) firstByType[imgId] = p;
+    });
+
+    Object.entries(firstByType).forEach(([imgId, photo]) => {
+        const targetId = previewMap[imgId];
+        if (!targetId) return;
+        const img = document.getElementById(targetId);
+        const seq = photo.seqNo || photo.seq_no || photo.seqno;
+        if (img && infoSn && seq != null) {
+            img.src = withBase(`/prk/photo?prkPlceInfoSn=${infoSn}&prkImgId=${imgId}&seqNo=${seq}`);
+            img.style.display = 'block';
+            img.title = photo.realFileNm || photo.real_file_nm || photo.fileNm || photo.file_nm || imgId;
+        }
+    });
+}
 
 async function reloadParkingPhotos(infoSn) {
     if (!infoSn) return;
     try {
         const resp = await fetch(withBase(`/prk/parking-photos?prkPlceInfoSn=${infoSn}`));
         const json = await resp.json();
-        renderUploadedList(json.photos || []);
+        const photos = json.photos || [];
+        const mainPhotos = photos.filter(p => normalizeImgId(p) === 'OFF_MAIN');
+        renderUploadedList(mainPhotos);
+        applyPhotoPreviews(infoSn, photos);
     } catch (e) {
         console.warn('⚠️ 파일 목록 재조회 실패:', e);
     }

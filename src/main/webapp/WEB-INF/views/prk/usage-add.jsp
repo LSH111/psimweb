@@ -1,6 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/pages/usage-add.css"/>
+<script src="${pageContext.request.contextPath}/static/vendor/exifr/full.umd.js"></script>
+<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 <script src="${pageContext.request.contextPath}/static/js/component/toast.js"></script>
 <script src="${pageContext.request.contextPath}/static/js/component/modal.js"></script>
 <script src="${pageContext.request.contextPath}/static/js/page/usage-add.js"></script>

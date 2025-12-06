@@ -18,7 +18,7 @@
     <select id="selectMaxSeqNoForUsage" resultType="java.lang.Integer">
         SELECT COALESCE(MAX(seq_no), 0)
         FROM cpk.tb_attch_pic_mng_info
-        WHERE cmpl_sn = #{cmplSn}
+        WHERE prk_plce_info_sn = #{prkPlceInfoSn}
         <if test="prkImgId != null and prkImgId != ''">
             AND prk_img_id = #{prkImgId}
         </if>
@@ -38,8 +38,6 @@
             file_nm,
             real_file_nm,
             prk_img_id,
-            cmpl_sn,
-            attach_type,
             reg_dt,
             rgst_id,
             rgst_ip_addr
@@ -54,15 +52,13 @@
                      #{fileNm},
                      #{realFileNm},
                      #{prkImgId},
-                     #{cmplSn},
-                     #{attachType},
                      NOW(),
                      #{rgstId},
                      #{rgstIpAddr}
                  )
     </insert>
 
-    <!-- 🔥 SELECT - cmpl_sn으로도 조회 가능 -->
+    <!-- 🔥 SELECT -->
     <select id="selectAttchPicMngInfoList" resultType="com.psim.web.file.vo.AttchPicMngInfoVO">
         SELECT
         prk_plce_manage_no AS prkPlceManageNo,
@@ -75,8 +71,6 @@
         file_nm AS fileNm,
         real_file_nm AS realFileNm,
         prk_img_id AS prkImgId,
-        cmpl_sn AS cmplSn,
-        attach_type AS attachType,
         reg_dt AS regDt,
         rgst_id AS rgstId,
         rgst_ip_addr AS rgstIpAddr,
@@ -96,9 +90,6 @@
         </if>
         <if test="seqNo != null">
             AND seq_no = #{seqNo}
-        </if>
-        <if test="cmplSn != null and cmplSn != ''">
-            AND cmpl_sn = #{cmplSn}
         </if>
         ORDER BY seq_no ASC
     </select>
@@ -133,14 +124,7 @@
         updusr_id = #{updusrId},
         updusr_ip_addr = #{updusrIpAddr}
         WHERE 1=1
-        <choose>
-            <when test="cmplSn != null and cmplSn != ''">
-                AND cmpl_sn = #{cmplSn}
-            </when>
-            <otherwise>
-                AND prk_plce_info_sn = #{prkPlceInfoSn}
-            </otherwise>
-        </choose>
+        AND prk_plce_info_sn = #{prkPlceInfoSn}
         AND prk_img_id = #{prkImgId}
         AND seq_no = #{seqNo}
     </update>
@@ -149,14 +133,7 @@
     <delete id="deleteAttchPicMngInfo">
         DELETE FROM cpk.tb_attch_pic_mng_info
         WHERE 1=1
-        <choose>
-            <when test="cmplSn != null and cmplSn != ''">
-                AND cmpl_sn = #{cmplSn}
-            </when>
-            <otherwise>
-                AND prk_plce_info_sn = #{prkPlceInfoSn}
-            </otherwise>
-        </choose>
+        AND prk_plce_info_sn = #{prkPlceInfoSn}
         <if test="prkImgId != null and prkImgId != ''">
             AND prk_img_id = #{prkImgId}
         </if>
@@ -165,10 +142,11 @@
         </if>
     </delete>
 
-    <!-- 🔥 단속일련번호로 파일 목록 조회 -->
+    <!-- 🔥 단속일련번호(=prkPlceInfoSn)로 파일 목록 조회 -->
     <select id="selectAttchPicMngInfoListByCmplSn" resultType="com.psim.web.file.vo.AttchPicMngInfoVO">
         SELECT
-        cmpl_sn AS cmplSn,
+        prk_plce_manage_no AS prkPlceManageNo,
+        prk_plce_info_sn AS prkPlceInfoSn,
         prk_img_id AS prkImgId,
         seq_no AS seqNo,
         real_file_nm AS realFileNm,
@@ -179,7 +157,7 @@
         rgst_id AS rgstId,
         rgst_ip_addr AS rgstIpAddr
         FROM cpk.tb_attch_pic_mng_info
-        WHERE cmpl_sn = #{cmplSn}
+        WHERE prk_plce_info_sn = #{prkPlceInfoSn}
         <if test="prkImgId != null and prkImgId != ''">
             AND prk_img_id = #{prkImgId}
         </if>
@@ -223,7 +201,7 @@
             file_path AS filePath,
             real_file_nm AS realFileNm
         FROM cpk.tb_attch_pic_mng_info
-        WHERE cmpl_sn = #{cmplSn}
+        WHERE prk_plce_info_sn = #{prkPlceInfoSn}
           AND prk_img_id = #{prkImgId}
           AND seq_no = #{seqNo}
     </select>

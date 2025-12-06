@@ -128,6 +128,13 @@
                     <div class="tab-panels">
                         <!-- 목록 패널 -->
                         <div id="panelList" class="tab-panel" role="tabpanel" aria-labelledby="tabList">
+                            <div class="selection-bar">
+                                <label class="check-all-wrap" for="checkAll" title="현재 페이지 전체 선택">
+                                    <input id="checkAll" type="checkbox" aria-label="현재 페이지 전체 선택"/>
+                                    <span>전체 선택</span>
+                                </label>
+                                <span class="selection-hint">승인/승인대기 상태는 자동 제외</span>
+                            </div>
                             <div id="cards" class="cards" aria-label="검색 결과 - 카드 목록"></div>
                             <div class="table-wrap" aria-label="검색 결과 - 테이블">
                                 <table>
@@ -135,9 +142,7 @@
                                     <thead>
                                     <tr>
                                         <th scope="col" style="width:64px" class="num">순번</th>
-                                        <th scope="col" style="width:60px" class="check">
-                                            <input id="checkAll" type="checkbox" aria-label="현재 페이지 전체 선택"/>
-                                        </th>
+                                        <th scope="col" style="width:90px" class="check"></th>
                                         <th scope="col" style="width:10%">주차장구분</th>
                                         <th scope="col" style="width:10%">진행상태</th>
                                         <th scope="col" style="width:12%">시도</th>

@@ -50,7 +50,7 @@ class AttchPicMngInfoServiceImplIT {
         List<MultipartFile> files = Collections.emptyList();
 
         org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () ->
-                service.uploadAndSaveFilesForUsage("CMPL_SN", "TEST", files, "user", "127.0.0.1"));
+                service.uploadAndSaveFilesForUsage("PRK-MNG-NO", "CMPL_SN", "TEST", files, "user", "127.0.0.1"));
     }
 
     @Test

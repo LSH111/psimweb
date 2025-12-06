@@ -8,6 +8,8 @@
     <title>주차이용실태관리</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/pages/usage-status.css"/>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/pages/usage-add.css"/>
+    <script src="${pageContext.request.contextPath}/static/vendor/exifr/full.umd.js"></script>
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 
     <!-- 🔥 1. 전역 변수 먼저 정의 -->
     <script>

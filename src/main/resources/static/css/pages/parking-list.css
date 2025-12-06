@@ -261,6 +261,7 @@ article.card:hover {
     display: flex;
     align-items: center;
     margin-right: 10px;
+    padding: 8px;
 }
 
 .checkbox-wrap input[type="checkbox"] {
@@ -276,6 +277,55 @@ article.card:hover {
     -webkit-appearance: checkbox !important;
     accent-color: var(--accent);
     cursor: pointer;
+}
+
+.check .row-check-wrap,
+.check-all-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.check-all-wrap span {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.table-wrap input.row-check,
+.table-wrap #checkAll {
+    width: 22px;
+    height: 22px;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
+.cards .card-check {
+    width: 24px;
+    height: 24px;
+}
+
+.selection-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 8px 0;
+}
+
+.selection-bar .check-all-wrap {
+    gap: 8px;
+    padding: 4px 8px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #f8fafc;
+}
+
+.selection-hint {
+    font-size: 12px;
+    color: var(--muted);
 }
 
 /* ========== 카드 제목 ========== */

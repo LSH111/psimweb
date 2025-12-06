@@ -217,6 +217,7 @@ public class PrkUsageStatusController {
                     log.info("📸 파일 업로드 시작 - {}개", photos.size());
 
                     List<AttchPicMngInfoVO> uploadedFiles = attchPicService.uploadAndSaveFilesForUsage(
+                            vo.getPrkBizMngNo(),
                             cmplSn,
                             "USG_PHOTO",
                             photos,

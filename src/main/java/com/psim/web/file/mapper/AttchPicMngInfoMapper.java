@@ -31,7 +31,7 @@ public interface AttchPicMngInfoMapper {
     );
 
     Integer selectMaxSeqNoForUsage(
-            @Param("cmplSn") String cmplSn,
+            @Param("prkPlceInfoSn") Integer prkPlceInfoSn,
             @Param("prkImgId") String prkImgId
     );
 
@@ -39,7 +39,7 @@ public interface AttchPicMngInfoMapper {
      * 🔥 단속일련번호로 파일 목록 조회
      */
     List<AttchPicMngInfoVO> selectAttchPicMngInfoListByCmplSn(
-            @Param("cmplSn") String cmplSn,
+            @Param("prkPlceInfoSn") Integer prkPlceInfoSn,
             @Param("prkImgId") String prkImgId
     );
 
@@ -61,7 +61,7 @@ public interface AttchPicMngInfoMapper {
      * 🔥 사진 파일 데이터 조회 (이용실태용 - 복합키)
      */
     Map<String, Object> selectPhotoFileForUsage(
-            @Param("cmplSn") String cmplSn,
+            @Param("prkPlceInfoSn") Integer prkPlceInfoSn,
             @Param("prkImgId") String prkImgId,
             @Param("seqNo") Integer seqNo
     );

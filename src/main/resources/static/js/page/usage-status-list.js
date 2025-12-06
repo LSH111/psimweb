@@ -91,6 +91,7 @@
                         kakaoMap.setCenter(currentPosition);
                         kakaoMap.setLevel(5);
                     },
+                    () => {},
                     { enableHighAccuracy: false, timeout: 12000 }
                 );
             },
@@ -506,7 +507,8 @@
     // ========== 🔥 파일 이벤트 리스너 설정 ==========
     function attachFileEventListeners() {
         document.addEventListener('mouseenter', function(e) {
-            if (e.target.classList.contains('file-item')) {
+            const target = e.target;
+            if (target && target.classList && target.classList.contains('file-item')) {
                 const cmplSn = e.target.dataset.cmplSn;
                 const prkImgId = e.target.dataset.prkImgId;
                 const seqNo = e.target.dataset.seqNo;
@@ -515,13 +517,15 @@
         }, true);
 
         document.addEventListener('mouseleave', function(e) {
-            if (e.target.classList.contains('file-item')) {
+            const target = e.target;
+            if (target && target.classList && target.classList.contains('file-item')) {
                 hideImagePreview();
             }
         }, true);
 
         document.addEventListener('mousemove', function(e) {
-            if (e.target.classList.contains('file-item')) {
+            const target = e.target;
+            if (target && target.classList && target.classList.contains('file-item')) {
                 moveImagePreview(e);
             }
         });
@@ -745,9 +749,14 @@
             const result = await response.json();
 
             if (result.success) {
-                await displayList(result.list || []);
-                updateSummary(result.totalCount || 0);
-                addMarkersToMap(result.list || []);
+                // lawCd 없는 항목은 제외 (적법/불법 정보 필수)
+                const list = (result.list || []).filter(item => (item.lawCd !== undefined && item.lawCd !== null && `${item.lawCd}`.trim() !== ''));
+                if ((result.list || []).length !== list.length) {
+                    toast('적법/불법 정보가 없는 건은 제외했습니다.');
+                }
+                await displayList(list);
+                updateSummary(list.length);
+                addMarkersToMap(list);
             } else {
                 await displayList([]);
                 updateSummary(0);

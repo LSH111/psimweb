@@ -438,6 +438,8 @@ public class PrkDefPlceInfoController {
             @RequestPart(value = "barrierPhoto", required = false) MultipartFile barrierPhoto,
             @RequestPart(value = "exitAlarmPhoto", required = false) MultipartFile exitAlarmPhoto,
             @RequestPart(value = "entrancePhoto", required = false) MultipartFile entrancePhoto,
+            @RequestPart(value = "fallPrevPhoto", required = false) MultipartFile fallPrevPhoto,
+            @RequestPart(value = "parkingGuidePhoto", required = false) MultipartFile parkingGuidePhoto,
             @RequestParam(value = "ownCd", required = false) String ownCd,
             HttpServletRequest request,
             HttpSession session) {
@@ -622,6 +624,18 @@ public class PrkDefPlceInfoController {
                         attchPicService.uploadAndSaveFile(prkPlceManageNo, prkPlceInfoSn, "OFF_ENTRANCE", entrancePhoto);
                         log.info("✅ 입구 사진 저장 완료");
                     }
+
+                    if (fallPrevPhoto != null && !fallPrevPhoto.isEmpty()) {
+                        log.info("📸 추락방지시설 사진 저장 시작: {}", fallPrevPhoto.getOriginalFilename());
+                        attchPicService.uploadAndSaveFile(prkPlceManageNo, prkPlceInfoSn, "OFF_FALL_PREV", fallPrevPhoto);
+                        log.info("✅ 추락방지시설 사진 저장 완료");
+                    }
+
+                    if (parkingGuidePhoto != null && !parkingGuidePhoto.isEmpty()) {
+                        log.info("📸 주차방향시설 사진 저장 시작: {}", parkingGuidePhoto.getOriginalFilename());
+                        attchPicService.uploadAndSaveFile(prkPlceManageNo, prkPlceInfoSn, "OFF_PARK_GUIDE", parkingGuidePhoto);
+                        log.info("✅ 주차방향시설 사진 저장 완료");
+                    }
                 } catch (Exception fileException) {
                     log.error("⚠️ 파일 저장 실패 (DB는 성공): {}", fileException.getMessage());
                     // 파일 저장 실패는 경고만 표시 - 전체 작업은 성공으로 간주
@@ -681,6 +695,7 @@ public class PrkDefPlceInfoController {
             @RequestPart(value = "barrierPhoto", required = false) MultipartFile barrierPhoto,
             @RequestPart(value = "exitAlarmPhoto", required = false) MultipartFile exitAlarmPhoto,
             @RequestPart(value = "entrancePhoto", required = false) MultipartFile entrancePhoto,
+            @RequestPart(value = "fallPrevPhoto", required = false) MultipartFile fallPrevPhoto,
             @RequestParam(value = "ownCd", required = false) String ownCd,
             HttpServletRequest request,
             HttpSession session) {
@@ -855,6 +870,11 @@ public class PrkDefPlceInfoController {
                         log.info("📸 입구 사진 저장 시작: {}", entrancePhoto.getOriginalFilename());
                         attchPicService.uploadAndSaveFile(prkPlceManageNo, prkPlceInfoSn, "BLD_ENTRANCE", entrancePhoto);
                         log.info("✅ 입구 사진 저장 완료");
+                    }
+                    if (fallPrevPhoto != null && !fallPrevPhoto.isEmpty()) {
+                        log.info("📸 추락방지시설 사진 저장 시작: {}", fallPrevPhoto.getOriginalFilename());
+                        attchPicService.uploadAndSaveFile(prkPlceManageNo, prkPlceInfoSn, "BLD_FALL_PREV", fallPrevPhoto);
+                        log.info("✅ 추락방지시설 사진 저장 완료");
                     }
                 } catch (Exception fileException) {
                     log.error("⚠️ 파일 저장 실패 (DB는 성공): {}", fileException.getMessage());
