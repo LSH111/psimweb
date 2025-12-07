@@ -158,6 +158,9 @@
         rgst_ip_addr AS rgstIpAddr
         FROM cpk.tb_attch_pic_mng_info
         WHERE prk_plce_info_sn = #{prkPlceInfoSn}
+        <if test="prkPlceManageNo != null and prkPlceManageNo != ''">
+            AND prk_plce_manage_no = #{prkPlceManageNo}
+        </if>
         <if test="prkImgId != null and prkImgId != ''">
             AND prk_img_id = #{prkImgId}
         </if>

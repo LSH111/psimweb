@@ -235,9 +235,12 @@
 </div>
 
 <!-- 주소찾기 레이어 -->
-<div id="postcodeLayer" role="dialog" aria-modal="true" aria-label="주소 검색" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999;">
-    <div id="postcodeWrap" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:500px; background:white; border-radius:12px; padding:20px;">
-        <button id="postcodeClose" class="btn light" type="button" style="margin-bottom:10px;">닫기</button>
+<div id="postcodeLayer" role="dialog" aria-modal="true" aria-label="주소 검색">
+    <div id="postcodeWrap">
+        <div class="postcode-head">
+            <span>우편번호 검색</span>
+            <button id="postcodeClose" class="btn light" type="button">닫기</button>
+        </div>
         <div id="postcodeContainer"></div>
     </div>
 </div>

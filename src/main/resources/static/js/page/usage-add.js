@@ -6,6 +6,11 @@
 
     const $ = (s, ctx = document) => ctx.querySelector(s);
     const $$ = (s, ctx = document) => Array.from(ctx.querySelectorAll(s));
+    const BASE_PATH = (typeof contextPath !== 'undefined' && contextPath) ? contextPath : '';
+    const withBase = (url = '') => {
+        if (!url) return BASE_PATH;
+        return BASE_PATH + (url.startsWith('/') ? url : '/' + url);
+    };
 
     // 🔥 여러 장의 사진 파일 저장
     let selectedPhotoFiles = [];
@@ -721,7 +726,8 @@
         const endMin = $('#f_endMin')?.value || '';
 
         if (startHour && startMin && endHour && endMin) {
-            return `${startHour.padStart(2, '0')}:${startMin.padStart(2, '0')} ~ ${endHour.padStart(2, '0')}:${endMin.padStart(2, '0')}`;
+            // DB 컬럼 길이(varchar(11))에 맞춰 공백 없이 저장: HH:MM-HH:MM (11자 이하)
+            return `${startHour.padStart(2, '0')}:${startMin.padStart(2, '0')}-${endHour.padStart(2, '0')}:${endMin.padStart(2, '0')}`;
         }
         return '';
     }

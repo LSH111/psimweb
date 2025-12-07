@@ -52,7 +52,8 @@ public interface AttchPicMngInfoService {
 
     List<AttchPicMngInfoVO> getAttchPicMngInfoList(
             Integer prkPlceInfoSn,
-            String prkImgId
+            String prkImgId,
+            String prkPlceManageNo
     );
 
     /**
@@ -117,7 +118,7 @@ public interface AttchPicMngInfoService {
     /**
      * 🔥 이용실태 파일 목록 조회 (cmplSn 기준)
      */
-    List<AttchPicMngInfoVO> getAttchPicMngInfoListByCmplSn(String cmplSn, String prkImgId);
+    List<AttchPicMngInfoVO> getAttchPicMngInfoListByCmplSn(String cmplSn, String prkImgId, String prkPlceManageNo);
 
     /**
      * 주차장 정보 일련번호로 사진 목록 조회

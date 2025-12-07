@@ -396,11 +396,13 @@
     // ========== 🔥 파일 목록 로드 함수 ==========
     async function loadFileList(cmplSn) {
         try {
-            const response = await fetch(`${contextPath}/prk/api/usage-status/files?cmplSn=${cmplSn}`);
+            const params = new URLSearchParams();
+            if (cmplSn) params.set('cmplSn', cmplSn);
+            const response = await fetch(`${contextPath}/prk/api/usage-status/files?${params.toString()}`);
             const result = await response.json();
 
             if (result.success && result.files && result.files.length > 0) {
-                return result.files;
+                return result.files.filter(f => !!f);
             }
             return [];
         } catch (error) {
@@ -415,10 +417,14 @@
             return '<span class="no-files">첨부파일 없음</span>';
         }
 
-        return files.map(file => {
+        return files
+            .filter(file => !!file)
+            .map(file => {
             return `
                 <span class="file-item" 
-                      data-cmpl-sn="${file.cmplSn}"
+                      data-cmpl-sn="${file.cmplSn || ''}"
+                      data-prk-info-sn="${file.prkPlceInfoSn || ''}"
+                      data-prk-mng-no="${file.prkPlceManageNo || ''}"
                       data-prk-img-id="${file.prkImgId}"
                       data-seq-no="${file.seqNo}"
                       title="${file.realFileNm}">
@@ -434,8 +440,15 @@
         const img = $('#previewImage');
 
         if (!tooltip || !img) return;
+        if (!prkImgId || !seqNo) return;
 
-        const imageUrl = `${contextPath}/file/preview?cmplSn=${cmplSn}&prkImgId=${prkImgId}&seqNo=${seqNo}`;
+        const infoSn = event.target?.dataset?.prkInfoSn || '';
+        const baseParams = new URLSearchParams({ prkImgId });
+        if (seqNo) baseParams.set('seqNo', seqNo);
+        if (infoSn) baseParams.set('prkPlceInfoSn', infoSn);
+        else if (cmplSn) baseParams.set('cmplSn', cmplSn);
+
+        const imageUrl = `${contextPath}/file/preview?${baseParams.toString()}`;
         img.src = imageUrl;
 
         // 🔥 이미지 로드 후 위치 조정

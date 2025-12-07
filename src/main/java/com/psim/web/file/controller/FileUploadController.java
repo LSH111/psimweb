@@ -148,7 +148,8 @@ public class FileUploadController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getFileList(
             @RequestParam("prkPlceInfoSn") Integer prkPlceInfoSn,
-            @RequestParam(value = "prkImgId", required = false) String prkImgId
+            @RequestParam(value = "prkImgId", required = false) String prkImgId,
+            @RequestParam(value = "prkPlceManageNo", required = false) String prkPlceManageNo
     ) {
         Map<String, Object> result = new HashMap<>();
 
@@ -158,7 +159,8 @@ public class FileUploadController {
 
             List<AttchPicMngInfoVO> fileList = attchPicService.getAttchPicMngInfoList(
                     prkPlceInfoSn,
-                    safePrkImgId
+                    safePrkImgId,
+                    prkPlceManageNo
             );
 
             result.put("success", true);
@@ -231,14 +233,25 @@ public class FileUploadController {
     @ResponseBody
     public ResponseEntity<Resource> previewImage(
             @RequestParam(value = "cmplSn", required = false) String cmplSn,
+            @RequestParam(value = "prkPlceInfoSn", required = false) Integer prkPlceInfoSn,
+            @RequestParam(value = "prkPlceManageNo", required = false) String prkPlceManageNo,
             @RequestParam("prkImgId") String prkImgId,
             @RequestParam("seqNo") Integer seqNo
     ) {
         try {
-            log.info("🖼️ 이미지 미리보기 요청: cmplSn={}, prkImgId={}, seqNo={}", cmplSn, prkImgId, seqNo);
+            String effectiveCmplSn = cmplSn;
+            if ((effectiveCmplSn == null || effectiveCmplSn.isEmpty()) && prkPlceInfoSn != null) {
+                effectiveCmplSn = String.valueOf(prkPlceInfoSn);
+            }
+
+            log.info("🖼️ 이미지 미리보기 요청: cmplSn={}, prkPlceInfoSn={}, prkPlceManageNo={}, prkImgId={}, seqNo={}", effectiveCmplSn, prkPlceInfoSn, prkPlceManageNo, prkImgId, seqNo);
+
+            if (effectiveCmplSn == null || effectiveCmplSn.isEmpty()) {
+                throw new IllegalArgumentException("cmplSn이 없습니다.");
+            }
 
             // 파일 정보 조회
-            List<AttchPicMngInfoVO> fileList = attchPicService.getAttchPicMngInfoListByCmplSn(cmplSn, prkImgId);
+            List<AttchPicMngInfoVO> fileList = attchPicService.getAttchPicMngInfoListByCmplSn(effectiveCmplSn, prkImgId, prkPlceManageNo);
             
             AttchPicMngInfoVO fileInfo = fileList.stream()
                     .filter(f -> f.getSeqNo().equals(seqNo))

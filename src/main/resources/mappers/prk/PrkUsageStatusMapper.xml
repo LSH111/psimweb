@@ -10,7 +10,7 @@
 
         SELECT
         t.cmpl_sn,
-        t.prk_biz_mng_no,
+        t.prk_biz_mng_no AS prkBizMngNo,
         TO_CHAR(t.examin_dd, 'YYYY-MM-DD') AS examin_dd,
         t.examin_timelge,
         t.srvy_id,

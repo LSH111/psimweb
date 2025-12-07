@@ -22,7 +22,8 @@ public interface AttchPicMngInfoMapper {
     List<AttchPicMngInfoVO> selectAttchPicMngInfoList(
             @Param("prkPlceInfoSn") Integer prkPlceInfoSn,
             @Param("prkImgId") String prkImgId,
-            @Param("seqNo") Integer seqNo
+            @Param("seqNo") Integer seqNo,
+            @Param("prkPlceManageNo") String prkPlceManageNo
     );
 
     Integer selectMaxSeqNo(
@@ -40,7 +41,8 @@ public interface AttchPicMngInfoMapper {
      */
     List<AttchPicMngInfoVO> selectAttchPicMngInfoListByCmplSn(
             @Param("prkPlceInfoSn") Integer prkPlceInfoSn,
-            @Param("prkImgId") String prkImgId
+            @Param("prkImgId") String prkImgId,
+            @Param("prkPlceManageNo") String prkPlceManageNo
     );
 
     /**

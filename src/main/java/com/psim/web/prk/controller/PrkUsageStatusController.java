@@ -132,14 +132,32 @@ public class PrkUsageStatusController {
     @GetMapping("/api/usage-status/files")
     @ResponseBody
     public Map<String, Object> getUsageStatusFiles(
-            @RequestParam("cmplSn") String cmplSn
+            @RequestParam(value = "cmplSn", required = false) String cmplSn,
+            @RequestParam(value = "prkPlceInfoSn", required = false) Integer prkPlceInfoSn,
+            @RequestParam(value = "prkPlceManageNo", required = false) String prkPlceManageNo,
+            HttpSession session
     ) {
         Map<String, Object> result = new HashMap<>();
 
         try {
-            log.info("📂 첨부파일 목록 조회: cmplSn={}", cmplSn);
+            // prkPlceManageNo 전달이 없으면 세션의 사업번호로 보완
+            if ((prkPlceManageNo == null || prkPlceManageNo.isEmpty()) && session != null) {
+                @SuppressWarnings("unchecked")
+                List<String> userBizList = (List<String>) session.getAttribute("userBizList");
+                if (userBizList != null && !userBizList.isEmpty()) {
+                    prkPlceManageNo = userBizList.get(0);
+                }
+            }
 
-            List<AttchPicMngInfoVO> fileList = attchPicService.getAttchPicMngInfoListByCmplSn(cmplSn, "USG_PHOTO");
+            log.info("📂 첨부파일 목록 조회: cmplSn={}, prkPlceInfoSn={}, prkPlceManageNo={}", cmplSn, prkPlceInfoSn, prkPlceManageNo);
+
+            // prk_plce_info_sn 기반으로만 조회 (cmplSn은 prk_plce_info_sn과 동일하게 사용)
+            List<AttchPicMngInfoVO> fileList;
+            if (prkPlceInfoSn != null) {
+                fileList = attchPicService.getAttchPicMngInfoListByCmplSn(String.valueOf(prkPlceInfoSn), "USG_PHOTO", prkPlceManageNo);
+            } else {
+                fileList = attchPicService.getAttchPicMngInfoListByCmplSn(cmplSn, "USG_PHOTO", prkPlceManageNo);
+            }
 
             result.put("success", true);
             result.put("files", fileList);

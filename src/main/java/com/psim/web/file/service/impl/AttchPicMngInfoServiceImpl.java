@@ -118,7 +118,7 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             Integer seqNo
     ) {
         List<AttchPicMngInfoVO> files = mapper.selectAttchPicMngInfoList(
-                prkPlceInfoSn, prkImgId, seqNo
+                prkPlceInfoSn, prkImgId, seqNo, null
         );
 
         for (AttchPicMngInfoVO file : files) {
@@ -133,9 +133,12 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
     @Override
     public List<AttchPicMngInfoVO> getAttchPicMngInfoList(
             Integer prkPlceInfoSn,
-            String prkImgId
+            String prkImgId,
+            String prkPlceManageNo
     ) {
-        return mapper.selectAttchPicMngInfoList(prkPlceInfoSn, sanitizeIdentifier(prkImgId), null);
+        String safePrkImgId = sanitizeIdentifier(prkImgId);
+        log.info("📂 파일 목록 조회 서비스 호출 - prkPlceInfoSn={}, prkImgId={}, prkPlceManageNo={}", prkPlceInfoSn, safePrkImgId, prkPlceManageNo);
+        return mapper.selectAttchPicMngInfoList(prkPlceInfoSn, safePrkImgId, null, prkPlceManageNo);
     }
 
     @Override
@@ -263,7 +266,7 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             String prkImgId
     ) {
         Integer infoSn = parseInfoSn(cmplSn);
-        return mapper.selectAttchPicMngInfoListByCmplSn(infoSn, prkImgId);
+        return mapper.selectAttchPicMngInfoListByCmplSn(infoSn, prkImgId, null);
     }
 
     @Override
@@ -274,7 +277,7 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             Integer seqNo
     ) {
         Integer infoSn = parseInfoSn(cmplSn);
-        List<AttchPicMngInfoVO> files = mapper.selectAttchPicMngInfoListByCmplSn(infoSn, prkImgId);
+        List<AttchPicMngInfoVO> files = mapper.selectAttchPicMngInfoListByCmplSn(infoSn, prkImgId, null);
 
         for (AttchPicMngInfoVO file : files) {
             if (seqNo == null || file.getSeqNo().equals(seqNo)) {
@@ -290,10 +293,11 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
     @Override
     public List<AttchPicMngInfoVO> getAttchPicMngInfoListByCmplSn(
             String cmplSn,
-            String prkImgId
+            String prkImgId,
+            String prkPlceManageNo
     ) {
         Integer infoSn = parseInfoSn(cmplSn);
-        return mapper.selectAttchPicMngInfoListByCmplSn(infoSn, prkImgId);
+        return mapper.selectAttchPicMngInfoListByCmplSn(infoSn, prkImgId, prkPlceManageNo);
     }
 
     // ========== Private Helper Methods ==========
