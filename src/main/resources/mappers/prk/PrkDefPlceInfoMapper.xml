@@ -6,7 +6,7 @@
 
     <sql id="parkingCommonWhere">
         <where>
-            tcl.use_yn = 'Y'
+            (tcl.use_yn = 'Y' OR tcl.ldong_cd IS NULL)
             <if test="userBizList != null and userBizList.size() > 0">
                 AND tbppi.prk_biz_mng_no IN
                 <foreach collection="userBizList" item="bizNo" open="(" separator="," close=")">
@@ -15,20 +15,32 @@
             </if>
             <!-- 시도/시군구 필터: sidoCd/sigunguCd 우선, 구 키(sido/sigungu)도 호환 -->
             <if test="sidoCd != null and sidoCd != ''">
-                AND tcl.sido_cd = #{sidoCd}
+                AND (
+                tpdpi.sido_cd = #{sidoCd}
+                OR tcl.sido_cd = #{sidoCd}
+                )
             </if>
             <if test="(sidoCd == null or sidoCd == '') and (sido != null and sido != '')">
-                AND tcl.sido_cd = #{sido}
+                AND (
+                tpdpi.sido_cd = #{sido}
+                OR tcl.sido_cd = #{sido}
+                )
             </if>
 
             <if test="sigunguCd != null and sigunguCd != ''">
-                AND tcl.sigungu_cd = #{sigunguCd}
+                AND (
+                tpdpi.sigungu_cd = #{sigunguCd}
+                OR tcl.sigungu_cd = #{sigunguCd}
+                )
             </if>
             <if test="(sigunguCd == null or sigunguCd == '') and (sigungu != null and sigungu != '')">
-                AND tcl.sigungu_cd = #{sigungu}
+                AND (
+                tpdpi.sigungu_cd = #{sigungu}
+                OR tcl.sigungu_cd = #{sigungu}
+                )
             </if>
             <if test="emd != null and emd != ''">
-                AND tcl.emd_cd = #{emd}
+                AND (tcl.emd_cd = #{emd} OR tpdpi.emd_cd = #{emd})
             </if>
             <if test="prkNm != null and prkNm != ''">
                 AND tpdpi.prkplce_nm LIKE CONCAT('%', #{prkNm}, '%')
@@ -1127,12 +1139,9 @@
         SELECT DISTINCT
         tbppi.prgs_sts_cd as prgsStsCd,
         cpk.FN_GET_CODE_NM(tbppi.prgs_sts_cd, 'PRK_013') as prgsStsNm,
-        tcl.sido_cd as sidoCd,
-        tcl.sido_nm as sidoNm,
-        tcl.sigungu_cd as sigunguCd,
-        tcl.sigungu_nm as sigunguNm,
-        tcl.emd_cd as emdCd,
-        tcl.lgal_emd_nm as lgalEmdNm,
+        tpdpi.sido_cd as sidoCd,
+        tpdpi.sigungu_cd as sigunguCd,
+        tpdpi.emd_cd as emdCd,
         tpdpi.zip as zip,
         tpdpi.dtadd as dtadd,
         tcu.user_nm as userNm,
@@ -1228,13 +1237,9 @@
         END AS nightWkdyEndTm
 
         FROM cpk.tb_prk_def_plce_info tpdpi
-        INNER JOIN cpk.tb_co_ldong tcl
-        ON tpdpi.ldong_cd = tcl.ldong_cd
         INNER JOIN cpk.tb_biz_per_prklot_info tbppi
         ON tpdpi.prk_plce_manage_no = tbppi.prk_plce_manage_no
         AND tpdpi.prk_plce_info_sn = tbppi.prk_plce_info_sn
-        AND tbppi.prgs_sts_cd IN ('00', '10', '20', '30', '99')
-        AND tbppi.prgs_sts_cd IS NOT NULL
         INNER JOIN cpk.tb_co_user tcu
         ON tbppi.srvy_id = tcu.user_id
         LEFT JOIN cpk.tb_atch_prklot_info tapi
@@ -1255,24 +1260,66 @@
         LEFT JOIN cpk.tb_onstr_prklot_oper_info topoi2
         ON tpdpi.prk_plce_manage_no = topoi2.prk_plce_manage_no
         AND tpdpi.prk_plce_info_sn = topoi2.prk_plce_info_sn
-        <include refid="parkingCommonWhere"/>
-        <!-- 🔥 좌표가 있는 주차장만 조회 -->
-        AND tpdpi.prk_plce_lat IS NOT NULL
-        AND tpdpi.prk_plce_lon IS NOT NULL
-        AND tpdpi.prk_plce_lat != ''
-        AND tpdpi.prk_plce_lon != ''
+        <where>
+            1=1
+            <if test="userBizList != null and userBizList.size() > 0">
+                AND tbppi.prk_biz_mng_no IN
+                <foreach collection="userBizList" item="bizNo" open="(" separator="," close=")">
+                    #{bizNo}
+                </foreach>
+            </if>
+            <if test="sidoCd != null and sidoCd != ''">
+                AND tpdpi.sido_cd = #{sidoCd}
+            </if>
+            <if test="(sidoCd == null or sidoCd == '') and (sido != null and sido != '')">
+                AND tpdpi.sido_cd = #{sido}
+            </if>
+            <if test="sigunguCd != null and sigunguCd != ''">
+                AND tpdpi.sigungu_cd = #{sigunguCd}
+            </if>
+            <if test="(sigunguCd == null or sigunguCd == '') and (sigungu != null and sigungu != '')">
+                AND tpdpi.sigungu_cd = #{sigungu}
+            </if>
+            <if test="emd != null and emd != ''">
+                AND tpdpi.emd_cd = #{emd}
+            </if>
+            <if test="prkNm != null and prkNm != ''">
+                AND tpdpi.prkplce_nm LIKE CONCAT('%', #{prkNm}, '%')
+            </if>
+            <if test="keyword != null and keyword != ''">
+                <choose>
+                    <when test="keywordType != null and keywordType == 'addr'">
+                        AND (tpdpi.dtadd LIKE CONCAT('%', #{keyword}, '%'))
+                    </when>
+                    <otherwise>
+                        AND tpdpi.prkplce_nm LIKE CONCAT('%', #{keyword}, '%')
+                    </otherwise>
+                </choose>
+            </if>
+            <if test="prkType != null and prkType != ''">
+                AND tpdpi.prk_plce_type = #{prkType}
+            </if>
+            <if test="prkPlceType != null and prkPlceType != ''">
+                AND tpdpi.prk_plce_type = #{prkPlceType}
+            </if>
+            <if test="prgsStsCd != null and prgsStsCd != ''">
+                AND tbppi.prgs_sts_cd = #{prgsStsCd}
+            </if>
+            AND tpdpi.prk_plce_lat IS NOT NULL
+            AND tpdpi.prk_plce_lon IS NOT NULL
+            AND tpdpi.prk_plce_lat != ''
+            AND tpdpi.prk_plce_lon != ''
+        </where>
         ORDER BY tpdpi.prkplce_nm ASC
     </select>
 
     <select id="countParkingListForMap" parameterType="map" resultType="int">
         SELECT COUNT(1)
         FROM cpk.tb_prk_def_plce_info tpdpi
-        LEFT JOIN cpk.tb_co_ldong tcl
-        ON tpdpi.ldong_cd = tcl.ldong_cd
-        LEFT JOIN cpk.tb_biz_per_prklot_info tbppi
+        INNER JOIN cpk.tb_biz_per_prklot_info tbppi
         ON tpdpi.prk_plce_manage_no = tbppi.prk_plce_manage_no
         AND tpdpi.prk_plce_info_sn = tbppi.prk_plce_info_sn
-        LEFT JOIN cpk.tb_co_user tcu
+        INNER JOIN cpk.tb_co_user tcu
         ON tbppi.srvy_id = tcu.user_id
         <include refid="parkingCommonWhere"/>
         AND tpdpi.prk_plce_lat IS NOT NULL
@@ -1284,6 +1331,11 @@
     <select id="countParkingListForMapAll" resultType="int">
         SELECT COUNT(1)
         FROM cpk.tb_prk_def_plce_info tpdpi
+                 INNER JOIN cpk.tb_biz_per_prklot_info tbppi
+                            ON tpdpi.prk_plce_manage_no = tbppi.prk_plce_manage_no
+                                AND tpdpi.prk_plce_info_sn = tbppi.prk_plce_info_sn
+                 INNER JOIN cpk.tb_co_user tcu
+                            ON tbppi.srvy_id = tcu.user_id
         WHERE tpdpi.prk_plce_lat IS NOT NULL
           AND tpdpi.prk_plce_lon IS NOT NULL
           AND tpdpi.prk_plce_lat != ''

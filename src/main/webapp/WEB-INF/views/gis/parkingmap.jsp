@@ -487,6 +487,9 @@
     let accuracyCircle = null;
     let watchId = null;
     let parkingMarkers = [];
+    let searchCircle = null;
+    const SEARCH_RADIUS_M = 500;
+    let lastSearchAllList = [];
 
     // 검색 패널 토글
     function toggleSearchPanel() {
@@ -640,16 +643,23 @@
             if (result.success && result.list && result.list.length > 0) {
                 console.log('✅ 주차장 검색 성공:', result.list.length + '개');
 
-                displayParkingMarkers(result.list);
-                displayParkingList(result.list);
-                var cnt = (result.list && result.list.length) ? result.list.length : 0;
-                showMessage('✅ ' + cnt + '개 주차장 표시', 'success');
+                lastSearchAllList = result.list;
+                // 검색 결과 중 첫 좌표로 지도 중심 이동 후 반경 필터링
+                const firstWithCoord = lastSearchAllList.find(p => p.prkPlceLat && p.prkPlceLon);
+                if (firstWithCoord) {
+                    const newCenter = new kakao.maps.LatLng(parseFloat(firstWithCoord.prkPlceLat), parseFloat(firstWithCoord.prkPlceLon));
+                    map.setCenter(newCenter);
+                    updateRadiusSearch(newCenter);
+                } else {
+                    updateRadiusSearch(map.getCenter());
+                }
 
                 const searchResult = document.getElementById('searchResult');
                 if (searchResult) {
                     searchResult.style.display = 'none';
                 }
             } else {
+                lastSearchAllList = [];
                 displayParkingMarkers([]);
                 displayParkingList([]);
 
@@ -666,6 +676,63 @@
             showSearchResult('검색 중 오류가 발생했습니다', true);
             showMessage('검색 실패', 'error');
         }
+    }
+
+    // 반경 필터링
+    function filterByRadius(center, parkings, radiusMeter) {
+        if (!parkings || parkings.length === 0) return [];
+
+        const line = new kakao.maps.Polyline(); // 거리 계산용
+
+        return parkings.filter(p => {
+            if (!p.prkPlceLat || !p.prkPlceLon) return false;
+
+            const pos = new kakao.maps.LatLng(parseFloat(p.prkPlceLat), parseFloat(p.prkPlceLon));
+            line.setPath([center, pos]);
+            const dist = line.getLength(); // m 단위 거리
+            return dist <= radiusMeter;
+        });
+    }
+
+    // 지도 중심 기준 반경 내 데이터 표시 + 원 갱신
+    function updateRadiusSearch(center) {
+        if (!map || !center) return;
+        if (!lastSearchAllList || lastSearchAllList.length === 0) {
+            if (searchCircle) {
+                searchCircle.setMap(null);
+                searchCircle = null;
+            }
+            displayParkingMarkers([]);
+            displayParkingList([]);
+            return;
+        }
+
+        if (!searchCircle) {
+            searchCircle = new kakao.maps.Circle({
+                center: center,
+                radius: SEARCH_RADIUS_M,
+                strokeWeight: 2,
+                strokeColor: '#2563eb',
+                strokeOpacity: 0.8,
+                strokeStyle: 'solid',
+                fillColor: '#2563eb',
+                fillOpacity: 0.1
+            });
+            searchCircle.setMap(map);
+        } else {
+            searchCircle.setOptions({
+                center: center,
+                radius: SEARCH_RADIUS_M
+            });
+            searchCircle.setMap(map);
+        }
+
+        const filtered = filterByRadius(center, lastSearchAllList, SEARCH_RADIUS_M);
+        displayParkingMarkers(filtered);
+        displayParkingList(filtered);
+
+        const cnt = filtered ? filtered.length : 0;
+        showMessage(`✅ 500m 내 ${cnt}개 주차장 표시`, 'success');
     }
 
     // 주차장 리스트 표시
@@ -1141,6 +1208,12 @@
 
                 const zoomControl = new kakao.maps.ZoomControl();
                 map.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
+
+                // 지도 드래그 종료 시 반경 검색 갱신
+                kakao.maps.event.addListener(map, 'dragend', function () {
+                    const center = map.getCenter();
+                    updateRadiusSearch(center);
+                });
 
                 console.log('✅ 카카오맵 로드 완료');
 
