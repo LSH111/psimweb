@@ -968,6 +968,8 @@ public class PrkDefPlceInfoController {
             @RequestParam(required = false) String sidoCd,
             @RequestParam(required = false) String sigunguCd,
             @RequestParam(required = false) String prkPlceType,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false, defaultValue = "name") String keywordType,
             HttpSession session) {
 
         Map<String, Object> result = new HashMap<>();
@@ -976,8 +978,11 @@ public class PrkDefPlceInfoController {
             // 공백 제거
             if (sidoCd != null) sidoCd = sidoCd.trim();
             if (sigunguCd != null) sigunguCd = sigunguCd.trim();
+            if (keyword != null) keyword = keyword.trim();
+            if (keywordType != null) keywordType = keywordType.trim();
 
-            log.info("🔍 지도용 주차장 데이터 조회 - sidoCd: {}, sigunguCd: {}", sidoCd, sigunguCd);
+            log.info("🔍 지도용 주차장 데이터 조회 - sidoCd: {}, sigunguCd: {}, keyword: {}, keywordType: {}",
+                    sidoCd, sigunguCd, keyword, keywordType);
 
             // 🔥 세션에서 userBizList 가져오기
             @SuppressWarnings("unchecked")
@@ -1001,6 +1006,12 @@ public class PrkDefPlceInfoController {
             }
             if (prkPlceType != null && !prkPlceType.isEmpty()) {
                 params.put("prkPlceType", prkPlceType);
+            }
+            if (keyword != null && !keyword.isEmpty()) {
+                params.put("keyword", keyword);
+                if (keywordType != null && !keywordType.isEmpty()) {
+                    params.put("keywordType", keywordType);
+                }
             }
 
             // 좌표가 있는 주차장만 조회

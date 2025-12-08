@@ -48,10 +48,10 @@
             <if test="keyword != null and keyword != ''">
                 <choose>
                     <when test="keywordType != null and keywordType == 'addr'">
-                        AND (tpdpi.dtadd LIKE CONCAT('%', #{keyword}, '%'))
+                        AND (tpdpi.dtadd LIKE ('%' || #{keyword,jdbcType=VARCHAR,javaType=String} || '%'))
                     </when>
                     <otherwise>
-                        AND tpdpi.prkplce_nm LIKE CONCAT('%', #{keyword}, '%')
+                        AND tpdpi.prkplce_nm LIKE ('%' || #{keyword,jdbcType=VARCHAR,javaType=String} || '%')
                     </otherwise>
                 </choose>
             </if>
@@ -1289,10 +1289,10 @@
             <if test="keyword != null and keyword != ''">
                 <choose>
                     <when test="keywordType != null and keywordType == 'addr'">
-                        AND (tpdpi.dtadd LIKE CONCAT('%', #{keyword}, '%'))
+                        AND (tpdpi.dtadd LIKE ('%' || #{keyword,jdbcType=VARCHAR,javaType=String} || '%'))
                     </when>
                     <otherwise>
-                        AND tpdpi.prkplce_nm LIKE CONCAT('%', #{keyword}, '%')
+                        AND tpdpi.prkplce_nm LIKE ('%' || #{keyword,jdbcType=VARCHAR,javaType=String} || '%')
                     </otherwise>
                 </choose>
             </if>
