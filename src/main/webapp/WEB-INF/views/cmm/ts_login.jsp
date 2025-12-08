@@ -31,7 +31,7 @@
                     <div class="control inline-actions">
                         <input id="loginId" name="userId" class="input form-input" type="text" autocomplete="username"
                                placeholder="아이디를 입력하세요" minlength="4" maxlength="32"
-                               pattern="[A-Za-z0-9._\\-]{4,32}" required />
+                               pattern="[A-Za-z0-9._-]{4,32}" required />
                         <button id="nextIdBtn" class="btn btn-primary" type="button">다음</button>
                     </div>
                     <span class="hint">영문/숫자/.-_ 4~32자</span>
