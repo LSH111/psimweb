@@ -12,6 +12,10 @@ spring:
       max-lifetime: 900000
       leak-detection-threshold: 120000
 
+file:
+  upload:
+    path: /storage/data/upload  # 운영 기본 업로드 경로
+
 logging:
   level:
     com.psim: INFO

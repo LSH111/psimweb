@@ -258,7 +258,7 @@ public class PrkUsageStatusController {
         } catch (Exception e) {
             log.error("❌ 저장 오류", e);
             result.put("success", false);
-            result.put("message", "저장 중 오류가 발생했습니다: " + e.getMessage());
+            result.put("message", "저장 중 오류가 발생했습니다.");
         }
 
         return result;

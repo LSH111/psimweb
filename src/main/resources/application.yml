@@ -1,14 +1,9 @@
 # 🔥 파일 업로드 설정 (YAML 형식으로 수정)
 file:
   upload:
-    path: /Users/isihyeong/upload/psim
+    path: ${FILE_UPLOAD_PATH:/Users/isihyeong/storage/data/upload}  # 운영 기본경로, 필요 시 환경변수로 재정의
 
 spring:
-  profiles:
-  #active: dev
-  config:
-    activate:
-      on-profile: default
 
   # 🔥 파일 업로드 설정
   servlet:
@@ -23,7 +18,7 @@ spring:
     #url: ${DB_URL:jdbc:postgresql://10.59.32.96:5432/postgres}
     url: ${DB_URL:jdbc:postgresql://localhost:5432/postgres}
     username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:ksi4788500!}
+    password: ${DB_PASSWORD:ksi4788500!}  # 비밀번호는 환경변수로만 주입
     hikari:
       # PostgreSQL 기본 설정
       maximum-pool-size: ${DB_MAX_POOL_SIZE:20}

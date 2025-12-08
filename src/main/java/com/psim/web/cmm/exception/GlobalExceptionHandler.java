@@ -21,7 +21,7 @@ public class GlobalExceptionHandler {
         ModelAndView mav = new ModelAndView("error/error");
         Object statusObj = request.getAttribute("javax.servlet.error.status_code");
         mav.addObject("status", statusObj != null ? statusObj : HttpStatus.INTERNAL_SERVER_ERROR.value());
-        mav.addObject("message", ex.getMessage());
+        mav.addObject("message", "요청 처리 중 오류가 발생했습니다.");
         mav.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
         return mav;
     }

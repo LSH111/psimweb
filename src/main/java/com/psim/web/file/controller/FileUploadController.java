@@ -82,7 +82,7 @@ public class FileUploadController {
         } catch (Exception e) {
             log.error("❌ 파일 업로드 실패", e);
             result.put("success", false);
-            result.put("message", "파일 업로드 실패: " + e.getMessage());
+            result.put("message", "파일 업로드 중 오류가 발생했습니다.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
         }
     }
@@ -133,7 +133,7 @@ public class FileUploadController {
         } catch (Exception e) {
             log.error("❌ 복수 파일 업로드 실패", e);
             result.put("success", false);
-            result.put("message", "파일 업로드 실패: " + e.getMessage());
+            result.put("message", "파일 업로드 중 오류가 발생했습니다.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
         }
     }
@@ -174,7 +174,7 @@ public class FileUploadController {
         } catch (Exception e) {
             log.error("❌ 파일 목록 조회 실패", e);
             result.put("success", false);
-            result.put("message", "파일 목록 조회 실패: " + e.getMessage());
+            result.put("message", "파일 목록 조회 중 오류가 발생했습니다.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
         }
     }
@@ -211,7 +211,7 @@ public class FileUploadController {
         } catch (Exception e) {
             log.error("❌ 파일 삭제 실패", e);
             result.put("success", false);
-            result.put("message", "파일 삭제 실패: " + e.getMessage());
+            result.put("message", "파일 삭제 중 오류가 발생했습니다.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
         }
     }

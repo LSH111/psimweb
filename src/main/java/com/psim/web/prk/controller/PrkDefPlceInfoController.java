@@ -202,7 +202,7 @@ public class PrkDefPlceInfoController {
             }
 
             result.put("success", false);
-            result.put("message", "데이터 조회 중 오류가 발생했습니다: " + e.getMessage());
+            result.put("message", "데이터 조회 중 오류가 발생했습니다.");
             result.put("list", new ArrayList<>());
             result.put("totalCount", 0);
         }
@@ -413,7 +413,7 @@ public class PrkDefPlceInfoController {
         } catch (Exception e) {
             log.error("❌❌❌ 노상주차장 저장 실패", e);
             response.put("success", false);
-            response.put("message", "저장 중 오류가 발생했습니다: " + e.getMessage());
+            response.put("message", "저장 중 오류가 발생했습니다.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
@@ -670,7 +670,7 @@ public class PrkDefPlceInfoController {
         } catch (Exception e) {
             log.error("❌❌❌ 노외주차장 저장 실패", e);
             response.put("success", false);
-            response.put("message", "저장 중 오류가 발생했습니다: " + e.getMessage());
+            response.put("message", "저장 중 오류가 발생했습니다.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
@@ -910,7 +910,7 @@ public class PrkDefPlceInfoController {
         } catch (Exception e) {
             log.error("❌❌❌ 부설주차장 저장 실패", e);
             response.put("success", false);
-            response.put("message", "저장 중 오류가 발생했습니다: " + e.getMessage());
+            response.put("message", "저장 중 오류가 발생했습니다.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
@@ -1054,7 +1054,7 @@ public class PrkDefPlceInfoController {
         } catch (Exception e) {
             log.error("❌ 상태 업데이트 실패", e);
             response.put("success", false);
-            response.put("message", "상태 업데이트 중 오류가 발생했습니다: " + e.getMessage());
+            response.put("message", "상태 업데이트 중 오류가 발생했습니다.");
         }
 
         return response;
@@ -1081,7 +1081,8 @@ public class PrkDefPlceInfoController {
         } catch (Exception e) {
             log.error("❌ 사진 정보 조회 실패", e);
             result.put("success", false);
-            result.put("message", "사진 정보 조회 중 오류가 발생했습니다: " + e.getMessage());
+            result.put("message", "사진 정보 조회 중 오류가 발생했습니다.");
+            result.put("photos", new ArrayList<>());
         }
 
         return result;

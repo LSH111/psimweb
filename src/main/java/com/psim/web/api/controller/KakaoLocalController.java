@@ -54,7 +54,7 @@ public class KakaoLocalController {
         } catch (Exception e) {
             log.error("좌표->주소 변환 에러", e);
             result.put("success", false);
-            result.put("message", e.getMessage());
+            result.put("message", "주소 변환 중 오류가 발생했습니다.");
             return ResponseEntity.status(500).body(result);
         }
     }
@@ -87,7 +87,7 @@ public class KakaoLocalController {
         } catch (Exception e) {
             log.error("주소->좌표 변환 에러", e);
             result.put("success", false);
-            result.put("message", e.getMessage());
+            result.put("message", "좌표 변환 중 오류가 발생했습니다.");
             return ResponseEntity.status(500).body(result);
         }
     }
@@ -127,7 +127,7 @@ public class KakaoLocalController {
         } catch (Exception e) {
             log.error("좌표->행정구역 변환 에러", e);
             result.put("success", false);
-            result.put("message", e.getMessage());
+            result.put("message", "행정구역 변환 중 오류가 발생했습니다.");
             return ResponseEntity.status(500).body(result);
         }
     }

@@ -453,6 +453,7 @@
                     <select id="searchSigungu" class="search-input" disabled>
                         <option value="">시군구 선택</option>
                     </select>
+                    <input id="searchParkingName" class="search-input" type="text" placeholder="주차장명 (선택)"/>
                 </div>
                 <button id="regionSearchBtn" class="search-btn">주차장 검색</button>
                 <div id="searchResult" style="display:none;"></div>
@@ -604,6 +605,7 @@
     async function searchParkingByRegion() {
         const sidoCd = document.getElementById('searchSido').value;
         const sigunguCd = document.getElementById('searchSigungu').value;
+        const parkingName = (document.getElementById('searchParkingName')?.value || '').trim();
 
         const sidoSelect = document.getElementById('searchSido');
         const sigunguSelect = document.getElementById('searchSigungu');
@@ -615,7 +617,8 @@
             sidoCd: sidoCd,
             sidoText: sidoText,
             sigunguCd: sigunguCd,
-            sigunguText: sigunguText
+            sigunguText: sigunguText,
+            parkingName: parkingName
         });
 
         if (!sidoCd) {
@@ -628,6 +631,10 @@
 
             const params = {sidoCd: sidoCd};
             if (sigunguCd) params.sigunguCd = sigunguCd;
+            if (parkingName) {
+                params.keyword = parkingName;
+                params.keywordType = 'name'; // API에서 이름 검색
+            }
 
             console.log('📤 전송 파라미터:', params);
 
@@ -666,6 +673,9 @@
                 let searchCondition = sidoText;
                 if (sigunguText && sigunguText !== '시군구 선택') {
                     searchCondition += ' ' + sigunguText;
+                }
+                if (parkingName) {
+                    searchCondition += (searchCondition ? ' / ' : '') + `주차장명: ${parkingName}`;
                 }
 
                 showSearchResult(searchCondition + ': 검색 결과 없음', true);

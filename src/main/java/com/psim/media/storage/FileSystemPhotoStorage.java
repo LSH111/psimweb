@@ -22,8 +22,16 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class FileSystemPhotoStorage implements PhotoStorage {
 
-    @Value("${file.upload.path:/upload/parking}")
+    private static final String FALLBACK_BASE_PATH = "/Users/isihyeong/storage/data/upload";
+    @Value("${file.upload.path:/Users/isihyeong/storage/data/upload}")
     private String uploadBasePath;
+
+    // 스프링 주입 이후 경로 로깅(포스트컨스트럭트 대체)
+    @org.springframework.beans.factory.annotation.Value("${file.upload.path:/Users/isihyeong/storage/data/upload}")
+    private void setUploadBasePath(String basePath) {
+        this.uploadBasePath = basePath;
+        log.info("📂 파일 업로드 기본 경로: {}", uploadBasePath);
+    }
 
     @Override
     public SaveResult save(String category, MultipartFile file) {
@@ -75,13 +83,25 @@ public class FileSystemPhotoStorage implements PhotoStorage {
                 log.warn("⚠️ loadAsResource 호출 시 경로/파일명이 없습니다. relativePath={}, fileName={}", relativePath, fileName);
                 return null;
             }
+            // 1차: 설정된 기본 경로
             Path path = Paths.get(uploadBasePath, relativePath, fileName);
             Resource resource = new UrlResource(path.toUri());
-            if (!resource.exists() || !resource.isReadable()) {
-                log.warn("⚠️ 파일을 찾을 수 없거나 읽을 수 없습니다: {}", path);
-                return null;
+            if (resource.exists() && resource.isReadable()) {
+                return resource;
             }
-            return resource;
+
+            // 2차: 로컬 개발용 폴백 경로
+            if (!uploadBasePath.equals(FALLBACK_BASE_PATH)) {
+                Path fallback = Paths.get(FALLBACK_BASE_PATH, relativePath, fileName);
+                Resource fallbackRes = new UrlResource(fallback.toUri());
+                if (fallbackRes.exists() && fallbackRes.isReadable()) {
+                    log.warn("⚠️ 기본 경로에 파일이 없어서 폴백 경로에서 제공: {}", fallback);
+                    return fallbackRes;
+                }
+            }
+
+            log.warn("⚠️ 파일을 찾을 수 없거나 읽을 수 없습니다: {}", path);
+            return null;
         } catch (Exception e) {
             log.warn("⚠️ 파일 로드 실패: {}/{}", relativePath, fileName, e);
             return null;

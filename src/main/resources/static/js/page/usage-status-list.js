@@ -811,8 +811,8 @@
             return;
         }
 
-        // 🔥 각 카드마다 파일 목록 로드
-        const cardsHtml = await Promise.all(list.map(async (item) => {
+        // 🔥 카드만 먼저 렌더링 후 파일은 필요 시 로드 (N+1 쿼리 예방)
+        const cardsHtml = list.map((item) => {
             const lawBadgeClass = item.lawCd === '1' ? 'success' : 'danger';
             const borderColor = item.lawCd === '1' ? '#3b82f6' : '#ef4444';
             const timeDisplay = [item.examinTimelge || '', item.dyntDvNm || ''].filter(Boolean).join(' · ') || '-';
@@ -823,10 +823,6 @@
             if (item.sigunguNm) locationParts.push(item.sigunguNm);
             if (item.lgalEmdNm) locationParts.push(item.lgalEmdNm);
             const locationDisplay = locationParts.join(' ') || '-';
-
-            // 🔥 파일 목록 로드
-            const files = await loadFileList(item.cmplSn);
-            const filesHtml = renderFileList(files);
 
             return `
                 <article class="card" data-id="${item.cmplSn || ''}" 
@@ -862,15 +858,41 @@
                     </div>
                     <div class="card-files-section">
                         <div class="card-files-label">📎 첨부파일</div>
-                        <div class="file-list">
-                            ${filesHtml}
-                        </div>
+                        <button type="button" class="btn ghost btn-load-files" data-cmpl-sn="${item.cmplSn}" style="margin-bottom:8px;">
+                            첨부파일 불러오기
+                        </button>
+                        <div class="file-list" id="file-list-${item.cmplSn}" data-loaded="false"></div>
                     </div>
                 </article>
             `;
-        }));
+        });
 
         container.innerHTML = cardsHtml.join('');
+        bindFileListLoaders();
+    }
+
+    // 🔥 첨부파일은 버튼 클릭 시 1회만 조회 (루프 쿼리 방지)
+    async function bindFileListLoaders() {
+        const buttons = document.querySelectorAll('.btn-load-files');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const cmplSn = btn.dataset.cmplSn;
+                const target = document.getElementById(`file-list-${cmplSn}`);
+                if (!cmplSn || !target) return;
+                if (target.dataset.loaded === 'true') {
+                    target.classList.toggle('open');
+                    return;
+                }
+                btn.disabled = true;
+                btn.textContent = '불러오는 중...';
+                const files = await loadFileList(cmplSn);
+                target.innerHTML = renderFileList(files);
+                target.dataset.loaded = 'true';
+                btn.textContent = '첨부파일';
+                btn.disabled = false;
+            });
+        });
     }
 
     window.handleCardClick = function(lat, lng, cmplSn) {

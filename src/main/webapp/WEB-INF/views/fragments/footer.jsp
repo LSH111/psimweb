@@ -1,4 +1,3 @@
-
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
@@ -6,8 +5,8 @@
 <footer class="main-footer app-footer" id="mainFooter">
     <div class="footer-content container">
         <div class="footer-info">
-            <p>&copy; 2024 주차장 관리 시스템. All rights reserved.</p>
-            <p>문의: support@parkingsystem.co.kr | Tel: 02-1234-5678</p>
+            <p>&copy; 2025. Ministry if Land. Infrastructure and Transport. All rights reserved.</p>
+            <p>문의: ryugo@kotsa.or.kr | Tel: 054-440-3070</p>
         </div>
         <div class="footer-links">
             <a href="#" class="footer-link">개인정보처리방침</a>
