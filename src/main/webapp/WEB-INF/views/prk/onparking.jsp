@@ -24,6 +24,7 @@
     <c:set var="isApproved" value="${statusCode eq '30'}"/>
     <c:set var="isRejected"
            value="${statusCode eq '반려' or statusCode eq '99' or statusCode eq 'PRK_013099' or parking.prgsStsRawCd eq '99' or parking.prgsStsRawCd eq 'PRK_013099'}"/>
+    <c:set var="resolvedStatus" value="${not empty statusCode ? statusCode : (empty param.status ? '' : param.status)}"/>
     <%
         Object parkingObj = request.getAttribute("parking");
         String parkingJson = "null";
@@ -34,13 +35,27 @@
         } catch (Exception ignored) {
             parkingJson = "null";
         }
+        String safeParkingJson = parkingJson != null ? parkingJson.replace("</", "<\\/") : "null";
     %>
+    <script id="initialParkingData" type="application/json"><%= safeParkingJson %></script>
     <script>
-        window.initialParking = <%= parkingJson %>;
+        // XSS-safe JSON bootstrap: parse escaped JSON instead of direct script injection
+        (function() {
+            const el = document.getElementById('initialParkingData');
+            if (!el) {
+                window.initialParking = null;
+                return;
+            }
+            try {
+                window.initialParking = JSON.parse(el.textContent || 'null');
+            } catch (e) {
+                window.initialParking = null;
+            }
+        })();
     </script>
 </head>
 <body class="parking-detail-page"
-      data-status="${not empty statusCode ? statusCode : (empty param.status ? '' : param.status)}">
+      data-status="<c:out value='${resolvedStatus}'/>">
 <div id="toast-container"></div>
 <div class="wrap">
     <header class="card head">
@@ -63,7 +78,7 @@
         </div>
     </c:if>
     <input type="hidden" id="statusCode"
-           value="${not empty statusCode ? statusCode : (empty param.status ? '' : param.status)}"/>
+           value="<c:out value='${resolvedStatus}'/>"/>
     <input type="hidden" id="prkPlceManageNo" value="<c:out value='${parking.prkPlceManageNo}'/>"/>
     <input type="hidden" id="prkPlceInfoSn" value="<c:out value='${parking.prkPlceInfoSn}'/>"/>
     <span style="display:none">

@@ -258,6 +258,8 @@
         const isLegal = (item.lawCd === '1');
         const statusColor = isLegal ? '#3b82f6' : '#ef4444';
         const statusText = isLegal ? '적법 주차' : '불법 주차';
+        const timeDisplay = [item.examinTimelge || '', item.dyntDvNm || ''].filter(Boolean).join(' · ') || '-';
+        const vehicleDisplay = item.vhctyNm || item.vhctyCd || '-';
 
         const content = document.createElement('div');
         content.style.cssText = 'position:relative; background:white; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.2); border:1px solid #e5e7eb;';
@@ -279,7 +281,13 @@
                         <strong>조사일:</strong> ${item.examinDd || '-'}
                     </div>
                     <div style="margin-bottom:6px;">
+                        <strong>조사시간대:</strong> ${timeDisplay}
+                    </div>
+                    <div style="margin-bottom:6px;">
                         <strong>조사원:</strong> ${item.srvyId || '-'}
+                    </div>
+                    <div style="margin-bottom:6px;">
+                        <strong>차종:</strong> ${vehicleDisplay}
                     </div>
                 </div>
             `;
@@ -306,6 +314,8 @@
             const isLegal = (item.lawCd === '1');
             const statusColor = isLegal ? '#3b82f6' : '#ef4444';
             const statusText = isLegal ? '적법' : '불법';
+            const timeDisplay = [item.examinTimelge || '', item.dyntDvNm || ''].filter(Boolean).join(' · ') || '-';
+            const vehicleDisplay = item.vhctyNm || item.vhctyCd || '-';
 
             return `
                     <div style="padding:12px; border-bottom:1px solid #e2e8f0; cursor:pointer; transition: background 0.2s;"
@@ -324,6 +334,12 @@
                             📅 ${item.examinDd || '-'}
                         </div>
                         <div style="font-size:13px; color:#64748b;">
+                            ⏱ ${timeDisplay}
+                        </div>
+                        <div style="font-size:13px; color:#64748b;">
+                            🚗 ${vehicleDisplay}
+                        </div>
+                        <div style="font-size:13px; color:#64748b; margin-top:2px;">
                             👤 ${item.srvyId || '-'}
                         </div>
                     </div>
@@ -799,6 +815,8 @@
         const cardsHtml = await Promise.all(list.map(async (item) => {
             const lawBadgeClass = item.lawCd === '1' ? 'success' : 'danger';
             const borderColor = item.lawCd === '1' ? '#3b82f6' : '#ef4444';
+            const timeDisplay = [item.examinTimelge || '', item.dyntDvNm || ''].filter(Boolean).join(' · ') || '-';
+            const vehicleDisplay = item.vhctyNm || item.vhctyCd || '-';
 
             const locationParts = [];
             if (item.sidoNm) locationParts.push(item.sidoNm);
@@ -825,6 +843,14 @@
                     <div style="margin-bottom:12px;">
                         <div style="font-size:0.9rem; color:#64748b; margin-bottom:4px;">차량번호</div>
                         <div style="font-size:1.1rem; font-weight:600; color:#1e293b;">${item.vhcleNo || '-'}</div>
+                    </div>
+                    <div style="margin-bottom:12px;">
+                        <div style="font-size:0.9rem; color:#64748b; margin-bottom:4px;">조사시간대</div>
+                        <div style="font-size:0.95rem; color:#475569;">${timeDisplay}</div>
+                    </div>
+                    <div style="margin-bottom:12px;">
+                        <div style="font-size:0.9rem; color:#64748b; margin-bottom:4px;">차종</div>
+                        <div style="font-size:0.95rem; color:#475569;">${vehicleDisplay}</div>
                     </div>
                     <div style="margin-bottom:12px;">
                         <div style="font-size:0.9rem; color:#64748b; margin-bottom:4px;">위치</div>

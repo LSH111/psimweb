@@ -43,7 +43,17 @@
         AND emd_cd = t.emd_cd
         LIMIT 1) AS lgal_emd_nm,
         -- 🔥 코드명 변환
-        (SELECT code_nm FROM cpk.tb_co_code WHERE code_cd = t.vhcty_cd AND group_cd = 'VHCTY_CD' AND use_yn = 'Y') AS vhcty_nm,
+        COALESCE(
+            (SELECT code_nm FROM cpk.tb_co_code WHERE code_cd = t.vhcty_cd AND group_cd = 'VHCTY_CD' AND use_yn = 'Y'),
+            CASE t.vhcty_cd
+                WHEN '1' THEN '승용(세단, SUV 등)'
+                WHEN '2' THEN '승합(버스, 미니밴 등)'
+                WHEN '3' THEN '화물'
+                WHEN '4' THEN '특수(견인기 등)'
+                ELSE NULL
+            END,
+            t.vhcty_cd
+        ) AS vhcty_nm,
         (SELECT code_nm FROM cpk.tb_co_code WHERE code_cd = t.dynt_dv_cd AND group_cd = 'DYNT_DV_CD' AND use_yn = 'Y') AS dynt_dv_nm,
         CASE
         WHEN t.law_cd = '1' THEN '적법'

@@ -150,6 +150,14 @@ public class PrkDefPlceInfoController {
             cleanParams.remove("emd");
         }
 
+        // 진행상태 검색 파라미터(alias: status → prgsStsCd)
+        // UI 폼 이름(status)을 서비스에서 기대하는 prgsStsCd로 맞춰준다.
+        Object prgsStsCd = cleanParams.get("prgsStsCd");
+        Object status = cleanParams.get("status");
+        if ((prgsStsCd == null || prgsStsCd.toString().trim().isEmpty()) && status != null) {
+            cleanParams.put("prgsStsCd", status.toString().trim());
+        }
+
         log.info("🧹 정리된 params: {}", cleanParams);
 
         // 🔥 세션에서 userBizList 가져와서 params에 추가 
