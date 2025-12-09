@@ -3773,7 +3773,7 @@ function renderUploadedList(photos) {
 }
 
 // 보조: 전역에 확실히 노출
-    window.renderUploadedList = renderUploadedList;
+window.renderUploadedList = renderUploadedList;
 
 function normalizeImgId(p) {
     const direct = (p.prkImgId || p.prk_img_id || p.prkimgid || '').toString().trim();

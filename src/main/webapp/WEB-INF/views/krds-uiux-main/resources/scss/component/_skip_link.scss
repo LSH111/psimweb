@@ -18,7 +18,7 @@ $mode-setting: light;
 #krds-skip-link {
   @include skip-link-size-variable();
   @include skip-link-color-variable(#{$mode-setting});
-  
+
   position: fixed;
   top: 0;
   left: 0;
@@ -26,10 +26,12 @@ $mode-setting: light;
   width: 100%;
   text-align: center;
   background-color: var(--krds-skip-link--color-background);
+
   a {
     &:not(:focus) {
       @include sr-only;
     }
+
     &:focus {
       @include flex-layout($ai: center, $jc: center);
       @include focus();

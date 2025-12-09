@@ -9,11 +9,7 @@ import com.psim.web.api.vo.KakaoAddress2CoordResponse;
 import com.psim.web.api.vo.KakaoCoord2AddressResponse;
 import com.psim.web.api.vo.KakaoCoord2RegionResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -25,12 +21,11 @@ import java.util.function.Supplier;
 @Component
 public class KakaoGeocodingClient implements GeocodingClient {
 
-    private final RestTemplate restTemplate = new RestTemplate();
-    private final KakaoGeocodingProperties properties;
-
     private static final String COORD_TO_ADDRESS_URL = "/v2/local/geo/coord2address.json";
     private static final String ADDRESS_TO_COORD_URL = "/v2/local/search/address.json";
     private static final String COORD_TO_REGION_URL = "/v2/local/geo/coord2regioncode.json";
+    private final RestTemplate restTemplate = new RestTemplate();
+    private final KakaoGeocodingProperties properties;
 
     public KakaoGeocodingClient(KakaoGeocodingProperties properties) {
         this.properties = properties;

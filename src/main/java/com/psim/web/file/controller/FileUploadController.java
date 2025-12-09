@@ -11,12 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
@@ -38,9 +33,10 @@ public class FileUploadController {
 
     /**
      * 🔥 단일 파일 업로드
+     *
      * @param prkPlceInfoSn 주차장 정보 일련번호
-     * @param prkImgId 이미지 구분 ID (예: "ON_MAIN", "OFF_SIGN")
-     * @param file 업로드 파일
+     * @param prkImgId      이미지 구분 ID (예: "ON_MAIN", "OFF_SIGN")
+     * @param file          업로드 파일
      * @return 업로드 결과
      */
     @PostMapping("/upload")
@@ -89,9 +85,10 @@ public class FileUploadController {
 
     /**
      * 🔥 복수 파일 업로드 (이용현황용)
+     *
      * @param prkPlceInfoSn 주차장 정보 일련번호
-     * @param prkImgId 이미지 구분 ID (예: "USG_MULTI")
-     * @param files 업로드 파일 목록
+     * @param prkImgId      이미지 구분 ID (예: "USG_MULTI")
+     * @param files         업로드 파일 목록
      * @return 업로드 결과
      */
     @PostMapping("/upload-multiple")
@@ -140,8 +137,9 @@ public class FileUploadController {
 
     /**
      * 🔥 파일 목록 조회
+     *
      * @param prkPlceInfoSn 주차장 정보 일련번호
-     * @param prkImgId 이미지 구분 ID (선택)
+     * @param prkImgId      이미지 구분 ID (선택)
      * @return 파일 목록
      */
     @GetMapping("/list")
@@ -181,9 +179,10 @@ public class FileUploadController {
 
     /**
      * 🔥 파일 삭제
+     *
      * @param prkPlceInfoSn 주차장 정보 일련번호
-     * @param prkImgId 이미지 구분 ID
-     * @param seqNo 순번 (선택, null이면 해당 ID의 모든 파일 삭제)
+     * @param prkImgId      이미지 구분 ID
+     * @param seqNo         순번 (선택, null이면 해당 ID의 모든 파일 삭제)
      * @return 삭제 결과
      */
     @DeleteMapping("/delete")
@@ -224,9 +223,10 @@ public class FileUploadController {
 
     /**
      * 🔥 이미지 파일 조회 (미리보기용)
-     * @param cmplSn 단속일련번호
+     *
+     * @param cmplSn   단속일련번호
      * @param prkImgId 이미지 구분 ID
-     * @param seqNo 순번
+     * @param seqNo    순번
      * @return 이미지 파일
      */
     @GetMapping("/preview")
@@ -252,7 +252,7 @@ public class FileUploadController {
 
             // 파일 정보 조회
             List<AttchPicMngInfoVO> fileList = attchPicService.getAttchPicMngInfoListByCmplSn(effectiveCmplSn, prkImgId, prkPlceManageNo);
-            
+
             AttchPicMngInfoVO fileInfo = fileList.stream()
                     .filter(f -> f.getSeqNo().equals(seqNo))
                     .findFirst()

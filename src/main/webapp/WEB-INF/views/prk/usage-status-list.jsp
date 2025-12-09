@@ -1,4 +1,3 @@
-
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
@@ -77,7 +76,7 @@
             max-height: 450px;
             border: 3px solid #334155;
             border-radius: 8px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
             background: white;
             pointer-events: none;
             overflow: hidden;
@@ -204,7 +203,8 @@
                         <!-- 목록 패널 -->
                         <div id="panelList" class="tab-panel active" role="tabpanel" aria-labelledby="tabList">
                             <!-- 지도 영역 -->
-                            <div id="mapContainer" style="width:100%; height:400px; margin-bottom:20px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
+                            <div id="mapContainer"
+                                 style="width:100%; height:400px; margin-bottom:20px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
 
                             <!-- 범례 -->
                             <div style="display:flex; gap:16px; margin-bottom:16px; padding:12px; background:#f8fafc; border-radius:6px;">
@@ -223,7 +223,8 @@
                         </div>
 
                         <!-- 등록 패널 -->
-                        <div id="panelAdd" class="tab-panel" role="tabpanel" aria-labelledby="tabAdd" style="display:none;">
+                        <div id="panelAdd" class="tab-panel" role="tabpanel" aria-labelledby="tabAdd"
+                             style="display:none;">
                             <div class="add-form-container">
                                 <jsp:include page="/WEB-INF/views/prk/usage-add.jsp"/>
                             </div>
@@ -257,7 +258,7 @@
 
 <!-- 🔥 4. Kakao Maps 로드 확인 -->
 <script>
-    (function() {
+    (function () {
 
         if (window.kakaoMapsLoadError) {
             console.error('❌ Kakao Maps API 스크립트 파일 로드 실패');
@@ -269,7 +270,7 @@
         let checkCount = 0;
         const maxChecks = 20;
 
-        const checkInterval = setInterval(function() {
+        const checkInterval = setInterval(function () {
             checkCount++;
 
 

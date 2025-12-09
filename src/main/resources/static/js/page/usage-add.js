@@ -1,7 +1,7 @@
 /* usage-add.js — 주차이용실태 등록 폼 (이벤트 위임 방식) */
 
 // 🔥 즉시 실행 함수로 감싸서 전역 오염 방지
-(function() {
+(function () {
     'use strict';
 
     const $ = (s, ctx = document) => ctx.querySelector(s);
@@ -108,7 +108,7 @@
     // ========== 이벤트 위임 방식으로 전역 이벤트 리스너 등록 ==========
     function setupGlobalEventDelegation() {
         // 🔥 document 레벨에서 이벤트 위임 (버블링 활용)
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             const target = e.target;
 
             // 사진첩 버튼
@@ -203,7 +203,7 @@
         observeFileInputs();
 
         // 🔥 행정구역 셀렉트 이벤트
-        document.addEventListener('change', function(e) {
+        document.addEventListener('change', function (e) {
             const target = e.target;
 
             if (target.id === 'f_sido') {
@@ -297,7 +297,7 @@
         if (!plateInput) return;
 
         // 실시간 입력 검증
-        plateInput.addEventListener('input', function(e) {
+        plateInput.addEventListener('input', function (e) {
             let value = e.target.value;
 
             // 한글, 숫자만 허용 (공백 제거)
@@ -307,7 +307,7 @@
         });
 
         // 포커스 아웃 시 최종 검증
-        plateInput.addEventListener('blur', function(e) {
+        plateInput.addEventListener('blur', function (e) {
             const value = e.target.value.trim();
 
             if (value && !isValidPlateNumber(value)) {
@@ -368,15 +368,15 @@
         // FileReader로 파일 읽기
         const reader = new FileReader();
 
-        reader.onload = function(e) {
+        reader.onload = function (e) {
 
             // 이미지 객체 생성
             const img = new Image();
             img.src = e.target.result;
 
-            img.onload = function() {
+            img.onload = function () {
 
-                EXIF.getData(img, function() {
+                EXIF.getData(img, function () {
 
                     // 모든 EXIF 태그 출력 (디버깅용)
                     const allTags = EXIF.getAllTags(this);
@@ -409,12 +409,12 @@
                 });
             };
 
-            img.onerror = function() {
+            img.onerror = function () {
                 console.error('❌ 이미지 로드 실패');
             };
         };
 
-        reader.onerror = function() {
+        reader.onerror = function () {
             console.error('❌ 파일 읽기 실패');
         };
 
@@ -469,7 +469,7 @@
 
         // 🔥 삭제 버튼 이벤트 (동적 생성된 요소)
         filesContainer.querySelectorAll('[data-remove-index]').forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 const index = parseInt(this.dataset.removeIndex);
                 removePhotoFile(index);
             });
@@ -769,7 +769,7 @@
         layer.style.display = 'block';
 
         const postcode = new daum.Postcode({
-            oncomplete: async function(data) {
+            oncomplete: async function (data) {
 
                 try {
                     // 🔥 1단계: 시도 선택
@@ -918,7 +918,7 @@
 
                 layer.style.display = 'none';
             },
-            onclose: function() {
+            onclose: function () {
                 layer.style.display = 'none';
             },
             width: '100%',

@@ -19,11 +19,11 @@ import java.util.*;
 @RequiredArgsConstructor
 public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
 
-    private final AttchPicMngInfoMapper mapper;
-    private final PhotoStorage photoStorage;
     private static final Set<String> ALLOWED_EXTENSIONS = Collections.unmodifiableSet(
             new HashSet<>(Arrays.asList("jpg", "jpeg", "png", "gif", "bmp", "webp")));
     private static final long MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024L; // 10MB
+    private final AttchPicMngInfoMapper mapper;
+    private final PhotoStorage photoStorage;
 
     @Override
     @Transactional

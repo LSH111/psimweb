@@ -15,12 +15,12 @@ import java.sql.SQLException;
 
 @Component
 public class DatabaseHealthIndicator implements HealthIndicator {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(DatabaseHealthIndicator.class);
-    
+
     @Autowired
     private DataSource dataSource;
-    
+
     @Override
     public Health health() {
         try (Connection connection = dataSource.getConnection()) {
@@ -43,7 +43,7 @@ public class DatabaseHealthIndicator implements HealthIndicator {
                     .withDetail("error", e.getMessage())
                     .build();
         }
-        
+
         return Health.down()
                 .withDetail("database", "MySQL")
                 .withDetail("error", "Connection validation failed")

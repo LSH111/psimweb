@@ -9,12 +9,14 @@ public interface IndexMapper {
 
     /**
      * 주차장 현황 조회
+     *
      * @return Map<String, Object>
      */
     Map<String, Object> selectParkingStatus();
 
     /**
      * 주차상의용 현황 조회
+     *
      * @return Map<String, Object>
      */
     Map<String, Object> selectUsageStatus();

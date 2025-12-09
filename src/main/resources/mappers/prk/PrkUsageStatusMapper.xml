@@ -44,17 +44,18 @@
         LIMIT 1) AS lgal_emd_nm,
         -- 🔥 코드명 변환
         COALESCE(
-            (SELECT code_nm FROM cpk.tb_co_code WHERE code_cd = t.vhcty_cd AND group_cd = 'VHCTY_CD' AND use_yn = 'Y'),
-            CASE t.vhcty_cd
-                WHEN '1' THEN '승용(세단, SUV 등)'
-                WHEN '2' THEN '승합(버스, 미니밴 등)'
-                WHEN '3' THEN '화물'
-                WHEN '4' THEN '특수(견인기 등)'
-                ELSE NULL
-            END,
-            t.vhcty_cd
+        (SELECT code_nm FROM cpk.tb_co_code WHERE code_cd = t.vhcty_cd AND group_cd = 'VHCTY_CD' AND use_yn = 'Y'),
+        CASE t.vhcty_cd
+        WHEN '1' THEN '승용(세단, SUV 등)'
+        WHEN '2' THEN '승합(버스, 미니밴 등)'
+        WHEN '3' THEN '화물'
+        WHEN '4' THEN '특수(견인기 등)'
+        ELSE NULL
+        END,
+        t.vhcty_cd
         ) AS vhcty_nm,
-        (SELECT code_nm FROM cpk.tb_co_code WHERE code_cd = t.dynt_dv_cd AND group_cd = 'DYNT_DV_CD' AND use_yn = 'Y') AS dynt_dv_nm,
+        (SELECT code_nm FROM cpk.tb_co_code WHERE code_cd = t.dynt_dv_cd AND group_cd = 'DYNT_DV_CD' AND use_yn = 'Y')
+        AS dynt_dv_nm,
         CASE
         WHEN t.law_cd = '1' THEN '적법'
         WHEN t.law_cd = '2' THEN '불법'
@@ -104,103 +105,100 @@
 
     <select id="selectUsageStatusDetail" parameterType="com.psim.web.prk.vo.PrkUsageStatusVO"
             resultType="com.psim.web.prk.vo.PrkUsageStatusVO">
-        SELECT
-            prk_biz_mng_no,
-            examin_dd,
-            examin_timelge,
-            srvy_id,
-            srvy_tel,
-            dynt_dv_cd,
-            vhcle_no,
-            vhcty_cd,
-            law_gbn,
-            law_cd,
-            plce_lat,
-            plce_lon,
-            hd_inout_cd,
-            vhcle_reg_yn,
-            remark,
-            reg_dt,
-            rgst_id,
-            rgst_ip_addr,
-            updt_dt,
-            updusr_id,
-            updusr_ip_addr,
-            cmpl_sn
+        SELECT prk_biz_mng_no,
+               examin_dd,
+               examin_timelge,
+               srvy_id,
+               srvy_tel,
+               dynt_dv_cd,
+               vhcle_no,
+               vhcty_cd,
+               law_gbn,
+               law_cd,
+               plce_lat,
+               plce_lon,
+               hd_inout_cd,
+               vhcle_reg_yn,
+               remark,
+               reg_dt,
+               rgst_id,
+               rgst_ip_addr,
+               updt_dt,
+               updusr_id,
+               updusr_ip_addr,
+               cmpl_sn
         FROM cpk.tb_prklot_cmpl_info
         WHERE cmpl_sn = #{cmplSn}
     </select>
 
-    <insert id="insertUsageStatus" parameterType="com.psim.web.prk.vo.PrkUsageStatusVO" useGeneratedKeys="true" keyProperty="cmplSn" keyColumn="cmpl_sn">
-        INSERT INTO cpk.tb_prklot_cmpl_info (
-            cmpl_sn,
-            prk_biz_mng_no,
-            examin_dd,
-            examin_timelge,
-            srvy_id,
-            srvy_tel,
-            dynt_dv_cd,
-            vhcle_no,
-            vhcty_cd,
-            law_gbn,
-            law_cd,
-            plce_lat,
-            plce_lon,
-            hd_inout_cd,
-            vhcle_reg_yn,
-            emd_cd,
-            remark,
-            reg_dt,
-            rgst_id,
-            rgst_ip_addr,
-            updt_dt,
-            updusr_id,
-            updusr_ip_addr
-        ) VALUES (
-             NEXTVAL('cpk.seq_prklot_cmpl_info'),
-             #{prkBizMngNo},
-             #{examinDd},
-             #{examinTimelge},
-             #{srvyId},
-             #{srvyTel},
-             #{dyntDvCd},
-             #{vhcleNo},
-             #{vhctyCd},
-             #{lawGbn},
-             #{lawCd},
-             #{plceLat},
-             #{plceLon},
-             #{hdInoutCd},
-             #{vhcleRegYn},
-             #{emdCd},
-             #{remark},
-             NOW(),
-             #{rgstId},
-             #{rgstIpAddr},
-             NOW(),
-             #{updusrId},
-             #{updusrIpAddr}
-         )
+    <insert id="insertUsageStatus" parameterType="com.psim.web.prk.vo.PrkUsageStatusVO" useGeneratedKeys="true"
+            keyProperty="cmplSn" keyColumn="cmpl_sn">
+        INSERT INTO cpk.tb_prklot_cmpl_info (cmpl_sn,
+                                             prk_biz_mng_no,
+                                             examin_dd,
+                                             examin_timelge,
+                                             srvy_id,
+                                             srvy_tel,
+                                             dynt_dv_cd,
+                                             vhcle_no,
+                                             vhcty_cd,
+                                             law_gbn,
+                                             law_cd,
+                                             plce_lat,
+                                             plce_lon,
+                                             hd_inout_cd,
+                                             vhcle_reg_yn,
+                                             emd_cd,
+                                             remark,
+                                             reg_dt,
+                                             rgst_id,
+                                             rgst_ip_addr,
+                                             updt_dt,
+                                             updusr_id,
+                                             updusr_ip_addr)
+        VALUES (NEXTVAL('cpk.seq_prklot_cmpl_info'),
+                #{prkBizMngNo},
+                #{examinDd},
+                #{examinTimelge},
+                #{srvyId},
+                #{srvyTel},
+                #{dyntDvCd},
+                #{vhcleNo},
+                #{vhctyCd},
+                #{lawGbn},
+                #{lawCd},
+                #{plceLat},
+                #{plceLon},
+                #{hdInoutCd},
+                #{vhcleRegYn},
+                #{emdCd},
+                #{remark},
+                NOW(),
+                #{rgstId},
+                #{rgstIpAddr},
+                NOW(),
+                #{updusrId},
+                #{updusrIpAddr})
     </insert>
 
     <update id="updateUsageStatus" parameterType="com.psim.web.prk.vo.PrkUsageStatusVO">
         UPDATE cpk.tb_prklot_cmpl_info
-        SET
-            vhcle_no = #{vhcleNo},
-            law_cd = #{lawCd},
-            law_gbn = #{lawGbn},
-            dynt_dv_cd = #{dyntDvCd},
-            plce_lat = #{plceLat},
-            plce_lon = #{plceLon},
-            remark = #{remark},
-            updt_dt = NOW(),
-            updusr_id = #{updusrId},
+        SET vhcle_no       = #{vhcleNo},
+            law_cd         = #{lawCd},
+            law_gbn        = #{lawGbn},
+            dynt_dv_cd     = #{dyntDvCd},
+            plce_lat       = #{plceLat},
+            plce_lon       = #{plceLon},
+            remark         = #{remark},
+            updt_dt        = NOW(),
+            updusr_id      = #{updusrId},
             updusr_ip_addr = #{updusrIpAddr}
         WHERE cmpl_sn = #{cmplSn}
     </update>
 
     <delete id="deleteUsageStatus" parameterType="com.psim.web.prk.vo.PrkUsageStatusVO">
-        DELETE FROM cpk.tb_prklot_cmpl_info
+        DELETE
+        FROM cpk.tb_prklot_cmpl_info
         WHERE cmpl_sn = #{cmplSn}
     </delete>
 

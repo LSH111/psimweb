@@ -1,8 +1,8 @@
 (function () {
-  function showConfirmModal({ title, message, confirmText = '확인', cancelText = '취소', onConfirm, onCancel }) {
-    const modal = document.createElement('div');
-    modal.id = 'confirmModal';
-    modal.style.cssText = `
+    function showConfirmModal({title, message, confirmText = '확인', cancelText = '취소', onConfirm, onCancel}) {
+        const modal = document.createElement('div');
+        modal.id = 'confirmModal';
+        modal.style.cssText = `
         position: fixed;
         top: 0;
         left: 0;
@@ -14,7 +14,7 @@
         justify-content: center;
         z-index: 10001;
     `;
-    modal.innerHTML = `
+        modal.innerHTML = `
         <div style="
             background: white;
             border-radius: 12px;
@@ -50,36 +50,36 @@
         </div>
     `;
 
-    document.body.appendChild(modal);
+        document.body.appendChild(modal);
 
-    const cleanup = () => {
-      modal.remove();
-    };
+        const cleanup = () => {
+            modal.remove();
+        };
 
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        e.preventDefault();
-        e.stopPropagation();
-        cleanup();
-        onCancel && onCancel();
-      }
-    });
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                e.preventDefault();
+                e.stopPropagation();
+                cleanup();
+                onCancel && onCancel();
+            }
+        });
 
-    modal.querySelector('#btnConfirmCancel')?.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      cleanup();
-      onCancel && onCancel();
-    });
+        modal.querySelector('#btnConfirmCancel')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            cleanup();
+            onCancel && onCancel();
+        });
 
-    modal.querySelector('#btnConfirmOk')?.addEventListener('click', async (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      cleanup();
-      onConfirm && onConfirm();
-    });
-  }
+        modal.querySelector('#btnConfirmOk')?.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            cleanup();
+            onConfirm && onConfirm();
+        });
+    }
 
-  window.showConfirmModal = showConfirmModal;
-  window.Modal = { showConfirmModal };
+    window.showConfirmModal = showConfirmModal;
+    window.Modal = {showConfirmModal};
 })();

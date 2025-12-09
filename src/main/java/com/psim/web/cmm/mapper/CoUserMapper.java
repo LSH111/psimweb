@@ -8,9 +8,13 @@ import java.util.List;
 @Mapper
 public interface CoUserMapper {
     List<CoUserVO> selectAllUsers();
+
     CoUserVO selectUserById(String userId);
+
     void insertUser(CoUserVO user);
+
     void updateUser(CoUserVO user);
+
     void deleteUser(String userId);
 
     CoUserVO selectCoUserById(String userId);

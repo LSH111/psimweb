@@ -38,6 +38,14 @@ function num(v) {
     return Number.isFinite(n) && n >= 0 ? n : 0;
 }
 
+function parseDecimal(v) {
+    if (!v) return null;
+    const sanitized = v.toString().trim().replace(/[^0-9.-]/g, '');
+    if (!sanitized) return null;
+    const parsed = parseFloat(sanitized);
+    return Number.isFinite(parsed) ? parsed : null;
+}
+
 const p = params();
 const serverStatusValue = (document.body?.dataset?.status || document.getElementById('statusCode')?.value || '').trim();
 
@@ -1197,10 +1205,10 @@ class FileUploadProgress {
         if (this.progressArea) {
             this.progressArea.classList.add('completed');
             setTimeout(() => {
-                this.progressArea.classList.remove('completed');
+                this.progressArea?.classList.remove('completed');
             }, 500);
+            // 진행률 UI가 즉시 사라지면 파일이 사라진 것으로 보여 혼란이 생기므로 자동 숨김은 제거한다.
         }
-        this.autoHideSoon();
     }
 
     error(message) {
@@ -2207,79 +2215,79 @@ function isApprovedStatus(value) {
         || upper === 'APPROVED' || upper === 'APPROVAL_PENDING';
 }
 
-    function applyApprovalLock(statusValue) {
-        const approved = isApprovedStatus(statusValue);
-        setAllFieldsReadOnly(approved);
-        const btnSave = $('#btnSave');
-        const btnSaveTop = $('#btnSaveTop');
-        if (btnSave) btnSave.disabled = approved;
-        if (btnSaveTop) btnSaveTop.disabled = approved;
-        return approved;
-    }
+function applyApprovalLock(statusValue) {
+    const approved = isApprovedStatus(statusValue);
+    setAllFieldsReadOnly(approved);
+    const btnSave = $('#btnSave');
+    const btnSaveTop = $('#btnSaveTop');
+    if (btnSave) btnSave.disabled = approved;
+    if (btnSaveTop) btnSaveTop.disabled = approved;
+    return approved;
+}
 
-    // 요금 지불방식 적용 (콤마 구분 코드 문자열)
-    function applyPayMethods(codesStr, etcText = '') {
-        const codes = (codesStr || '').split(',').map(s => s.trim()).filter(Boolean);
-        const checks = document.querySelectorAll('input[name="payMethod"]');
-        checks.forEach(c => {
-            c.checked = false;
-        });
-        const etcChk = document.getElementById('pay_etc_chk');
-        const etcInput = document.getElementById('pay_etc_input');
-        if (etcInput) etcInput.value = '';
+// 요금 지불방식 적용 (콤마 구분 코드 문자열)
+function applyPayMethods(codesStr, etcText = '') {
+    const codes = (codesStr || '').split(',').map(s => s.trim()).filter(Boolean);
+    const checks = document.querySelectorAll('input[name="payMethod"]');
+    checks.forEach(c => {
+        c.checked = false;
+    });
+    const etcChk = document.getElementById('pay_etc_chk');
+    const etcInput = document.getElementById('pay_etc_input');
+    if (etcInput) etcInput.value = '';
 
-        codes.forEach(code => {
-            if (code.startsWith('기타:')) {
-                if (etcChk) etcChk.checked = true;
-                if (etcInput) {
-                    etcInput.disabled = false;
-                    etcInput.value = code.substring(3) || '';
-                }
-                return;
-            }
-            if (code === '기타') {
-                if (etcChk) etcChk.checked = true;
-                if (etcInput) etcInput.disabled = false;
-                return;
-            }
-            const chk = document.querySelector(`input[name="payMethod"][value="${code}"]`);
-            if (chk) chk.checked = true;
-        });
-        if (etcText && etcChk) {
-            etcChk.checked = true;
+    codes.forEach(code => {
+        if (code.startsWith('기타:')) {
+            if (etcChk) etcChk.checked = true;
             if (etcInput) {
                 etcInput.disabled = false;
-                etcInput.value = etcText;
+                etcInput.value = code.substring(3) || '';
             }
+            return;
+        }
+        if (code === '기타') {
+            if (etcChk) etcChk.checked = true;
+            if (etcInput) etcInput.disabled = false;
+            return;
+        }
+        const chk = document.querySelector(`input[name="payMethod"][value="${code}"]`);
+        if (chk) chk.checked = true;
+    });
+    if (etcText && etcChk) {
+        etcChk.checked = true;
+        if (etcInput) {
+            etcInput.disabled = false;
+            etcInput.value = etcText;
         }
     }
+}
 
-    // 요금 정산방식 적용 (콤마 구분 코드 문자열)
-    function applySettleMethods(codesStr) {
-        const codes = (codesStr || '').split(',').map(s => s.trim()).filter(Boolean);
-        const checks = document.querySelectorAll('input[name="settleMethod"]');
-        checks.forEach(c => {
-            c.checked = codes.includes(c.value);
-        });
-    }
+// 요금 정산방식 적용 (콤마 구분 코드 문자열)
+function applySettleMethods(codesStr) {
+    const codes = (codesStr || '').split(',').map(s => s.trim()).filter(Boolean);
+    const checks = document.querySelectorAll('input[name="settleMethod"]');
+    checks.forEach(c => {
+        c.checked = codes.includes(c.value);
+    });
+}
 
-    function collectPayMethods() {
-        const checks = Array.from(document.querySelectorAll('input[name="payMethod"]'));
-        const etcChk = document.getElementById('pay_etc_chk');
-        const etcInput = document.getElementById('pay_etc_input');
-        const vals = checks.filter(c => c.checked).map(c => c.value);
-        if (etcChk?.checked) {
-            const t = (etcInput?.value || '').trim();
-            if (t) vals.push(`기타:${t}`);
-            else if (!vals.includes('기타')) vals.push('기타');
-        }
-        return vals;
+function collectPayMethods() {
+    const checks = Array.from(document.querySelectorAll('input[name="payMethod"]'));
+    const etcChk = document.getElementById('pay_etc_chk');
+    const etcInput = document.getElementById('pay_etc_input');
+    const vals = checks.filter(c => c.checked).map(c => c.value);
+    if (etcChk?.checked) {
+        const t = (etcInput?.value || '').trim();
+        if (t) vals.push(`기타:${t}`);
+        else if (!vals.includes('기타')) vals.push('기타');
     }
+    return vals;
+}
 
-    function collectSettleMethods() {
-        const checks = Array.from(document.querySelectorAll('input[name="settleMethod"]'));
-        return checks.filter(c => c.checked).map(c => c.value);
-    }
+function collectSettleMethods() {
+    const checks = Array.from(document.querySelectorAll('input[name="settleMethod"]'));
+    return checks.filter(c => c.checked).map(c => c.value);
+}
 
 function setAllFieldsReadOnly(isReadOnly) {
     const inputs = $$('input[type="text"], input[type="number"], input[type="tel"], input[type="date"], textarea');
@@ -2671,7 +2679,29 @@ function buildPayload() {
             compact: num(smallInput?.value),
             eco: num(greenInput?.value),
             pregnant: num(pregInput?.value)
-        }
+        },
+        // 허가/검사/면적/기계식 정보를 함께 수집
+        permitDate: $('#f_permit_date')?.value || null,
+        inspectionDate: $('#f_inspection_date')?.value || null,
+        siteArea: parseDecimal($('#f_site_area')?.value),
+        totalFloorArea: parseDecimal($('#f_total_floor_area')?.value),
+        mechPrklotType: document.querySelector('input[name="mechPrklotType"]:checked')?.value,
+        mechPrklotOper: document.querySelector('input[name="mechPrklotOper"]:checked')?.value,
+        mechPrklotOperDetail: $('#f_mech_prklot_oper_value')?.value || null,
+        facilityTotalFloors: num($('#f_total_floors')?.value),
+        facilityTotalArea: parseDecimal($('#f_total_scale_area')?.value),
+        indoorGroundFloors: num($('#f_indoor_ground_floors')?.value),
+        indoorGroundArea: parseDecimal($('#f_indoor_ground_area')?.value),
+        indoorGroundSpaces: num($('#f_indoor_ground_spaces')?.value),
+        indoorMechanicalFloors: num($('#f_indoor_mechanical_floors')?.value),
+        indoorMechanicalArea: parseDecimal($('#f_indoor_mechanical_area')?.value),
+        indoorMechanicalSpaces: num($('#f_indoor_mechanical_spaces')?.value),
+        outdoorGroundFloors: num($('#f_outdoor_ground_floors')?.value),
+        outdoorGroundArea: parseDecimal($('#f_outdoor_ground_area')?.value),
+        outdoorGroundSpaces: num($('#f_outdoor_ground_spaces')?.value),
+        outdoorMechanicalFloors: num($('#f_outdoor_mechanical_floors')?.value),
+        outdoorMechanicalArea: parseDecimal($('#f_outdoor_mechanical_area')?.value),
+        outdoorMechanicalSpaces: num($('#f_outdoor_mechanical_spaces')?.value)
     };
 
     // 🔥 법정동코드 10자리 필수 생성
@@ -2698,6 +2728,28 @@ function mapPayloadToServerFormat(payload) {
         sidoCd: payload.sidoCd,
         sigunguCd: payload.sigunguCd,
         emdCd: payload.emdCd,
+        // 허가/면적/기계식 정보
+        prmisnDt: payload.permitDate,
+        useInspDt: payload.inspectionDate,
+        plotAr: payload.siteArea,
+        myeonAr: payload.totalFloorArea,
+        mechPrklotTpCd: payload.mechPrklotType,
+        mechPrklotOperYn: payload.mechPrklotOper,
+        mechPrkInopCnt: num(payload.mechPrklotOperDetail),
+        prkFcltyTpTotFlrCapa: payload.facilityTotalFloors,
+        prkFcltyTpTotDeckCapa: payload.facilityTotalArea,
+        indrSelfTotSpaceCnt: payload.indoorGroundSpaces,
+        indrSelfFlrCnt: payload.indoorGroundFloors,
+        indrSelfDeckCnt: payload.indoorGroundArea,
+        indrMechTotSpaceCnt: payload.indoorMechanicalSpaces,
+        indrMechFlrCnt: payload.indoorMechanicalFloors,
+        indrMechDeckCnt: payload.indoorMechanicalArea,
+        outdrSelfTotSpaceCnt: payload.outdoorGroundSpaces,
+        outdrSelfFlrCnt: payload.outdoorGroundFloors,
+        outdrSelfDeckCnt: payload.outdoorGroundArea,
+        outdrMechTotSpaceCnt: payload.outdoorMechanicalSpaces,
+        outdrMechFlrCnt: payload.outdoorMechanicalFloors,
+        outdrMechDeckCnt: payload.outdoorMechanicalArea,
 
         // 🔥 우편번호 추가
         zip: document.getElementById('f_zip')?.value || null,

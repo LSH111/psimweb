@@ -22,7 +22,7 @@
                 <p class="sub">아이디 → 비밀번호 → (SMS)인증 → 로그인</p>
             </div>
         </div>
-<form id="loginForm" method="POST" action="<c:url value='/login'/>" class="krds-form">
+        <form id="loginForm" method="POST" action="<c:url value='/login'/>" class="krds-form">
             <!-- 1) 아이디 (오른쪽에 다음 버튼) -->
             <section id="secId" class="step krds-form__section" aria-labelledby="step1-title">
                 <h2 id="step1-title" class="sr-only">아이디 입력</h2>
@@ -31,7 +31,7 @@
                     <div class="control inline-actions">
                         <input id="loginId" name="userId" class="input form-input" type="text" autocomplete="username"
                                placeholder="아이디를 입력하세요" minlength="4" maxlength="32"
-                               pattern="[A-Za-z0-9._-]{4,32}" required />
+                               pattern="[A-Za-z0-9._-]{4,32}" required/>
                         <button id="nextIdBtn" class="btn btn-primary" type="button">다음</button>
                     </div>
                     <span class="hint">영문/숫자/.-_ 4~32자</span>
@@ -45,8 +45,9 @@
                 <div class="field krds-form__item">
                     <label for="password" class="form-label">비밀번호</label>
                     <div class="control inline-actions">
-                        <input id="password" name="password" class="input form-input" type="password" autocomplete="current-password"
-                               minlength="8" placeholder="••••••••" required />
+                        <input id="password" name="password" class="input form-input" type="password"
+                               autocomplete="current-password"
+                               minlength="8" placeholder="••••••••" required/>
                         <button class="link" type="button" id="togglePw" aria-label="비밀번호 표시 전환">표시</button>
                         <button id="nextPwBtn" class="btn btn-secondary" type="button">다음</button>
                     </div>
@@ -63,7 +64,7 @@
                     <label for="phone" class="form-label">인증 받을 휴대폰 번호</label>
                     <div class="control inline-actions">
                         <input id="phone" class="input form-input mono" type="text" inputmode="numeric" maxlength="11"
-                               placeholder="숫자만 입력 (예: 01012345678)" required />
+                               placeholder="숫자만 입력 (예: 01012345678)" required/>
                         <button id="sendOtpBtn" class="btn btn-primary" type="button">인증코드 전송</button>
                     </div>
                     <span class="hint">숫자만 입력하세요. (하이픈은 서버 표시용 처리 권장)</span>
@@ -104,8 +105,8 @@
 <jsp:include page="/WEB-INF/views/fragments/footer.jsp"/>
 
 <script>
-    const $ = (s)=>document.querySelector(s);
-    const delay = (ms)=>new Promise(r=>setTimeout(r,ms));
+    const $ = (s) => document.querySelector(s);
+    const delay = (ms) => new Promise(r => setTimeout(r, ms));
 
     // 섹션/요소
     const secPw = $('#secPw');
@@ -143,8 +144,17 @@
     let countdown = null;
 
     // 메세지 유틸
-    function show(el, msg){ if(!el) return; el.textContent = msg ?? el.textContent; el.classList.remove('hide'); }
-    function hide(el){ if(!el) return; el.classList.add('hide'); el.textContent = ''; }
+    function show(el, msg) {
+        if (!el) return;
+        el.textContent = msg ?? el.textContent;
+        el.classList.remove('hide');
+    }
+
+    function hide(el) {
+        if (!el) return;
+        el.classList.add('hide');
+        el.textContent = '';
+    }
 
     const ERROR_MSG = {
         'ERROR-001': '인증 정보가 올바르지 않습니다. 다시 시도해 주세요.',
@@ -152,14 +162,14 @@
     };
 
     // 1) 다음(아이디) — 검증 없이 아래 섹션 펼치기
-    nextIdBtn.addEventListener('click', ()=>{
+    nextIdBtn.addEventListener('click', () => {
         hide(idErr);
         secPw.classList.remove('hide');   // ▼ 비밀번호 영역 펼침
         pw.focus();
     });
 
     // 2) 비밀번호 표시 토글
-    togglePw.addEventListener('click', ()=>{
+    togglePw.addEventListener('click', () => {
         const isPw = pw.type === 'password';
         pw.type = isPw ? 'text' : 'password';
         togglePw.textContent = isPw ? '숨김' : '표시';
@@ -167,30 +177,31 @@
     });
 
     // 3) 다음(비밀번호) — 검증 없이 아래 섹션 펼치기
-    nextPwBtn.addEventListener('click', ()=>{
+    nextPwBtn.addEventListener('click', () => {
         hide(pwErr);
         secPhone.classList.remove('hide'); // ▼ 휴대폰/OTP 영역 펼침
         phone.focus();
     });
 
     // 전화번호 숫자만
-    phone.addEventListener('input', ()=>{
-        phone.value = phone.value.replace(/\\D/g,'').slice(0,11);
+    phone.addEventListener('input', () => {
+        phone.value = phone.value.replace(/\\D/g, '').slice(0, 11);
     });
 
     // 타이머
-    function startTimer(sec){
-        otpExpireAt = Date.now() + sec*1000;
-        if(countdown) clearInterval(countdown);
+    function startTimer(sec) {
+        otpExpireAt = Date.now() + sec * 1000;
+        if (countdown) clearInterval(countdown);
         updateTimer();
         countdown = setInterval(updateTimer, 250);
     }
-    function updateTimer(){
-        const remain = Math.max(0, Math.floor((otpExpireAt - Date.now())/1000));
-        const mm = String(Math.floor(remain/60)).padStart(2,'0');
-        const ss = String(remain%60).padStart(2,'0');
-        if(timerEl) timerEl.textContent = mm + ':' + ss;
-        if(remain===0){
+
+    function updateTimer() {
+        const remain = Math.max(0, Math.floor((otpExpireAt - Date.now()) / 1000));
+        const mm = String(Math.floor(remain / 60)).padStart(2, '0');
+        const ss = String(remain % 60).padStart(2, '0');
+        if (timerEl) timerEl.textContent = mm + ':' + ss;
+        if (remain === 0) {
             clearInterval(countdown);
             resendBtn.disabled = false;
             otpConfirmBtn.disabled = true;
@@ -205,7 +216,7 @@
     // 공통: fetch wrapper
     const postForm = (url, dataObj) => {
         const body = new URLSearchParams();
-        Object.entries(dataObj).forEach(([k,v]) => body.append(k, v ?? ''));
+        Object.entries(dataObj).forEach(([k, v]) => body.append(k, v ?? ''));
         return fetch(url, {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
@@ -215,15 +226,16 @@
     };
 
     // OTP 전송
-    sendOtpBtn.addEventListener('click', async ()=>{
-        hide(otpErr); hide(otpOk);
+    sendOtpBtn.addEventListener('click', async () => {
+        hide(otpErr);
+        hide(otpOk);
         const now = Date.now();
         const tel = phone.value.trim();
-        if(!tel || tel.length < 10){
+        if (!tel || tel.length < 10) {
             return show(otpErr, '휴대폰 번호(숫자만)를 정확히 입력하세요.');
         }
-        if(now - lastSendTs < 5000){
-            const left = Math.ceil((5000 - (now-lastSendTs))/1000);
+        if (now - lastSendTs < 5000) {
+            const left = Math.ceil((5000 - (now - lastSendTs)) / 1000);
             return show(otpErr, `잠시 후 다시 시도하세요. (${left}s)`);
         }
         lastSendTs = now;
@@ -234,7 +246,7 @@
             sendOtpBtn.textContent = '인증코드 전송';
             sendOtpBtn.disabled = false;
 
-            if(resp.startsWith('ERROR')) {
+            if (resp.startsWith('ERROR')) {
                 const msg = ERROR_MSG[resp] || '인증번호 요청에 실패했습니다.';
                 return show(otpErr, msg);
             }
@@ -267,12 +279,13 @@
     });
 
     // 재전송
-    resendBtn.addEventListener('click', ()=> sendOtpBtn.click());
+    resendBtn.addEventListener('click', () => sendOtpBtn.click());
 
     // OTP 입력 시 버튼 활성/비활성
-    otp.addEventListener('input', ()=>{
-        hide(otpErr); hide(otpOk);
-        otp.value = otp.value.replace(/\\D/g,'').slice(0,6);
+    otp.addEventListener('input', () => {
+        hide(otpErr);
+        hide(otpOk);
+        otp.value = otp.value.replace(/\\D/g, '').slice(0, 6);
         otpConfirmBtn.disabled = otp.value.length !== 6;
         otpVerified = false;
         otpVerifiedFlag.value = 'N';
@@ -280,11 +293,12 @@
     });
 
     // OTP 확인
-    otpConfirmBtn.addEventListener('click', async ()=>{
-        hide(otpErr); hide(otpOk);
+    otpConfirmBtn.addEventListener('click', async () => {
+        hide(otpErr);
+        hide(otpOk);
         const tel = phone.value.trim();
         const code = otp.value.trim();
-        if(code.length !== 6){
+        if (code.length !== 6) {
             return show(otpErr, '인증코드 6자리를 모두 입력하세요.');
         }
         otpConfirmBtn.disabled = true;
@@ -297,10 +311,10 @@
             otpConfirmBtn.textContent = '확인';
             otpConfirmBtn.disabled = false;
 
-            if(resp === '' || resp.toUpperCase() === 'OK') {
+            if (resp === '' || resp.toUpperCase() === 'OK') {
                 otpVerified = true;
                 otpVerifiedFlag.value = 'Y';
-                if(countdown) clearInterval(countdown);
+                if (countdown) clearInterval(countdown);
                 resendBtn.disabled = false;
                 show(otpOk, '인증코드 확인 완료.');
                 secFinal.classList.remove('hide');  // ▼ 최종 로그인 영역 펼침
@@ -308,7 +322,7 @@
                 hide(otpErr);
                 return;
             }
-            if(resp.startsWith('ERROR')) {
+            if (resp.startsWith('ERROR')) {
                 const msg = ERROR_MSG[resp] || '인증코드가 올바르지 않거나 만료되었습니다.';
                 otpVerified = false;
                 otpVerifiedFlag.value = 'N';
@@ -331,12 +345,25 @@
     });
 
     // 최종 로그인: 여기서만 아이디/비밀번호 검증 수행
-    finalLoginBtn.addEventListener('click', ()=>{
-        hide(finalErr); hide(idErr); hide(pwErr);
+    finalLoginBtn.addEventListener('click', () => {
+        hide(finalErr);
+        hide(idErr);
+        hide(pwErr);
 
-        if(!loginId.value){ show(idErr, '아이디를 입력하세요.'); loginId.focus(); return; }
-        if(!pw.value){ show(pwErr, '비밀번호를 입력하세요.'); pw.focus(); return; }
-        if(otpVerifiedFlag.value !== 'Y'){ show(finalErr, '휴대폰 인증을 완료해 주세요.'); return; }
+        if (!loginId.value) {
+            show(idErr, '아이디를 입력하세요.');
+            loginId.focus();
+            return;
+        }
+        if (!pw.value) {
+            show(pwErr, '비밀번호를 입력하세요.');
+            pw.focus();
+            return;
+        }
+        if (otpVerifiedFlag.value !== 'Y') {
+            show(finalErr, '휴대폰 인증을 완료해 주세요.');
+            return;
+        }
 
         finalLoginBtn.disabled = true;
         finalLoginBtn.textContent = '로그인 중…';

@@ -10,27 +10,27 @@ import java.util.List;
  */
 @Mapper
 public interface PrkUsageStatusMapper {
-    
+
     /**
      * 주차이용실태 목록 조회
      */
     List<PrkUsageStatusVO> selectUsageStatusList(PrkUsageStatusVO vo);
-    
+
     /**
      * 주차이용실태 상세 조회
      */
     PrkUsageStatusVO selectUsageStatusDetail(PrkUsageStatusVO vo);
-    
+
     /**
      * 주차이용실태 등록
      */
     int insertUsageStatus(PrkUsageStatusVO vo);
-    
+
     /**
      * 주차이용실태 수정
      */
     int updateUsageStatus(PrkUsageStatusVO vo);
-    
+
     /**
      * 주차이용실태 삭제
      */

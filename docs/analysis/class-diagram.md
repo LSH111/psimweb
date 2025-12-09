@@ -1,6 +1,7 @@
 # Class Diagram
 
-The class diagram for the project lives in `src/test/resources/psim-class-diagram.puml`. Use the dedicated Maven profile to render it so the diagram stays close to the source.
+The class diagram for the project lives in `src/test/resources/psim-class-diagram.puml`. Use the dedicated Maven profile
+to render it so the diagram stays close to the source.
 
 ## Generate the diagram
 
@@ -12,7 +13,8 @@ The class diagram for the project lives in `src/test/resources/psim-class-diagra
 mvn -Pdiagrams generate-resources
 ```
 
-The SVG will be written to `target/diagrams/psim-class-diagram.svg` and an XMI (for UML tools such as Amateras UML) to `target/diagrams/psim-class-diagram.xmi`.
+The SVG will be written to `target/diagrams/psim-class-diagram.svg` and an XMI (for UML tools such as Amateras UML) to
+`target/diagrams/psim-class-diagram.xmi`.
 
 ### Amateras UML
 

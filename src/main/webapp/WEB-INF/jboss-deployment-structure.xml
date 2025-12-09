@@ -19,7 +19,7 @@
         </dependencies>
         <!-- 🔥 Weld(CDI) 서브시스템 완전히 비활성화 -->
         <exclude-subsystems>
-            <subsystem name="weld" />
+            <subsystem name="weld"/>
         </exclude-subsystems>
     </deployment>
 </jboss-deployment-structure>

@@ -12,6 +12,7 @@ import java.util.Map;
 public interface PrkDefPlceInfoService {
 
     // ========== 목록 조회 ==========
+
     /**
      * 주차장 목록 조회
      */
@@ -33,6 +34,7 @@ public interface PrkDefPlceInfoService {
     int countParkingListForMapAll();
 
     // ========== 상세 조회 ==========
+
     /**
      * 노상주차장 상세 조회
      */
@@ -49,11 +51,13 @@ public interface PrkDefPlceInfoService {
     ParkingDetailVO getBuildParkingDetail(String prkPlceManageNo, Long prkPlceInfoSn);
 
     // ========== 신규 등록 (INSERT) ==========
+
     /**
      * DB 함수로 주차장 관리번호 생성
-     * @param zipCode 우편번호
-     * @param prkplceSe 관리주체(소유주체): 공영(1), 민영(2), 기타(9)
-     * @param operMbyCd 운영주체: 직영(1), 위탁(2), 기타(9)
+     *
+     * @param zipCode     우편번호
+     * @param prkplceSe   관리주체(소유주체): 공영(1), 민영(2), 기타(9)
+     * @param operMbyCd   운영주체: 직영(1), 위탁(2), 기타(9)
      * @param prkPlceType 주차장유형: 노상(1), 노외(2), 부설(3), 기타(9)
      * @return 생성된 주차장 관리번호
      */
@@ -81,6 +85,7 @@ public interface PrkDefPlceInfoService {
     void insertBuildParking(ParkingDetailVO vo);
 
     // ========== 수정 (UPDATE) ==========
+
     /**
      * 노상주차장 수정
      */
@@ -97,6 +102,7 @@ public interface PrkDefPlceInfoService {
     void updateBuildParking(ParkingDetailVO parkingData);
 
     // ========== 상태 변경 ==========
+
     /**
      * 선택된 주차장 상태를 승인 대기로 변경
      */

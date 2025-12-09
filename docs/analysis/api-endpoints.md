@@ -1,6 +1,7 @@
 # API and Page Endpoints
 
-This document lists the web pages and API endpoints exposed by the application, based on an analysis of the controller classes.
+This document lists the web pages and API endpoints exposed by the application, based on an analysis of the controller
+classes.
 
 ## 1. Kakao Integration (`KakaoLocalController`)
 
@@ -45,16 +46,19 @@ This document lists the web pages and API endpoints exposed by the application, 
     - **Page Rendering:**
         - `GET /parkinglist`: Renders the main parking lot list page.
             - **Returns:** `HTML` (JSP View: `prk/parking-list`)
-        - `GET /onparking`, `GET /offparking`, `GET /buildparking`: Render pages for creating new on-street, off-street, or building-attached parking lots.
+        - `GET /onparking`, `GET /offparking`, `GET /buildparking`: Render pages for creating new on-street, off-street,
+          or building-attached parking lots.
             - **Returns:** `HTML` (JSP Views)
-        - `GET /onparking-detail`, `GET /offparking-detail`, `GET /buildparking-detail`: Render detail pages for existing parking lots.
+        - `GET /onparking-detail`, `GET /offparking-detail`, `GET /buildparking-detail`: Render detail pages for
+          existing parking lots.
             - **Returns:** `HTML` (JSP Views)
     - **Data APIs:**
         - `GET /parking-data`: API to get a list of parking lots for the list view.
             - **Returns:** `JSON` list.
         - `GET /parking-map-data`: API to get parking lot data specifically for the map view.
             - **Returns:** `JSON` list with coordinates.
-        - `POST /onparking-update`, `POST /offparking-update`, `POST /buildparking-update`: APIs to create or update parking lot details.
+        - `POST /onparking-update`, `POST /offparking-update`, `POST /buildparking-update`: APIs to create or update
+          parking lot details.
             - **Params:** `parkingData` (JSON) and `MultipartFile`s for various photos.
             - **Returns:** `JSON` with success status.
         - `POST /api/parking/update-status-pending`: API to change the status of multiple parking lots to "pending".

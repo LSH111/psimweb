@@ -25,7 +25,8 @@
     <c:set var="isRejected"
            value="${statusCode eq '반려' or statusCode eq '99' or statusCode eq 'PRK_013099' or parking.prgsStsRawCd eq '99' or parking.prgsStsRawCd eq 'PRK_013099'}"/>
     <c:set var="isPending" value="${statusCode eq '20' or statusCode eq '승인대기' or parking.prgsStsRawCd eq '20'}"/>
-    <c:set var="resolvedStatus" value="${not empty statusCode ? statusCode : (empty param.status ? '' : param.status)}"/>
+    <c:set var="resolvedStatus"
+           value="${not empty statusCode ? statusCode : (empty param.status ? '' : param.status)}"/>
     <%
         Object parkingObj = request.getAttribute("parking");
         String parkingJson = "null";
@@ -38,10 +39,11 @@
         }
         String safeParkingJson = parkingJson != null ? parkingJson.replace("</", "<\\/") : "null";
     %>
-    <script id="initialParkingData" type="application/json"><%= safeParkingJson %></script>
+    <script id="initialParkingData" type="application/json"><%= safeParkingJson %>
+    </script>
     <script>
         // XSS-safe JSON bootstrap: parse escaped JSON instead of direct script injection
-        (function() {
+        (function () {
             const el = document.getElementById('initialParkingData');
             if (!el) {
                 window.initialParking = null;
@@ -991,8 +993,10 @@
                 </div>
                 <!-- 추락방지시설 사진 업로드 -->
                 <div id="fall_photo_wrap" class="photo-upload-zone" style="margin-top:8px; display:none;">
-                    <input id="f_fall_photo_lib" type="file" accept="image/*,image/heic,image/heif" style="display:none"/>
-                    <input id="f_fall_photo_cam" type="file" accept="image/*" capture="environment" style="display:none"/>
+                    <input id="f_fall_photo_lib" type="file" accept="image/*,image/heic,image/heif"
+                           style="display:none"/>
+                    <input id="f_fall_photo_cam" type="file" accept="image/*" capture="environment"
+                           style="display:none"/>
                     <div class="file-upload-buttons">
                         <button type="button" class="btn light" id="btnFallPhotoLibrary">📁 사진첩에서 선택</button>
                         <button type="button" class="btn ghost" id="btnFallPhotoCamera">📷 카메라 촬영</button>
@@ -1013,8 +1017,10 @@
                 </div>
                 <!-- 주차방향시설 사진 업로드 -->
                 <div id="parking_guide_photo_wrap" class="photo-upload-zone" style="margin-top:8px; display:none;">
-                    <input id="f_parking_guide_photo_lib" type="file" accept="image/*,image/heic,image/heif" style="display:none"/>
-                    <input id="f_parking_guide_photo_cam" type="file" accept="image/*" capture="environment" style="display:none"/>
+                    <input id="f_parking_guide_photo_lib" type="file" accept="image/*,image/heic,image/heif"
+                           style="display:none"/>
+                    <input id="f_parking_guide_photo_cam" type="file" accept="image/*" capture="environment"
+                           style="display:none"/>
                     <div class="file-upload-buttons">
                         <button type="button" class="btn light" id="btnParkingGuidePhotoLibrary">📁 사진첩에서 선택</button>
                         <button type="button" class="btn ghost" id="btnParkingGuidePhotoCamera">📷 카메라 촬영</button>

@@ -22,10 +22,11 @@ import java.util.Map;
 @RequestMapping("/cmm/codes")  // 이 라인을 추가해야 합니다
 public class CoCodeController {
 
+    private static final Logger log = LoggerFactory.getLogger(CoCodeController.class);
     @Autowired
     private CoCodeService coCodeService;
-
-    private static final Logger log = LoggerFactory.getLogger(CoCodeController.class);
+    // 캐시된 코드 그룹 데이터를 저장할 변수
+    private Map<String, Object> cachedDynamicGroups;
 
     /**
      * 시도 목록 조회
@@ -180,6 +181,10 @@ public class CoCodeController {
     @GetMapping("/dynamic-groups")
     @ResponseBody
     public Map<String, Object> getDynamicCodeGroups() {
+
+        if (cachedDynamicGroups != null) {
+            return cachedDynamicGroups;
+        }
         Map<String, Object> result = new HashMap<>();
         try {
             System.out.println("=== 동적 코드 그룹 목록 조회 시작 ===");
@@ -209,6 +214,10 @@ public class CoCodeController {
 
                 result.put("success", true);
                 result.put("groups", groupsData);
+
+                // 조회 성공 시 결과 캐싱
+                this.cachedDynamicGroups = result;
+
                 System.out.println("=== 동적 코드 그룹 목록 조회 완료, 그룹 수: " + groupsData.size() + " ===");
             } else {
                 result.put("success", false);

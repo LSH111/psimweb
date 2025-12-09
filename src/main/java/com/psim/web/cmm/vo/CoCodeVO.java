@@ -18,7 +18,7 @@ public class CoCodeVO {
     private String updusrIpAddr; // 수정IP주소
     private String useYn;        // 사용여부
     private Integer sortOrdr;    // 정렬순서
-    
+
     // 추가 필드 (상위코드 참조용)
     private String upperCodeCd;  // 상위코드
 }

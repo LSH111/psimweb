@@ -1,7 +1,7 @@
 /**
  * 주차이용실태 목록 관리 (같은 위치 = 하나의 마커 + 클릭 시 목록 표시)
  */
-(function() {
+(function () {
     'use strict';
 
     const $ = (s) => document.querySelector(s);
@@ -54,7 +54,7 @@
         try {
 
             const defaultCenter = new kakao.maps.LatLng(37.5665, 126.9780);
-            const mapOption = { center: defaultCenter, level: 7 };
+            const mapOption = {center: defaultCenter, level: 7};
 
             kakaoMap = new kakao.maps.Map(mapContainer, mapOption);
 
@@ -91,11 +91,12 @@
                         kakaoMap.setCenter(currentPosition);
                         kakaoMap.setLevel(5);
                     },
-                    () => {},
-                    { enableHighAccuracy: false, timeout: 12000 }
+                    () => {
+                    },
+                    {enableHighAccuracy: false, timeout: 12000}
                 );
             },
-            { enableHighAccuracy: true, timeout: 8000 }
+            {enableHighAccuracy: true, timeout: 8000}
         );
     }
 
@@ -126,7 +127,7 @@
             if (!locationGroups.has(key)) {
                 locationGroups.set(key, []);
             }
-            locationGroups.get(key).push({ ...item, originalLat: lat, originalLng: lng, index });
+            locationGroups.get(key).push({...item, originalLat: lat, originalLng: lng, index});
         });
 
 
@@ -208,7 +209,7 @@
             }
 
             // 🔥 클릭 이벤트
-            kakao.maps.event.addListener(marker, 'click', function() {
+            kakao.maps.event.addListener(marker, 'click', function () {
                 // 🔥 지도 중심 이동 제거 - InfoWindow만 표시
                 if (items.length === 1) {
                     showInfoWindow(marker, items[0]);
@@ -384,14 +385,14 @@
     }
 
     // ========== 🔥 인포윈도우 항목 클릭 핸들러 ==========
-    window.handleMultiItemClick = function(cmplSn) {
+    window.handleMultiItemClick = function (cmplSn) {
         if (currentInfoWindow) {
             currentInfoWindow.setMap(null);
         }
         scrollToCard(cmplSn);
     };
 
-    window.closeInfoWindow = function() {
+    window.closeInfoWindow = function () {
         if (currentInfoWindow) {
             currentInfoWindow.setMap(null);
             currentInfoWindow = null;
@@ -401,7 +402,7 @@
     function scrollToCard(cmplSn) {
         const card = document.querySelector(`[data-id="${cmplSn}"]`);
         if (card) {
-            card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            card.scrollIntoView({behavior: 'smooth', block: 'nearest'});
             card.style.boxShadow = '0 0 20px rgba(99, 102, 241, 0.5)';
             setTimeout(() => {
                 card.style.boxShadow = '';
@@ -436,7 +437,7 @@
         return files
             .filter(file => !!file)
             .map(file => {
-            return `
+                return `
                 <span class="file-item" 
                       data-cmpl-sn="${file.cmplSn || ''}"
                       data-prk-info-sn="${file.prkPlceInfoSn || ''}"
@@ -447,7 +448,7 @@
                     📎 ${file.realFileNm}
                 </span>
             `;
-        }).join('');
+            }).join('');
     }
 
     // ========== 🔥 이미지 미리보기 함수 (위치 자동 조정) ==========
@@ -459,7 +460,7 @@
         if (!prkImgId || !seqNo) return;
 
         const infoSn = event.target?.dataset?.prkInfoSn || '';
-        const baseParams = new URLSearchParams({ prkImgId });
+        const baseParams = new URLSearchParams({prkImgId});
         if (seqNo) baseParams.set('seqNo', seqNo);
         if (infoSn) baseParams.set('prkPlceInfoSn', infoSn);
         else if (cmplSn) baseParams.set('cmplSn', cmplSn);
@@ -468,7 +469,7 @@
         img.src = imageUrl;
 
         // 🔥 이미지 로드 후 위치 조정
-        img.onload = function() {
+        img.onload = function () {
             positionTooltip(event, tooltip);
         };
 
@@ -535,7 +536,7 @@
 
     // ========== 🔥 파일 이벤트 리스너 설정 ==========
     function attachFileEventListeners() {
-        document.addEventListener('mouseenter', function(e) {
+        document.addEventListener('mouseenter', function (e) {
             const target = e.target;
             if (target && target.classList && target.classList.contains('file-item')) {
                 const cmplSn = e.target.dataset.cmplSn;
@@ -545,14 +546,14 @@
             }
         }, true);
 
-        document.addEventListener('mouseleave', function(e) {
+        document.addEventListener('mouseleave', function (e) {
             const target = e.target;
             if (target && target.classList && target.classList.contains('file-item')) {
                 hideImagePreview();
             }
         }, true);
 
-        document.addEventListener('mousemove', function(e) {
+        document.addEventListener('mousemove', function (e) {
             const target = e.target;
             if (target && target.classList && target.classList.contains('file-item')) {
                 moveImagePreview(e);
@@ -895,7 +896,7 @@
         });
     }
 
-    window.handleCardClick = function(lat, lng, cmplSn) {
+    window.handleCardClick = function (lat, lng, cmplSn) {
         if (!kakaoMap || !lat || !lng) return;
 
         const position = new kakao.maps.LatLng(parseFloat(lat), parseFloat(lng));

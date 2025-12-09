@@ -1,6 +1,7 @@
 # Psim Project Summary
 
-This document provides a high-level overview of the Psim project, including its technical stack, configuration, and architecture.
+This document provides a high-level overview of the Psim project, including its technical stack, configuration, and
+architecture.
 
 ## 1. Project Overview
 
@@ -11,7 +12,8 @@ This document provides a high-level overview of the Psim project, including its 
 - **Java Version:** 1.8
 - **Framework:** Spring Boot 2.7.18
 
-The project is a web application built using Spring Boot, designed to be packaged as a WAR file for deployment in a standalone servlet container like Tomcat.
+The project is a web application built using Spring Boot, designed to be packaged as a WAR file for deployment in a
+standalone servlet container like Tomcat.
 
 ## 2. Core Technologies
 
@@ -42,7 +44,8 @@ The project is a web application built using Spring Boot, designed to be package
 - **Database (PostgreSQL):**
     - **URL:** `jdbc:postgresql://localhost:5432/postgres`
     - **Username:** `postgres`
-    - **Credentials:** The password is set in the configuration file but should be managed via environment variables in production.
+    - **Credentials:** The password is set in the configuration file but should be managed via environment variables in
+      production.
     - **Connection Pool:** HikariCP is configured for efficient database connection management.
 - **MyBatis:**
     - Mappers are located in `classpath:mappers/**/*.xml`.
@@ -64,6 +67,9 @@ The project is a web application built using Spring Boot, designed to be package
 
 - The project follows a classic Spring MVC architecture.
 - It combines modern Spring Boot practices with traditional JSP views.
-- The presence of `egovframe.rte` dependencies indicates it may need to adhere to specific government software standards or reuse existing government framework components.
-- The WAR packaging and `provided` scope for Tomcat dependencies suggest deployment to a standalone servlet container is the primary target, rather than using the embedded Tomcat server for production.
-- A PlantUML class diagram is maintained at `src/test/resources/psim-class-diagram.puml`; from the project root run `mvn -Pdiagrams generate-resources` to get both SVG and XMI outputs (see `docs/analysis/class-diagram.md`).
+- The presence of `egovframe.rte` dependencies indicates it may need to adhere to specific government software standards
+  or reuse existing government framework components.
+- The WAR packaging and `provided` scope for Tomcat dependencies suggest deployment to a standalone servlet container is
+  the primary target, rather than using the embedded Tomcat server for production.
+- A PlantUML class diagram is maintained at `src/test/resources/psim-class-diagram.puml`; from the project root run
+  `mvn -Pdiagrams generate-resources` to get both SVG and XMI outputs (see `docs/analysis/class-diagram.md`).

@@ -65,9 +65,9 @@ public class KakaoLocalController {
      */
     @GetMapping("/address2coord")
     public ResponseEntity<Map<String, Object>> address2Coord(@RequestParam String address) {
-        
+
         Map<String, Object> result = new HashMap<>();
-        
+
         try {
             GeoCoordinate coordinate = geocodingClient.geocodeAddress(address)
                     .orElse(null);
@@ -83,7 +83,7 @@ public class KakaoLocalController {
             result.put("longitude", coordinate.getLongitude());
             result.put("latitude", coordinate.getLatitude());
             return ResponseEntity.ok(result);
-            
+
         } catch (Exception e) {
             log.error("주소->좌표 변환 에러", e);
             result.put("success", false);

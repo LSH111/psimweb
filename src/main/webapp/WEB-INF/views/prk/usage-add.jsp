@@ -65,11 +65,15 @@
         <div class="grid">
             <div style="grid-column:1/-1">
                 <label>사진 업로드 (여러 장 가능)</label>
-                <div class="photo-upload-zone" style="border:2px dashed #cbd5e1; border-radius:8px; padding:20px; text-align:center; background:#f8fafc;">
-                    <input id="f_photo_lib" type="file" accept="image/*,image/heic,image/heif" multiple style="display:none" />
-                    <input id="f_photo_cam" type="file" accept="image/*" capture="environment" multiple style="display:none" />
+                <div class="photo-upload-zone"
+                     style="border:2px dashed #cbd5e1; border-radius:8px; padding:20px; text-align:center; background:#f8fafc;">
+                    <input id="f_photo_lib" type="file" accept="image/*,image/heic,image/heif" multiple
+                           style="display:none"/>
+                    <input id="f_photo_cam" type="file" accept="image/*" capture="environment" multiple
+                           style="display:none"/>
 
-                    <div class="file-upload-buttons" style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-bottom:16px;">
+                    <div class="file-upload-buttons"
+                         style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-bottom:16px;">
                         <button type="button" class="btn light" id="btnPickFromLibrary">사진첩에서 선택</button>
                         <button type="button" class="btn ghost" id="btnTakePhoto">카메라 촬영</button>
                         <button type="button" class="btn" id="btnUseGeolocation">기기 위치로 좌표</button>
@@ -78,7 +82,8 @@
 
                     <!-- 선택된 파일 목록 표시 -->
                     <div id="selected-files-list" style="display:none; margin-top:16px; text-align:left;">
-                        <h4 style="font-size:0.9rem; font-weight:600; color:#1e293b; margin-bottom:12px;">선택된 파일 (<span id="file-count">0</span>개)</h4>
+                        <h4 style="font-size:0.9rem; font-weight:600; color:#1e293b; margin-bottom:12px;">선택된 파일 (<span
+                                id="file-count">0</span>개)</h4>
                         <div id="files-container" style="display:flex; flex-direction:column; gap:8px;"></div>
                     </div>
                 </div>
@@ -87,20 +92,21 @@
             <!-- 사진 미리보기 (여러 장) -->
             <div id="preview-container" style="grid-column:1/-1; display:none;">
                 <h4 style="font-size:0.9rem; font-weight:600; color:#1e293b; margin-bottom:12px;">미리보기</h4>
-                <div id="preview-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:12px;"></div>
+                <div id="preview-grid"
+                     style="display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:12px;"></div>
             </div>
 
             <!-- 위도/경도 -->
             <div>
                 <label for="f_lat">위도</label>
                 <div class="ctl">
-                    <input id="f_lat" class="mono" inputmode="decimal" placeholder="37.5665" readonly />
+                    <input id="f_lat" class="mono" inputmode="decimal" placeholder="37.5665" readonly/>
                 </div>
             </div>
             <div>
                 <label for="f_lng">경도</label>
                 <div class="ctl">
-                    <input id="f_lng" class="mono" inputmode="decimal" placeholder="126.9780" readonly />
+                    <input id="f_lng" class="mono" inputmode="decimal" placeholder="126.9780" readonly/>
                 </div>
             </div>
         </div>
@@ -200,14 +206,16 @@
             <div>
                 <label for="f_surveyorName">성명</label>
                 <div class="ctl">
-                    <input id="f_surveyorName" type="text" placeholder="조사원 이름" readonly style="background-color:#f1f5f9; cursor:not-allowed;"/>
+                    <input id="f_surveyorName" type="text" placeholder="조사원 이름" readonly
+                           style="background-color:#f1f5f9; cursor:not-allowed;"/>
                 </div>
             </div>
 
             <div>
                 <label for="f_surveyorContact">연락처</label>
                 <div class="ctl">
-                    <input id="f_surveyorContact" type="text" placeholder="예) 010-1234-5678" inputmode="tel" readonly style="background-color:#f1f5f9; cursor:not-allowed;"/>
+                    <input id="f_surveyorContact" type="text" placeholder="예) 010-1234-5678" inputmode="tel" readonly
+                           style="background-color:#f1f5f9; cursor:not-allowed;"/>
                 </div>
             </div>
         </div>

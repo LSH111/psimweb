@@ -27,35 +27,32 @@
 
     <!-- 🔥 INSERT - cmpl_sn 추가 -->
     <insert id="insertAttchPicMngInfo" parameterType="com.psim.web.file.vo.AttchPicMngInfoVO">
-        INSERT INTO cpk.tb_attch_pic_mng_info (
-            prk_plce_manage_no,
-            prk_plce_info_sn,
-            prk_plce_type,
-            prk_oper_type,
-            seq_no,
-            ext_nm,
-            file_path,
-            file_nm,
-            real_file_nm,
-            prk_img_id,
-            reg_dt,
-            rgst_id,
-            rgst_ip_addr
-        ) VALUES (
-                     #{prkPlceManageNo},
-                     #{prkPlceInfoSn},
-                     #{prkPlceType},
-                     #{prkOperType},
-                     #{seqNo},
-                     #{extNm},
-                     #{filePath},
-                     #{fileNm},
-                     #{realFileNm},
-                     #{prkImgId},
-                     NOW(),
-                     #{rgstId},
-                     #{rgstIpAddr}
-                 )
+        INSERT INTO cpk.tb_attch_pic_mng_info (prk_plce_manage_no,
+                                               prk_plce_info_sn,
+                                               prk_plce_type,
+                                               prk_oper_type,
+                                               seq_no,
+                                               ext_nm,
+                                               file_path,
+                                               file_nm,
+                                               real_file_nm,
+                                               prk_img_id,
+                                               reg_dt,
+                                               rgst_id,
+                                               rgst_ip_addr)
+        VALUES (#{prkPlceManageNo},
+                #{prkPlceInfoSn},
+                #{prkPlceType},
+                #{prkOperType},
+                #{seqNo},
+                #{extNm},
+                #{filePath},
+                #{fileNm},
+                #{realFileNm},
+                #{prkImgId},
+                NOW(),
+                #{rgstId},
+                #{rgstIpAddr})
     </insert>
 
     <!-- 🔥 SELECT -->
@@ -93,40 +90,39 @@
         </if>
         ORDER BY seq_no ASC
     </select>
-<!--
-    &lt;!&ndash; 🔥 최대 순번 조회 - cmpl_sn 조건 추가 &ndash;&gt;
-    <select id="selectMaxSeqNo" resultType="java.lang.Integer">
-        SELECT COALESCE(MAX(seq_no), 0)
-        FROM tb_attch_pic_mng_info
-        WHERE 1=1
-        <choose>
-            <when test="cmplSn != null and cmplSn != ''">
-                AND cmpl_sn = #{cmplSn}
-            </when>
-            <otherwise>
-                AND prk_plce_info_sn = #{prkPlceInfoSn}
-            </otherwise>
-        </choose>
-        <if test="prkImgId != null and prkImgId != ''">
-            AND prk_img_id = #{prkImgId}
-        </if>
-    </select>-->
+    <!--
+        &lt;!&ndash; 🔥 최대 순번 조회 - cmpl_sn 조건 추가 &ndash;&gt;
+        <select id="selectMaxSeqNo" resultType="java.lang.Integer">
+            SELECT COALESCE(MAX(seq_no), 0)
+            FROM tb_attch_pic_mng_info
+            WHERE 1=1
+            <choose>
+                <when test="cmplSn != null and cmplSn != ''">
+                    AND cmpl_sn = #{cmplSn}
+                </when>
+                <otherwise>
+                    AND prk_plce_info_sn = #{prkPlceInfoSn}
+                </otherwise>
+            </choose>
+            <if test="prkImgId != null and prkImgId != ''">
+                AND prk_img_id = #{prkImgId}
+            </if>
+        </select>-->
 
     <!-- 🔥 UPDATE -->
     <update id="updateAttchPicMngInfo" parameterType="com.psim.web.file.vo.AttchPicMngInfoVO">
         UPDATE cpk.tb_attch_pic_mng_info
-        SET
-        ext_nm = #{extNm},
-        file_path = #{filePath},
-        file_nm = #{fileNm},
-        real_file_nm = #{realFileNm},
-        updt_dt = NOW(),
-        updusr_id = #{updusrId},
-        updusr_ip_addr = #{updusrIpAddr}
-        WHERE 1=1
-        AND prk_plce_info_sn = #{prkPlceInfoSn}
-        AND prk_img_id = #{prkImgId}
-        AND seq_no = #{seqNo}
+        SET ext_nm         = #{extNm},
+            file_path      = #{filePath},
+            file_nm        = #{fileNm},
+            real_file_nm   = #{realFileNm},
+            updt_dt        = NOW(),
+            updusr_id      = #{updusrId},
+            updusr_ip_addr = #{updusrIpAddr}
+        WHERE 1 = 1
+          AND prk_plce_info_sn = #{prkPlceInfoSn}
+          AND prk_img_id = #{prkImgId}
+          AND seq_no = #{seqNo}
     </update>
 
     <!-- 🔥 DELETE -->
@@ -169,15 +165,14 @@
 
     <!-- 🔥 주차장 정보 일련번호로 사진 목록 조회 -->
     <select id="selectPhotosByPrkPlceInfoSn" resultType="map">
-        SELECT
-            prk_plce_info_sn AS prkPlceInfoSn,
-            prk_img_id AS prkImgId,
-            seq_no AS seqNo,
-            real_file_nm AS realFileNm,
-            file_nm AS fileNm,
-            file_path AS filePath,
-            ext_nm AS extNm,
-            reg_dt AS regDt
+        SELECT prk_plce_info_sn AS prkPlceInfoSn,
+               prk_img_id       AS prkImgId,
+               seq_no           AS seqNo,
+               real_file_nm     AS realFileNm,
+               file_nm          AS fileNm,
+               file_path        AS filePath,
+               ext_nm           AS extNm,
+               reg_dt           AS regDt
         FROM cpk.tb_attch_pic_mng_info
         WHERE prk_plce_info_sn = #{prkPlceInfoSn}
         ORDER BY prk_img_id, seq_no
@@ -185,11 +180,10 @@
 
     <!-- 🔥 사진 파일 데이터 조회 (prkPlceInfoSn + prkImgId + seqNo 복합키) -->
     <select id="selectPhotoFile" resultType="map">
-        SELECT
-            file_nm AS fileName,
-            ext_nm AS extNm,
-            file_path AS filePath,
-            real_file_nm AS realFileNm
+        SELECT file_nm      AS fileName,
+               ext_nm       AS extNm,
+               file_path    AS filePath,
+               real_file_nm AS realFileNm
         FROM cpk.tb_attch_pic_mng_info
         WHERE prk_plce_info_sn = #{prkPlceInfoSn}
           AND prk_img_id = #{prkImgId}
@@ -198,11 +192,10 @@
 
     <!-- 🔥 이용실태 파일 조회 (cmplSn + prkImgId + seqNo 복합키) -->
     <select id="selectPhotoFileForUsage" resultType="map">
-        SELECT
-            file_nm AS fileName,
-            ext_nm AS extNm,
-            file_path AS filePath,
-            real_file_nm AS realFileNm
+        SELECT file_nm      AS fileName,
+               ext_nm       AS extNm,
+               file_path    AS filePath,
+               real_file_nm AS realFileNm
         FROM cpk.tb_attch_pic_mng_info
         WHERE prk_plce_info_sn = #{prkPlceInfoSn}
           AND prk_img_id = #{prkImgId}

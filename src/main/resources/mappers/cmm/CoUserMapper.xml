@@ -3,31 +3,30 @@
 <mapper namespace="com.psim.web.cmm.mapper.CoUserMapper">
 
     <select id="selectAllUsers" resultType="com.psim.web.cmm.vo.CoUserVO">
-        SELECT * FROM tb_co_user
+        SELECT *
+        FROM tb_co_user
     </select>
 
     <select id="selectUserById" parameterType="string" resultType="com.psim.web.cmm.vo.CoUserVO">
         SELECT user_id, user_nm, user_pw
         FROM tb_co_user
-        WHERE user_id = #{userId} AND user_pw = #{password}
+        WHERE user_id = #{userId}
+          AND user_pw = #{password}
     </select>
 
     <insert id="insertUser" parameterType="com.psim.web.cmm.vo.CoUserVO">
-        INSERT INTO tb_co_user (
-            user_id, user_cd, user_nm, user_ty_code, ency_de, retire_de, user_sttus_code,
-            photo_unified_id, sign_unified_id, dept_cd, pstn_cd, clss_cd, rsp_cd, user_pw,
-            email, mbtlnum, ownhom_telno, cmpny_telno, rgsde, updde, user_order, duty,
-            pstn_detail, sigungu_cd, area_cd, road_yn, offstreet_yn, attached_yn, rgst_id,
-            reg_dt, rgst_ip_addr, updusr_id, updt_dt, updusr_ip_addr, pwd_change_dd,
-            change_yn, cfrm_yn
-        ) VALUES (
-                     #{userId}, #{userCd}, #{userNm}, #{userTyCode}, #{encyDe}, #{retireDe}, #{userSttusCode},
-                     #{photoUnifiedId}, #{signUnifiedId}, #{deptCd}, #{pstnCd}, #{clssCd}, #{rspCd}, #{userPw},
-                     #{email}, #{mbtlnum}, #{ownhomTelno}, #{cmpnyTelno}, #{rgsde}, #{updde}, #{userOrder}, #{duty},
-                     #{pstnDetail}, #{sigunguCd}, #{areaCd}, #{roadYn}, #{offstreetYn}, #{attachedYn}, #{rgstId},
-                     #{regDt}, #{rgstIpAddr}, #{updusrId}, #{updtDt}, #{updusrIpAddr}, #{pwdChangeDd},
-                     #{changeYn}, #{cfrmYn}
-                 )
+        INSERT INTO tb_co_user (user_id, user_cd, user_nm, user_ty_code, ency_de, retire_de, user_sttus_code,
+                                photo_unified_id, sign_unified_id, dept_cd, pstn_cd, clss_cd, rsp_cd, user_pw,
+                                email, mbtlnum, ownhom_telno, cmpny_telno, rgsde, updde, user_order, duty,
+                                pstn_detail, sigungu_cd, area_cd, road_yn, offstreet_yn, attached_yn, rgst_id,
+                                reg_dt, rgst_ip_addr, updusr_id, updt_dt, updusr_ip_addr, pwd_change_dd,
+                                change_yn, cfrm_yn)
+        VALUES (#{userId}, #{userCd}, #{userNm}, #{userTyCode}, #{encyDe}, #{retireDe}, #{userSttusCode},
+                #{photoUnifiedId}, #{signUnifiedId}, #{deptCd}, #{pstnCd}, #{clssCd}, #{rspCd}, #{userPw},
+                #{email}, #{mbtlnum}, #{ownhomTelno}, #{cmpnyTelno}, #{rgsde}, #{updde}, #{userOrder}, #{duty},
+                #{pstnDetail}, #{sigunguCd}, #{areaCd}, #{roadYn}, #{offstreetYn}, #{attachedYn}, #{rgstId},
+                #{regDt}, #{rgstIpAddr}, #{updusrId}, #{updtDt}, #{updusrIpAddr}, #{pwdChangeDd},
+                #{changeYn}, #{cfrmYn})
     </insert>
 
     <update id="updateUser" parameterType="com.psim.web.cmm.vo.CoUserVO">
@@ -74,6 +73,8 @@
     </update>
 
     <delete id="deleteUser" parameterType="string">
-        DELETE FROM tb_co_user WHERE user_id = #{userId}
+        DELETE
+        FROM tb_co_user
+        WHERE user_id = #{userId}
     </delete>
 </mapper>

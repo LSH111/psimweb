@@ -24,7 +24,8 @@
     <c:set var="isApproved" value="${statusCode eq '30'}"/>
     <c:set var="isRejected"
            value="${statusCode eq '반려' or statusCode eq '99' or statusCode eq 'PRK_013099' or parking.prgsStsRawCd eq '99' or parking.prgsStsRawCd eq 'PRK_013099'}"/>
-    <c:set var="resolvedStatus" value="${not empty statusCode ? statusCode : (empty param.status ? '' : param.status)}"/>
+    <c:set var="resolvedStatus"
+           value="${not empty statusCode ? statusCode : (empty param.status ? '' : param.status)}"/>
     <%
         Object parkingObj = request.getAttribute("parking");
         String parkingJson = "null";
@@ -37,10 +38,11 @@
         }
         String safeParkingJson = parkingJson != null ? parkingJson.replace("</", "<\\/") : "null";
     %>
-    <script id="initialParkingData" type="application/json"><%= safeParkingJson %></script>
+    <script id="initialParkingData" type="application/json"><%= safeParkingJson %>
+    </script>
     <script>
         // XSS-safe JSON bootstrap: parse escaped JSON instead of direct script injection
-        (function() {
+        (function () {
             const el = document.getElementById('initialParkingData');
             if (!el) {
                 window.initialParking = null;

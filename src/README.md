@@ -1,17 +1,20 @@
 # PSIM Web (WildFly 10, Java 8, Spring Boot 2.7, JSP, MyBatis, PostgreSQL)
 
 ## 빌드
+
   ```
 mvn -DskipTests -Dspring-boot.repackage.skip=true clean package
   ```
 
 ## 데이터소스(JNDI)
+
 - WildFly 관리콘솔 → Configuration → Subsystems → Datasources
 - PostgreSQL 드라이버 등록 후 Datasource 생성
-  - JNDI: `java:/jdbc/pism`
-  - 연결정보 입력 → Test Connection
+    - JNDI: `java:/jdbc/pism`
+    - 연결정보 입력 → Test Connection
 
 ## 배포
+
 - 콘솔: Deployments → Add → `target/psim-web.war` → Enable
 - 또는 파일복사:
   ```
@@ -19,6 +22,7 @@ mvn -DskipTests -Dspring-boot.repackage.skip=true clean package
   ```
 
 ## 라우팅
+
 - `/` → `redirect:/login` (index.jsp 없음)
 - `/login` → `ts_login.jsp`
 - `/parking/map` → `parkingmap.jsp`
@@ -26,8 +30,9 @@ mvn -DskipTests -Dspring-boot.repackage.skip=true clean package
 - `/parking/on` → `onparking.jsp`
 - `/parking/off` → `offparking.jsp`
 - `/parking/build` → `buildparking.jsp`
-  
+
 ## 프로젝트 구조
+
 ```
 psim-web/
 ├── src/main/
@@ -127,9 +132,11 @@ psim-web/
 ├── .gitignore                              # Git 제외 파일 목록
 └── README.md                                # 프로젝트 문서
 ```
+
 ## 주요 라이브러리 및 기술 스택
 
 ### 프레임워크 및 라이브러리
+
 - **Spring Boot 2.7.x**: 애플리케이션 프레임워크
 - **Spring MVC**: 웹 MVC 프레임워크
 - **MyBatis**: SQL 매핑 프레임워크 (iBATIS 스타일)
@@ -137,25 +144,30 @@ psim-web/
 - **Logback**: 로깅 프레임워크 (SLF4J 구현체)
 
 ### 데이터베이스 및 연결
+
 - **PostgreSQL**: 메인 데이터베이스
 - **HikariCP**: 커넥션 풀 (Spring Boot 기본)
 - **JNDI**: WildFly 데이터소스 연동 (`java:/jdbc/pism`)
 
 ### 웹 기술
+
 - **JSP**: 뷰 템플릿 엔진
 - **JSTL**: JSP 표준 태그 라이브러리
 - **Bootstrap/CSS3**: 프론트엔드 스타일링
 - **JavaScript**: 클라이언트 사이드 스크립팅
 
 ### 애플리케이션 서버
+
 - **WildFly 10**: Java EE 애플리케이션 서버
 - **Java 8**: 런타임 환경
 
 ### 빌드 및 패키지 관리
+
 - **Apache Maven**: 프로젝트 빌드 및 의존성 관리
 - **WAR 패키징**: WildFly 배포를 위한 웹 아카이브
 
 ## 패키지 구조 설명
+
 - **config/**: Spring 설정 클래스들 (웹, DB, MyBatis, 인터셉터)
 - **cmm/**: 공통 모듈 (Common) - 로그인, 코드 관리 등
 - **prk/**: 주차 관련 비즈니스 로직

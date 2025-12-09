@@ -6,18 +6,21 @@ public interface IndexService {
 
     /**
      * 주차장 현황 조회
+     *
      * @return Map<String, Object>
      */
     Map<String, Object> getParkingStatus();
 
     /**
      * 주차상의용 현황 조회
+     *
      * @return Map<String, Object>
      */
     Map<String, Object> getUsageStatus();
 
     /**
      * [Dashboard] 주차장 현황 조회
+     *
      * @param params
      * @return Map<String, Object>
      */
@@ -25,6 +28,7 @@ public interface IndexService {
 
     /**
      * [Dashboard] 주차장 이용실태 현황 조회
+     *
      * @param params
      * @return Map<String, Object>
      */

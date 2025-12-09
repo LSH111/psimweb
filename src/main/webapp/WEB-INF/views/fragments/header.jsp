@@ -4,7 +4,7 @@
 <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/grid.css"/>
 <script>
     // 전역 컨텍스트 경로 노출
-    (function() {
+    (function () {
         const serverCtx = ('${pageContext.request.contextPath}' || '').replace(/\/$/, '');
         const locMatch = window.location.pathname.match(/^\/[^/]+/);
         const locCtx = locMatch ? locMatch[0] : '';
@@ -21,53 +21,124 @@
 <script src="${pageContext.request.contextPath}/static/js/common/upload-util.js" defer></script>
 <style>
     /* GNB two-level menu */
-    nav .gnb { list-style:none; margin:0; padding:0; display:flex; gap: 20px; }
-    nav .gnb > li { position:relative; }
-    nav .gnb > li > a { display:inline-block; padding:8px 6px; font-weight:600; color:#111; text-decoration:none; }
-    nav .gnb .sub { list-style:none; margin:0; padding:8px 0; position:absolute; top:100%; left:0; min-width:160px; border:1px solid #e2e8f0; background:#fff; border-radius:6px; box-shadow:0 6px 18px rgba(0,0,0,.06); display:none; z-index:150; }
-    nav .gnb .sub > li > a { display:block; padding:8px 12px; color:#111; text-decoration:none; white-space:nowrap; }
-    nav .gnb .sub > li > a:hover { background:#f5f7fb; }
-    nav .gnb > li:hover > .sub, nav .gnb > li:focus-within > .sub { display:block; }
+    nav .gnb {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        gap: 20px;
+    }
+
+    nav .gnb > li {
+        position: relative;
+    }
+
+    nav .gnb > li > a {
+        display: inline-block;
+        padding: 8px 6px;
+        font-weight: 600;
+        color: #111;
+        text-decoration: none;
+    }
+
+    nav .gnb .sub {
+        list-style: none;
+        margin: 0;
+        padding: 8px 0;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        min-width: 160px;
+        border: 1px solid #e2e8f0;
+        background: #fff;
+        border-radius: 6px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, .06);
+        display: none;
+        z-index: 150;
+    }
+
+    nav .gnb .sub > li > a {
+        display: block;
+        padding: 8px 12px;
+        color: #111;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    nav .gnb .sub > li > a:hover {
+        background: #f5f7fb;
+    }
+
+    nav .gnb > li:hover > .sub, nav .gnb > li:focus-within > .sub {
+        display: block;
+    }
+
     /* accessibility */
-    nav .gnb > li > a:focus { outline:2px solid #2563eb; outline-offset:2px; }
+    nav .gnb > li > a:focus {
+        outline: 2px solid #2563eb;
+        outline-offset: 2px;
+    }
 
     /* ---- Light theme: all-white surfaces ---- */
-    html, body { background:#fff; color:#111; }
+    html, body {
+        background: #fff;
+        color: #111;
+    }
 
     /* 헤더를 최상위 레이어로 고정 */
     .site-header {
-        background:#fff;
+        background: #fff;
         position: relative;
         z-index: 200 !important;
         padding: 12px 20px;
         display: flex;
         align-items: center;
         gap: 30px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
 
     .site-header h1 {
-        color:#111 !important;
+        color: #111 !important;
         margin: 0;
         font-size: 1.5rem;
     }
+
     .site-header nav {
         flex: 1;
     }
 
     /* Top-level menu */
-    nav .gnb > li > a { color:#111 !important; }
-    nav .gnb > li > a:hover, nav .gnb > li > a:focus { color:#2563eb; }
+    nav .gnb > li > a {
+        color: #111 !important;
+    }
+
+    nav .gnb > li > a:hover, nav .gnb > li > a:focus {
+        color: #2563eb;
+    }
 
     /* Dropdown */
-    nav .gnb .sub { background:#fff; border-color:#e2e8f0; }
-    nav .gnb .sub > li > a { color:#111; }
-    nav .gnb .sub > li > a:hover { background:#f1f5f9; }
+    nav .gnb .sub {
+        background: #fff;
+        border-color: #e2e8f0;
+    }
+
+    nav .gnb .sub > li > a {
+        color: #111;
+    }
+
+    nav .gnb .sub > li > a:hover {
+        background: #f1f5f9;
+    }
 
     /* ===== Responsive tweaks ===== */
     @media (max-width: 1024px) {
-        .wrap { padding: 0 16px; }
-        nav .gnb { gap: 14px; }
+        .wrap {
+            padding: 0 16px;
+        }
+
+        nav .gnb {
+            gap: 14px;
+        }
     }
 
     /* 🔥 667px 이하 - 메뉴 항상 표시 */
@@ -76,18 +147,22 @@
             padding: 8px 12px;
             gap: 16px;
         }
+
         .site-header h1 {
             font-size: 1.1rem !important;
         }
+
         nav .gnb {
             display: flex !important;
             flex-direction: row !important;
             gap: 8px !important;
         }
+
         nav .gnb > li > a {
             padding: 5px 8px !important;
             font-size: 13px !important;
         }
+
         /* 드롭다운이 화면 밖으로 나가지 않도록 */
         nav .gnb .sub {
             left: auto;
@@ -101,13 +176,16 @@
             padding: 10px 16px;
             gap: 20px;
         }
+
         .site-header h1 {
             font-size: 1.3rem !important;
         }
+
         nav .gnb {
             display: flex !important;
             gap: 12px !important;
         }
+
         nav .gnb > li > a {
             padding: 6px 10px !important;
             font-size: 14px !important;
@@ -118,9 +196,11 @@
     .session-actions {
         margin-left: auto;
     }
+
     .logout-form {
         margin: 0;
     }
+
     .logout-btn {
         padding: 8px 12px;
         border: 1px solid #e2e8f0;
@@ -131,6 +211,7 @@
         cursor: pointer;
         transition: all 0.15s ease;
     }
+
     .logout-btn:hover,
     .logout-btn:focus {
         background: #e2e8f0;

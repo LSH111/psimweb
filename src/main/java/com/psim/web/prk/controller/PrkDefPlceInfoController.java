@@ -561,6 +561,9 @@ public class PrkDefPlceInfoController {
                 log.info("✅ 사용자정보 설정 완료 - userId: {}, IP: {}", userId, clientIp);
             }
 
+            // 신규 생성 시 parkingData 에만 세팅되므로 지역 변수도 최신 관리번호로 맞춰준다.
+            prkPlceManageNo = parkingData.getPrkPlceManageNo();
+
             // 🔥 핵심: DB 저장을 한 번에 처리하고 즉시 SN 확보
             Integer prkPlceInfoSn = parkingData.getPrkPlceInfoSn();
 
@@ -812,6 +815,8 @@ public class PrkDefPlceInfoController {
                 log.info("🔄 부설주차장 수정 시작 - 관리번호: {}", prkPlceManageNo);
                 log.info("✅ 사용자정보 설정 완료 - userId: {}, IP: {}", userId, clientIp);
             }
+
+            prkPlceManageNo = parkingData.getPrkPlceManageNo();
 
             // 🔥 핵심: DB 저장을 한 번에 처리하고 prkPlceInfoSn 확보
             Integer prkPlceInfoSn = parkingData.getPrkPlceInfoSn();

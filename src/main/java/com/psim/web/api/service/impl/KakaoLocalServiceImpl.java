@@ -12,21 +12,18 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.Collections;
 import java.util.Optional;
 
 @Slf4j
 @Service
 public class KakaoLocalServiceImpl implements KakaoLocalService {
 
-    @Value("${kakao.api.key:}")
-    private String kakaoApiKey;
-
     private static final String COORD_TO_ADDRESS_URL = "https://dapi.kakao.com/v2/local/geo/coord2address.json";
     private static final String ADDRESS_TO_COORD_URL = "https://dapi.kakao.com/v2/local/search/address.json";
     private static final String COORD_TO_REGION_URL = "https://dapi.kakao.com/v2/local/geo/coord2regioncode.json";
-
     private final RestTemplate restTemplate;
+    @Value("${kakao.api.key:}")
+    private String kakaoApiKey;
 
     public KakaoLocalServiceImpl(RestTemplate kakaoRestTemplate) {
         this.restTemplate = kakaoRestTemplate;
