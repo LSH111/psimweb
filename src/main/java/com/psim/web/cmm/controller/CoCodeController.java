@@ -214,10 +214,6 @@ public class CoCodeController {
 
                 result.put("success", true);
                 result.put("groups", groupsData);
-
-                // 조회 성공 시 결과 캐싱
-                this.cachedDynamicGroups = result;
-
                 System.out.println("=== 동적 코드 그룹 목록 조회 완료, 그룹 수: " + groupsData.size() + " ===");
             } else {
                 result.put("success", false);

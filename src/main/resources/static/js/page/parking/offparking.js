@@ -36,6 +36,16 @@ function num(v) {
     return Number.isFinite(n) && n >= 0 ? n : 0;
 }
 
+//추가: 민간위탁/민간직영 유형을 코드/명으로 판별
+function resolvePrivateOwnType(codeCd, codeNm) {
+    const cd = (codeCd || '').trim();
+    const nm = (codeNm || '').trim();
+    if (!cd && !nm) return null;
+    if (cd === '04' || nm.includes('민간위탁')) return 'trust';
+    if (cd === '05' || nm.includes('민간직영') || nm.includes('민간지역')) return 'direct';
+    return null;
+}
+
 const p = params();
 const serverStatusValue = (document.body?.dataset?.status || document.getElementById('statusCode')?.value || '').trim();
 
@@ -156,6 +166,38 @@ function parseCurrency(value) {
     const cleaned = value.toString().replace(/,/g, '').trim();
     const parsed = parseInt(cleaned, 10);
     return (isNaN(parsed) || parsed <= 0) ? null : parsed;
+}
+
+// NOTE: 첨두시간(시 단위 입력)을 HH00 포맷으로 변환해 DB 필드에 맞춘다.
+//       시간은 0~23시까지만 인정(2400과 같은 값 방지).
+function formatPeakTime(hour) {
+    if (hour === undefined || hour === null) return null;
+    const str = hour.toString().trim();
+    if (!str) return null;
+    const parsed = parseInt(str, 10);
+    if (Number.isNaN(parsed)) return null;
+    const safeHour = Math.min(Math.max(parsed, 0), 23);
+    return String(safeHour).padStart(2, '0') + '00';
+}
+
+// NOTE: DB에서 내려온 첨두시간(HH00 또는 숫자)을 시간(HH) 정수로 변환
+function extractPeakHour(value) {
+    if (value === undefined || value === null) return null;
+    const str = value.toString().padStart(4, '0');
+    const hourStr = str.substring(0, 2);
+    const parsed = parseInt(hourStr, 10);
+    return Number.isNaN(parsed) ? null : parsed;
+}
+
+// NOTE: 주차장구분(01/02/03) 코드 포맷을 일관되게 맞춘다.
+function normalizeParkingTypeCode(value) {
+    if (value === undefined || value === null) return '';
+    const str = value.toString().trim();
+    if (!str) return '';
+    if (/^\d+$/.test(str)) {
+        return str.padStart(2, '0');
+    }
+    return str;
 }
 
 // 🔥 input 요소에 실시간 통화 포맷팅 적용
@@ -582,21 +624,27 @@ const CodeLoader = {
             setTimeout(() => {
                 const ownRadios = $$('input[name="own"]');
                 const ownWrap = $('#own_company_wrap');
-                const ownCompany = $('#f_own_company');
+                //추가: 민간위탁/민간직영 전용 필드 캐시
+                const trustWrap = $('#own_trust_company');
+                const directWrap = $('#own_direct_company');
                 const syncCompanyInput = () => {
                     const checked = ownRadios.find(r => r.checked);
                     const codeCd = (checked?.value || '').trim();
                     const codeNm = checked?.dataset.codeName || '';
-                    const isPrivate = checked && (codeCd === '04' || codeCd === '05' || codeNm.includes('민간') || codeCd.includes('민간'));
-                    if (ownWrap) ownWrap.hidden = !isPrivate;
+                    const privateType = resolvePrivateOwnType(codeCd, codeNm);
+                    if (!ownWrap) return;
+                    if (!privateType) {
+                        ownWrap.hidden = true;
+                        if (trustWrap) trustWrap.hidden = true;
+                        if (directWrap) directWrap.hidden = true;
+                        return;
+                    }
+                    ownWrap.hidden = false;
+                    if (trustWrap) trustWrap.hidden = privateType !== 'trust';
+                    if (directWrap) directWrap.hidden = privateType !== 'direct';
                 };
                 ownRadios.forEach(r => {
-                    r.addEventListener('change', () => {
-                        const codeNm = r.dataset.codeName || '';
-                        const codeCd = (r.value || '').trim();
-                        const isPrivate = r.checked && (codeCd === '04' || codeCd === '05' || codeNm.includes('민간') || codeCd.includes('민간'));
-                        if (ownWrap) ownWrap.hidden = !isPrivate;
-                    });
+                    r.addEventListener('change', syncCompanyInput);
                 });
                 syncCompanyInput();
             }, 100);
@@ -2402,6 +2450,10 @@ async function populateFormWithData(data) {
     }
     if (f_addrJ) f_addrJ.value = data.dtadd || '';
     if (f_addrR) f_addrR.value = data.dtadd || '';
+    const f_mainNum = $('#f_mainNum');
+    if (f_mainNum) f_mainNum.value = data.lnmMnno || '';
+    const f_subNum = $('#f_subNum');
+    if (f_subNum) f_subNum.value = data.lnmSbno || '';
     if (f_lat) f_lat.value = data.prkPlceLat || '';
     if (f_lng) f_lng.value = data.prkPlceLon || '';
     // 🔥 우편번호 바인딩
@@ -2430,19 +2482,37 @@ async function populateFormWithData(data) {
     }
 
     // 운영 정보
+    // NOTE: prkplceSe 코드로 주차장구분 라디오를 재설정
+    const initialParkingType = normalizeParkingTypeCode(data.prkplceSe || data.parkingType);
+    if (initialParkingType) {
+        const parkingTypeRadio = document.querySelector(`input[name="parkingType"][value="${initialParkingType}"]`);
+        if (parkingTypeRadio) {
+            parkingTypeRadio.checked = true;
+            parkingTypeRadio.dispatchEvent(new Event('change'));
+        } else if (data.prkplceSe) {
+            // NOTE: 혹시 값이 '2'처럼 들어온 경우 대비
+            const fallbackRadio = document.querySelector(`input[name="parkingType"][value="${data.prkplceSe}"]`);
+            if (fallbackRadio) {
+                fallbackRadio.checked = true;
+                fallbackRadio.dispatchEvent(new Event('change'));
+            }
+        }
+    }
+    //추가: 유형별 업체명 입력값 바인딩
+    const trustCompanyInput = $('#f_own_trust_company');
+    const directCompanyInput = $('#f_own_direct_company');
+    const fallbackCompany = data.compNm || '';
+    if (trustCompanyInput) {
+        trustCompanyInput.value = data.trutCompNm || (data.operMbyCd === '04' ? fallbackCompany : '');
+    }
+    if (directCompanyInput) {
+        directCompanyInput.value = data.dirtCompNm || (data.operMbyCd === '05' ? fallbackCompany : '');
+    }
     if (data.operMbyCd) {
         const ownRadio = document.querySelector(`input[name="own"][value="${data.operMbyCd}"]`);
         if (ownRadio) {
             ownRadio.checked = true;
             ownRadio.dispatchEvent(new Event('change'));
-        }
-        if (data.operMbyCd === '04' || data.operMbyCd === '05') {
-            const ownWrap = $('#own_company_wrap');
-            const ownCompany = $('#f_own_company');
-            if (ownWrap) ownWrap.hidden = false;
-            if (ownCompany) {
-                ownCompany.value = data.compNm || data.trutCompNm || data.dirtCompNm || '';
-            }
         }
     }
 
@@ -2622,25 +2692,25 @@ async function populateFormWithData(data) {
 
     // 🔥 주차 첨두 시간대 바인딩
 
-    if ($('#f_peak_day_start') && data.wkPeakStrTm) {
-        const startHour = data.wkPeakStrTm.substring(0, 2);
-        $('#f_peak_day_start').value = parseInt(startHour, 10);
+    if ($('#f_peak_day_start')) {
+        const startHour = extractPeakHour(data.wkPeakStrTm);
+        if (startHour !== null) $('#f_peak_day_start').value = startHour;
     }
-    if ($('#f_peak_day_end') && data.wkPeakEndTm) {
-        const endHour = data.wkPeakEndTm.substring(0, 2);
-        $('#f_peak_day_end').value = parseInt(endHour, 10);
+    if ($('#f_peak_day_end')) {
+        const endHour = extractPeakHour(data.wkPeakEndTm);
+        if (endHour !== null) $('#f_peak_day_end').value = endHour;
     }
     if ($('#f_peak_day_count')) {
         $('#f_peak_day_count').value = data.wkPrkVehCnt || '';
     }
 
-    if ($('#f_peak_night_start') && data.ntPeakStrTm) {
-        const startHour = data.ntPeakStrTm.substring(0, 2);
-        $('#f_peak_night_start').value = parseInt(startHour, 10);
+    if ($('#f_peak_night_start')) {
+        const startHour = extractPeakHour(data.ntPeakStrTm);
+        if (startHour !== null) $('#f_peak_night_start').value = startHour;
     }
-    if ($('#f_peak_night_end') && data.ntPeakEndTm) {
-        const endHour = data.ntPeakEndTm.substring(0, 2);
-        $('#f_peak_night_end').value = parseInt(endHour, 10);
+    if ($('#f_peak_night_end')) {
+        const endHour = extractPeakHour(data.ntPeakEndTm);
+        if (endHour !== null) $('#f_peak_night_end').value = endHour;
     }
     if ($('#f_peak_night_count')) {
         $('#f_peak_night_count').value = data.ntPrkVehCnt || '';
@@ -2894,15 +2964,21 @@ function buildPayload() {
 
     const isDayChecked = $('#chk_day')?.checked || false;
     const isNightChecked = $('#chk_night')?.checked || false;
+    const rawParkingType = document.querySelector('input[name="parkingType"]:checked')?.value || '';
+    const selectedParkingType = normalizeParkingTypeCode(rawParkingType);
 
     const payload = {
         id: f_id?.value,
         name: f_name?.value,
         status: f_status?.value,
         type: '노외',
+        // NOTE: 주차장구분 라디오 값도 저장에 포함 (prkplceSe에 매핑)
+        parkingType: selectedParkingType,
         operationType: selectedOp,
         ldongCd: generateLdongCd(),
-        companyName: $('#f_own_company')?.value?.trim() || '',
+        //추가: 민간위탁/민간직영 입력값 동시 전달
+        trustCompanyName: $('#f_own_trust_company')?.value?.trim() || '',
+        directCompanyName: $('#f_own_direct_company')?.value?.trim() || '',
         times: {
             day: isDayChecked,
             night: isNightChecked
@@ -2945,6 +3021,21 @@ function validateRequiredFields() {
     if (!ownRadio) {
         errors.push('- 운영주체를 선택해주세요');
     } else {
+        //추가: 민간위탁/민간직영 각각 필수값 확인
+        const codeCd = ownRadio.value || '';
+        const codeNm = ownRadio.dataset?.codeName || '';
+        const privateType = resolvePrivateOwnType(codeCd, codeNm);
+        if (privateType === 'trust') {
+            const trustValue = $('#f_own_trust_company')?.value?.trim();
+            if (!trustValue) {
+                errors.push('• 민간위탁 업체명을 입력해주세요.');
+            }
+        } else if (privateType === 'direct') {
+            const directValue = $('#f_own_direct_company')?.value?.trim();
+            if (!directValue) {
+                errors.push('• 민간직영 업체명을 입력해주세요.');
+            }
+        }
     }
 
     // 행정구역 코드
@@ -2975,16 +3066,21 @@ function mapPayloadToServerFormat(payload) {
     const f_sigungu = document.getElementById('f_sigungu');
     const f_emd = document.getElementById('f_emd');
 
+    const normalizedPlceType = normalizeParkingTypeCode(payload.prkPlceType || '02');
+    const normalizedPrkplceSe = normalizeParkingTypeCode(payload.parkingType || '02');
+
     const serverData = {
         prkBizMngNo: loadedBizMngNo,
         prkPlceInfoSn: loadedPrkPlceInfoSn,
         prkPlceManageNo: payload.id,
         prkplceNm: payload.name,
         prgsStsCd: payload.status,
-        prkPlceType: payload.prkPlceType || payload.type || '2', // 노외주차장 구분 코드
-        prkplceSe: '2',
-        trutCompNm: null,
-        dirtCompNm: null,
+        prkPlceType: normalizedPlceType || '02', // 노외주차장 구분 코드
+        // NOTE: 화면에서 선택한 prkplceSe(주차장구분 코드) 전달
+        prkplceSe: normalizedPrkplceSe || '02',
+        // NOTE: 민간위탁/직영 업체명은 값이 있으면 그대로 trut_comp_nm/dirt_comp_nm에 저장한다.
+        trutCompNm: payload.trustCompanyName || null,
+        dirtCompNm: payload.directCompanyName || null,
         sidoCd: f_sido?.value || null,
         sigunguCd: f_sigungu?.value || null,
         emdCd: f_emd?.value || null,
@@ -3030,14 +3126,17 @@ function mapPayloadToServerFormat(payload) {
             payload.times.day ? '01' : '02',
 
         // 운영방식
-        prkOperMthdCd: payload.operationType
+        prkOperMthdCd: payload.operationType,
+
+        // NOTE: 첨두시간대 (주간/야간) 필드도 함께 서버로 전달
+        wkPeakStrTm: formatPeakTime($('#f_peak_day_start')?.value),
+        wkPeakEndTm: formatPeakTime($('#f_peak_day_end')?.value),
+        wkPrkVehCnt: num($('#f_peak_day_count')?.value),
+        ntPeakStrTm: formatPeakTime($('#f_peak_night_start')?.value),
+        ntPeakEndTm: formatPeakTime($('#f_peak_night_end')?.value),
+        ntPrkVehCnt: num($('#f_peak_night_count')?.value)
     };
-    if (serverData.operMbyCd === '04') {
-        serverData.trutCompNm = payload.companyName || null;
-    } else if (serverData.operMbyCd === '05') {
-        serverData.dirtCompNm = payload.companyName || null;
-    }
-    console.log('serverData ::::', serverData);
+    // NOTE: 상단 serverData에 바로 매핑했으므로 여기선 추가 처리 없음.
     // 주간 데이터
     if (payload.times.day && payload.day) {
         serverData.wkZon = $('#f_day_grade')?.value;
@@ -3494,9 +3593,12 @@ async function doSave() {
     if (ownRadio) {
         const codeCd = (ownRadio.value || '').trim();
         const codeNm = ownRadio.dataset.codeName || '';
-        const isPrivate = codeCd === '04' || codeCd === '05';
-        if (isPrivate) {
-            isValid = FormValidator.check('#f_own_company', '위탁 업체명을 입력해주세요') && isValid;
+        //추가: 유형별 업체명 필수 검증
+        const privateType = resolvePrivateOwnType(codeCd, codeNm);
+        if (privateType === 'trust') {
+            isValid = FormValidator.check('#f_own_trust_company', '민간위탁 업체명을 입력해주세요') && isValid;
+        } else if (privateType === 'direct') {
+            isValid = FormValidator.check('#f_own_direct_company', '민간직영 업체명을 입력해주세요') && isValid;
         }
     }
 

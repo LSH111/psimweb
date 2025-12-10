@@ -216,9 +216,13 @@
                       , topi.compact_prk_cnt                             as compactPrkCnt
                       , topi.eco_prk_cnt                                 as ecoPrkCnt
                       , topi.pregnant_prk_cnt                            as pregnantPrkCnt
+                      , topi.prkplce_se                                  as prkplceSe        -- NOTE: 주차장구분 코드
                       , topi.prk_oper_mthd_cd                            as prkOperMthdCd
                       , topi.oper_mby_cd                                 as operMbyCd
-                      , topi.trut_comp_nm                                as trutCompNm
+                      , topi.trut_comp_nm                                as trutCompNm        -- NOTE: 민간위탁 업체명
+                      , topi.dirt_comp_nm                                as dirtCompNm        -- NOTE: 민간직영 업체명
+                      , topi.trut_comp_nm                                as trutCompNm        -- NOTE: 민간위탁 업체명
+                      , topi.dirt_comp_nm                                as dirtCompNm        -- NOTE: 민간직영 업체명
                       , topi.mgr_org                                     as mgrOrg
                       , topi.mgr_org_tel_no                              as mgrOrgTelNo
                       , topi.subordn_opertn_cd                           as subordnOpertnCd
@@ -314,7 +318,7 @@
             lnm_sbno       = #{lnmSbno},
             mntn_yn        = #{mntnYn},
             li_cd          = #{liCd},
-            roadadd        = #{roadaddr},
+            roadadd        = #{rnmadr},
             updt_dt        = NOW(),
             updusr_id      = #{updusrId},
             updusr_ip_addr = #{updusrIpAddr}
@@ -437,7 +441,10 @@
                       , tcl.sigungu_nm                                   as sigunguNm
                       , tcl.emd_cd                                       as emdCd
                       , tcl.lgal_emd_nm                                  as lgalEmdNm
+                      , tpdpi.lnm_mnno                                   as lnmMnno         -- NOTE: 본번
+                      , tpdpi.lnm_sbno                                   as lnmSbno         -- NOTE: 부번
                       , tpdpi.dtadd                                      as dtadd
+                      , tpdpi.roadadd                                    as rnmadr
                       , tpdpi.prk_plce_lat                               as prkPlceLat
                       , tpdpi.prk_plce_lon                               as prkPlceLon
                       , topi.tot_prk_cnt                                 as totPrkCnt
@@ -522,11 +529,8 @@
                       , topoi.nt_fee_hfyr_pass_prc                       as ntFeeHfyrPassPrc
                       , topoi.wk_fee_pay_mthd_othr                       as wkFeePayMthdOthr
                       , topoi.nt_fee_pay_mthd_othr                       as ntFeePayMthdOthr
-                      , case topi.oper_mby_cd
-                            when '04' then topi.trut_comp_nm
-                            when '05' then topi.dirt_comp_nm
-                            else null
-            end                                                          as compNm
+                      , topi.trut_comp_nm                                as trutCompNm
+                      , topi.dirt_comp_nm                                as dirtCompNm
         FROM cpk.tb_prk_def_plce_info tpdpi
                  INNER JOIN cpk.tb_offstr_prklot_info topi
                             ON tpdpi.prk_plce_manage_no = topi.prk_plce_manage_no
@@ -560,6 +564,8 @@
           , mgr_org           = #{mgrOrg}
           , mgr_org_tel_no    = #{mgrOrgTelNo}
           , subordn_opertn_cd = #{subordnOpertnCd}
+          , trut_comp_nm      = #{trutCompNm}
+          , dirt_comp_nm      = #{dirtCompNm}
           , updt_dt           = NOW()
           , updusr_id         = #{updusrId}
           , updusr_ip_addr    = #{updusrIpAddr}
@@ -670,6 +676,7 @@
                       , tcl.emd_cd                                       as emdCd
                       , tcl.lgal_emd_nm                                  as lgalEmdNm
                       , tpdpi.dtadd                                      as dtadd
+                      , tpdpi.roadadd                                    as rnmadr
                       , tpdpi.bdnbr                                      as bdnbr
                       , tpdpi.zip                                        as zip
                       , tpdpi.prk_plce_lat                               as prkPlceLat
@@ -874,6 +881,8 @@
                                                mgr_org,
                                                mgr_org_tel_no,
                                                subordn_opertn_cd,
+                                               trut_comp_nm,
+                                               dirt_comp_nm,
                                                reg_dt,
                                                rgst_id,
                                                rgst_ip_addr,
@@ -893,6 +902,8 @@
                 #{mgrOrg},
                 #{mgrOrgTelNo},
                 #{subordnOpertnCd},
+                #{trutCompNm},
+                #{dirtCompNm},
                 NOW(),
                 #{updusrId},
                 #{updusrIpAddr},
@@ -1434,6 +1445,7 @@
                                                 prk_plce_manage_no,
                                                 prk_plce_info_sn,
                                                 prgs_sts_cd,
+                                                srvy_id,
                                                 reg_dt,
                                                 rgst_id,
                                                 rgst_ip_addr,
@@ -1445,6 +1457,7 @@
                 #{prkPlceManageNo},
                 #{prkPlceInfoSn},
                 '10',
+                #{updusrId},
                 NOW(),
                 #{updusrId},
                 #{updusrIpAddr},

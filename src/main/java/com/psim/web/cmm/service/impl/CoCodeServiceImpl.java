@@ -71,4 +71,5 @@ public class CoCodeServiceImpl implements CoCodeService {
     public Map<String, String> getCodeGroupsAggregated() {
         return coCodeMapper.selectCodeGroupsAggregated();
     }
+
 }

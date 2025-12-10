@@ -301,8 +301,15 @@
                 </div>
             </div>
             <div id="own_company_wrap" hidden>
-                <label for="f_own_company">민간위탁 업체명</label>
-                <div class="ctl"><input id="f_own_company" type="text" placeholder="예) ㈜○○파킹"/></div>
+                <!-- //추가: 민간위탁/민간직영 업체명 분리 -->
+                <div id="own_trust_company" class="private-company-field" hidden>
+                    <label for="f_own_trust_company">민간위탁 업체명</label>
+                    <div class="ctl"><input id="f_own_trust_company" type="text" placeholder="예) ㈜○○파킹"/></div>
+                </div>
+                <div id="own_direct_company" class="private-company-field" hidden>
+                    <label for="f_own_direct_company">민간직영 업체명</label>
+                    <div class="ctl"><input id="f_own_direct_company" type="text" placeholder="예) ㈜○○주차관리"/></div>
+                </div>
             </div>
 
             <!-- 관리기관 -->

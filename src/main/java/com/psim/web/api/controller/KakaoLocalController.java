@@ -33,7 +33,7 @@ public class KakaoLocalController {
             @RequestParam String latitude) {
 
         Map<String, Object> result = new HashMap<>();
-
+        System.out.println("coord2Address called with longitude: " + longitude + ", latitude: " + latitude);
         try {
             GeoAddress address = geocodingClient.reverseGeocode(longitude, latitude)
                     .orElse(null);
@@ -46,6 +46,7 @@ public class KakaoLocalController {
 
             result.put("success", true);
             result.put("data", address);
+            System.out.println("주소 ::::>>>> " + address);
             result.put("jibunAddress", address.getJibunAddress());
             result.put("roadAddress", address.getRoadAddress());
             result.put("zoneNo", address.getZoneNo());

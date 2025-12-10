@@ -110,6 +110,43 @@
             margin-bottom: 10px !important;
         }
 
+        .radius-select-group {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 8px !important;
+            margin: 12px 0 !important;
+        }
+
+        .radius-label {
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            color: #475569 !important;
+        }
+
+        .radius-options {
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 8px !important;
+        }
+
+        .radius-option {
+            padding: 8px 10px !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 6px !important;
+            font-size: 12px !important;
+            background: #f8fafc !important;
+            color: #475569 !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .radius-option.active {
+            border-color: #2563eb !important;
+            background: #2563eb !important;
+            color: white !important;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3) !important;
+        }
+
         .search-input {
             width: 100% !important;
             padding: 10px 12px !important;
@@ -455,6 +492,15 @@
                     </select>
                     <input id="searchParkingName" class="search-input" type="text" placeholder="주차장명 (선택)"/>
                 </div>
+                <div class="radius-select-group">
+                    <div class="radius-label">반경 범위</div>
+                    <div class="radius-options">
+                        <button type="button" class="radius-option" data-radius="none">반경 없음</button>
+                        <button type="button" class="radius-option active" data-radius="500">500m</button>
+                        <button type="button" class="radius-option" data-radius="1000">1km</button>
+                        <button type="button" class="radius-option" data-radius="1500">1.5km</button>
+                    </div>
+                </div>
                 <button id="regionSearchBtn" class="search-btn">주차장 검색</button>
                 <div id="searchResult" style="display:none;"></div>
             </div>
@@ -489,7 +535,7 @@
     let watchId = null;
     let parkingMarkers = [];
     let searchCircle = null;
-    const SEARCH_RADIUS_M = 500;
+    let searchRadiusMeters = 500;
     let lastSearchAllList = [];
 
     // 검색 패널 토글
@@ -520,6 +566,34 @@
         setTimeout(() => {
             resultEl.style.display = 'none';
         }, 5000);
+    }
+
+    function getRadiusLabel(radiusValue) {
+        if (!radiusValue) return '반경 제한 없음';
+        if (radiusValue >= 1000) {
+            const km = radiusValue / 1000;
+            return (Number.isInteger(km) ? km : km.toFixed(1)) + 'km';
+        }
+        return radiusValue + 'm';
+    }
+
+    function setupRadiusControls() {
+        const radiusButtons = document.querySelectorAll('.radius-option');
+        if (!radiusButtons || radiusButtons.length === 0) return;
+
+        radiusButtons.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                radiusButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const value = btn.dataset.radius;
+                searchRadiusMeters = (value === 'none') ? null : parseInt(value || '0', 10);
+
+                if (map) {
+                    updateRadiusSearch(map.getCenter());
+                }
+            });
+        });
     }
 
     // 시도 목록 로드 (항상 호출)
@@ -675,7 +749,7 @@
                     searchCondition += ' ' + sigunguText;
                 }
                 if (parkingName) {
-                    searchCondition += (searchCondition ? ' / ' : '') + `주차장명: ${parkingName}`;
+                    searchCondition += (searchCondition ? ' / ' : '') + '주차장명: ' + parkingName;
                 }
 
                 showSearchResult(searchCondition + ': 검색 결과 없음', true);
@@ -691,6 +765,7 @@
     // 반경 필터링
     function filterByRadius(center, parkings, radiusMeter) {
         if (!parkings || parkings.length === 0) return [];
+        if (!radiusMeter) return parkings;
 
         const line = new kakao.maps.Polyline(); // 거리 계산용
 
@@ -717,32 +792,46 @@
             return;
         }
 
-        if (!searchCircle) {
-            searchCircle = new kakao.maps.Circle({
-                center: center,
-                radius: SEARCH_RADIUS_M,
-                strokeWeight: 2,
-                strokeColor: '#2563eb',
-                strokeOpacity: 0.8,
-                strokeStyle: 'solid',
-                fillColor: '#2563eb',
-                fillOpacity: 0.1
-            });
-            searchCircle.setMap(map);
+        let filtered = lastSearchAllList;
+
+        if (!searchRadiusMeters) {
+            if (searchCircle) {
+                searchCircle.setMap(null);
+                searchCircle = null;
+            }
         } else {
-            searchCircle.setOptions({
-                center: center,
-                radius: SEARCH_RADIUS_M
-            });
-            searchCircle.setMap(map);
+            if (!searchCircle) {
+                searchCircle = new kakao.maps.Circle({
+                    center: center,
+                    radius: searchRadiusMeters,
+                    strokeWeight: 2,
+                    strokeColor: '#2563eb',
+                    strokeOpacity: 0.8,
+                    strokeStyle: 'solid',
+                    fillColor: '#2563eb',
+                    fillOpacity: 0.1
+                });
+                searchCircle.setMap(map);
+            } else {
+                searchCircle.setOptions({
+                    center: center,
+                    radius: searchRadiusMeters
+                });
+                searchCircle.setMap(map);
+            }
+
+            filtered = filterByRadius(center, lastSearchAllList, searchRadiusMeters);
         }
 
-        const filtered = filterByRadius(center, lastSearchAllList, SEARCH_RADIUS_M);
         displayParkingMarkers(filtered);
         displayParkingList(filtered);
 
         const cnt = filtered ? filtered.length : 0;
-        showMessage(`✅ 500m 내 ${cnt}개 주차장 표시`, 'success');
+        if (!searchRadiusMeters) {
+            showMessage('✅ 반경 제한 없음 - ' + cnt + '개 주차장 표시', 'success');
+        } else {
+            showMessage('✅ ' + getRadiusLabel(searchRadiusMeters) + ' 내 ' + cnt + '개 주차장 표시', 'success');
+        }
     }
 
     // 주차장 리스트 표시
@@ -1089,8 +1178,6 @@
 
         if (validParkings.length === 0) return;
 
-        const bounds = new kakao.maps.LatLngBounds();
-
         validParkings.forEach(parking => {
             const marker = createParkingMarker({
                 ...parking,
@@ -1100,16 +1187,74 @@
 
             marker.setMap(map);
             parkingMarkers.push(marker);
-
-            bounds.extend(new kakao.maps.LatLng(
-                parseFloat(parking.prkPlceLat),
-                parseFloat(parking.prkPlceLon)
-            ));
         });
+    }
 
-        if (validParkings.length > 0) {
-            map.setBounds(bounds);
+    function getGeoOptions(highAccuracy = true) {
+        return {
+            enableHighAccuracy: !!highAccuracy,
+            timeout: highAccuracy ? 10000 : 20000,
+            maximumAge: highAccuracy ? 0 : 60000
+        };
+    }
+
+    function showGeolocationError(error) {
+        let errorMsg = '위치를 확인할 수 없습니다';
+        switch (error.code) {
+            case error.PERMISSION_DENIED:
+                errorMsg = '❌ 위치 권한이 거부되었습니다';
+                break;
+            case error.POSITION_UNAVAILABLE:
+                errorMsg = '❌ 위치 정보를 사용할 수 없습니다';
+                break;
+            case error.TIMEOUT:
+                errorMsg = '❌ 위치 확인 시간이 초과되었습니다';
+                break;
         }
+
+        showMessage(errorMsg, 'error');
+    }
+
+    function requestSinglePosition(highAccuracy = true, hasRetried = false) {
+        if (!navigator.geolocation) return;
+
+        navigator.geolocation.getCurrentPosition(
+            updateLocation,
+            (error) => {
+                console.warn('⚠️ 현재 위치 확인 실패 (getCurrentPosition):', error);
+                if (highAccuracy && !hasRetried) {
+                    showMessage('⚠️ 고정밀 위치 확인 실패, 일반 정밀도로 재시도합니다', 'info');
+                    requestSinglePosition(false, true);
+                } else {
+                    showGeolocationError(error);
+                }
+            },
+            getGeoOptions(highAccuracy)
+        );
+    }
+
+    function startGeoWatch(highAccuracy = true) {
+        if (!navigator.geolocation) return;
+
+        if (watchId !== null) {
+            navigator.geolocation.clearWatch(watchId);
+            watchId = null;
+        }
+
+        watchId = navigator.geolocation.watchPosition(
+            updateLocation,
+            (error) => {
+                if (highAccuracy && error.code === error.POSITION_UNAVAILABLE) {
+                    console.warn('⚠️ 고정밀 위치 추적 실패, 일반 정밀도로 전환합니다:', error);
+                    showMessage('⚠️ 위치 신호가 약해 일반 정밀도로 전환합니다', 'info');
+                    startGeoWatch(false);
+                    return;
+                }
+                showGeolocationError(error);
+                stopLocationTracking();
+            },
+            getGeoOptions(highAccuracy)
+        );
     }
 
     // 위치 업데이트 처리
@@ -1134,6 +1279,14 @@
         }
         accuracyCircle.setPosition(newPosition);
         accuracyCircle.setRadius(Math.max(10, accuracy));
+
+        // 위치 추적 중일 때는 지도를 따라가게 하고 반경 검색도 갱신
+        if (watchId !== null) {
+            map.setCenter(newPosition);
+            if (lastSearchAllList && lastSearchAllList.length > 0) {
+                updateRadiusSearch(newPosition);
+            }
+        }
     }
 
     // 실시간 위치 추적 시작
@@ -1163,31 +1316,11 @@
         btn.style.color = 'white';
         showMessage('🔍 실시간 위치 추적 시작', 'info');
 
-        watchId = navigator.geolocation.watchPosition(
-            updateLocation,
-            (error) => {
-                let errorMsg = '위치를 확인할 수 없습니다';
-                switch (error.code) {
-                    case error.PERMISSION_DENIED:
-                        errorMsg = '❌ 위치 권한이 거부되었습니다';
-                        break;
-                    case error.POSITION_UNAVAILABLE:
-                        errorMsg = '❌ 위치 정보를 사용할 수 없습니다';
-                        break;
-                    case error.TIMEOUT:
-                        errorMsg = '❌ 위치 확인 시간이 초과되었습니다';
-                        break;
-                }
+        // 현재 위치 한 번 즉시 가져와서 지도 이동 (필요 시 저정밀 모드로 재시도)
+        requestSinglePosition(true);
 
-                showMessage(errorMsg, 'error');
-                stopLocationTracking();
-            },
-            {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
-            }
-        );
+        // 실시간 추적 시작
+        startGeoWatch(true);
     }
 
     // 위치 추적 중지
@@ -1441,6 +1574,7 @@
     // DOM 로드 후 실행
     window.addEventListener('DOMContentLoaded', function () {
         console.log('🚀 페이지 로드 완료');
+        setupRadiusControls();
 
         if (window.kakao && kakao.maps) {
             kakao.maps.load(initMap);

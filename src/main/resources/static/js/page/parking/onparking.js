@@ -2869,7 +2869,7 @@ async function convertCoordToRegion(longitude, latitude) {
     try {
         const response = await fetch(withBase(`/api/kakao/coord2region?longitude=${longitude}&latitude=${latitude}`));
         const result = await response.json();
-
+        debugger;
         if (result.success) {
             // 시도, 시군구, 읍면동 자동 입력
             if (result.sido) {
@@ -2893,22 +2893,24 @@ async function convertCoordToRegion(longitude, latitude) {
     }
 }
 
-// 🔥 좌표를 주소로 변환하는 함수 (우편번호 포함)
 async function convertCoordToAddress(longitude, latitude) {
     try {
         const response = await fetch(withBase(`/api/kakao/coord2address?longitude=${longitude}&latitude=${latitude}`));
         const result = await response.json();
+        debugger;
 
         if (result.success) {
             // 지번 주소
-            if (result.jibunAddress) {
-                document.getElementById('f_addr_jibun').value = result.jibunAddress;
-            }
+            //if (result.jibunAddress) {
+            //    document.getElementById('f_addr_jibun').value = result.jibunAddress;
+            //}
 
+            // onlyJibun이 false일 때만 다른 주소 정보 업데이트
+            //if (!onlyJibun) {
             // 도로명 주소
-            if (result.roadAddress) {
-                document.getElementById('f_addr_road').value = result.roadAddress;
-            }
+            //if (result.roadAddress) {
+            //    document.getElementById('f_addr_road').value = result.roadAddress;
+            //}
 
             // 🔥 우편번호 저장
             if (result.zoneNo) {
@@ -2918,16 +2920,11 @@ async function convertCoordToAddress(longitude, latitude) {
                 }
             }
 
-            // 시도, 시군구, 읍면동 추출
-            if (result.data && result.data.address) {
-                const addr = result.data.address;
-                document.getElementById('f_sido').value = addr.region_1depth_name || '';
-                document.getElementById('f_sigungu').value = addr.region_2depth_name || '';
-                document.getElementById('f_emd').value = addr.region_3depth_name || '';
-            }
 
             // 🔥 추가: 행정구역 정보도 함께 가져오기
-            await convertCoordToRegion(longitude, latitude);
+            //await convertCoordToRegion(longitude, latitude);
+            //}
+
             // 헤더 주소 업데이트
             updateHeaderAddr();
             return result;
@@ -2937,7 +2934,7 @@ async function convertCoordToAddress(longitude, latitude) {
         }
     } catch (error) {
         console.error('좌표->주소 변환 에러:', error);
-        alert('주소 변환 중 오류가 발생했습니다.');
+        //alert('주소 변환 중 오류가 발생했습니다.');
     }
 }
 
@@ -2952,10 +2949,10 @@ document.getElementById('btnUseGeolocation')?.addEventListener('click', async fu
                 document.getElementById('f_lat').value = lat;
                 document.getElementById('f_lng').value = lng;
 
-                // 좌표를 주소로 변환 (우편번호 포함)
-                await convertCoordToAddress(lng, lat);
+                // 좌표를 주소로 변환 (지번만 업데이트, 행정구역 유지)
+                //await convertCoordToAddress(lng, lat, true);
 
-                alert('현재 위치의 좌표, 주소, 우편번호, 행정구역 정보를 가져왔습니다.');
+                //alert('현재 위치의 좌표와 지번 주소를 가져왔습니다.');
             },
             function (error) {
                 console.error('위치 정보 가져오기 실패:', error);
