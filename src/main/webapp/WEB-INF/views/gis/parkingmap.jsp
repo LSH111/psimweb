@@ -531,7 +531,8 @@
     // 전역 변수
     let map = null;
     let myLocationMarker = null;
-    let accuracyCircle = null;
+    let realtimeCircle = null;
+    let isRealtimeTracking = false;
     let watchId = null;
     let parkingMarkers = [];
     let searchCircle = null;
@@ -939,14 +940,34 @@
         });
     }
 
-    // 정확도 원 생성
-    function createAccuracyCircle() {
+    // 실시간 반경 원 생성
+    function createRealtimeCircle() {
         return new kakao.maps.Circle({
             strokeWeight: 2,
             strokeColor: '#3b82f6',
             strokeOpacity: 0.8,
             fillColor: '#3b82f6',
             fillOpacity: 0.15
+        });
+    }
+
+    function updateRealtimeRadius(center, radiusMeter) {
+        if (!isRealtimeTracking || !center) {
+            if (realtimeCircle) {
+                realtimeCircle.setMap(null);
+                realtimeCircle = null;
+            }
+            return;
+        }
+
+        if (!realtimeCircle) {
+            realtimeCircle = createRealtimeCircle();
+            realtimeCircle.setMap(map);
+        }
+
+        realtimeCircle.setOptions({
+            center: center,
+            radius: Math.max(radiusMeter || 0, 10)
         });
     }
 
@@ -1273,15 +1294,10 @@
 
         myLocationMarker.setPosition(newPosition);
 
-        if (!accuracyCircle) {
-            accuracyCircle = createAccuracyCircle();
-            accuracyCircle.setMap(map);
-        }
-        accuracyCircle.setPosition(newPosition);
-        accuracyCircle.setRadius(Math.max(10, accuracy));
+        const realtimeRadius = Math.max(accuracy, 30);
+        updateRealtimeRadius(newPosition, realtimeRadius);
 
-        // 위치 추적 중일 때는 지도를 따라가게 하고 반경 검색도 갱신
-        if (watchId !== null) {
+        if (isRealtimeTracking) {
             map.setCenter(newPosition);
             if (lastSearchAllList && lastSearchAllList.length > 0) {
                 updateRadiusSearch(newPosition);
@@ -1315,6 +1331,7 @@
         btn.style.background = '#2563eb';
         btn.style.color = 'white';
         showMessage('🔍 실시간 위치 추적 시작', 'info');
+        isRealtimeTracking = true;
 
         // 현재 위치 한 번 즉시 가져와서 지도 이동 (필요 시 저정밀 모드로 재시도)
         requestSinglePosition(true);
@@ -1325,16 +1342,24 @@
 
     // 위치 추적 중지
     function stopLocationTracking() {
+        const wasTracking = isRealtimeTracking || watchId !== null;
         if (watchId !== null) {
             navigator.geolocation.clearWatch(watchId);
             watchId = null;
+        }
 
-            const btn = document.getElementById('btnCurrentLocation');
+        if (!wasTracking) return;
+
+        isRealtimeTracking = false;
+        updateRealtimeRadius(null, 0);
+
+        const btn = document.getElementById('btnCurrentLocation');
+        if (btn) {
             btn.style.background = 'white';
             btn.style.color = '#2563eb';
-
-            showMessage('⏸️ 위치 추적 중지', 'info');
         }
+
+        showMessage('⏸️ 위치 추적 중지', 'info');
     }
 
     // 지도 초기화
