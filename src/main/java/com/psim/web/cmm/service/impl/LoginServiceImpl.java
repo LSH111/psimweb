@@ -90,6 +90,11 @@ public class LoginServiceImpl implements LoginService {
         return loginMapper.selectUserBizList(srvyId);
     }
 
+    @Override
+    public List<String> selectUserBizListByManager(String managerId) {
+        return loginMapper.selectUserBizListByLcgMgr(managerId);
+    }
+
 
     // 인증번호생성
     private String generateVerificationCode() {

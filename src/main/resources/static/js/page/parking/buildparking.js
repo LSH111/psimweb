@@ -46,6 +46,23 @@ function parseDecimal(v) {
     return Number.isFinite(parsed) ? parsed : null;
 }
 
+function normalizeDateInput(value) {
+    if (!value) return '';
+    const str = value.toString().trim();
+    if (!str) return '';
+    if (/^\d{8}$/.test(str)) {
+        return `${str.slice(0, 4)}-${str.slice(4, 6)}-${str.slice(6)}`;
+    }
+    return str.length >= 10 ? str.slice(0, 10) : str;
+}
+
+function formatDateForDb(value) {
+    const normalized = normalizeDateInput(value);
+    if (!normalized) return null;
+    const digits = normalized.replace(/[^0-9]/g, '');
+    return digits.length === 8 ? digits : null;
+}
+
 const p = params();
 const serverStatusValue = (document.body?.dataset?.status || document.getElementById('statusCode')?.value || '').trim();
 
@@ -167,6 +184,8 @@ function parseCurrency(value) {
     const parsed = parseInt(cleaned, 10);
     return (isNaN(parsed) || parsed <= 0) ? null : parsed;
 }
+
+const PAY_METHOD_ETC_CODE = '04';
 
 // 🔥 input 요소에 실시간 통화 포맷팅 적용
 function applyCurrencyFormat(input) {
@@ -782,12 +801,7 @@ async function parseAndFillAddress(data) {
 
         // 8. 산 여부 판단
         const isMountain = data.jibunAddress && data.jibunAddress.includes('산');
-        const mountainRadios = document.querySelectorAll('input[name="mountainYn"]');
-        mountainRadios.forEach(radio => {
-            if (radio.value === (isMountain ? 'Y' : 'N')) {
-                radio.checked = true;
-            }
-        });
+        setMountainRadioByBoolean(!!isMountain);
 
         // 9. 본번/부번 파싱
         const jibunAddress = data.jibunAddress || '';
@@ -1383,10 +1397,111 @@ function setupTimeOperationEvents(dayType) {
     if (group && timeWrap) {
         group.addEventListener('change', function (e) {
             if (e.target.name === `${dayType}Operation`) {
-                timeWrap.style.display = e.target.value === '02' ? 'block' : 'none';
+                const formatted = formatOperationCode(e.target.value);
+                timeWrap.style.display = requiresOperationTimeDetail(formatted) ? 'block' : 'none';
             }
         });
     }
+}
+
+function normalizeOperationCode(code) {
+    if (code === null || code === undefined) return '';
+    const trimmed = code.toString().trim();
+    if (!trimmed) return '';
+    const normalized = trimmed.replace(/^0+/, '');
+    return normalized || '0';
+}
+
+function formatOperationCode(code) {
+    const normalized = normalizeOperationCode(code);
+    if (!normalized) return null;
+    return normalized.padStart(2, '0');
+}
+
+function requiresOperationTimeDetail(code) {
+    const normalized = normalizeOperationCode(code);
+    return normalized === '2';
+}
+
+function setOperationTimeFromData(dayType, code, startStr, endStr) {
+    if (!dayType) return;
+    const normalized = normalizeOperationCode(code);
+    const candidates = [];
+    if (code) candidates.push(code.toString());
+    if (normalized && normalized !== code) candidates.push(normalized);
+
+    let target = null;
+    for (const value of candidates) {
+        target = document.querySelector(`input[name="${dayType}Operation"][value="${value}"]`);
+        if (target) break;
+    }
+
+    if (target) {
+        target.checked = true;
+        target.dispatchEvent(new Event('change'));
+    }
+
+    const timeWrap = document.getElementById(`${dayType}_time_wrap`);
+    if (timeWrap) {
+        timeWrap.style.display = requiresOperationTimeDetail(normalized) ? 'block' : 'none';
+    }
+
+    fillOperationTimeInputs(dayType, startStr, endStr);
+}
+
+function fillOperationTimeInputs(dayType, startStr, endStr) {
+    const start = parseTimeStringForInput(startStr);
+    const end = parseTimeStringForInput(endStr);
+
+    const startHour = document.getElementById(`${dayType}_start_hour`);
+    const startMin = document.getElementById(`${dayType}_start_min`);
+    const endHour = document.getElementById(`${dayType}_end_hour`);
+    const endMin = document.getElementById(`${dayType}_end_min`);
+
+    if (startHour && start.hour != null) startHour.value = start.hour;
+    if (startMin && start.minute != null) startMin.value = start.minute;
+    if (endHour && end.hour != null) endHour.value = end.hour;
+    if (endMin && end.minute != null) endMin.value = end.minute;
+}
+
+function parseTimeStringForInput(value) {
+    if (!value) return {hour: null, minute: null};
+    const digits = value.toString().replace(/[^0-9]/g, '');
+    if (!digits) return {hour: null, minute: null};
+    const padded = digits.padStart(4, '0');
+    const hour = parseInt(padded.slice(0, 2), 10);
+    const minute = parseInt(padded.slice(2, 4), 10);
+    if (!Number.isFinite(hour) || hour < 0) return {hour: null, minute: null};
+    return {
+        hour: Math.min(hour, 23),
+        minute: Number.isFinite(minute) ? Math.min(Math.max(minute, 0), 59) : 0
+    };
+}
+
+function formatOperationTimeForDb(hourValue, minuteValue) {
+    if (hourValue === undefined || hourValue === null || hourValue === '') return null;
+    const hour = parseInt(hourValue, 10);
+    if (!Number.isFinite(hour) || hour < 0 || hour > 23) return null;
+    let minute = parseInt(minuteValue, 10);
+    if (!Number.isFinite(minute) || minute < 0 || minute > 59) minute = 0;
+    return `${hour.toString().padStart(2, '0')}${minute.toString().padStart(2, '0')}`;
+}
+
+function collectOperationTimePayload(dayType) {
+    const rawCode = document.querySelector(`input[name="${dayType}Operation"]:checked`)?.value;
+    const formattedCode = formatOperationCode(rawCode);
+    const requiresDetail = requiresOperationTimeDetail(formattedCode);
+
+    const startHour = document.getElementById(`${dayType}_start_hour`)?.value;
+    const startMin = document.getElementById(`${dayType}_start_min`)?.value;
+    const endHour = document.getElementById(`${dayType}_end_hour`)?.value;
+    const endMin = document.getElementById(`${dayType}_end_min`)?.value;
+
+    return {
+        code: formattedCode,
+        start: requiresDetail ? formatOperationTimeForDb(startHour, startMin) : null,
+        end: requiresDetail ? formatOperationTimeForDb(endHour, endMin) : null
+    };
 }
 
 // ========== 🔥 주차장 표지판 토글 ==========
@@ -1878,6 +1993,37 @@ function setRadioValue(name, value) {
     }
 }
 
+// 🔥 산 여부 값(Y/N 또는 1/0) 정규화
+function normalizeMountainYnValue(value) {
+    if (value === undefined || value === null) return null;
+    const str = value.toString().trim().toUpperCase();
+    if (!str) return null;
+    if (str === 'Y' || str === '1') return 'Y';
+    if (str === 'N' || str === '0') return 'N';
+    return null;
+}
+
+// 🔥 산 여부 라디오 버튼 상태를 통합 헬퍼로 설정
+function setMountainRadioByYn(value, triggerChange = false) {
+    const yn = normalizeMountainYnValue(value);
+    if (!yn) return;
+    const candidates = yn === 'Y' ? ['Y', '1'] : ['N', '0'];
+    for (const candidate of candidates) {
+        const radio = document.querySelector(`input[name="mountainYn"][value="${candidate}"]`);
+        if (radio) {
+            radio.checked = true;
+            if (triggerChange) {
+                radio.dispatchEvent(new Event('change'));
+            }
+            return;
+        }
+    }
+}
+
+function setMountainRadioByBoolean(isMountain, triggerChange = false) {
+    setMountainRadioByYn(isMountain ? 'Y' : 'N', triggerChange);
+}
+
 function getMechanicalSpacesTotal() {
     const ids = ['f_indoor_mechanical_spaces', 'f_outdoor_mechanical_spaces'];
     return ids.map(id => {
@@ -1998,12 +2144,66 @@ async function populateFormWithData(data) {
         f_zip.value = data.zip;
     }
 
+    // 🔥 산 여부 바인딩 (서버 값으로 라디오 버튼 상태 유지)
+    setMountainRadioByYn(data.mntnYn, true);
+
     if (f_lat) f_lat.value = data.prkPlceLat || '';
     if (f_lng) f_lng.value = data.prkPlceLon || '';
 
     if (v_id) v_id.textContent = data.prkPlceManageNo || '';
     if (v_name) v_name.textContent = data.prkplceNm || '부설주차장 상세';
     updateHeaderAddr();
+
+    // 🔧 [요청] 허가/검사/면적 정보 바인딩
+    const permitInput = $('#f_permit_date');
+    if (permitInput) permitInput.value = normalizeDateInput(data.prmisnDt);
+    const inspInput = $('#f_inspection_date');
+    if (inspInput) inspInput.value = normalizeDateInput(data.useInspDt);
+    const siteAreaInput = $('#f_site_area');
+    if (siteAreaInput) siteAreaInput.value = data.plotAr ?? '';
+    const totalAreaInput = $('#f_total_floor_area');
+    if (totalAreaInput) totalAreaInput.value = data.myeonAr ?? '';
+
+    // 🔧 [요청] 기계식주차장 정보 바인딩
+    if (data.mechPrklotTpCd) {
+        const mechTypeRadio = document.querySelector(`input[name="mechPrklotType"][value="${data.mechPrklotTpCd}"]`);
+        if (mechTypeRadio) {
+            mechTypeRadio.checked = true;
+            mechTypeRadio.dispatchEvent(new Event('change'));
+        }
+    }
+    if (data.mechPrklotOperYn) {
+        const mechOperRadio = document.querySelector(`input[name="mechPrklotOper"][value="${data.mechPrklotOperYn}"]`);
+        if (mechOperRadio) {
+            mechOperRadio.checked = true;
+            mechOperRadio.dispatchEvent(new Event('change'));
+        }
+    }
+    const mechOperDetail = $('#f_mech_prklot_oper_value');
+    if (mechOperDetail) {
+        mechOperDetail.value = data.mechPrkInopCnt != null ? data.mechPrkInopCnt : '';
+    }
+
+    // 🔧 [요청] 주차시설형태/급지 입력값 바인딩
+    const assignValue = (selector, value) => {
+        const el = document.querySelector(selector);
+        if (el) el.value = value != null ? value : '';
+    };
+    assignValue('#f_total_floors', data.prkFcltyTpTotFlrCapa);
+    assignValue('#f_total_scale_area', data.prkFcltyTpTotDeckCapa);
+    assignValue('#f_indoor_ground_floors', data.indrSelfFlrCnt);
+    assignValue('#f_indoor_ground_area', data.indrSelfDeckCnt);
+    assignValue('#f_indoor_ground_spaces', data.indrSelfTotSpaceCnt);
+    assignValue('#f_indoor_mechanical_floors', data.indrMechFlrCnt);
+    assignValue('#f_indoor_mechanical_area', data.indrMechDeckCnt);
+    assignValue('#f_indoor_mechanical_spaces', data.indrMechTotSpaceCnt);
+    assignValue('#f_outdoor_ground_floors', data.outdrSelfFlrCnt);
+    assignValue('#f_outdoor_ground_area', data.outdrSelfDeckCnt);
+    assignValue('#f_outdoor_ground_spaces', data.outdrSelfTotSpaceCnt);
+    assignValue('#f_outdoor_mechanical_floors', data.outdrMechFlrCnt);
+    assignValue('#f_outdoor_mechanical_area', data.outdrMechDeckCnt);
+    assignValue('#f_outdoor_mechanical_spaces', data.outdrMechTotSpaceCnt);
+
     // 기계식 주차면 입력값 반영 (총면수 기반 자동 규칙 사용)
     const indoorMech = document.getElementById('f_indoor_mechanical_spaces');
     const outdoorMech = document.getElementById('f_outdoor_mechanical_spaces');
@@ -2012,6 +2212,7 @@ async function populateFormWithData(data) {
 
     // 안내문 유무
     setRadioValue('announcement', data.guidDocYn === 'Y' ? 'Y' : 'N');
+    setRadioValue('safetyCheck', data.safeInspYn === 'Y' ? 'Y' : 'N');
 
     // 관리인/관리자 유무
     setRadioValue('manager', data.mgrYn === 'Y' ? 'Y' : 'N');
@@ -2063,6 +2264,10 @@ async function populateFormWithData(data) {
     if (f_grade && data.chrgGrdCd) {
         f_grade.value = data.chrgGrdCd;
     }
+
+    setOperationTimeFromData('weekday', data.wkdyOperTmCd, data.wkdyTmbasOperStrTm, data.wkdyTmbasOperEndTm);
+    setOperationTimeFromData('saturday', data.satOperTmCd, data.satTmbasOperStrTm, data.satTmbasOperEndTm);
+    setOperationTimeFromData('holiday', data.hldyOperTmCd, data.hldyTmbasOperStrTm, data.hldyTmbasOperEndTm);
 
     // 주차관리 시설 정보
 
@@ -2175,24 +2380,30 @@ async function populateFormWithData(data) {
         slpGuideSignChk.checked = (data.slpCtnGuidSignYn === 'Y');
     }
 
-    // 특이사항
-    if ($('#f_partclr_matter')) $('#f_partclr_matter').value = data.partclrMatter || '';
+    const residentFeeMeta = extractResidentFeeFromRemark(data.partclrMatter || '');
+    const fallbackResidentFees = residentFeeMeta.fees || {};
+    if ($('#f_partclr_matter')) $('#f_partclr_matter').value = residentFeeMeta.remark || '';
 
     // 요금 지불/정산 방식 적용
     applyPayMethods(data.feePayMthdCd || data.wkFeeMthdCd || data.ntFeeMthdCd || '', data.feePayMthdOthr || '');
     applySettleMethods(data.feeSetlMthdCd || data.wkFeeStlmtMthdCd || data.ntFeeStlmtMthdCd || '');
 
     // 요금 입력값 반영
-    if ($('#f_day_res_all')) $('#f_day_res_all').value = data.wkResDayFee ?? '';
-    if ($('#f_day_res_day')) $('#f_day_res_day').value = data.wkResWkFee ?? '';
-    if ($('#f_day_res_full')) $('#f_day_res_full').value = data.wkResFtFee ?? '';
+    const resolveResidentValue = (primary, fallback) => {
+        if (primary !== undefined && primary !== null && primary !== '') return primary;
+        return (fallback !== undefined && fallback !== null) ? fallback : '';
+    };
 
-    if ($('#f_fee_first30')) $('#f_fee_first30').value = data.wkGnFrst30mFee ?? '';
-    if ($('#f_day_fee_per10')) $('#f_day_fee_per10').value = data.wkGnInt10mFee ?? '';
-    if ($('#f_day_fee_per60')) $('#f_day_fee_per60').value = data.wkGn1hFee ?? '';
-    if ($('#f_fee_daily')) $('#f_fee_daily').value = data.wkGnDayFee ?? '';
-    if ($('#f_fee_monthly')) $('#f_fee_monthly').value = data.wkFeeMnthPassPrc ?? '';
-    if ($('#f_fee_halfyear')) $('#f_fee_halfyear').value = data.wkFeeHfyrPassPrc ?? '';
+    assignValue('#f_day_res_all', resolveResidentValue(data.wkResDayFee, fallbackResidentFees.dayAll));
+    assignValue('#f_day_res_day', resolveResidentValue(data.wkResWkFee, fallbackResidentFees.dayOnly));
+    assignValue('#f_day_res_full', resolveResidentValue(data.wkResFtFee, fallbackResidentFees.fullTime));
+
+    assignValue('#f_fee_first30', data.feeFrst30minPrc ?? data.wkGnFrst30mFee);
+    assignValue('#f_day_fee_per10', data.fee10minPrc ?? data.wkGnInt10mFee);
+    assignValue('#f_day_fee_per60', data.fee1hrPrc ?? data.wkGn1hFee);
+    assignValue('#f_fee_daily', data.feeDayPrc ?? data.wkGnDayFee);
+    assignValue('#f_fee_monthly', data.feeMnthPassPrc ?? data.wkFeeMnthPassPrc);
+    assignValue('#f_fee_halfyear', data.feeHfyrPassPrc ?? data.wkFeeHfyrPassPrc);
 
     // 🔥 사진 미리보기 로드
     const infoSnForPhoto = loadedPrkPlceInfoSn || data.prkPlceInfoSn || document.getElementById('prkPlceInfoSn')?.value;
@@ -2245,7 +2456,7 @@ function applyPayMethods(codesStr, etcText = '') {
             }
             return;
         }
-        if (code === '기타') {
+        if (code === '기타' || code === PAY_METHOD_ETC_CODE) {
             if (etcChk) etcChk.checked = true;
             if (etcInput) etcInput.disabled = false;
             return;
@@ -2253,11 +2464,15 @@ function applyPayMethods(codesStr, etcText = '') {
         const chk = document.querySelector(`input[name="payMethod"][value="${code}"]`);
         if (chk) chk.checked = true;
     });
-    if (etcText && etcChk) {
-        etcChk.checked = true;
-        if (etcInput) {
+    if (etcChk) {
+        if (etcText) {
+            etcChk.checked = true;
+            if (etcInput) {
+                etcInput.disabled = false;
+                etcInput.value = etcText;
+            }
+        } else if (etcChk.checked && etcInput && !etcInput.value) {
             etcInput.disabled = false;
-            etcInput.value = etcText;
         }
     }
 }
@@ -2275,18 +2490,76 @@ function collectPayMethods() {
     const checks = Array.from(document.querySelectorAll('input[name="payMethod"]'));
     const etcChk = document.getElementById('pay_etc_chk');
     const etcInput = document.getElementById('pay_etc_input');
-    const vals = checks.filter(c => c.checked).map(c => c.value);
+    const codes = [];
+    checks.forEach(c => {
+        if (!c.checked) return;
+        const value = c.value === '기타' ? PAY_METHOD_ETC_CODE : c.value;
+        if (value && !codes.includes(value)) {
+            codes.push(value);
+        }
+    });
+    let etcText = null;
     if (etcChk?.checked) {
-        const t = (etcInput?.value || '').trim();
-        if (t) vals.push(`기타:${t}`);
-        else if (!vals.includes('기타')) vals.push('기타');
+        const text = (etcInput?.value || '').trim();
+        etcText = text || null;
+        if (!codes.includes(PAY_METHOD_ETC_CODE)) {
+            codes.push(PAY_METHOD_ETC_CODE);
+        }
     }
-    return vals;
+    return {codes, etcText};
 }
 
 function collectSettleMethods() {
     const checks = Array.from(document.querySelectorAll('input[name="settleMethod"]'));
     return checks.filter(c => c.checked).map(c => c.value);
+}
+
+const RESIDENT_FEE_TAG = '[[RESIDENT_FEE]]';
+
+function extractResidentFeeFromRemark(text) {
+    if (!text) {
+        return {remark: '', fees: null};
+    }
+    const markerIndex = text.indexOf(RESIDENT_FEE_TAG);
+    if (markerIndex === -1) {
+        return {remark: text, fees: null};
+    }
+    const remark = text.substring(0, markerIndex).trimEnd();
+    const rawJson = text.substring(markerIndex + RESIDENT_FEE_TAG.length).trim();
+    if (!rawJson) {
+        return {remark, fees: null};
+    }
+    try {
+        const parsed = JSON.parse(rawJson);
+        return {
+            remark,
+            fees: {
+                dayAll: parsed.dayAll ?? null,
+                dayOnly: parsed.dayOnly ?? null,
+                fullTime: parsed.fullTime ?? null
+            }
+        };
+    } catch (err) {
+        console.warn('⚠️ 거주자 요금 메타데이터 파싱 실패:', err);
+        return {remark: text, fees: null};
+    }
+}
+
+function encodeResidentFeeToRemark(remarkText, fees) {
+    const baseRemark = remarkText || '';
+    if (!fees || (fees.dayAll == null && fees.dayOnly == null && fees.fullTime == null)) {
+        return baseRemark;
+    }
+    const cleanRemark = extractResidentFeeFromRemark(baseRemark).remark;
+    const payload = {
+        dayAll: fees.dayAll,
+        dayOnly: fees.dayOnly,
+        fullTime: fees.fullTime
+
+    };
+    const json = JSON.stringify(payload);
+    const separator = cleanRemark && !cleanRemark.endsWith('\n') ? '\n' : '';
+    return `${cleanRemark}${separator}${RESIDENT_FEE_TAG}${json}`;
 }
 
 function setAllFieldsReadOnly(isReadOnly) {
@@ -2713,6 +2986,33 @@ function buildPayload() {
 }
 
 function mapPayloadToServerFormat(payload) {
+    const weekdayOp = collectOperationTimePayload('weekday');
+    const saturdayOp = collectOperationTimePayload('saturday');
+    const holidayOp = collectOperationTimePayload('holiday');
+
+    const residentFees = {
+        dayAll: parseCurrency($('#f_day_res_all')?.value),
+        dayOnly: parseCurrency($('#f_day_res_day')?.value),
+        fullTime: parseCurrency($('#f_day_res_full')?.value)
+    };
+
+    const generalFees = {
+        first30: parseCurrency($('#f_fee_first30')?.value),
+        per10: parseCurrency($('#f_day_fee_per10')?.value),
+        per60: parseCurrency($('#f_day_fee_per60')?.value),
+        daily: parseCurrency($('#f_fee_daily')?.value),
+        monthly: parseCurrency($('#f_fee_monthly')?.value),
+        halfyear: parseCurrency($('#f_fee_halfyear')?.value)
+    };
+
+    const payMethodSelection = collectPayMethods();
+    const payMethods = payMethodSelection.codes;
+    const payMethodEtcValue = payMethodSelection.etcText || null;
+    const normalizedPayMethods = payMethods.map(code => code === '기타' ? PAY_METHOD_ETC_CODE : code);
+
+    const settleMethods = collectSettleMethods();
+
+    const remarkInput = $('#f_partclr_matter')?.value || '';
     const data = {
         prkBizMngNo: loadedBizMngNo,
         prkPlceInfoSn: loadedPrkPlceInfoSn,
@@ -2729,8 +3029,8 @@ function mapPayloadToServerFormat(payload) {
         sigunguCd: payload.sigunguCd,
         emdCd: payload.emdCd,
         // 허가/면적/기계식 정보
-        prmisnDt: payload.permitDate,
-        useInspDt: payload.inspectionDate,
+        prmisnDt: formatDateForDb(payload.permitDate),
+        useInspDt: formatDateForDb(payload.inspectionDate),
         plotAr: payload.siteArea,
         myeonAr: payload.totalFloorArea,
         mechPrklotTpCd: payload.mechPrklotType,
@@ -2776,44 +3076,63 @@ function mapPayloadToServerFormat(payload) {
         mgrOrgTelNo: $('#f_management_tel')?.value,
         subordnOpertnCd: $('#f_oddEven')?.value,
         chrgGrdCd: $('#f_grade')?.value, // 🔥 급지구분 추가
+        wkdyOperTmCd: weekdayOp.code,
+        wkdyTmbasOperStrTm: weekdayOp.start,
+        wkdyTmbasOperEndTm: weekdayOp.end,
+        satOperTmCd: saturdayOp.code,
+        satTmbasOperStrTm: saturdayOp.start,
+        satTmbasOperEndTm: saturdayOp.end,
+        hldyOperTmCd: holidayOp.code,
+        hldyTmbasOperStrTm: holidayOp.start,
+        hldyTmbasOperEndTm: holidayOp.end,
 
         // 요금 지불/정산 방식
-        wkFeeMthdCd: collectPayMethods().map(v => v.startsWith('기타:') ? '기타' : v).join(','),
-        wkFeeStlmtMthdCd: collectSettleMethods().join(','),
+        wkFeeMthdCd: normalizedPayMethods.join(','),
+        wkFeeStlmtMthdCd: settleMethods.join(','),
         // 야간 필드가 없으므로 동일 값을 복제해 서버 컬럼 채움
-        ntFeeMthdCd: collectPayMethods().map(v => v.startsWith('기타:') ? '기타' : v).join(','),
-        ntFeeStlmtMthdCd: collectSettleMethods().join(','),
+        ntFeeMthdCd: normalizedPayMethods.join(','),
+        ntFeeStlmtMthdCd: settleMethods.join(','),
         // 부설 테이블 전용 컬럼 매핑
-        feePayMthdCd: collectPayMethods().map(v => v.startsWith('기타:') ? '기타' : v).join(','),
-        feePayMthdOthr: (collectPayMethods().find(v => v.startsWith('기타:')) || '').replace(/^기타:/, '') || null,
-        feeSetlMthdCd: collectSettleMethods().join(','),
+        feePayMthdCd: normalizedPayMethods.join(','),
+        feePayMthdOthr: payMethodEtcValue,
+        feeSetlMthdCd: settleMethods.join(','),
 
         // 요금(거주자/일반) - 주간 기준 필드 사용
-        wkResDayFee: parseCurrency($('#f_day_res_all')?.value),
-        wkResWkFee: parseCurrency($('#f_day_res_day')?.value),
-        wkResFtFee: parseCurrency($('#f_day_res_full')?.value),
-        wkGnFrst30mFee: parseCurrency($('#f_fee_first30')?.value),
-        wkGnInt10mFee: parseCurrency($('#f_day_fee_per10')?.value),
-        wkGn1hFee: parseCurrency($('#f_day_fee_per60')?.value),
-        wkGnDayFee: parseCurrency($('#f_fee_daily')?.value),
-        wkFeeMnthPassPrc: parseCurrency($('#f_fee_monthly')?.value),
-        wkFeeHfyrPassPrc: parseCurrency($('#f_fee_halfyear')?.value),
+        wkResDayFee: residentFees.dayAll,
+        wkResWkFee: residentFees.dayOnly,
+        wkResFtFee: residentFees.fullTime,
+        wkGnFrst30mFee: generalFees.first30,
+        wkGnInt10mFee: generalFees.per10,
+        wkGn1hFee: generalFees.per60,
+        wkGnDayFee: generalFees.daily,
+        wkFeeMnthPassPrc: generalFees.monthly,
+        wkFeeHfyrPassPrc: generalFees.halfyear,
         // 야간 필드가 없으므로 동일 값 복제
-        ntResDayFee: parseCurrency($('#f_day_res_all')?.value),
-        ntResWkFee: parseCurrency($('#f_day_res_day')?.value),
-        ntResFtFee: parseCurrency($('#f_day_res_full')?.value),
-        ntGnFrst30mFee: parseCurrency($('#f_fee_first30')?.value),
-        ntGnInt10mFee: parseCurrency($('#f_day_fee_per10')?.value),
-        ntGn1hFee: parseCurrency($('#f_day_fee_per60')?.value),
-        ntGnDayFee: parseCurrency($('#f_fee_daily')?.value),
-        ntFeeMnthPassPrc: parseCurrency($('#f_fee_monthly')?.value),
-        ntFeeHfyrPassPrc: parseCurrency($('#f_fee_halfyear')?.value),
+        ntResDayFee: residentFees.dayAll,
+        ntResWkFee: residentFees.dayOnly,
+        ntResFtFee: residentFees.fullTime,
+        ntGnFrst30mFee: generalFees.first30,
+        ntGnInt10mFee: generalFees.per10,
+        ntGn1hFee: generalFees.per60,
+        ntGnDayFee: generalFees.daily,
+        ntFeeMnthPassPrc: generalFees.monthly,
+        ntFeeHfyrPassPrc: generalFees.halfyear,
+        feeFrst30minPrc: generalFees.first30,
+        fee10minPrc: generalFees.per10,
+        fee1hrPrc: generalFees.per60,
+        feeDayPrc: generalFees.daily,
+        feeMnthPassPrc: generalFees.monthly,
+        feeHfyrPassPrc: generalFees.halfyear,
 
-        prklotSignYn: document.querySelector('input[name="parkingSign"]:checked')?.value,
+        prklotSignCd: document.querySelector('input[name="parkingSign"]:checked')?.value,
         tcktMchnYn: document.querySelector('input[name="ticketMachine"]:checked')?.value,
         barrGteYn: document.querySelector('input[name="barrier"]:checked')?.value,
         exitAlrmYn: document.querySelector('input[name="alarm"]:checked')?.value,
         vehRcgnTpCd: document.querySelector('input[name="vehicleRecognition"]:checked')?.value,
+        guidDocYn: document.querySelector('input[name="announcement"]:checked')?.value || 'N',
+        safeInspYn: document.querySelector('input[name="safetyCheck"]:checked')?.value || 'N',
+        mgrYn: document.querySelector('input[name="manager"]:checked')?.value || 'N',
+        admYn: document.querySelector('input[name="admin"]:checked')?.value || 'N',
 
         wkPeakStrTm: formatPeakTime($('#f_peak_day_start')?.value),
         wkPeakEndTm: formatPeakTime($('#f_peak_day_end')?.value),
@@ -2835,7 +3154,7 @@ function mapPayloadToServerFormat(payload) {
         stopLineQty: num($('#f_crosswalk_count')?.value),
         crswlkQty: num($('#f_pedestrian_crossing_count')?.value),
 
-        partclrMatter: $('#f_partclr_matter')?.value
+        partclrMatter: encodeResidentFeeToRemark(remarkInput, residentFees)
     };
 
     return data;

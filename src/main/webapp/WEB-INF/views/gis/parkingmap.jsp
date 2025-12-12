@@ -14,7 +14,7 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js" crossorigin="anonymous"></script>
     <!-- Kakao Maps JS -->
-    <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=a1194f70f6ecf2ece7a703a4a07a0876&libraries=services"></script>
+    <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=a1194f70f6ecf2ece7a703a4a07a0876&libraries=services,clusterer"></script>
 
     <!-- parkingmap 전용 스타일 -->
     <style>
@@ -145,6 +145,86 @@
             background: #2563eb !important;
             color: white !important;
             box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3) !important;
+        }
+
+        .type-filter-group {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 8px !important;
+            margin-bottom: 14px !important;
+        }
+
+        .type-label {
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            color: #475569 !important;
+        }
+
+        .type-options {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 8px !important;
+        }
+
+        .type-option {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+            padding: 6px 10px !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 999px !important;
+            font-size: 12px !important;
+            cursor: pointer !important;
+            background: #f8fafc !important;
+            color: #475569 !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .type-option input {
+            accent-color: #2563eb !important;
+        }
+
+        .type-option.active {
+            border-color: #2563eb !important;
+            background: rgba(37, 99, 235, 0.08) !important;
+            color: #1d4ed8 !important;
+        }
+
+        .status-guide {
+            margin-top: 14px !important;
+            padding: 12px !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 10px !important;
+            background: #f8fafc !important;
+        }
+
+        .status-guide-title {
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            color: #475569 !important;
+            margin-bottom: 8px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+        }
+
+        .status-guide-items {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 8px !important;
+        }
+
+        .status-guide-item {
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+            font-size: 13px !important;
+            color: #1e293b !important;
+        }
+
+        .status-guide-item img {
+            width: 28px !important;
+            height: 28px !important;
         }
 
         .search-input {
@@ -501,6 +581,44 @@
                         <button type="button" class="radius-option" data-radius="1500">1.5km</button>
                     </div>
                 </div>
+                <div class="type-filter-group">
+                    <div class="type-label">주차장 유형</div>
+                    <div class="type-options" id="parkingTypeOptions">
+                        <label class="type-option active">
+                            <input type="checkbox" value="01" checked>
+                            <span>노상</span>
+                        </label>
+                        <label class="type-option active">
+                            <input type="checkbox" value="02" checked>
+                            <span>노외</span>
+                        </label>
+                        <label class="type-option active">
+                            <input type="checkbox" value="03" checked>
+                            <span>부설</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="status-guide" aria-label="진행 상태별 마커 안내">
+                    <div class="status-guide-title">🛈 마커 상태 안내</div>
+                    <div class="status-guide-items">
+                        <div class="status-guide-item">
+                            <img src="<c:url value='/static/img/prking/marker-red-P-64.svg'/>" alt="승인완료 마커 아이콘">
+                            <span>승인완료</span>
+                        </div>
+                        <div class="status-guide-item">
+                            <img src="<c:url value='/static/img/prking/marker-orange-P-64.svg'/>" alt="승인대기 마커 아이콘">
+                            <span>승인대기</span>
+                        </div>
+                        <div class="status-guide-item">
+                            <img src="<c:url value='/static/img/prking/marker-blue-P-64.svg'/>" alt="조사중 마커 아이콘">
+                            <span>기본/조사중</span>
+                        </div>
+                        <div class="status-guide-item">
+                            <img src="<c:url value='/static/img/prking/marker-gray-P-64.svg'/>" alt="반려 마커 아이콘">
+                            <span>반려</span>
+                        </div>
+                    </div>
+                </div>
                 <button id="regionSearchBtn" class="search-btn">주차장 검색</button>
                 <div id="searchResult" style="display:none;"></div>
             </div>
@@ -538,6 +656,16 @@
     let searchCircle = null;
     let searchRadiusMeters = 500;
     let lastSearchAllList = [];
+    let clusterer = null;
+    let selectedTypes = new Set(['01', '02', '03']);
+    let currentInfoWindow = null; // 🔥 열린 인포윈도우를 추적해 하나만 표시
+
+    function closeCurrentInfoWindow() {
+        if (currentInfoWindow) {
+            currentInfoWindow.close();
+            currentInfoWindow = null;
+        }
+    }
 
     // 검색 패널 토글
     function toggleSearchPanel() {
@@ -591,6 +719,37 @@
                 searchRadiusMeters = (value === 'none') ? null : parseInt(value || '0', 10);
 
                 if (map) {
+                    updateRadiusSearch(map.getCenter());
+                }
+            });
+        });
+    }
+
+    function setupTypeFilters() {
+        const typeInputs = document.querySelectorAll('#parkingTypeOptions input[type="checkbox"]');
+        if (!typeInputs || typeInputs.length === 0) return;
+
+        selectedTypes = new Set(Array.from(typeInputs)
+            .filter(input => input.checked)
+            .map(input => input.value));
+
+        typeInputs.forEach((input) => {
+            input.addEventListener('change', () => {
+                const parent = input.closest('.type-option');
+                if (input.checked) {
+                    selectedTypes.add(input.value);
+                    if (parent) parent.classList.add('active');
+                } else {
+                    if (selectedTypes.size <= 1 && selectedTypes.has(input.value)) {
+                        input.checked = true;
+                        showSearchResult('최소 1개 유형을 선택해주세요', true);
+                        return;
+                    }
+                    selectedTypes.delete(input.value);
+                    if (parent) parent.classList.remove('active');
+                }
+
+                if (map && lastSearchAllList && lastSearchAllList.length > 0) {
                     updateRadiusSearch(map.getCenter());
                 }
             });
@@ -824,6 +983,8 @@
             filtered = filterByRadius(center, lastSearchAllList, searchRadiusMeters);
         }
 
+        filtered = applyClientFilters(filtered);
+
         displayParkingMarkers(filtered);
         displayParkingList(filtered);
 
@@ -856,14 +1017,15 @@
             if (parking.sigunguNm) locationParts.push(parking.sigunguNm);
             const locationDisplay = locationParts.join(' ') || '';
 
-            const typeClass = parking.prkPlceType === '01' ? 'type-01' :
-                parking.prkPlceType === '02' ? 'type-02' :
-                    parking.prkPlceType === '03' ? 'type-03' : '';
+            const typeCode = normalizeParkingType(parking.prkPlceType || parking.prkPlceTypeCd);
+            const typeClass = typeCode === '01' ? 'type-01' :
+                typeCode === '02' ? 'type-02' :
+                    typeCode === '03' ? 'type-03' : '';
 
-            let html = '<div class="parking-item" onclick="moveToParking(' + parking.prkPlceLat + ', ' + parking.prkPlceLon + ', \'' + escapeHtml(parking.prkplceNm) + '\', \'' + parking.prkPlceManageNo + '\', \'' + parking.prkPlceType + '\')">';
+            let html = '<div class="parking-item" onclick="moveToParking(' + parking.prkPlceLat + ', ' + parking.prkPlceLon + ', \'' + escapeHtml(parking.prkplceNm) + '\', \'' + parking.prkPlceManageNo + '\', \'' + (typeCode || '') + '\')">';
             html += '<div class="parking-item-name">';
             html += escapeHtml(parking.prkplceNm);
-            html += '<span class="parking-item-type ' + typeClass + '">' + getParkingTypeText(parking.prkPlceType) + '</span>';
+            html += '<span class="parking-item-type ' + typeClass + '">' + getParkingTypeText(typeCode || parking.prkPlceType) + '</span>';
             html += '</div>';
 
             if (locationDisplay) {
@@ -910,6 +1072,27 @@
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    function normalizeParkingType(type) {
+        if (type === undefined || type === null) return '';
+        const raw = type.toString().trim();
+        if (!raw) return '';
+        if (raw === '노상' || raw === '1' || raw === '01') return '01';
+        if (raw === '노외' || raw === '2' || raw === '02') return '02';
+        if (raw === '부설' || raw === '3' || raw === '03') return '03';
+        if (/^\d$/.test(raw)) return '0' + raw;
+        return raw;
+    }
+
+    function applyClientFilters(parkingList) {
+        if (!parkingList || parkingList.length === 0) return [];
+        if (!selectedTypes || selectedTypes.size === 0) return parkingList;
+        return parkingList.filter(parking => {
+            const typeCd = normalizeParkingType(parking.prkPlceType || parking.prkPlceTypeCd);
+            if (!typeCd) return true;
+            return selectedTypes.has(typeCd);
+        });
     }
 
     // 내 위치 마커 생성
@@ -1077,6 +1260,132 @@
         return '운영시간 ' + parts.join(', ');
     }
 
+    function formatNumberValue(value) {
+        if (value === undefined || value === null || value === '') return null;
+        var num = Number(value);
+        if (!Number.isFinite(num) || num <= 0) return null;
+        return num.toLocaleString('ko-KR');
+    }
+
+    function buildCapacityInfo(parking) {
+        var total = formatNumberValue(parking.totPrkCnt);
+        var details = [];
+        var addDetail = function (label, value) {
+            var formatted = formatNumberValue(value);
+            if (formatted) {
+                details.push(label + ' ' + formatted + '면');
+            }
+        };
+        addDetail('장애인', parking.disabPrkCnt);
+        addDetail('친환경', parking.ecoPrkCnt);
+        addDetail('경차', parking.compactPrkCnt);
+        addDetail('임산부', parking.pregnantPrkCnt);
+        return {total: total, details: details};
+    }
+
+    function formatCurrencyValue(value) {
+        var formatted = formatNumberValue(value);
+        return formatted ? formatted + '원' : null;
+    }
+
+    function buildFeeInfo(parking) {
+        const buildItems = (values) => {
+            const list = [];
+            const addFee = (label, value) => {
+                const formatted = formatCurrencyValue(value);
+                if (formatted) {
+                    list.push(label + ' ' + formatted);
+                }
+            };
+            addFee('최초 30분', values.first30);
+            addFee('10분당', values.per10);
+            addFee('1시간당', values.per60);
+            addFee('일일', values.day);
+            addFee('월 정기권', values.monthly);
+            addFee('반기권', values.halfyear);
+            return list;
+        };
+        const labelFrom = (name, code) => {
+            if (name) return name;
+            if (code) {
+                const map = {
+                    '01': '무료',
+                    '02': '유료',
+                    '03': '기타'
+                };
+                return map[code] || code;
+            }
+            return null;
+        };
+        return {
+            day: buildItems({
+                first30: parking.dayFeeFirst30m,
+                per10: parking.dayFeePer10m,
+                per60: parking.dayFeePer60m,
+                day: parking.dayFeeDay,
+                monthly: parking.dayFeeMonthly,
+                halfyear: parking.dayFeeHalfyear
+            }),
+            dayLabel: labelFrom(parking.dayFeeApplyNm, parking.dayFeeApplyCd),
+            night: buildItems({
+                first30: parking.nightFeeFirst30m,
+                per10: parking.nightFeePer10m,
+                per60: parking.nightFeePer60m,
+                day: parking.nightFeeDay,
+                monthly: parking.nightFeeMonthly,
+                halfyear: parking.nightFeeHalfyear
+            }),
+            nightLabel: labelFrom(parking.nightFeeApplyNm, parking.nightFeeApplyCd)
+        };
+    }
+
+    const OPER_TM_LABELS = {
+        '01': '전일 운영',
+        '02': '시간제 운영',
+        '03': '운영 안 함'
+    };
+
+    function formatTimeRange(start, end) {
+        if (!start && !end) return null;
+        if (start && end) {
+            return formatTime(start) + ' ~ ' + formatTime(end);
+        }
+        if (start) return formatTime(start) + ' ~';
+        if (end) return '~ ' + formatTime(end);
+        return null;
+    }
+
+    function resolveOperationLabel(code) {
+        if (!code) return null;
+        return OPER_TM_LABELS[code] || code;
+    }
+
+    function buildOperationDetail(parking, typeCode) {
+        const allowNight = !(typeCode === '03' || typeCode === '3');
+        const buildSlot = (start, end, code, isNightSlot) => {
+            if (isNightSlot && !allowNight) return null;
+            const rangeText = formatTimeRange(start, end);
+            const fallback = resolveOperationLabel(code);
+            const display = rangeText || fallback || null;
+            if (!display) return null;
+            return {display, code, start, end};
+        };
+        return {
+            weekday: {
+                day: buildSlot(parking.dayWkdyStartTm, parking.dayWkdyEndTm, parking.dayWkdyOperTmCd, false),
+                night: buildSlot(parking.nightWkdyStartTm, parking.nightWkdyEndTm, parking.nightWkdyOperTmCd, true)
+            },
+            saturday: {
+                day: buildSlot(parking.satDayStartTm, parking.satDayEndTm, parking.dayWkdyOperTmCd, false),
+                night: buildSlot(parking.satNightStartTm, parking.satNightEndTm, parking.nightWkdyOperTmCd, true)
+            },
+            holiday: {
+                day: buildSlot(parking.hldyDayStartTm, parking.hldyDayEndTm, parking.dayWkdyOperTmCd, false),
+                night: buildSlot(parking.hldyNightStartTm, parking.hldyNightEndTm, parking.nightWkdyOperTmCd, true)
+            }
+        };
+    }
+
     // 팝업용 전체 요약 문자열
     function buildParkingSummary(parking) {
         const cap = buildCapacityText(parking);
@@ -1090,17 +1399,20 @@
 
     // 주차장 정보 인포윈도우 표시
     function showParkingInfo(parking, marker) {
+        console.log('🛰️ parking marker data', parking);
         const locationParts = [];
         if (parking.sidoNm) locationParts.push(parking.sidoNm);
         if (parking.sigunguNm) locationParts.push(parking.sigunguNm);
         const locationDisplay = locationParts.join(' ') || '';
 
-        let content = '<div style="padding:14px;min-width:250px;max-width:340px;min-height:195px;max-height:200px;word-break:break-all;line-height:1.5;">';
+        let content = '<div style="padding:14px;min-width:250px;max-width:360px;min-height:195px;word-break:break-all;line-height:1.5;">';
 
         // 제목
         content += '<div style="font-weight:bold;font-size:14px;margin-bottom:8px;color:#1e40af;">';
         content += parking.prkplceNm;
         content += '</div>';
+
+        const typeCode = normalizeParkingType(parking.prkPlceType || parking.prkPlceTypeCd);
 
         // 상태/유형 배지
         const statusText = parking.prgsStsNm || (statusNames[parking.prgsStsCd] || '미정');
@@ -1113,27 +1425,98 @@
         content += '</span>';
         content += '</div>';
 
-        // ▶ 여기: 주차면수 + 세부 항목(장애인/친환경/경차/임산부)
         const summary = buildParkingSummary(parking);
-        content += '<div style="font-size:12px;color:#444;line-height:1.5;margin-bottom:8px;">';
-        content += '<div>' + summary.capacity + '</div>';
-        // 세부 항목을 같은 블록의 다음 줄에 표시
-        const detailParts = [];
-        if (parking.disabPrkCnt) detailParts.push('장애인 ' + parking.disabPrkCnt);
-        if (parking.ecoPrkCnt) detailParts.push('친환경 ' + parking.ecoPrkCnt);
-        if (parking.compactPrkCnt) detailParts.push('경차 ' + parking.compactPrkCnt);
-        if (parking.pregnantPrkCnt) detailParts.push('임산부 ' + parking.pregnantPrkCnt);
-        if (detailParts.length > 0) {
-            content += '<div style="color:#6b7280;font-size:12px;margin-top:2px;">' + detailParts.join(' · ') + '</div>';
+        const capacityInfo = buildCapacityInfo(parking);
+        const feeInfo = buildFeeInfo(parking);
+        const operDetail = buildOperationDetail(parking, typeCode);
+        console.log('🕒 operation detail', operDetail);
+
+        if (capacityInfo.total || capacityInfo.details.length > 0) {
+            content += '<div style="font-size:12px;color:#1f2937;line-height:1.6;margin-bottom:8px;padding:10px;background:#f8fafc;border-radius:8px;">';
+            content += '<div style="font-weight:700;color:#1d4ed8;margin-bottom:4px;">주차면수</div>';
+            if (capacityInfo.total) {
+                content += '<div>총 ' + capacityInfo.total + '면</div>';
+            }
+            if (capacityInfo.details.length > 0) {
+                content += '<div style="color:#6b7280;margin-top:2px;">' + capacityInfo.details.join(' · ') + '</div>';
+            }
+            content += '</div>';
         }
-        // 운영시간은 한 줄 아래에 따로 표시
-        content += '<div style="margin-top:6px;">' + summary.operate + '</div>';
-        content += '</div>';
+
+        const hasDayFees = feeInfo.day.length > 0 || !!feeInfo.dayLabel;
+        const hasNightFees = (typeCode !== '03' && typeCode !== '3') && (feeInfo.night.length > 0 || !!feeInfo.nightLabel);
+        if (hasDayFees || hasNightFees) {
+            content += '<div style="font-size:12px;color:#0f172a;line-height:1.6;margin-bottom:8px;padding:10px;background:#f0f9ff;border-radius:8px;">';
+            content += '<div style="font-weight:700;color:#0369a1;margin-bottom:4px;">요금정보</div>';
+            const renderFeeBlock = (label, list, levelText) => {
+                content += '<div style="margin-top:4px;">';
+                content += '<span style="display:inline-block;font-weight:600;color:#0ea5e9;margin-bottom:2px;">' + label;
+                if (levelText) {
+                    content += ' · ' + levelText;
+                }
+                content += '</span>';
+                if (list.length > 0) {
+                    list.forEach(item => {
+                        content += '<div>' + item + '</div>';
+                    });
+                } else {
+                    content += '<div style="color:#94a3b8;">상세 요금 없음</div>';
+                }
+                content += '</div>';
+            };
+            if (hasDayFees) {
+                renderFeeBlock('주간', feeInfo.day, feeInfo.dayLabel);
+            }
+            if (hasNightFees) {
+                renderFeeBlock('야간', feeInfo.night, feeInfo.nightLabel);
+            }
+            content += '</div>';
+        }
+
+        const operationSections = [
+            {label: '평일', data: operDetail.weekday, color: '#c2410c'},
+            {label: '토요일', data: operDetail.saturday, color: '#b45309'},
+            {label: '공휴일', data: operDetail.holiday, color: '#92400e'}
+        ];
+        const hasOperationInfo = operationSections.some(section => {
+            const daySlot = section.data.day;
+            const nightSlot = section.data.night;
+            return (daySlot && daySlot.display) || (nightSlot && nightSlot.display);
+        });
+        if (hasOperationInfo) {
+            content += '<div style="font-size:12px;color:#7c2d12;line-height:1.6;margin-bottom:8px;padding:10px;background:#fff7ed;border-radius:8px;">';
+            content += '<div style="font-weight:700;color:#c2410c;margin-bottom:4px;">운영시간</div>';
+            operationSections.forEach(section => {
+                const daySlotObj = section.data.day;
+                const nightSlotObj = section.data.night;
+                const daySlot = (daySlotObj && daySlotObj.display) ? daySlotObj.display : null;
+                const nightSlot = (nightSlotObj && nightSlotObj.display) ? nightSlotObj.display : null;
+                if (!daySlot && !nightSlot) return;
+                content += '<div style="margin-top:6px;padding:8px;background:#fff1e6;border-radius:6px;">';
+                content += '<div style="font-weight:700;color:' + section.color + ';margin-bottom:4px;">' + section.label + '</div>';
+                if (daySlot) {
+                    content += '<div style="padding-left:6px;color:#1f2937;border-left:3px solid rgba(180,83,9,0.4);margin-bottom:4px;">주간 <strong style="color:#0f172a;">' + daySlot + '</strong></div>';
+                }
+                if (nightSlot) {
+                    content += '<div style="padding-left:6px;color:#1f2937;border-left:3px solid rgba(180,83,9,0.4);">야간 <strong style="color:#0f172a;">' + nightSlot + '</strong></div>';
+                }
+                content += '</div>';
+            });
+            content += '</div>';
+        } else if (summary.operate) {
+            const fallback = summary.operate.replace(/^운영시간\s*/, '').trim();
+            if (fallback) {
+                content += '<div style="font-size:12px;color:#7c2d12;line-height:1.6;margin-bottom:8px;padding:10px;background:#fff7ed;border-radius:8px;">';
+                content += '<div style="font-weight:700;color:#c2410c;margin-bottom:4px;">운영시간</div>';
+                content += '<div>' + fallback + '</div>';
+                content += '</div>';
+            }
+        }
 
         // 위치
         if (locationDisplay) {
             content += '<div style="font-size:12px;color:#666;margin-bottom:4px;font-weight:500;">';
-            content += '📍 ' + locationDisplay + parking.dtadd;
+            content += '📍 ' + locationDisplay + (parking.dtadd || '');
             content += '</div>';
         }
 
@@ -1151,12 +1534,20 @@
 
         content += '</div>';
 
+        closeCurrentInfoWindow();
+
         const infowindow = new kakao.maps.InfoWindow({
             content: content,
             removable: true
         });
 
         infowindow.open(map, marker);
+        currentInfoWindow = infowindow;
+        kakao.maps.event.addListener(infowindow, 'close', () => {
+            if (currentInfoWindow === infowindow) {
+                currentInfoWindow = null;
+            }
+        });
     }
 
     // 주차장 상세보기 함수
@@ -1182,16 +1573,20 @@
 
     // 주차장 타입 텍스트 변환
     function getParkingTypeText(type) {
-        if (type === '노상' || type === '01') return '노상';
-        if (type === '노외' || type === '02') return '노외';
-        if (type === '부설' || type === '03') return '부설';
-        return type;
+        const normalized = normalizeParkingType(type);
+        if (normalized === '01') return '노상';
+        if (normalized === '02') return '노외';
+        if (normalized === '03') return '부설';
+        return type || '';
     }
 
     // 주차장 마커 표시
     function displayParkingMarkers(parkingList) {
         parkingMarkers.forEach(marker => marker.setMap(null));
         parkingMarkers = [];
+        if (clusterer) {
+            clusterer.clear();
+        }
 
         const validParkings = parkingList.filter(p => p.prkPlceLat && p.prkPlceLon);
 
@@ -1206,9 +1601,15 @@
                 lng: parseFloat(parking.prkPlceLon)
             });
 
-            marker.setMap(map);
+            if (!clusterer) {
+                marker.setMap(map);
+            }
             parkingMarkers.push(marker);
         });
+
+        if (clusterer && parkingMarkers.length > 0) {
+            clusterer.addMarkers(parkingMarkers);
+        }
     }
 
     function getGeoOptions(highAccuracy = true) {
@@ -1376,6 +1777,17 @@
 
                 const zoomControl = new kakao.maps.ZoomControl();
                 map.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
+
+                const dismissInfoWindow = () => closeCurrentInfoWindow();
+                kakao.maps.event.addListener(map, 'click', dismissInfoWindow);
+                kakao.maps.event.addListener(map, 'dragstart', dismissInfoWindow);
+                kakao.maps.event.addListener(map, 'zoom_changed', dismissInfoWindow);
+
+                clusterer = new kakao.maps.MarkerClusterer({
+                    map: map,
+                    averageCenter: true,
+                    minLevel: 6
+                });
 
                 // 지도 드래그 종료 시 반경 검색 갱신
                 kakao.maps.event.addListener(map, 'dragend', function () {
@@ -1600,6 +2012,7 @@
     window.addEventListener('DOMContentLoaded', function () {
         console.log('🚀 페이지 로드 완료');
         setupRadiusControls();
+        setupTypeFilters();
 
         if (window.kakao && kakao.maps) {
             kakao.maps.load(initMap);

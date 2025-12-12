@@ -13,6 +13,9 @@
                     #{bizNo}
                 </foreach>
             </if>
+            <if test="loginUserId != null and loginUserId != ''">
+                AND tbppi.srvy_id = #{loginUserId}
+            </if>
             <!-- 시도/시군구 필터: sidoCd/sigunguCd 우선, 구 키(sido/sigungu)도 호환 -->
             <if test="sidoCd != null and sidoCd != ''">
                 AND (
@@ -216,13 +219,13 @@
                       , topi.compact_prk_cnt                             as compactPrkCnt
                       , topi.eco_prk_cnt                                 as ecoPrkCnt
                       , topi.pregnant_prk_cnt                            as pregnantPrkCnt
-                      , topi.prkplce_se                                  as prkplceSe        -- NOTE: 주차장구분 코드
+                      , topi.prkplce_se                                  as prkplceSe  -- NOTE: 주차장구분 코드
                       , topi.prk_oper_mthd_cd                            as prkOperMthdCd
                       , topi.oper_mby_cd                                 as operMbyCd
-                      , topi.trut_comp_nm                                as trutCompNm        -- NOTE: 민간위탁 업체명
-                      , topi.dirt_comp_nm                                as dirtCompNm        -- NOTE: 민간직영 업체명
-                      , topi.trut_comp_nm                                as trutCompNm        -- NOTE: 민간위탁 업체명
-                      , topi.dirt_comp_nm                                as dirtCompNm        -- NOTE: 민간직영 업체명
+                      , topi.trut_comp_nm                                as trutCompNm -- NOTE: 민간위탁 업체명
+                      , topi.dirt_comp_nm                                as dirtCompNm -- NOTE: 민간직영 업체명
+                      , topi.trut_comp_nm                                as trutCompNm -- NOTE: 민간위탁 업체명
+                      , topi.dirt_comp_nm                                as dirtCompNm -- NOTE: 민간직영 업체명
                       , topi.mgr_org                                     as mgrOrg
                       , topi.mgr_org_tel_no                              as mgrOrgTelNo
                       , topi.subordn_opertn_cd                           as subordnOpertnCd
@@ -441,8 +444,8 @@
                       , tcl.sigungu_nm                                   as sigunguNm
                       , tcl.emd_cd                                       as emdCd
                       , tcl.lgal_emd_nm                                  as lgalEmdNm
-                      , tpdpi.lnm_mnno                                   as lnmMnno         -- NOTE: 본번
-                      , tpdpi.lnm_sbno                                   as lnmSbno         -- NOTE: 부번
+                      , tpdpi.lnm_mnno                                   as lnmMnno -- NOTE: 본번
+                      , tpdpi.lnm_sbno                                   as lnmSbno -- NOTE: 부번
                       , tpdpi.dtadd                                      as dtadd
                       , tpdpi.roadadd                                    as rnmadr
                       , tpdpi.prk_plce_lat                               as prkPlceLat
@@ -677,6 +680,8 @@
                       , tcl.lgal_emd_nm                                  as lgalEmdNm
                       , tpdpi.dtadd                                      as dtadd
                       , tpdpi.roadadd                                    as rnmadr
+                      , tpdpi.li_cd                                      as liCd
+                      , tpdpi.mntn_yn                                    as mntnYn
                       , tpdpi.bdnbr                                      as bdnbr
                       , tpdpi.zip                                        as zip
                       , tpdpi.prk_plce_lat                               as prkPlceLat
@@ -780,6 +785,8 @@
                       , tpdpi.rgst_id                                    as rgstId
                       , tpdpi.updt_dt                                    as updtDt
                       , tpdpi.updusr_id                                  as updusrId
+                      , tpdpi.lnm_mnno                                   as lnmMnno
+                      , tpdpi.lnm_sbno                                   as lnmSbno
         FROM cpk.tb_prk_def_plce_info tpdpi
                  INNER JOIN cpk.tb_atch_prklot_info tapi
                             ON tpdpi.prk_plce_manage_no = tapi.prk_plce_manage_no
@@ -827,41 +834,72 @@
     <!-- 🔥 부설주차장 운영 정보 업데이트 (tb_atch_prklot_oper_info) -->
     <update id="updateAtchPrklotOperInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
         UPDATE cpk.tb_atch_prklot_oper_info
-        SET prklot_sign_cd       = #{prklotSignCd}
-          , tckt_mchn_yn         = #{tcktMchnYn}
-          , barr_gte_yn          = #{barrGteYn}
-          , exit_alrm_yn         = #{exitAlrmYn}
-          , veh_rcgn_tp_cd       = #{vehRcgnTpCd}
-          , fee_imps_cd          = #{feeImpsCd}
-          , fee_frst_30min_prc   = #{feeFrst30minPrc}
-          , fee_10min_prc        = #{fee10minPrc}
-          , fee_1hr_prc          = #{fee1hrPrc}
-          , fee_day_prc          = #{feeDayPrc}
-          , fee_mnth_pass_prc    = #{feeMnthPassPrc}
-          , fee_hfyr_pass_prc    = #{feeHfyrPassPrc}
-          , fee_pay_mthd_cd      = #{feePayMthdCd}
-          , fee_pay_mthd_othr    = #{feePayMthdOthr}
-          , fee_setl_mthd_cd     = #{feeSetlMthdCd}
-          , wk_peak_str_tm       = #{wkPeakStrTm}
-          , wk_peak_end_tm       = #{wkPeakEndTm}
-          , wk_prk_veh_cnt       = #{wkPrkVehCnt}
-          , nt_peak_str_tm       = #{ntPeakStrTm}
-          , nt_peak_end_tm       = #{ntPeakEndTm}
-          , nt_prk_veh_cnt       = #{ntPrkVehCnt}
-          , prklot_entr_lat      = #{prklotEntrLat}
-          , prklot_entr_lon      = #{prklotEntrLon}
-          , bldg_2f_prklot_cd    = #{bldg2fPrklotCd}
-          , fall_prev_fclty_yn   = #{fallPrevFcltyYn}
-          , slp_yn               = #{slpYn}
-          , antislp_fclty_yn     = #{antislpFcltyYn}
-          , slp_ctn_guid_sign_yn = #{slpCtnGuidSignYn}
-          , spd_bump_qty         = #{spdBumpQty}
-          , stop_line_qty        = #{stopLineQty}
-          , crswlk_qty           = #{crswlkQty}
-          , partclr_matter       = #{partclrMatter}
-          , updt_dt              = NOW()
-          , updusr_id            = #{updusrId}
-          , updusr_ip_addr       = #{updusrIpAddr}
+        SET mech_prklot_tp_cd          = #{mechPrklotTpCd}
+          , mech_prklot_oper_yn        = #{mechPrklotOperYn}
+          , mech_prk_inop_cnt          = #{mechPrkInopCnt}
+          , prk_fclty_tp_tot_flr_capa  = #{prkFcltyTpTotFlrCapa}
+          , prk_fclty_tp_tot_deck_capa = #{prkFcltyTpTotDeckCapa}
+          , indr_self_tot_space_cnt    = #{indrSelfTotSpaceCnt}
+          , indr_self_flr_cnt          = #{indrSelfFlrCnt}
+          , indr_self_deck_cnt         = #{indrSelfDeckCnt}
+          , indr_mech_tot_space_cnt    = #{indrMechTotSpaceCnt}
+          , indr_mech_flr_cnt          = #{indrMechFlrCnt}
+          , indr_mech_deck_cnt         = #{indrMechDeckCnt}
+          , outdr_self_tot_space_cnt   = #{outdrSelfTotSpaceCnt}
+          , outdr_self_flr_cnt         = #{outdrSelfFlrCnt}
+          , outdr_mech_tot_space_cnt   = #{outdrMechTotSpaceCnt}
+          , outdr_mech_flr_cnt         = #{outdrMechFlrCnt}
+          , outdr_mech_deck_cnt        = #{outdrMechDeckCnt}
+          , wkdy_oper_tm_cd            = #{wkdyOperTmCd}
+          , wkdy_tmbas_oper_str_tm     = #{wkdyTmbasOperStrTm}
+          , wkdy_tmbas_oper_end_tm     = #{wkdyTmbasOperEndTm}
+          , sat_oper_tm_cd             = #{satOperTmCd}
+          , sat_tmbas_oper_str_tm      = #{satTmbasOperStrTm}
+          , sat_tmbas_oper_end_tm      = #{satTmbasOperEndTm}
+          , hldy_oper_tm_cd            = #{hldyOperTmCd}
+          , hldy_tmbas_oper_str_tm     = #{hldyTmbasOperStrTm}
+          , hldy_tmbas_oper_end_tm     = #{hldyTmbasOperEndTm}
+          , fee_imps_cd                = #{feeImpsCd}
+          , fee_frst_30min_prc         = #{feeFrst30minPrc}
+          , fee_10min_prc              = #{fee10minPrc}
+          , fee_1hr_prc                = #{fee1hrPrc}
+          , fee_day_prc                = #{feeDayPrc}
+          , fee_mnth_pass_prc          = #{feeMnthPassPrc}
+          , fee_hfyr_pass_prc          = #{feeHfyrPassPrc}
+          , fee_pay_mthd_cd            = #{feePayMthdCd}
+          , fee_pay_mthd_othr          = #{feePayMthdOthr}
+          , fee_setl_mthd_cd           = #{feeSetlMthdCd}
+          , prklot_sign_cd             = #{prklotSignCd}
+          , tckt_mchn_yn               = #{tcktMchnYn}
+          , barr_gte_yn                = #{barrGteYn}
+          , exit_alrm_yn               = #{exitAlrmYn}
+          , veh_rcgn_tp_cd             = #{vehRcgnTpCd}
+          , wk_peak_str_tm             = #{wkPeakStrTm}
+          , wk_peak_end_tm             = #{wkPeakEndTm}
+          , wk_prk_veh_cnt             = #{wkPrkVehCnt}
+          , nt_peak_str_tm             = #{ntPeakStrTm}
+          , nt_peak_end_tm             = #{ntPeakEndTm}
+          , nt_prk_veh_cnt             = #{ntPrkVehCnt}
+          , prklot_entr_lat            = #{prklotEntrLat}
+          , prklot_entr_lon            = #{prklotEntrLon}
+          , pbl_open_yn                = #{pblOpenYn}
+          , prklot_info_prvsn_cnst_yn  = #{prklotInfoPrvsnCnstYn}
+          , bldg_2f_prklot_cd          = #{bldg2fPrklotCd}
+          , fall_prev_fclty_yn         = #{fallPrevFcltyYn}
+          , slp_yn                     = #{slpYn}
+          , antislp_fclty_yn           = #{antislpFcltyYn}
+          , slp_ctn_guid_sign_yn       = #{slpCtnGuidSignYn}
+          , spd_bump_qty               = #{spdBumpQty}
+          , stop_line_qty              = #{stopLineQty}
+          , crswlk_qty                 = #{crswlkQty}
+          , guid_doc_yn                = #{guidDocYn}
+          , safe_insp_yn               = #{safeInspYn}
+          , mgr_yn                     = #{mgrYn}
+          , adm_yn                     = #{admYn}
+          , partclr_matter             = #{partclrMatter}
+          , updt_dt                    = NOW()
+          , updusr_id                  = #{updusrId}
+          , updusr_ip_addr             = #{updusrIpAddr}
         WHERE prk_plce_manage_no = #{prkPlceManageNo}
           AND prk_plce_info_sn = #{prkPlceInfoSn}
     </update>
@@ -1201,6 +1239,106 @@
         END AS pregnantPrkCnt,
 
         --------------------------------------------------------------------
+        -- 요금 정보 (대표 요금)
+        --------------------------------------------------------------------
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN tapoi.fee_frst_30min_prc
+        WHEN '2' THEN topoi.wk_gn_frst_30m_fee
+        WHEN '1' THEN topoi2.wk_gn_frst_30m_fee
+        ELSE NULL
+        END AS dayFeeFirst30m,
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN tapoi.fee_10min_prc
+        WHEN '2' THEN topoi.wk_gn_int_10m_fee
+        WHEN '1' THEN topoi2.wk_gn_int_10m_fee
+        ELSE NULL
+        END AS dayFeePer10m,
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN tapoi.fee_1hr_prc
+        WHEN '2' THEN topoi.wk_gn_1h_fee
+        WHEN '1' THEN topoi2.wk_gn_1h_fee
+        ELSE NULL
+        END AS dayFeePer60m,
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN tapoi.fee_day_prc
+        WHEN '2' THEN topoi.wk_gn_day_fee
+        WHEN '1' THEN topoi2.wk_gn_day_fee
+        ELSE NULL
+        END AS dayFeeDay,
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN tapoi.fee_mnth_pass_prc
+        WHEN '2' THEN topoi.wk_fee_mnth_pass_prc
+        WHEN '1' THEN topoi2.wk_fee_mnth_pass_prc
+        ELSE NULL
+        END AS dayFeeMonthly,
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN tapoi.fee_hfyr_pass_prc
+        WHEN '2' THEN topoi.wk_fee_hfyr_pass_prc
+        WHEN '1' THEN topoi2.wk_fee_hfyr_pass_prc
+        ELSE NULL
+        END AS dayFeeHalfyear,
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN tapoi.fee_imps_cd
+        WHEN '2' THEN topoi.wk_fee_aply_cd
+        WHEN '1' THEN topoi2.wk_fee_aply_cd
+        ELSE NULL
+        END AS dayFeeApplyCd,
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN cpk.FN_GET_CODE_NM(tapoi.fee_imps_cd, 'PRK_005')
+        WHEN '2' THEN cpk.FN_GET_CODE_NM(topoi.wk_fee_aply_cd, 'PRK_005')
+        WHEN '1' THEN cpk.FN_GET_CODE_NM(topoi2.wk_fee_aply_cd, 'PRK_005')
+        ELSE NULL
+        END AS dayFeeApplyNm,
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN NULL
+        WHEN '2' THEN topoi.nt_gn_frst_30m_fee
+        WHEN '1' THEN topoi2.nt_gn_frst_30m_fee
+        ELSE NULL
+        END AS nightFeeFirst30m,
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN NULL
+        WHEN '2' THEN topoi.nt_gn_int_10m_fee
+        WHEN '1' THEN topoi2.nt_gn_int_10m_fee
+        ELSE NULL
+        END AS nightFeePer10m,
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN NULL
+        WHEN '2' THEN topoi.nt_gn_1h_fee
+        WHEN '1' THEN topoi2.nt_gn_1h_fee
+        ELSE NULL
+        END AS nightFeePer60m,
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN NULL
+        WHEN '2' THEN topoi.nt_gn_day_fee
+        WHEN '1' THEN topoi2.nt_gn_day_fee
+        ELSE NULL
+        END AS nightFeeDay,
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN NULL
+        WHEN '2' THEN topoi.nt_fee_mnth_pass_prc
+        WHEN '1' THEN topoi2.nt_fee_mnth_pass_prc
+        ELSE NULL
+        END AS nightFeeMonthly,
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN NULL
+        WHEN '2' THEN topoi.nt_fee_hfyr_pass_prc
+        WHEN '1' THEN topoi2.nt_fee_hfyr_pass_prc
+        ELSE NULL
+        END AS nightFeeHalfyear,
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN NULL
+        WHEN '2' THEN topoi.nt_fee_aply_cd
+        WHEN '1' THEN topoi2.nt_fee_aply_cd
+        ELSE NULL
+        END AS nightFeeApplyCd,
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN NULL
+        WHEN '2' THEN cpk.FN_GET_CODE_NM(topoi.nt_fee_aply_cd, 'PRK_005')
+        WHEN '1' THEN cpk.FN_GET_CODE_NM(topoi2.nt_fee_aply_cd, 'PRK_005')
+        ELSE NULL
+        END AS nightFeeApplyNm,
+
+        --------------------------------------------------------------------
         -- 대표 운영시간(평일 기준)만 가져오기
         -- 3번(부설) : 단일 평일 시간
         -- 2번/1번 : 주간/야간 평일 시간
@@ -1245,7 +1383,63 @@
         WHEN '2' THEN topoi.nt_wkdy_oper_end_tm
         WHEN '1' THEN topoi2.nt_wkdy_oper_end_tm
         ELSE NULL
-        END AS nightWkdyEndTm
+        END AS nightWkdyEndTm,
+
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN tapoi.sat_tmbas_oper_str_tm
+        WHEN '2' THEN topoi.wk_sat_oper_star_tm
+        WHEN '1' THEN topoi2.wk_sat_oper_star_tm
+        ELSE NULL
+        END AS satDayStartTm,
+
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN tapoi.sat_tmbas_oper_end_tm
+        WHEN '2' THEN topoi.wk_sat_oper_end_tm
+        WHEN '1' THEN topoi2.wk_sat_oper_end_tm
+        ELSE NULL
+        END AS satDayEndTm,
+
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN NULL
+        WHEN '2' THEN topoi.nt_sat_oper_star_tm
+        WHEN '1' THEN topoi2.nt_sat_oper_star_tm
+        ELSE NULL
+        END AS satNightStartTm,
+
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN NULL
+        WHEN '2' THEN topoi.nt_sat_oper_end_tm
+        WHEN '1' THEN topoi2.nt_sat_oper_end_tm
+        ELSE NULL
+        END AS satNightEndTm,
+
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN tapoi.hldy_tmbas_oper_str_tm
+        WHEN '2' THEN topoi.wk_hldy_oper_star_tm
+        WHEN '1' THEN topoi2.wk_hldy_oper_star_tm
+        ELSE NULL
+        END AS hldyDayStartTm,
+
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN tapoi.hldy_tmbas_oper_end_tm
+        WHEN '2' THEN topoi.wk_hldy_oper_end_tm
+        WHEN '1' THEN topoi2.wk_hldy_oper_end_tm
+        ELSE NULL
+        END AS hldyDayEndTm,
+
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN NULL
+        WHEN '2' THEN topoi.nt_hldy_oper_star_tm
+        WHEN '1' THEN topoi2.nt_hldy_oper_star_tm
+        ELSE NULL
+        END AS hldyNightStartTm,
+
+        CASE tpdpi.prk_plce_type
+        WHEN '3' THEN NULL
+        WHEN '2' THEN topoi.nt_hldy_oper_end_tm
+        WHEN '1' THEN topoi2.nt_hldy_oper_end_tm
+        ELSE NULL
+        END AS hldyNightEndTm
 
         FROM cpk.tb_prk_def_plce_info tpdpi
         INNER JOIN cpk.tb_biz_per_prklot_info tbppi

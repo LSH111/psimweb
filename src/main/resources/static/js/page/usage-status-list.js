@@ -13,6 +13,7 @@
     let overlays = [];
     let currentInfoWindow = null;
     let clusterer = null;
+    const usageDataCache = new Map();
 
     // ========== 🔥 Kakao Map 초기화 ==========
     function initKakaoMap() {
@@ -651,10 +652,29 @@
         }
     };
 
+    function setAddTabLabel(text) {
+        const tabAdd = $('#tabAdd');
+        if (tabAdd) {
+            const label = tabAdd.querySelector('.tab-label');
+            if (label) {
+                label.textContent = text;
+            } else {
+                tabAdd.textContent = text;
+            }
+        }
+    }
+
     // ========== 탭 전환 함수들 ==========
     function showAddTab() {
         const tabAdd = $('#tabAdd');
         if (tabAdd) tabAdd.style.display = 'inline-flex';
+        setAddTabLabel('등록');
+        if (typeof window.exitUsageEditMode === 'function') {
+            window.exitUsageEditMode();
+        }
+        if (typeof window.resetUsageAddForm === 'function') {
+            window.resetUsageAddForm();
+        }
         switchToAddTab();
         if (typeof window.initUsageAddForm === 'function') {
             window.initUsageAddForm();
@@ -676,8 +696,12 @@
             panelAdd.classList.remove('active');
         }
 
+        setAddTabLabel('등록');
         switchToListTab();
 
+        if (typeof window.exitUsageEditMode === 'function') {
+            window.exitUsageEditMode();
+        }
         if (typeof window.resetUsageAddForm === 'function') {
             window.resetUsageAddForm();
         }
@@ -786,16 +810,28 @@
                 }
                 await displayList(list);
                 updateSummary(list.length);
+                cacheUsageList(list);
                 addMarkersToMap(list);
             } else {
                 await displayList([]);
                 updateSummary(0);
+                cacheUsageList([]);
             }
         } catch (error) {
             console.error('❌ 목록 조회 오류:', error);
             await displayList([]);
             updateSummary(0);
+            cacheUsageList([]);
         }
+    }
+
+    function cacheUsageList(list) {
+        usageDataCache.clear();
+        (list || []).forEach(item => {
+            if (item && item.cmplSn) {
+                usageDataCache.set(item.cmplSn, item);
+            }
+        });
     }
 
     async function displayList(list) {
@@ -829,13 +865,18 @@
                 <article class="card" data-id="${item.cmplSn || ''}" 
                          style="cursor:pointer; transition: all 0.2s ease; border-left:4px solid ${borderColor};"
                          onclick="handleCardClick(${item.plceLat}, ${item.plceLon}, '${item.cmplSn}')">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:12px;">
                         <span style="font-size:1.3rem; color:#1e293b; font-weight:600;">
                             ${item.examinDd || '-'}
                         </span>
-                        <span class="badge ${lawBadgeClass}" style="font-size:0.85rem; padding:6px 12px;">
-                            ${item.lawCdNm || '미정'}
-                        </span>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <button type="button" class="btn ghost btn-edit" data-cmpl-sn="${item.cmplSn || ''}" style="padding:6px 10px;">
+                                수정
+                            </button>
+                            <span class="badge ${lawBadgeClass}" style="font-size:0.85rem; padding:6px 12px;">
+                                ${item.lawCdNm || '미정'}
+                            </span>
+                        </div>
                     </div>
                     <div style="margin-bottom:12px;">
                         <div style="font-size:0.9rem; color:#64748b; margin-bottom:4px;">차량번호</div>
@@ -870,6 +911,7 @@
 
         container.innerHTML = cardsHtml.join('');
         bindFileListLoaders();
+        bindCardEditActions();
     }
 
     // 🔥 첨부파일은 버튼 클릭 시 1회만 조회 (루프 쿼리 방지)
@@ -894,6 +936,57 @@
                 btn.disabled = false;
             });
         });
+    }
+
+    function bindCardEditActions() {
+        const editButtons = document.querySelectorAll('.btn-edit');
+        editButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const cmplSn = btn.dataset.cmplSn;
+                openEditForm(cmplSn);
+            });
+        });
+    }
+
+    async function openEditForm(cmplSn) {
+        if (!cmplSn) return;
+        const cached = usageDataCache.get(cmplSn) || {};
+        try {
+            const response = await fetch(`${contextPath}/prk/api/usage-status/detail?cmplSn=${cmplSn}`);
+            const result = await response.json();
+            if (!result.success || !result.data) {
+                throw new Error(result.message || '상세 정보를 불러오지 못했습니다.');
+            }
+            showEditTabPanel();
+            if (typeof window.populateUsageEditForm === 'function') {
+                const merged = Object.assign({}, cached, result.data);
+                await window.populateUsageEditForm(merged);
+            } else {
+                console.warn('⚠️ populateUsageEditForm 함수가 정의되지 않았습니다.');
+            }
+        } catch (error) {
+            console.error('❌ 상세 조회 실패:', error);
+            if (cached && Object.keys(cached).length > 0) {
+                alert('상세 조회에 실패하여 목록 데이터를 기반으로 편집합니다.');
+                showEditTabPanel();
+                if (typeof window.populateUsageEditForm === 'function') {
+                    await window.populateUsageEditForm(cached);
+                }
+            } else {
+                alert(error.message || '상세 정보를 불러오는 중 오류가 발생했습니다.');
+            }
+        }
+    }
+
+    function showEditTabPanel() {
+        const tabAdd = $('#tabAdd');
+        if (tabAdd) {
+            tabAdd.style.display = 'inline-flex';
+        }
+        setAddTabLabel('수정');
+        switchToAddTab();
     }
 
     window.handleCardClick = function (lat, lng, cmplSn) {

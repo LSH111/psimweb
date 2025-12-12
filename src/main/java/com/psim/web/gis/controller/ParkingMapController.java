@@ -1,5 +1,6 @@
 package com.psim.web.gis.controller;
 
+import com.psim.web.cmm.vo.CoUserVO;
 import com.psim.web.gis.service.ParkingMapService;
 import com.psim.web.prk.vo.ParkingListVO;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpSession;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +43,24 @@ public class ParkingMapController {
             putIfPresent(params, "prgsStsCd", prgsStsCd);
             putIfPresent(params, "sidoCd", sidoCd);
             putIfPresent(params, "sigunguCd", sigunguCd);
+
+            CoUserVO loginUser = (CoUserVO) session.getAttribute("loginUser");
+            if (loginUser == null || loginUser.getUserId() == null || loginUser.getUserId().trim().isEmpty()) {
+                String msg = "로그인 정보가 없습니다. 다시 로그인해 주세요.";
+                log.warn("⚠️ {}", msg);
+                response.put("success", false);
+                response.put("message", msg);
+                response.put("list", Collections.emptyList());
+                response.put("filteredCount", 0);
+                response.put("totalCount", 0);
+                return response;
+            }
+            String loginUserId = loginUser.getUserId().trim();
+            String userTyCode = loginUser.getUserTyCode();
+            // 🔐 조사원(userTyCode=6)만 로그인 계정으로 제한
+            if ("6".equals(userTyCode)) {
+                params.put("loginUserId", loginUserId);
+            }
 
             @SuppressWarnings("unchecked")
             List<String> userBizList = (List<String>) session.getAttribute("userBizList");

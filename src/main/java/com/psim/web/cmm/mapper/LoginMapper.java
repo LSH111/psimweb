@@ -22,6 +22,8 @@ public interface LoginMapper {
      */
     List<String> selectUserBizList(@Param("srvyId") String srvyId);
 
+    List<String> selectUserBizListByLcgMgr(@Param("managerId") String managerId);
+
     /**
      * 로그인 인증번호 SMS 발송 요청 기록
      *

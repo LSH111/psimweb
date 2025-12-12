@@ -38,6 +38,7 @@ public class IndexController {
             @RequestParam(required = false) String sigunguCd,
             HttpSession session) {
         SessionFilter filter = resolveSessionFilter(session);
+        CoUserVO loginUser = session != null ? (CoUserVO) session.getAttribute("loginUser") : null;
         Map<String, Object> params = new HashMap<>();
 
         if (filter.admin) {
@@ -54,6 +55,16 @@ public class IndexController {
         // 목록 쿼리와 동일한 파라미터 키를 함께 전달하여 공통 WHERE 블록을 재사용
         params.put("sido", params.get("sidoCd"));
         params.put("sigungu", params.get("sigunguCd"));
+
+        if (loginUser != null && loginUser.getUserId() != null) {
+            String trimmedLoginId = loginUser.getUserId().trim();
+            String userTyCode = loginUser.getUserTyCode();
+            boolean restrictToLoginUser = "6".equals(userTyCode);
+            if (restrictToLoginUser && !trimmedLoginId.isEmpty()) {
+                params.put("loginUserId", trimmedLoginId);
+                // 조사원(userTyCode=6)은 본인이 담당한 건만 집계
+            }
+        }
 
         Map<String, Object> status = indexService.getParkingStatusDashboard(params);
         return ResponseEntity.ok(status);

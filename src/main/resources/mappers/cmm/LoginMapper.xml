@@ -49,6 +49,14 @@
         ORDER BY bpp.prk_biz_mng_no
     </select>
 
+    <select id="selectUserBizListByLcgMgr" parameterType="string" resultType="string">
+        SELECT DISTINCT psb.prk_biz_mng_no
+        FROM cpk.tb_prk_srvy_biz_info psb
+        WHERE psb.lcgv_mgr_id = #{managerId}
+          AND psb.use_yn = 'Y'
+        ORDER BY psb.prk_biz_mng_no
+    </select>
+
     <!-- 사용자의 사업정보 상세 조회 (사업명 포함) -->
     <select id="selectUserBizInfoList" parameterType="String" resultType="java.util.HashMap">
         SELECT DISTINCT psb.prk_biz_mng_no,

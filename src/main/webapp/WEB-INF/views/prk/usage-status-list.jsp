@@ -37,6 +37,7 @@
             position: relative;
             display: inline-block;
             padding: 4px 10px;
+            
             background-color: #f1f5f9;
             border-radius: 4px;
             font-size: 13px;
@@ -194,7 +195,8 @@
                                 aria-selected="true">목록
                         </button>
                         <button id="tabAdd" class="tab-btn" role="tab" aria-controls="panelAdd"
-                                aria-selected="false" style="display:none;">등록
+                                aria-selected="false" style="display:none;">
+                            <span class="tab-label">등록</span>
                             <span class="tab-close" aria-label="탭 닫기">×</span>
                         </button>
                     </div>

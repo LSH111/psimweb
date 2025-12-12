@@ -2,6 +2,8 @@ package com.psim.web.prk.vo;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * 주차이용실태 VO (tb_prklot_cmpl_info 테이블)
  */
@@ -65,6 +67,9 @@ public class PrkUsageStatusVO {
     private String usageId;
     private String statusCode;
     private String usageDt;
+
+    // 로그인 사용자 사업관리번호 리스트
+    private List<String> userBizList;
 
     // 페이징
     private int page = 1;

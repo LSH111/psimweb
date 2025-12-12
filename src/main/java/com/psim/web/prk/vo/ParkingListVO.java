@@ -36,10 +36,38 @@ public class ParkingListVO {
     private Integer compactPrkCnt;      // 경차
     private Integer pregnantPrkCnt;     // 임산부
 
+    // 🔥 지도 요금 정보 (주간/야간 구분)
+    private Integer dayFeeFirst30m;     // 주간 최초 30분
+    private Integer dayFeePer10m;       // 주간 10분당
+    private Integer dayFeePer60m;       // 주간 60분당
+    private Integer dayFeeDay;          // 주간 일일
+    private Integer dayFeeMonthly;      // 주간 월 정기권
+    private Integer dayFeeHalfyear;     // 주간 반기권
+    private String dayFeeApplyCd;       // 주간 요금 부과여부 코드
+    private String dayFeeApplyNm;       // 주간 요금 부과여부 명
+    private Integer nightFeeFirst30m;   // 야간 최초 30분
+    private Integer nightFeePer10m;     // 야간 10분당
+    private Integer nightFeePer60m;     // 야간 60분당
+    private Integer nightFeeDay;        // 야간 일일
+    private Integer nightFeeMonthly;    // 야간 월 정기권
+    private Integer nightFeeHalfyear;   // 야간 반기권
+    private String nightFeeApplyCd;     // 야간 요금 부과여부 코드
+    private String nightFeeApplyNm;     // 야간 요금 부과여부 명
+
     private String dayWkdyOperTmCd;     // 평일 운영시간 코드(주간)
     private String dayWkdyStartTm;      // 평일 시작시간(주간)
     private String dayWkdyEndTm;        // 평일 종료시간(주간)
     private String nightWkdyOperTmCd;   // 평일 운영시간 코드(야간)
     private String nightWkdyStartTm;    // 평일 시작시간(야간)
     private String nightWkdyEndTm;      // 평일 종료시간(야간)
+
+    // 🔥 토요일/공휴일 운영시간
+    private String satDayStartTm;
+    private String satDayEndTm;
+    private String satNightStartTm;
+    private String satNightEndTm;
+    private String hldyDayStartTm;
+    private String hldyDayEndTm;
+    private String hldyNightStartTm;
+    private String hldyNightEndTm;
 }

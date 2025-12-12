@@ -1,5 +1,6 @@
 package com.psim.web.prk.vo;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
 /**
@@ -10,6 +11,7 @@ import lombok.Data;
  * 모든 주차장 유형을 하나의 VO로 통합 관리
  */
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ParkingDetailVO {
 
     /* ========================================

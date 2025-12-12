@@ -11,7 +11,7 @@
         SELECT
         t.cmpl_sn,
         t.prk_biz_mng_no AS prkBizMngNo,
-        TO_CHAR(t.examin_dd, 'YYYY-MM-DD') AS examin_dd,
+        TO_CHAR(t.examin_dt, 'YYYY-MM-DD') AS examin_dd,
         t.examin_timelge,
         t.srvy_id,
         t.srvy_tel,
@@ -70,11 +70,20 @@
         -- 🔥 사업 정보 테이블 조인
         INNER JOIN cpk.tb_prk_srvy_biz_info b ON t.prk_biz_mng_no = b.prk_biz_mng_no
         WHERE 1=1
-        <if test="prkBizMngNo != null and prkBizMngNo != ''">
-            AND t.prk_biz_mng_no = #{prkBizMngNo}
-        </if>
+        <choose>
+            <when test="userBizList != null and userBizList.size() > 0">
+                AND t.prk_biz_mng_no IN
+                <foreach collection="userBizList" item="bizNo" open="(" separator="," close=")">
+                    #{bizNo}
+                </foreach>
+            </when>
+            <otherwise>
+                AND 1 = 0
+            </otherwise>
+        </choose>
+        AND t.prk_biz_mng_no = #{prkBizMngNo}
         <if test="searchYear != null and searchYear != ''">
-            AND TO_CHAR(t.examin_dd, 'YYYY') = #{searchYear}
+            AND TO_CHAR(t.examin_dt, 'YYYY') = #{searchYear}
         </if>
         <if test="searchSidoCode != null and searchSidoCode != ''">
             AND b.sido_cd = #{searchSidoCode}
@@ -92,21 +101,21 @@
             AND t.dynt_dv_cd = #{dyntDvCd}
         </if>
         <if test="searchStartDate != null and searchStartDate != ''">
-            AND t.examin_dd &gt;= TO_TIMESTAMP(#{searchStartDate}, 'YYYY-MM-DD')
+            AND t.examin_dt &gt;= TO_TIMESTAMP(#{searchStartDate}, 'YYYY-MM-DD')
         </if>
         <if test="searchEndDate != null and searchEndDate != ''">
-            AND t.examin_dd &lt;= TO_TIMESTAMP(#{searchEndDate} || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+            AND t.examin_dt &lt;= TO_TIMESTAMP(#{searchEndDate} || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
         </if>
         <if test="searchEmdCode != null and searchEmdCode != ''">
             AND t.emd_cd = #{searchEmdCode}
         </if>
-        ORDER BY t.examin_dd DESC, t.examin_timelge DESC
+        ORDER BY t.examin_dt DESC, t.examin_timelge DESC
     </select>
 
     <select id="selectUsageStatusDetail" parameterType="com.psim.web.prk.vo.PrkUsageStatusVO"
             resultType="com.psim.web.prk.vo.PrkUsageStatusVO">
         SELECT prk_biz_mng_no,
-               examin_dd,
+               examin_dt,
                examin_timelge,
                srvy_id,
                srvy_tel,
@@ -126,7 +135,8 @@
                updt_dt,
                updusr_id,
                updusr_ip_addr,
-               cmpl_sn
+               cmpl_sn,
+               emd_cd
         FROM cpk.tb_prklot_cmpl_info
         WHERE cmpl_sn = #{cmplSn}
     </select>
@@ -135,7 +145,7 @@
             keyProperty="cmplSn" keyColumn="cmpl_sn">
         INSERT INTO cpk.tb_prklot_cmpl_info (cmpl_sn,
                                              prk_biz_mng_no,
-                                             examin_dd,
+                                             examin_dt,
                                              examin_timelge,
                                              srvy_id,
                                              srvy_tel,

@@ -517,6 +517,7 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
             ensureAdminCodes(vo);
             applyBizPerIdentifiers(vo);
             ensureManageNoUnique(vo);
+            sanitizeAttachedOperLengths(vo);
             log.info("🆕 부설주차장 INSERT 시작 - 관리번호: {}", vo.getPrkPlceManageNo());
 
             // 🔵 STEP 0: prkPlceInfoSn 생성
@@ -614,6 +615,7 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
         try {
             ensureOwnCd(parkingData);
             ensureAdminCodes(parkingData);
+            sanitizeAttachedOperLengths(parkingData);
             log.info("🔄 부설주차장 UPDATE: {}", parkingData.getPrkPlceManageNo());
             applyLdongCd(parkingData);
 
@@ -653,6 +655,46 @@ public class PrkDefPlceInfoServiceImpl implements PrkDefPlceInfoService {
         vo.setSlpYn(clean(vo.getSlpYn(), 1));
         vo.setAntislpFcltyYn(clean(vo.getAntislpFcltyYn(), 1));
         vo.setSlpCtnGuidSignYn(clean(vo.getSlpCtnGuidSignYn(), 1));
+    }
+
+    private void sanitizeAttachedOperLengths(ParkingDetailVO vo) {
+        vo.setMechPrklotTpCd(clean(vo.getMechPrklotTpCd(), 2));
+        vo.setMechPrklotOperYn(clean(vo.getMechPrklotOperYn(), 2));
+        vo.setWkdyOperTmCd(clean(vo.getWkdyOperTmCd(), 2));
+        vo.setWkdyTmbasOperStrTm(clean(vo.getWkdyTmbasOperStrTm(), 4));
+        vo.setWkdyTmbasOperEndTm(clean(vo.getWkdyTmbasOperEndTm(), 4));
+        vo.setSatOperTmCd(clean(vo.getSatOperTmCd(), 2));
+        vo.setSatTmbasOperStrTm(clean(vo.getSatTmbasOperStrTm(), 4));
+        vo.setSatTmbasOperEndTm(clean(vo.getSatTmbasOperEndTm(), 4));
+        vo.setHldyOperTmCd(clean(vo.getHldyOperTmCd(), 2));
+        vo.setHldyTmbasOperStrTm(clean(vo.getHldyTmbasOperStrTm(), 4));
+        vo.setHldyTmbasOperEndTm(clean(vo.getHldyTmbasOperEndTm(), 4));
+        vo.setFeeImpsCd(clean(vo.getFeeImpsCd(), 2));
+        vo.setFeePayMthdCd(clean(vo.getFeePayMthdCd(), 11));
+        vo.setFeeSetlMthdCd(clean(vo.getFeeSetlMthdCd(), 5));
+        vo.setFeePayMthdOthr(clean(vo.getFeePayMthdOthr(), 100));
+        vo.setPrklotSignCd(clean(vo.getPrklotSignCd(), 1));
+        vo.setTcktMchnYn(clean(vo.getTcktMchnYn(), 1));
+        vo.setBarrGteYn(clean(vo.getBarrGteYn(), 1));
+        vo.setExitAlrmYn(clean(vo.getExitAlrmYn(), 1));
+        vo.setVehRcgnTpCd(clean(vo.getVehRcgnTpCd(), 2));
+        vo.setWkPeakStrTm(clean(vo.getWkPeakStrTm(), 2));
+        vo.setWkPeakEndTm(clean(vo.getWkPeakEndTm(), 2));
+        vo.setNtPeakStrTm(clean(vo.getNtPeakStrTm(), 2));
+        vo.setNtPeakEndTm(clean(vo.getNtPeakEndTm(), 2));
+        vo.setPblOpenYn(clean(vo.getPblOpenYn(), 1));
+        vo.setPrklotInfoPrvsnCnstYn(clean(vo.getPrklotInfoPrvsnCnstYn(), 1));
+        vo.setBldg2fPrklotCd(clean(vo.getBldg2fPrklotCd(), 2));
+        vo.setFallPrevFcltyYn(clean(vo.getFallPrevFcltyYn(), 1));
+        vo.setSlpYn(clean(vo.getSlpYn(), 1));
+        vo.setAntislpFcltyYn(clean(vo.getAntislpFcltyYn(), 1));
+        vo.setSlpCtnGuidSignYn(clean(vo.getSlpCtnGuidSignYn(), 1));
+        vo.setGuidDocYn(clean(vo.getGuidDocYn(), 1));
+        vo.setSafeInspYn(clean(vo.getSafeInspYn(), 1));
+        vo.setMgrYn(clean(vo.getMgrYn(), 1));
+        vo.setAdmYn(clean(vo.getAdmYn(), 1));
+        vo.setPrklotEntrLat(clean(vo.getPrklotEntrLat(), 30));
+        vo.setPrklotEntrLon(clean(vo.getPrklotEntrLon(), 30));
     }
 
     // ========== 상태 변경 ==========

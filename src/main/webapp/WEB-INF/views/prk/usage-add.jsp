@@ -9,11 +9,17 @@
 <!-- usage-status-list.jsp에 포함되므로 html, head, body 태그 제거 -->
 <div class="wrap">
     <header class="card head">
-        <div class="title">주차 이용 현황 등록</div>
-        <span class="actions" style="margin-left:auto">
+        <div class="title" id="usageFormTitle">주차 이용 현황 등록</div>
+        <span id="usageFormModeBadge"
+              style="display:none;margin-left:12px;padding:4px 10px;border-radius:999px;background:#fee2e2;color:#b91c1c;font-size:0.85rem;font-weight:600;">
+            수정 모드
+        </span>
+        <span class="actions" style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+            <button class="btn ghost" id="btnCancelEdit" style="display:none;">수정 취소</button>
             <button class="btn" id="btnSaveTop">저장</button>
         </span>
     </header>
+    <input type="hidden" id="f_cmplSn"/>
 
     <!-- 주차장 조사 -->
     <section class="card">

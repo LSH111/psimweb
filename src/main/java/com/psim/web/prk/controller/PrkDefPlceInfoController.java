@@ -160,6 +160,18 @@ public class PrkDefPlceInfoController {
 
         log.info("🧹 정리된 params: {}", cleanParams);
 
+        // 🔥 세션에서 로그인 사용자 정보 확인
+        CoUserVO loginUser = (CoUserVO) session.getAttribute("loginUser");
+        if (loginUser == null || loginUser.getUserId() == null || loginUser.getUserId().trim().isEmpty()) {
+            String msg = "로그인 정보가 없습니다. 다시 로그인해 주세요.";
+            log.warn("⚠️ {}", msg);
+            result.put("success", false);
+            result.put("message", msg);
+            result.put("list", new ArrayList<>());
+            result.put("totalCount", 0);
+            return result;
+        }
+
         // 🔥 세션에서 userBizList 가져와서 params에 추가 
         List<String> userBizList = (List<String>) session.getAttribute("userBizList");
         if (userBizList == null || userBizList.isEmpty()) {
@@ -175,7 +187,17 @@ public class PrkDefPlceInfoController {
         String resolvedBizNo = resolveBizManageNo(userBizList);
         cleanParams.put("userBizList", userBizList);
         cleanParams.put("prkBizMngNo", resolvedBizNo);
-        log.info("✅ userBizList 추가 및 prkBizMngNo 강제: {}", resolvedBizNo);
+        String trimmedLoginId = loginUser.getUserId().trim();
+        String userTyCode = loginUser.getUserTyCode();
+        // 🔐 조사원(userTyCode=6)만 자신의 계정으로 제한
+        boolean restrictToLoginUser = "6".equals(userTyCode);
+        if (restrictToLoginUser) {
+            cleanParams.put("loginUserId", trimmedLoginId);
+            log.info("✅ userBizList 및 loginUserId 추가 - prkBizMngNo: {}, loginUserId: {}", resolvedBizNo, trimmedLoginId);
+        } else {
+            cleanParams.remove("loginUserId");
+            log.info("✅ userBizList 추가 - prkBizMngNo: {}, userTyCode={} (조사자 제한 미적용)", resolvedBizNo, userTyCode);
+        }
 
         try {
             log.info("🔄 서비스 호출 시작");

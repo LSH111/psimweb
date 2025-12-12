@@ -14,6 +14,45 @@
 
     // 🔥 여러 장의 사진 파일 저장
     let selectedPhotoFiles = [];
+    let currentEditingCmplSn = null;
+
+    function setEditingId(cmplSn) {
+        currentEditingCmplSn = cmplSn || null;
+        const hidden = $('#f_cmplSn');
+        if (hidden) {
+            hidden.value = currentEditingCmplSn || '';
+        }
+        updateFormModeUI();
+    }
+
+    function updateFormModeUI() {
+        const titleEl = $('#usageFormTitle');
+        const badgeEl = $('#usageFormModeBadge');
+        const cancelBtn = $('#btnCancelEdit');
+        const saveTopBtn = $('#btnSaveTop');
+        const saveBottomBtn = $('#btnSave');
+        const isEdit = !!currentEditingCmplSn;
+
+        if (titleEl) {
+            titleEl.textContent = isEdit ? '주차 이용 현황 수정' : '주차 이용 현황 등록';
+        }
+        if (badgeEl) {
+            badgeEl.style.display = isEdit ? 'inline-flex' : 'none';
+        }
+        if (cancelBtn) {
+            cancelBtn.style.display = isEdit ? 'inline-flex' : 'none';
+        }
+        if (saveTopBtn) {
+            saveTopBtn.textContent = isEdit ? '수정 저장' : '저장';
+        }
+        if (saveBottomBtn) {
+            saveBottomBtn.textContent = isEdit ? '수정 저장' : '저장하기';
+        }
+    }
+
+    function exitUsageEditMode() {
+        setEditingId(null);
+    }
 
     // ========== 행정구역 코드 로드 ==========
     const FormCodeUtils = {
@@ -137,6 +176,13 @@
                 clearPhoto();
             }
 
+            // 수정 취소 버튼
+            else if (target.id === 'btnCancelEdit' || target.closest('#btnCancelEdit')) {
+                e.preventDefault();
+                exitUsageEditMode();
+                resetUsageAddForm();
+            }
+
             // 주소찾기 버튼
             else if (target.id === 'btnFindAddr' || target.closest('#btnFindAddr')) {
                 e.preventDefault();
@@ -217,6 +263,8 @@
 
     // ========== 폼 초기화 ==========
     async function initUsageAddForm() {
+        setEditingId(null);
+        clearPhoto();
 
         // 행정구역 데이터 로드
         await FormCodeUtils.loadSidoList();
@@ -602,7 +650,11 @@
             isSaving = false;
             saveButtons.forEach(btn => {
                 btn.disabled = false;
-                btn.textContent = '💾 저장하기';
+                if (btn.id === 'btnSaveTop') {
+                    btn.textContent = currentEditingCmplSn ? '수정 저장' : '저장';
+                } else {
+                    btn.textContent = currentEditingCmplSn ? '수정 저장' : '저장하기';
+                }
             });
         };
 
@@ -662,7 +714,13 @@
                 formData.append('photos', file);
             });
 
-            const response = await fetch(withBase(`/prk/api/usage-status/save`), {
+            if (currentEditingCmplSn) {
+                formData.append('cmplSn', currentEditingCmplSn);
+            }
+
+            const endpoint = currentEditingCmplSn ? '/prk/api/usage-status/update' : '/prk/api/usage-status/save';
+
+            const response = await fetch(withBase(endpoint), {
                 method: 'POST',
                 body: formData
             });
@@ -671,6 +729,7 @@
 
             if (result.success) {
                 alert('저장되었습니다.');
+                exitUsageEditMode();
                 resetUsageAddForm();
                 clearPhoto();
 
@@ -754,6 +813,7 @@
 
         setTodayDate();
         clearPhoto();
+        setEditingId(null);
     }
 
     // ========== 우편번호 검색 ==========
@@ -929,9 +989,98 @@
         postcode.embed(container, {autoClose: false});
     }
 
+    async function populateUsageEditForm(data) {
+        if (!data) return;
+
+        clearPhoto();
+
+        await FormCodeUtils.loadSidoList();
+
+        const defaultSido = data.sidoCd || (sessionInfo && sessionInfo.sidoCd) || '';
+        const sidoSelect = $('#f_sido');
+        if (sidoSelect) {
+            sidoSelect.disabled = false;
+            sidoSelect.style.backgroundColor = '';
+            sidoSelect.style.cursor = '';
+            sidoSelect.value = defaultSido;
+        }
+
+        if (defaultSido) {
+            await FormCodeUtils.loadSigunguList(defaultSido);
+        }
+
+        const defaultSigungu = data.sigunguCd || (sessionInfo && sessionInfo.sigunguCd) || '';
+        const sigunguSelect = $('#f_sigungu');
+        if (sigunguSelect) {
+            sigunguSelect.disabled = false;
+            sigunguSelect.style.backgroundColor = '';
+            sigunguSelect.style.cursor = '';
+            sigunguSelect.value = defaultSigungu;
+        }
+
+        if (defaultSigungu) {
+            await FormCodeUtils.loadEmdList(defaultSigungu);
+        }
+
+        const emdSelect = $('#f_emd');
+        if (emdSelect) {
+            emdSelect.disabled = false;
+            emdSelect.value = data.emdCd || '';
+        }
+
+        const riInput = $('#f_ri');
+        if (riInput) riInput.value = data.ri || '';
+
+        const latInput = $('#f_lat');
+        if (latInput) latInput.value = data.plceLat || '';
+
+        const lngInput = $('#f_lng');
+        if (lngInput) lngInput.value = data.plceLon || '';
+
+        const surveyDate = $('#f_surveyDate');
+        if (surveyDate) {
+            const today = new Date().toISOString().split('T')[0];
+            surveyDate.value = data.examinDd ? data.examinDd.substring(0, 10) : today;
+        }
+
+        const timeRange = data.examinTimelge || '';
+        if (timeRange.includes('-')) {
+            const [start, end] = timeRange.split('-');
+            const [startHour, startMin] = (start || '').split(':');
+            const [endHour, endMin] = (end || '').split(':');
+            if ($('#f_startHour')) $('#f_startHour').value = startHour || '';
+            if ($('#f_startMin')) $('#f_startMin').value = startMin || '';
+            if ($('#f_endHour')) $('#f_endHour').value = endHour || '';
+            if ($('#f_endMin')) $('#f_endMin').value = endMin || '';
+        }
+
+        const plateInput = $('#f_plateNumber');
+        if (plateInput) plateInput.value = data.vhcleNo || '';
+
+        const surveyorName = $('#f_surveyorName');
+        if (surveyorName) surveyorName.value = data.srvyId || '';
+
+        const surveyorTel = $('#f_surveyorContact');
+        if (surveyorTel) surveyorTel.value = data.srvyTel || '';
+
+        const remarkInput = $('#f_remarks');
+        if (remarkInput) remarkInput.value = data.remark || '';
+
+        const vehicleRadio = document.querySelector(`input[name="vehicleType"][value="${data.vhctyCd || '1'}"]`);
+        if (vehicleRadio) vehicleRadio.checked = true;
+
+        const lawValue = data.lawCd || data.lawGbn || '1';
+        const lawRadio = document.querySelector(`input[name="lawGbn"][value="${lawValue}"]`);
+        if (lawRadio) lawRadio.checked = true;
+
+        setEditingId(data.cmplSn);
+    }
+
     // ========== 전역 노출 ==========
     window.initUsageAddForm = initUsageAddForm;
     window.resetUsageAddForm = resetUsageAddForm;
+    window.populateUsageEditForm = populateUsageEditForm;
+    window.exitUsageEditMode = exitUsageEditMode;
 
     // ========== 초기화 ==========
     if (document.readyState === 'loading') {

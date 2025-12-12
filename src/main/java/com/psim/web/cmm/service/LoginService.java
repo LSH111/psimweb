@@ -29,6 +29,11 @@ public interface LoginService {
     List<String> selectUserBizList(String srvyId);
 
     /**
+     * 🔥 지방자치단체 담당자(lcgv_mgr_id) 기준 사업목록 조회
+     */
+    List<String> selectUserBizListByManager(String managerId);
+
+    /**
      * 휴대폰 인증번호 발송 요청
      *
      * @param modelMap login[phone] 등을 포함한 모델맵

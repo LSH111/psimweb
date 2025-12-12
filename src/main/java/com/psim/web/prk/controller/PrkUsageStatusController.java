@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,10 +69,51 @@ public class PrkUsageStatusController {
      */
     @GetMapping("/api/usage-status/list")
     @ResponseBody
-    public Map<String, Object> getUsageStatusList(PrkUsageStatusVO vo) {
+    public Map<String, Object> getUsageStatusList(PrkUsageStatusVO vo, HttpSession session) {
         Map<String, Object> result = new HashMap<>();
 
         try {
+            CoUserVO loginUser = (CoUserVO) session.getAttribute("loginUser");
+            @SuppressWarnings("unchecked")
+            List<String> userBizList = (List<String>) session.getAttribute("userBizList");
+
+            if (loginUser == null) {
+                String msg = "로그인 정보가 없습니다. 다시 로그인해 주세요.";
+                log.warn("⚠️ {}", msg);
+                result.put("success", false);
+                result.put("message", msg);
+                result.put("list", Collections.emptyList());
+                result.put("totalCount", 0);
+                return result;
+            }
+            if (userBizList == null || userBizList.isEmpty()) {
+                String msg = "사업관리번호 정보가 없습니다. 다시 로그인해 주세요.";
+                log.warn("⚠️ {}", msg);
+                result.put("success", false);
+                result.put("message", msg);
+                result.put("list", Collections.emptyList());
+                result.put("totalCount", 0);
+                return result;
+            }
+
+            String requestedBizNo = vo.getPrkBizMngNo();
+            if (requestedBizNo != null && !requestedBizNo.trim().isEmpty()) {
+                if (!userBizList.contains(requestedBizNo.trim())) {
+                    String msg = "권한이 없는 사업관리번호입니다.";
+                    log.warn("⚠️ {}", msg);
+                    result.put("success", false);
+                    result.put("message", msg);
+                    result.put("list", Collections.emptyList());
+                    result.put("totalCount", 0);
+                    return result;
+                }
+                vo.setPrkBizMngNo(requestedBizNo.trim());
+            } else {
+                vo.setPrkBizMngNo(userBizList.get(0));
+            }
+            // 🔐 Mapper에서는 단일 사업번호만 필요하므로 검증된 값을 하나만 전달
+            vo.setUserBizList(Collections.singletonList(vo.getPrkBizMngNo()));
+
             log.info("🔍 목록 조회 요청 - prkBizMngNo: {}, searchYear: {}, searchSido: {}, searchSigungu: {}, searchEmd: {}, searchVehicleNo: {}, searchLawCd: {}",
                     vo.getPrkBizMngNo(),
                     vo.getSearchYear(),
@@ -259,6 +301,95 @@ public class PrkUsageStatusController {
             log.error("❌ 저장 오류", e);
             result.put("success", false);
             result.put("message", "저장 중 오류가 발생했습니다.");
+        }
+
+        return result;
+    }
+
+    /**
+     * 주차이용실태 수정 API
+     */
+    @PostMapping("/api/usage-status/update")
+    @ResponseBody
+    public Map<String, Object> updateUsageStatus(
+            @RequestParam Map<String, String> params,
+            @RequestParam(value = "photos", required = false) List<MultipartFile> photos,
+            HttpServletRequest request,
+            HttpSession session) {
+
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            CoUserVO loginUser = (CoUserVO) session.getAttribute("loginUser");
+            if (loginUser == null) {
+                result.put("success", false);
+                result.put("message", "로그인 정보가 없습니다.");
+                return result;
+            }
+
+            @SuppressWarnings("unchecked")
+            List<String> userBizList = (List<String>) session.getAttribute("userBizList");
+            if (userBizList == null || userBizList.isEmpty()) {
+                result.put("success", false);
+                result.put("message", "사업관리번호 정보가 없습니다.");
+                return result;
+            }
+
+            String cmplSn = params.get("cmplSn");
+            if (cmplSn == null || cmplSn.isEmpty()) {
+                result.put("success", false);
+                result.put("message", "수정할 대상이 없습니다.");
+                return result;
+            }
+
+            PrkUsageStatusVO vo = new PrkUsageStatusVO();
+            vo.setCmplSn(cmplSn);
+            vo.setPrkBizMngNo(userBizList.get(0));
+            vo.setEmdCd(params.get("emdCd"));
+            vo.setExaminDd(params.get("examinDd"));
+            vo.setExaminTimelge(params.get("examinTimelge"));
+            vo.setVhctyCd(params.get("vhctyCd"));
+            vo.setLawGbn(params.get("lawGbn"));
+            vo.setLawCd(params.get("lawCd"));
+            vo.setVhcleNo(params.get("vhcleNo"));
+            vo.setSrvyId(params.get("srvyId"));
+            vo.setSrvyTel(params.get("srvyTel"));
+            vo.setRemark(params.get("remark"));
+            vo.setPlceLat(params.get("plceLat"));
+            vo.setPlceLon(params.get("plceLon"));
+            vo.setUpdusrId(loginUser.getUserId());
+            vo.setUpdusrIpAddr(request.getRemoteAddr());
+
+            log.info("✏️ 이용실태 수정 - cmplSn: {}", cmplSn);
+
+            int cnt = usageStatusService.updateUsageStatus(vo);
+
+            if (cnt > 0) {
+                if (photos != null && !photos.isEmpty()) {
+                    log.info("📸 수정 시 추가 파일 업로드 - {}개", photos.size());
+                    List<AttchPicMngInfoVO> uploadedFiles = attchPicService.uploadAndSaveFilesForUsage(
+                            vo.getPrkBizMngNo(),
+                            cmplSn,
+                            "USG_PHOTO",
+                            photos,
+                            loginUser.getUserId(),
+                            request.getRemoteAddr()
+                    );
+                    result.put("uploadedFiles", uploadedFiles);
+                }
+
+                result.put("success", true);
+                result.put("message", "수정되었습니다.");
+                result.put("cmplSn", cmplSn);
+            } else {
+                result.put("success", false);
+                result.put("message", "수정에 실패했습니다.");
+            }
+
+        } catch (Exception e) {
+            log.error("❌ 수정 오류", e);
+            result.put("success", false);
+            result.put("message", "수정 중 오류가 발생했습니다.");
         }
 
         return result;

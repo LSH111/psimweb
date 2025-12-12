@@ -73,7 +73,7 @@ public class LoginController {
 
         // 사용자 유형(5, 6)만 로그인 허용
         String userTyCode = loginUser.getUserTyCode();
-        if (!"5".equals(userTyCode) && !"6".equals(userTyCode)) {
+        if (!"1".equals(userTyCode) && !"2".equals(userTyCode) && !"6".equals(userTyCode)) {
             System.out.println("❌ 로그인 실패: 허용되지 않은 사용자 유형 userTyCode=" + userTyCode);
             redirectAttributes.addFlashAttribute("finalErr", "로그인 권한이 없는 사용자 유형입니다. 담당자에게 문의하세요.");
             return "redirect:/";
@@ -100,7 +100,12 @@ public class LoginController {
         try {
             System.out.println("🔍 사업관리번호 목록 조회 시작: userId=" + loginUser.getUserId());
 
-            List<String> userBizList = loginService.selectUserBizList(loginUser.getUserId());
+            List<String> userBizList;
+            if ("1".equals(userTyCode) || "2".equals(userTyCode)) {
+                userBizList = loginService.selectUserBizListByManager(loginUser.getUserId());
+            } else {
+                userBizList = loginService.selectUserBizList(loginUser.getUserId());
+            }
 
             if (userBizList == null) {
                 System.out.println("⚠️ 사업관리번호 목록이 null입니다. 빈 리스트로 초기화합니다.");

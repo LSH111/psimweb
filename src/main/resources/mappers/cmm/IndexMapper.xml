@@ -47,6 +47,10 @@
             <if test="prkBizMngNo != null and prkBizMngNo != ''">
                 AND tbppi.prk_biz_mng_no = #{prkBizMngNo}
             </if>
+            <if test="loginUserId != null and loginUserId != ''">
+                <!-- 조사원(userTyCode=6) 제한: 본인 계정만 -->
+                AND tbppi.srvy_id = #{loginUserId}
+            </if>
         </where>
     </select>
 
