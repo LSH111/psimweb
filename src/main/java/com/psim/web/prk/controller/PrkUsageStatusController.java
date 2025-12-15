@@ -14,7 +14,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -74,45 +73,8 @@ public class PrkUsageStatusController {
 
         try {
             CoUserVO loginUser = (CoUserVO) session.getAttribute("loginUser");
-            @SuppressWarnings("unchecked")
             List<String> userBizList = (List<String>) session.getAttribute("userBizList");
 
-            if (loginUser == null) {
-                String msg = "로그인 정보가 없습니다. 다시 로그인해 주세요.";
-                log.warn("⚠️ {}", msg);
-                result.put("success", false);
-                result.put("message", msg);
-                result.put("list", Collections.emptyList());
-                result.put("totalCount", 0);
-                return result;
-            }
-            if (userBizList == null || userBizList.isEmpty()) {
-                String msg = "사업관리번호 정보가 없습니다. 다시 로그인해 주세요.";
-                log.warn("⚠️ {}", msg);
-                result.put("success", false);
-                result.put("message", msg);
-                result.put("list", Collections.emptyList());
-                result.put("totalCount", 0);
-                return result;
-            }
-
-            String requestedBizNo = vo.getPrkBizMngNo();
-            if (requestedBizNo != null && !requestedBizNo.trim().isEmpty()) {
-                if (!userBizList.contains(requestedBizNo.trim())) {
-                    String msg = "권한이 없는 사업관리번호입니다.";
-                    log.warn("⚠️ {}", msg);
-                    result.put("success", false);
-                    result.put("message", msg);
-                    result.put("list", Collections.emptyList());
-                    result.put("totalCount", 0);
-                    return result;
-                }
-                vo.setPrkBizMngNo(requestedBizNo.trim());
-            } else {
-                vo.setPrkBizMngNo(userBizList.get(0));
-            }
-            // 🔐 Mapper에서는 단일 사업번호만 필요하므로 검증된 값을 하나만 전달
-            vo.setUserBizList(Collections.singletonList(vo.getPrkBizMngNo()));
 
             log.info("🔍 목록 조회 요청 - prkBizMngNo: {}, searchYear: {}, searchSido: {}, searchSigungu: {}, searchEmd: {}, searchVehicleNo: {}, searchLawCd: {}",
                     vo.getPrkBizMngNo(),
@@ -123,8 +85,10 @@ public class PrkUsageStatusController {
                     vo.getSearchVehicleNo(),
                     vo.getSearchLawCd());
 
-            List<PrkUsageStatusVO> list = usageStatusService.getUsageStatusList(vo);
+            vo.setPrkBizMngNo(userBizList.get(0));
 
+            List<PrkUsageStatusVO> list = usageStatusService.getUsageStatusList(vo);
+            log.info("vo.getPrkBizMngNo()", vo.getPrkBizMngNo());
             log.info("✅ 목록 조회 결과: {}건", list != null ? list.size() : 0);
             if (list != null && !list.isEmpty()) {
                 log.info("📋 첫 번째 데이터: {}", list.get(0));
@@ -280,9 +244,7 @@ public class PrkUsageStatusController {
                             vo.getPrkBizMngNo(),
                             cmplSn,
                             "USG_PHOTO",
-                            photos,
-                            loginUser.getUserId(),
-                            request.getRemoteAddr()
+                            photos
                     );
 
                     log.info("✅ 파일 업로드 완료: {}개", uploadedFiles.size());
@@ -371,9 +333,7 @@ public class PrkUsageStatusController {
                             vo.getPrkBizMngNo(),
                             cmplSn,
                             "USG_PHOTO",
-                            photos,
-                            loginUser.getUserId(),
-                            request.getRemoteAddr()
+                            photos
                     );
                     result.put("uploadedFiles", uploadedFiles);
                 }

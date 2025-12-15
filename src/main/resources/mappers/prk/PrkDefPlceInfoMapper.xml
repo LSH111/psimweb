@@ -99,6 +99,7 @@
         LEFT JOIN cpk.tb_co_user tcu
         ON tbppi.srvy_id = tcu.user_id
         <include refid="parkingCommonWhere"/>
+
         ORDER BY tpdpi.prkplce_nm ASC
         <!-- 페이징 제거: LIMIT/OFFSET 구문 삭제 -->
     </select>
@@ -219,13 +220,9 @@
                       , topi.compact_prk_cnt                             as compactPrkCnt
                       , topi.eco_prk_cnt                                 as ecoPrkCnt
                       , topi.pregnant_prk_cnt                            as pregnantPrkCnt
-                      , topi.prkplce_se                                  as prkplceSe  -- NOTE: 주차장구분 코드
                       , topi.prk_oper_mthd_cd                            as prkOperMthdCd
                       , topi.oper_mby_cd                                 as operMbyCd
-                      , topi.trut_comp_nm                                as trutCompNm -- NOTE: 민간위탁 업체명
-                      , topi.dirt_comp_nm                                as dirtCompNm -- NOTE: 민간직영 업체명
-                      , topi.trut_comp_nm                                as trutCompNm -- NOTE: 민간위탁 업체명
-                      , topi.dirt_comp_nm                                as dirtCompNm -- NOTE: 민간직영 업체명
+                      , topi.trut_comp_nm                                as trutCompNm
                       , topi.mgr_org                                     as mgrOrg
                       , topi.mgr_org_tel_no                              as mgrOrgTelNo
                       , topi.subordn_opertn_cd                           as subordnOpertnCd
@@ -320,8 +317,7 @@
             lnm_mnno       = #{lnmMnno},
             lnm_sbno       = #{lnmSbno},
             mntn_yn        = #{mntnYn},
-            li_cd          = #{liCd},
-            roadadd        = #{rnmadr},
+            roadadd        = #{roadaddr},
             updt_dt        = NOW(),
             updusr_id      = #{updusrId},
             updusr_ip_addr = #{updusrIpAddr}
@@ -438,14 +434,14 @@
                       , tpsbi.biz_exc_ed_dt                              as bizExcEdDt
                       , tpdpi.prk_plce_manage_no                         as prkPlceManageNo
                       , tpdpi.prkplce_nm                                 as prkplceNm
+                      , tpdpi.lnm_mnno                                   as lnmMnno
+                      , tpdpi.lnm_sbno                                   as lnmSbno
                       , tcl.sido_cd                                      as sidoCd
                       , tcl.sido_nm                                      as sidoNm
                       , tcl.sigungu_cd                                   as sigunguCd
                       , tcl.sigungu_nm                                   as sigunguNm
                       , tcl.emd_cd                                       as emdCd
                       , tcl.lgal_emd_nm                                  as lgalEmdNm
-                      , tpdpi.lnm_mnno                                   as lnmMnno -- NOTE: 본번
-                      , tpdpi.lnm_sbno                                   as lnmSbno -- NOTE: 부번
                       , tpdpi.dtadd                                      as dtadd
                       , tpdpi.roadadd                                    as rnmadr
                       , tpdpi.prk_plce_lat                               as prkPlceLat
@@ -534,6 +530,7 @@
                       , topoi.nt_fee_pay_mthd_othr                       as ntFeePayMthdOthr
                       , topi.trut_comp_nm                                as trutCompNm
                       , topi.dirt_comp_nm                                as dirtCompNm
+                      , topi.prkplce_se                                  AS prkplceSe
         FROM cpk.tb_prk_def_plce_info tpdpi
                  INNER JOIN cpk.tb_offstr_prklot_info topi
                             ON tpdpi.prk_plce_manage_no = topi.prk_plce_manage_no
@@ -679,16 +676,15 @@
                       , tcl.emd_cd                                       as emdCd
                       , tcl.lgal_emd_nm                                  as lgalEmdNm
                       , tpdpi.dtadd                                      as dtadd
-                      , tpdpi.roadadd                                    as rnmadr
-                      , tpdpi.li_cd                                      as liCd
-                      , tpdpi.mntn_yn                                    as mntnYn
                       , tpdpi.bdnbr                                      as bdnbr
+                      , tpdpi.roadadd                                    as rnmadr
                       , tpdpi.zip                                        as zip
                       , tpdpi.prk_plce_lat                               as prkPlceLat
                       , tpdpi.prk_plce_lon                               as prkPlceLon
                       , tpdpi.closed_yn                                  as closedYn
                       -- 부설주차장 기본 정보
                       , cpk.FN_GET_CODE_NM(tapi.prkplce_se, 'PRK_001')   as prkplceSe
+                      , tapi.prkplce_se                                  as parkingType
                       , tapi.tot_prk_cnt                                 as totPrkCnt
                       , tapi.disab_prk_cnt                               as disabPrkCnt
                       , tapi.compact_prk_cnt                             as compactPrkCnt
@@ -698,8 +694,6 @@
                       , tapi.mgr_org                                     as mgrOrg
                       , tapi.mgr_org_tel_no                              as mgrOrgTelNo
                       , tapi.subordn_opertn_cd                           as subordnOpertnCd
-                      , tapi.trut_comp_nm                                as trutCompNm
-                      , tapi.dirt_comp_nm                                as dirtCompNm
                       -- 부설주차장 운영 정보
                       , tapi.prmisn_dt                                   as prmisnDt
                       , tapi.use_insp_dt                                 as useInspDt
@@ -721,7 +715,7 @@
                       -- 실외 자주식
                       , tapoi.outdr_self_tot_space_cnt                   as outdrSelfTotSpaceCnt
                       , tapoi.outdr_self_flr_cnt                         as outdrSelfFlrCnt
-                      --, tapoi.outdr_self_check_cnt                       as outdrSelfCheckCnt
+                      , tapoi.outdr_self_deck_cnt                        as outdrSelfDeckCnt
                       -- 실외 기계식
                       , tapoi.outdr_mech_tot_space_cnt                   as outdrMechTotSpaceCnt
                       , tapoi.outdr_mech_flr_cnt                         as outdrMechFlrCnt
@@ -787,6 +781,10 @@
                       , tpdpi.updusr_id                                  as updusrId
                       , tpdpi.lnm_mnno                                   as lnmMnno
                       , tpdpi.lnm_sbno                                   as lnmSbno
+                      , tpdpi.mntn_yn                                    AS mntnYn
+                      , tapi.prkplce_se                                  as parkingType
+                      , tapoi.trut_comp_nm                               AS trutCompNm
+                      , tapoi.dirt_comp_nm                               AS dirtCompNm
         FROM cpk.tb_prk_def_plce_info tpdpi
                  INNER JOIN cpk.tb_atch_prklot_info tapi
                             ON tpdpi.prk_plce_manage_no = tapi.prk_plce_manage_no
@@ -809,7 +807,7 @@
     <!-- 🔥 부설주차장 정보 업데이트 (tb_atch_prklot_info) -->
     <update id="updateAtchPrklotInfo" parameterType="com.psim.web.prk.vo.ParkingDetailVO">
         UPDATE cpk.tb_atch_prklot_info
-        SET prkplce_se        = #{prkplceSe}
+        SET prkplce_se        = #{parkingType}
           , tot_prk_cnt       = #{totPrkCnt}
           , disab_prk_cnt     = #{disabPrkCnt}
           , compact_prk_cnt   = #{compactPrkCnt}
@@ -824,6 +822,8 @@
           , plot_ar           = #{plotAr}
           , myeon_ar          = #{myeonAr}
           , al_zon            = #{chrgGrdCd}
+          , trut_comp_nm      = #{trutCompNm}
+          , dirt_comp_nm      = #{dirtCompNm}
           , updt_dt           = NOW()
           , updusr_id         = #{updusrId}
           , updusr_ip_addr    = #{updusrIpAddr}
@@ -847,6 +847,7 @@
           , indr_mech_deck_cnt         = #{indrMechDeckCnt}
           , outdr_self_tot_space_cnt   = #{outdrSelfTotSpaceCnt}
           , outdr_self_flr_cnt         = #{outdrSelfFlrCnt}
+          , outdr_self_deck_cnt        = #{outdrSelfDeckCnt}
           , outdr_mech_tot_space_cnt   = #{outdrMechTotSpaceCnt}
           , outdr_mech_flr_cnt         = #{outdrMechFlrCnt}
           , outdr_mech_deck_cnt        = #{outdrMechDeckCnt}
@@ -1547,6 +1548,54 @@
         AND tpdpi.prk_plce_lon != ''
     </select>
 
+    <select id="selectParkingCompletionStatus" parameterType="map" resultType="map">
+        SELECT base.prk_plce_manage_no AS prkPlceManageNo,
+               base.prk_plce_info_sn    AS prkPlceInfoSn,
+               base.prk_plce_type       AS prkPlceType,
+               CASE base.prk_plce_type
+                   WHEN '1' THEN CASE
+                                     WHEN onInfo.prk_plce_manage_no IS NOT NULL
+                                       AND onOper.prk_plce_manage_no IS NOT NULL THEN 'Y'
+                                     ELSE 'N'
+                                 END
+                   WHEN '2' THEN CASE
+                                     WHEN offInfo.prk_plce_manage_no IS NOT NULL
+                                       AND offOper.prk_plce_manage_no IS NOT NULL THEN 'Y'
+                                     ELSE 'N'
+                                 END
+                   WHEN '3' THEN CASE
+                                     WHEN bldInfo.prk_plce_manage_no IS NOT NULL
+                                       AND bldOper.prk_plce_manage_no IS NOT NULL THEN 'Y'
+                                     ELSE 'N'
+                                 END
+                   ELSE 'N'
+               END AS completedYn
+        FROM cpk.tb_prk_def_plce_info base
+                 LEFT JOIN cpk.tb_onstr_prklot_info onInfo
+                           ON base.prk_plce_manage_no = onInfo.prk_plce_manage_no
+                               AND base.prk_plce_info_sn = onInfo.prk_plce_info_sn
+                 LEFT JOIN cpk.tb_onstr_prklot_oper_info onOper
+                           ON base.prk_plce_manage_no = onOper.prk_plce_manage_no
+                               AND base.prk_plce_info_sn = onOper.prk_plce_info_sn
+                 LEFT JOIN cpk.tb_offstr_prklot_info offInfo
+                           ON base.prk_plce_manage_no = offInfo.prk_plce_manage_no
+                               AND base.prk_plce_info_sn = offInfo.prk_plce_info_sn
+                 LEFT JOIN cpk.tb_offstr_prklot_oper_info offOper
+                           ON base.prk_plce_manage_no = offOper.prk_plce_manage_no
+                               AND base.prk_plce_info_sn = offOper.prk_plce_info_sn
+                 LEFT JOIN cpk.tb_atch_prklot_info bldInfo
+                           ON base.prk_plce_manage_no = bldInfo.prk_plce_manage_no
+                               AND base.prk_plce_info_sn = bldInfo.prk_plce_info_sn
+                 LEFT JOIN cpk.tb_atch_prklot_oper_info bldOper
+                           ON base.prk_plce_manage_no = bldOper.prk_plce_manage_no
+                               AND base.prk_plce_info_sn = bldOper.prk_plce_info_sn
+        WHERE
+        <foreach collection="parkingList" item="item" separator=" OR ">
+            (base.prk_plce_manage_no = #{item.prkPlceManageNo}
+                AND base.prk_plce_info_sn = #{item.prkPlceInfoSn})
+        </foreach>
+    </select>
+
     <update id="updateStatusToPending" parameterType="map">
         UPDATE cpk.tb_biz_per_prklot_info
         SET prgs_sts_cd = '20', /* 승인 대기 상태 코드 */
@@ -1620,7 +1669,7 @@
                 #{lnmMnno},
                 #{lnmSbno},
                 #{mntnYn},
-                #{liCd},
+                '00',
                 #{rnmadr},
                 #{emdCd},
                 NOW(),

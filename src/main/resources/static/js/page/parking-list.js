@@ -686,6 +686,11 @@ async function sendSelected() {
         return;
     }
 
+    const completionReady = await ensureCompletionBeforeSend(parkingList);
+    if (!completionReady) {
+        return;
+    }
+
     showConfirmModal({
         title: '전송 확인',
         message: `선택한 ${filteredValues.length}개의 주차장을 승인 대기 상태로 변경하시겠습니까?`,
@@ -738,6 +743,51 @@ async function sendSelected() {
             }
         }
     });
+}
+
+async function ensureCompletionBeforeSend(parkingList) {
+    try {
+        const res = await fetch(withBase('/prk/api/parking/check-completion'), {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({parkingList})
+        });
+        if (!res.ok) {
+            throw new Error(`HTTP ${res.status} ${res.statusText}`);
+        }
+        const result = await res.json();
+        if (!result.success) {
+            throw new Error(result.message || '작성 완료 여부 확인 실패');
+        }
+        const data = Array.isArray(result.data) ? result.data : [];
+        const statusMap = new Map();
+        data.forEach(item => {
+            const key = `${item.prkPlceManageNo || ''}__${item.prkPlceInfoSn ?? ''}`;
+            statusMap.set(key, item);
+        });
+        const incomplete = parkingList.filter(item => {
+            const key = `${item.prkPlceManageNo || ''}__${item.prkPlceInfoSn ?? ''}`;
+            const statusItem = statusMap.get(key);
+            const flag = (statusItem?.completedYn || '').toString().toUpperCase();
+            return flag !== 'Y';
+        });
+        if (incomplete.length > 0) {
+            const names = incomplete.map(item => {
+                const rec = DATA.find(r =>
+                    r.manageNo === item.prkPlceManageNo &&
+                    String(r.prkPlceInfoSn ?? '') === String(item.prkPlceInfoSn ?? '')
+                );
+                return rec ? `${rec.nm || rec.manageNo}` : (item.prkPlceManageNo || '미확인');
+            });
+            toast(`작성 완료되지 않은 주차장이 있습니다: ${names.join(', ')}`);
+            return false;
+        }
+        return true;
+    } catch (error) {
+        console.error('작성 완료 여부 확인 실패:', error);
+        toast('❌ 작성 완료 여부 확인 중 오류가 발생했습니다: ' + (error?.message || error));
+        return false;
+    }
 }
 
 /* =========================

@@ -595,6 +595,33 @@ const CodeLoader = {
         // PRK_002: 운영주체
         if (groups['PRK_002']) {
             this.populateRadioGroup('#operation_entity_group', 'operationEntity', groups['PRK_002'].codes);
+            setTimeout(() => {
+                const ownRadios = $$('input[name="operationEntity"]');
+                const ownWrap = $('#own_company_wrap');
+
+                const trustWrap = $('#own_trust_company');
+                const directWrap = $('#own_direct_company');
+                const syncCompanyInput = () => {
+                    const checked = ownRadios.find(r => r.checked);
+                    const codeCd = (checked?.value || '').trim();
+                    const codeNm = checked?.dataset.codeNmae || '';
+                    const privateType = resolvePrivateOwnType(codeCd, codeNm);
+                    if (!ownWrap) return;
+                    if (!privateType) {
+                        ownWrap.hidden = true;
+                        if (trustWrap) trustWrap.hidden = true;
+                        if (directWrap) directWrap.hidden = true;
+                        return;
+                    }
+                    ownWrap.hidden = false;
+                    if (trustWrap) trustWrap.hidden = privateType !== 'trust';
+                    if (directWrap) directWrap.hidden = privateType !== 'direct';
+                };
+                ownRadios.forEach(r => {
+                    r.addEventListener('change', syncCompanyInput);
+                });
+                syncCompanyInput();
+            }, 100);
         }
 
         // PRK_004: 운영시간코드
@@ -646,6 +673,15 @@ const CodeLoader = {
 
     }
 };
+
+function resolvePrivateOwnType(codeCd, codeNm) {
+    const cd = (codeCd || '').trim();
+    const nm = (codeNm || '').trim();
+    if (!cd && !nm) return null;
+    if (cd === '04' || nm.includes('민간위탁')) return 'trust';
+    if (cd === '05' || nm.includes('민간지역') || nm.includes('민간지역')) return 'direct';
+    return null;
+}
 
 // ========== 기본 필드 ==========
 const f_id = $('#f_id'), f_name = $('#f_name'), f_status = $('#f_status'), f_type = $('#f_type');
@@ -801,7 +837,12 @@ async function parseAndFillAddress(data) {
 
         // 8. 산 여부 판단
         const isMountain = data.jibunAddress && data.jibunAddress.includes('산');
-        setMountainRadioByBoolean(!!isMountain);
+        const mountainRadios = document.querySelectorAll('input[name="mountainYn"]');
+        mountainRadios.forEach(radio => {
+            if (radio.value === (isMountain ? '0' : '1')) {
+                radio.checked = true;
+            }
+        });
 
         // 9. 본번/부번 파싱
         const jibunAddress = data.jibunAddress || '';
@@ -1993,37 +2034,6 @@ function setRadioValue(name, value) {
     }
 }
 
-// 🔥 산 여부 값(Y/N 또는 1/0) 정규화
-function normalizeMountainYnValue(value) {
-    if (value === undefined || value === null) return null;
-    const str = value.toString().trim().toUpperCase();
-    if (!str) return null;
-    if (str === 'Y' || str === '1') return 'Y';
-    if (str === 'N' || str === '0') return 'N';
-    return null;
-}
-
-// 🔥 산 여부 라디오 버튼 상태를 통합 헬퍼로 설정
-function setMountainRadioByYn(value, triggerChange = false) {
-    const yn = normalizeMountainYnValue(value);
-    if (!yn) return;
-    const candidates = yn === 'Y' ? ['Y', '1'] : ['N', '0'];
-    for (const candidate of candidates) {
-        const radio = document.querySelector(`input[name="mountainYn"][value="${candidate}"]`);
-        if (radio) {
-            radio.checked = true;
-            if (triggerChange) {
-                radio.dispatchEvent(new Event('change'));
-            }
-            return;
-        }
-    }
-}
-
-function setMountainRadioByBoolean(isMountain, triggerChange = false) {
-    setMountainRadioByYn(isMountain ? 'Y' : 'N', triggerChange);
-}
-
 function getMechanicalSpacesTotal() {
     const ids = ['f_indoor_mechanical_spaces', 'f_outdoor_mechanical_spaces'];
     return ids.map(id => {
@@ -2138,14 +2148,25 @@ async function populateFormWithData(data) {
     if (f_addrJ) f_addrJ.value = data.dtadd || '';
     if (f_addrR) f_addrR.value = '';
 
+    const f_mainNum = document.getElementById('f_mainNum');
+    if (f_mainNum && data.lnmMnno) {
+        f_mainNum.value = data.lnmMnno;
+    }
+
+    const f_subNum = document.getElementById('f_subNum');
+    if (f_subNum && data.lnmSbno) {
+        f_subNum.value = data.lnmSbno;
+    }
+
+
     // 🔥 우편번호 바인딩
     const f_zip = document.getElementById('f_zip');
     if (f_zip && data.zip) {
         f_zip.value = data.zip;
     }
 
-    // 🔥 산 여부 바인딩 (서버 값으로 라디오 버튼 상태 유지)
-    setMountainRadioByYn(data.mntnYn, true);
+
+    setRadioValue('mountainYn', data.mntnYn === '0' ? '0' : '1');
 
     if (f_lat) f_lat.value = data.prkPlceLat || '';
     if (f_lng) f_lng.value = data.prkPlceLon || '';
@@ -2238,6 +2259,24 @@ async function populateFormWithData(data) {
         normalInput.value = Math.max(0, normal);
     }
 
+    const initialParkingType = data.prkplceSe || data.parkingType;
+    if (initialParkingType) {
+        const parkingTypeRadio = document.querySelector(`input[name="parkingType"][value="${initialParkingType}"]`);
+        if (parkingTypeRadio) {
+            parkingTypeRadio.checked = true;
+            parkingTypeRadio.dispatchEvent(new Event('change'));
+        }
+    }
+
+    const trustCompanyInput = $('#f_own_trust_company');
+    const directCompanyInput = $('#f_own_direct_company');
+    const fallbackCompany = data.compNm || '';
+    if (trustCompanyInput) {
+        trustCompanyInput.value = data.trutCompNm || (data.operMbyCd === '04' ? fallbackCompany : '');
+    }
+    if (directCompanyInput) {
+        directCompanyInput.value = data.dirtCompNm || (data.operMbyCd === '05' ? fallbackCompany : '');
+    }
     // 운영주체
     if (data.operMbyCd) {
         const ownRadio = document.querySelector(`input[name="operationEntity"][value="${data.operMbyCd}"]`);
@@ -2415,6 +2454,8 @@ async function populateFormWithData(data) {
     const statusValue = (data.prgsStsCd || $('#f_status')?.value || serverStatusValue || '').trim();
     applyApprovalLock(statusValue);
 
+    debugger;
+
 }
 
 // ========== 🔥 모든 필드를 ReadOnly로 설정하는 함수 ==========
@@ -2555,7 +2596,6 @@ function encodeResidentFeeToRemark(remarkText, fees) {
         dayAll: fees.dayAll,
         dayOnly: fees.dayOnly,
         fullTime: fees.fullTime
-
     };
     const json = JSON.stringify(payload);
     const separator = cleanRemark && !cleanRemark.endsWith('\n') ? '\n' : '';
@@ -2734,13 +2774,13 @@ document.getElementById('btnUseGeolocation')?.addEventListener('click', async fu
                 document.getElementById('f_lng').value = lng;
 
                 // 좌표를 주소로 변환 (우편번호 포함)
-                await convertCoordToAddress(lng, lat);
+                //await convertCoordToAddress(lng, lat);
 
-                alert('현재 위치의 좌표, 주소, 우편번호, 행정구역 정보를 가져왔습니다.');
+                //alert('현재 위치의 좌표, 주소, 우편번호, 행정구역 정보를 가져왔습니다.');
             },
             function (error) {
                 console.error('위치 정보 가져오기 실패:', error);
-                alert('위치 정보를 가져올 수 없습니다.');
+                //alert('위치 정보를 가져올 수 없습니다.');
             }
         );
     } else {
@@ -2928,18 +2968,25 @@ function showValidationErrors(errors) {
 }
 
 function buildPayload() {
+
+
+    const selectedParkingType = document.querySelector('input[name="parkingType"]:checked')?.value || '';
+
     const payload = {
         id: f_id?.value,
         name: f_name?.value,
         status: f_status?.value,
         type: '부설',
         // 서버 요구사항 대응: 관리주체 미입력 시 기본값(기타=9) 사용
+        parkingType: selectedParkingType,
         ownCd: getSelectedOwnCd() || '9',
         // 행정구역 코드
         sidoCd: f_sido?.value,
         sigunguCd: f_sigungu?.value,
         emdCd: f_emd?.value,
         // 주소/좌표
+        trustCompanyName: $('#f_own_trust_company')?.value?.trim() || '',
+        directCompanyName: $('#f_own_direct_company')?.value?.trim() || '',
         addrJibun: f_addrJ?.value,
         addrRoad: f_addrR?.value,
         lat: f_lat?.value,
@@ -2982,6 +3029,8 @@ function buildPayload() {
     if (!payload.ldongCd || payload.ldongCd.length !== 10) {
         throw new Error('법정동코드(ldong_cd)는 10자리여야 합니다.');
     }
+
+    debugger;
     return payload;
 }
 
@@ -3013,6 +3062,8 @@ function mapPayloadToServerFormat(payload) {
     const settleMethods = collectSettleMethods();
 
     const remarkInput = $('#f_partclr_matter')?.value || '';
+    const rawZipInput = document.getElementById('f_zip')?.value || null;
+
     const data = {
         prkBizMngNo: loadedBizMngNo,
         prkPlceInfoSn: loadedPrkPlceInfoSn,
@@ -3022,9 +3073,11 @@ function mapPayloadToServerFormat(payload) {
         prkPlceLat: payload.lat,
         prkPlceLon: payload.lng,
         // 관리주체(소유주체) 기본값 세팅(기타=9)로 서버 요구사항 충족 (prkplceSe/ownCd 모두 전달)
-        prkplceSe: payload.ownCd || '9',
-        ownCd: payload.ownCd || '9',
+        parkingType: payload.parkingType,
+        ownCd: payload.ownCd,
         ldongCd: payload.ldongCd,
+        trutCompNm: payload.trustCompanyName || null,
+        dirtCompNm: payload.directCompanyName || null,
         sidoCd: payload.sidoCd,
         sigunguCd: payload.sigunguCd,
         emdCd: payload.emdCd,
@@ -3052,7 +3105,7 @@ function mapPayloadToServerFormat(payload) {
         outdrMechDeckCnt: payload.outdoorMechanicalArea,
 
         // 🔥 우편번호 추가
-        zip: document.getElementById('f_zip')?.value || null,
+        zip: rawZipInput,
 
         /* ==========  지번 정보 ========== */
         bdnbr: document.getElementById('f_buildingName')?.value || null,
@@ -3069,7 +3122,7 @@ function mapPayloadToServerFormat(payload) {
         pregnantPrkCnt: payload.stalls.pregnant,
 
         // 주차장 유형
-        prkPlceType: document.querySelector('input[name="parkingType"]:checked')?.value || '3',
+        prkPlceType: document.querySelector('input[name="parkingType"]:checked')?.value,
 
         operMbyCd: document.querySelector('input[name="operationEntity"]:checked')?.value,
         mgrOrg: $('#f_management_agency')?.value,
@@ -3157,13 +3210,29 @@ function mapPayloadToServerFormat(payload) {
         partclrMatter: encodeResidentFeeToRemark(remarkInput, residentFees)
     };
 
+    debugger;
+
+    // 🔁 우편번호 미입력 시 관리번호 앞 5자리 활용
+    data.zip = deriveZipFromManageNo(data.zip, data.prkPlceManageNo);
+
     return data;
+}
+
+function deriveZipFromManageNo(zipValue, manageNo) {
+    const trimmed = (zipValue || '').trim();
+    if (trimmed) {
+        return trimmed;
+    }
+    if (manageNo && manageNo.length >= 5) {
+        return manageNo.substring(0, 5);
+    }
+    return null;
 }
 
 function formatPeakTime(hour) {
     if (!hour) return null;
     const h = String(hour).padStart(2, '0');
-    return h + '00';
+    return h;
 }
 
 function validateRequiredFields() {

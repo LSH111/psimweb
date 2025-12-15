@@ -83,17 +83,13 @@ public interface AttchPicMngInfoService {
      * @param cmplSn          실태조사일련번호(=prkPlceInfoSn 대체)
      * @param prkImgId        이미지 구분 ID
      * @param files           업로드 파일 목록
-     * @param userId          등록자 ID
-     * @param userIp          등록자 IP
      * @return 저장된 파일 정보 목록
      */
     List<AttchPicMngInfoVO> uploadAndSaveFilesForUsage(
             String prkPlceManageNo,
             String cmplSn,
             String prkImgId,
-            List<MultipartFile> files,
-            String userId,
-            String userIp
+            List<MultipartFile> files
     ) throws RuntimeException;
 
     List<AttchPicMngInfoVO> getAttchPicMngInfoListForUsage(

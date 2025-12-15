@@ -490,7 +490,7 @@ const CodeLoader = {
         if (groups['PRK_006']) {
             // ✅ "기타"를 제외한 코드만 필터링
             const codesWithoutEtc = groups['PRK_006'].codes.filter(code =>
-                !code.codeNm.includes('기타') && !code.codeCd.includes('기타')
+                !code.codeNm.includes('기타') && !code.codeCd.includes('04')
             );
             // 주간 요금지불방식
             const dayPayGroup = $('#day_pay_group');
@@ -561,7 +561,7 @@ const CodeLoader = {
         checkbox.type = 'checkbox';
         checkbox.id = checkId;
         checkbox.name = name;
-        checkbox.value = '기타';
+        checkbox.value = '04';
 
         const span = document.createElement('span');
         span.textContent = '기타';
@@ -885,7 +885,7 @@ async function parseAndFillAddress(data) {
         const isMountain = data.jibunAddress && data.jibunAddress.includes('산');
         const mountainRadios = document.querySelectorAll('input[name="mountainYn"]');
         mountainRadios.forEach(radio => {
-            if (radio.value === (isMountain ? 'Y' : 'N')) {
+            if (radio.value === (isMountain ? '0' : '1')) {
                 radio.checked = true;
             }
         });
@@ -1370,8 +1370,9 @@ function collectPayMethods(timeType) {
     const vals = payChecks.filter(c => c.checked).map(c => c.value);
     if (payEtcChk?.checked) {
         const t = (payEtcInput?.value || '').trim();
-        if (t) vals.push(`기타:${t}`);
-        else if (!vals.includes('기타')) vals.push('기타');
+        console.log("collectPayMethods", t);
+        //if (t) vals.push(`기타:${t}`);
+        //else if (!vals.includes('기타')) vals.push('기타');
     }
     return vals;
 }
@@ -2299,14 +2300,19 @@ async function bindDataToForm(data) {
 
     // 🔥 리(里) 바인딩
     const f_ri = document.getElementById('f_ri');
-    if (f_ri && data.liCd) {
-        f_ri.value = data.liCd;
+    if(f_ri.value === "00") {
+	    f_ri.value = "";
+	     if (f_ri && data.liCd) {
+	        f_ri.value = data.liCd;
+	    }
     }
+   
+    
 
     // 🔥 산 여부 바인딩
     const mountainRadios = document.querySelectorAll('input[name="mountainYn"]');
     mountainRadios.forEach(radio => {
-        if (radio.value === (data.mntnYn === 'Y' ? 'Y' : 'N')) {
+        if (radio.value === (data.mntnYn === '0' ? '0' : '1')) {
             radio.checked = true;
         }
     });
@@ -2366,6 +2372,8 @@ async function bindDataToForm(data) {
     if (f_addrR && data.rnmadr) {
         f_addrR.value = data.rnmadr;
     }
+    
+    console.log("data.rnmadr :::>>>", data.rnmadr);
 
     // 좌표
     if (f_lat) f_lat.value = data.prkPlceLat || '';
@@ -2563,6 +2571,8 @@ async function bindDataToForm(data) {
                 dayPayEtcInput.value = data.wkFeePayMthdOthr;
             }
         }
+        
+        
     }
 
     if (data.ntFeeMthdCd) {
@@ -2869,7 +2879,7 @@ async function convertCoordToRegion(longitude, latitude) {
     try {
         const response = await fetch(withBase(`/api/kakao/coord2region?longitude=${longitude}&latitude=${latitude}`));
         const result = await response.json();
-        debugger;
+
         if (result.success) {
             // 시도, 시군구, 읍면동 자동 입력
             if (result.sido) {
@@ -2893,24 +2903,22 @@ async function convertCoordToRegion(longitude, latitude) {
     }
 }
 
+// 🔥 좌표를 주소로 변환하는 함수 (우편번호 포함)
 async function convertCoordToAddress(longitude, latitude) {
     try {
         const response = await fetch(withBase(`/api/kakao/coord2address?longitude=${longitude}&latitude=${latitude}`));
         const result = await response.json();
-        debugger;
 
         if (result.success) {
             // 지번 주소
-            //if (result.jibunAddress) {
-            //    document.getElementById('f_addr_jibun').value = result.jibunAddress;
-            //}
+            if (result.jibunAddress) {
+                document.getElementById('f_addr_jibun').value = result.jibunAddress;
+            }
 
-            // onlyJibun이 false일 때만 다른 주소 정보 업데이트
-            //if (!onlyJibun) {
             // 도로명 주소
-            //if (result.roadAddress) {
-            //    document.getElementById('f_addr_road').value = result.roadAddress;
-            //}
+            if (result.roadAddress) {
+                document.getElementById('f_addr_road').value = result.roadAddress;
+            }
 
             // 🔥 우편번호 저장
             if (result.zoneNo) {
@@ -2920,11 +2928,16 @@ async function convertCoordToAddress(longitude, latitude) {
                 }
             }
 
+            // 시도, 시군구, 읍면동 추출
+            if (result.data && result.data.address) {
+                const addr = result.data.address;
+                document.getElementById('f_sido').value = addr.region_1depth_name || '';
+                document.getElementById('f_sigungu').value = addr.region_2depth_name || '';
+                document.getElementById('f_emd').value = addr.region_3depth_name || '';
+            }
 
             // 🔥 추가: 행정구역 정보도 함께 가져오기
-            //await convertCoordToRegion(longitude, latitude);
-            //}
-
+            await convertCoordToRegion(longitude, latitude);
             // 헤더 주소 업데이트
             updateHeaderAddr();
             return result;
@@ -2934,7 +2947,7 @@ async function convertCoordToAddress(longitude, latitude) {
         }
     } catch (error) {
         console.error('좌표->주소 변환 에러:', error);
-        //alert('주소 변환 중 오류가 발생했습니다.');
+        alert('주소 변환 중 오류가 발생했습니다.');
     }
 }
 
@@ -2949,10 +2962,10 @@ document.getElementById('btnUseGeolocation')?.addEventListener('click', async fu
                 document.getElementById('f_lat').value = lat;
                 document.getElementById('f_lng').value = lng;
 
-                // 좌표를 주소로 변환 (지번만 업데이트, 행정구역 유지)
-                //await convertCoordToAddress(lng, lat, true);
+                // 좌표를 주소로 변환 (우편번호 포함)
+                ///await convertCoordToAddress(lng, lat);
 
-                //alert('현재 위치의 좌표와 지번 주소를 가져왔습니다.');
+                //alert('현재 위치의 좌표, 주소, 우편번호, 행정구역 정보를 가져왔습니다.');
             },
             function (error) {
                 console.error('위치 정보 가져오기 실패:', error);
@@ -2976,9 +2989,9 @@ async function handlePhotoWithGPS(file) {
             document.getElementById('f_lng').value = lng;
 
             // 좌표를 주소로 변환 (우편번호 포함)
-            await convertCoordToAddress(lng, lat);
+            //await convertCoordToAddress(lng, lat);
 
-            alert('사진에서 GPS 좌표, 주소, 우편번호, 행정구역 정보를 추출했습니다.');
+            //alert('사진에서 GPS 좌표, 주소, 우편번호, 행정구역 정보를 추출했습니다.');
         } else {
             alert('사진에 GPS 정보가 없습니다.');
         }
@@ -3275,7 +3288,9 @@ async function doSave() {
 
         // 6. 서버 데이터 포맷 변환
         const serverData = mapPayloadToServerFormat(payload);
-
+		
+		console.log("!!!!! ::::>>>", serverData);
+		
         // 🔥 법정동코드 디버깅 로그
 
         if (!serverData.prkplceNm) throw new Error('주차장명이 비어있습니다');
@@ -3524,20 +3539,22 @@ function mapPayloadToServerFormat(payload) {
     const hiddenInfoSn = document.getElementById('prkPlceInfoSn')?.value || null;
     const prkPlceInfoSn = isNewRecord ? null : (payload.prkPlceInfoSn || hiddenInfoSn || loadedPrkPlceInfoSn || null);
 
+    const rawZipInput = document.getElementById('f_zip')?.value || null;
+
     const serverData = {
         /* ========== Basic Information ========== */
         prkPlceManageNo: payload.id || null,
         prkPlceInfoSn: prkPlceInfoSn,
         prkplceNm: payload.name || '',
         prgsStsCd: payload.status || '10',
-        prkPlceType: payload.prkPlceType || payload.type || '1',
+        prkPlceType: payload.prkPlceType || payload.type || '01',
         trutCompNm: null,
         dirtCompNm: null,
 
         // 🔥 수정: 명시적으로 생성한 10자리 ldongCd 사용
         ldongCd: ldongCd,
 
-        zip: document.getElementById('f_zip')?.value || null,
+        zip: rawZipInput,
         dtadd: document.getElementById('f_addr_jibun')?.value || null,
         rnmadr: document.getElementById('f_addr_road')?.value || null,
         prkPlceLat: document.getElementById('f_lat')?.value || null,
@@ -3681,8 +3698,23 @@ function mapPayloadToServerFormat(payload) {
             serverData.ntHldyOperEndTm = nightHours.holiday.time.endTime;
         }
     }
+	console.log("onparking.js :::>>>"+serverData);
+    // 🔁 우편번호 입력이 없으면 관리번호 앞 5자리로 자동 보정
+    serverData.zip = deriveZipFromManageNo(serverData.zip, serverData.prkPlceManageNo);
 
     return serverData;
+}
+
+function deriveZipFromManageNo(zipValue, manageNo) {
+    const trimmed = (zipValue || '').trim();
+    if (trimmed) {
+        return trimmed;
+    }
+    if (manageNo && manageNo.length >= 5) {
+        // 🔢 관리번호 앞 5자리가 우편번호 규칙
+        return manageNo.substring(0, 5);
+    }
+    return null;
 }
 
 /**

@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -160,11 +161,10 @@ public class PrkDefPlceInfoController {
 
         log.info("🧹 정리된 params: {}", cleanParams);
 
-        // 🔥 세션에서 로그인 사용자 정보 확인
         CoUserVO loginUser = (CoUserVO) session.getAttribute("loginUser");
         if (loginUser == null || loginUser.getUserId() == null || loginUser.getUserId().trim().isEmpty()) {
             String msg = "로그인 정보가 없습니다. 다시 로그인해 주세요.";
-            log.warn("⚠️ {}", msg);
+            log.warn("{}", msg);
             result.put("success", false);
             result.put("message", msg);
             result.put("list", new ArrayList<>());
@@ -187,17 +187,20 @@ public class PrkDefPlceInfoController {
         String resolvedBizNo = resolveBizManageNo(userBizList);
         cleanParams.put("userBizList", userBizList);
         cleanParams.put("prkBizMngNo", resolvedBizNo);
-        String trimmedLoginId = loginUser.getUserId().trim();
+        String loginId = loginUser.getUserId().trim();
         String userTyCode = loginUser.getUserTyCode();
-        // 🔐 조사원(userTyCode=6)만 자신의 계정으로 제한
-        boolean restrictToLoginUser = "6".equals(userTyCode);
-        if (restrictToLoginUser) {
-            cleanParams.put("loginUserId", trimmedLoginId);
-            log.info("✅ userBizList 및 loginUserId 추가 - prkBizMngNo: {}, loginUserId: {}", resolvedBizNo, trimmedLoginId);
+        //String trimmedLoginId = loginUser.getUserCd().trim();
+        // String userTyCode = loginUser.getUserTyCode();
+
+        boolean restriceToLoginUser = "6".equals(userTyCode);
+        if (restriceToLoginUser) {
+            cleanParams.put("loginUserId", loginId);
+            log.info("✅ userBizList 추가 및 prkBizMngNo 강제: {}", resolvedBizNo, loginId);
         } else {
             cleanParams.remove("loginUserId");
-            log.info("✅ userBizList 추가 - prkBizMngNo: {}, userTyCode={} (조사자 제한 미적용)", resolvedBizNo, userTyCode);
+            log.info("✅ userBizList 추가 및 prkBizMngNo 미적용: {}", resolvedBizNo, userTyCode);
         }
+
 
         try {
             log.info("🔄 서비스 호출 시작");
@@ -583,9 +586,6 @@ public class PrkDefPlceInfoController {
                 log.info("✅ 사용자정보 설정 완료 - userId: {}, IP: {}", userId, clientIp);
             }
 
-            // 신규 생성 시 parkingData 에만 세팅되므로 지역 변수도 최신 관리번호로 맞춰준다.
-            prkPlceManageNo = parkingData.getPrkPlceManageNo();
-
             // 🔥 핵심: DB 저장을 한 번에 처리하고 즉시 SN 확보
             Integer prkPlceInfoSn = parkingData.getPrkPlceInfoSn();
 
@@ -838,8 +838,6 @@ public class PrkDefPlceInfoController {
                 log.info("✅ 사용자정보 설정 완료 - userId: {}, IP: {}", userId, clientIp);
             }
 
-            prkPlceManageNo = parkingData.getPrkPlceManageNo();
-
             // 🔥 핵심: DB 저장을 한 번에 처리하고 prkPlceInfoSn 확보
             Integer prkPlceInfoSn = parkingData.getPrkPlceInfoSn();
 
@@ -1061,6 +1059,33 @@ public class PrkDefPlceInfoController {
         return result;
     }
 
+    @PostMapping("/api/parking/check-completion")
+    @ResponseBody
+    public Map<String, Object> checkParkingCompletion(@RequestBody Map<String, Object> request) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> parkingList = (List<Map<String, Object>>) request.get("parkingList");
+
+            if (parkingList == null || parkingList.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "검증할 주차장 목록이 없습니다.");
+                response.put("data", Collections.emptyList());
+                return response;
+            }
+
+            List<Map<String, Object>> completionStatus = prkDefPlceInfoService.getParkingCompletionStatus(parkingList);
+            response.put("success", true);
+            response.put("data", completionStatus);
+        } catch (Exception e) {
+            log.error("❌ 작성 완료 여부 확인 실패", e);
+            response.put("success", false);
+            response.put("message", "작성 완료 여부 확인 중 오류가 발생했습니다: " + e.getMessage());
+            response.put("data", Collections.emptyList());
+        }
+        return response;
+    }
+
     /**
      * 🔥 선택된 주차장 상태를 승인 대기로 업데이트
      */
@@ -1230,19 +1255,19 @@ public class PrkDefPlceInfoController {
     }
 
     @GetMapping("/onparking")
-    public String onParking(@RequestParam(value = "status", required = false) String status, org.springframework.ui.Model model) {
+    public String onParking(@RequestParam(value = "status", required = false) String status, Model model) {
         model.addAttribute("statusCode", status);
         return "prk/onparking";
     }
 
     @GetMapping("/offparking")
-    public String offParking(@RequestParam(value = "status", required = false) String status, org.springframework.ui.Model model) {
+    public String offParking(@RequestParam(value = "status", required = false) String status, Model model) {
         model.addAttribute("statusCode", status);
         return "prk/offparking";
     }
 
     @GetMapping("/buildparking")
-    public String buildParking(@RequestParam(value = "status", required = false) String status, org.springframework.ui.Model model) {
+    public String buildParking(@RequestParam(value = "status", required = false) String status, Model model) {
         model.addAttribute("statusCode", status);
         return "prk/buildparking";
     }

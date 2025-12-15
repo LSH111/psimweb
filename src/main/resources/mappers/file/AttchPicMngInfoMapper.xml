@@ -39,7 +39,10 @@
                                                prk_img_id,
                                                reg_dt,
                                                rgst_id,
-                                               rgst_ip_addr)
+                                               rgst_ip_addr,
+                                               updt_dt,
+                                               updusr_id,
+                                               updusr_ip_addr)
         VALUES (#{prkPlceManageNo},
                 #{prkPlceInfoSn},
                 #{prkPlceType},
@@ -52,7 +55,10 @@
                 #{prkImgId},
                 NOW(),
                 #{rgstId},
-                #{rgstIpAddr})
+                #{rgstIpAddr},
+                NOW(),
+                #{updusrId},
+                #{updusrIpAddr})
     </insert>
 
     <!-- 🔥 SELECT -->

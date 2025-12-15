@@ -70,18 +70,9 @@
         -- 🔥 사업 정보 테이블 조인
         INNER JOIN cpk.tb_prk_srvy_biz_info b ON t.prk_biz_mng_no = b.prk_biz_mng_no
         WHERE 1=1
-        <choose>
-            <when test="userBizList != null and userBizList.size() > 0">
-                AND t.prk_biz_mng_no IN
-                <foreach collection="userBizList" item="bizNo" open="(" separator="," close=")">
-                    #{bizNo}
-                </foreach>
-            </when>
-            <otherwise>
-                AND 1 = 0
-            </otherwise>
-        </choose>
-        AND t.prk_biz_mng_no = #{prkBizMngNo}
+        <if test="prkBizMngNo != null and prkBizMngNo != ''">
+            AND t.prk_biz_mng_no = #{prkBizMngNo}
+        </if>
         <if test="searchYear != null and searchYear != ''">
             AND TO_CHAR(t.examin_dt, 'YYYY') = #{searchYear}
         </if>

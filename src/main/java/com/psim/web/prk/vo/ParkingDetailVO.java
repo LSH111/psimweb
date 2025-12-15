@@ -1,6 +1,5 @@
 package com.psim.web.prk.vo;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
 /**
@@ -11,7 +10,6 @@ import lombok.Data;
  * 모든 주차장 유형을 하나의 VO로 통합 관리
  */
 @Data
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class ParkingDetailVO {
 
     /* ========================================
@@ -235,7 +233,7 @@ public class ParkingDetailVO {
     //private String prgsStsRawCd;       // 진행상태 원본 코드
     //private String bdnbr;              // 건물번호 (지번)
     private String closedYn;           // 폐쇄여부
-
+    private String parkingType;
     // 주차장구분
     private String prkplceSe;          // 주차장구분 (PRK_001)
     // 변경: 관리주체(소유주체) 코드(프론트 ownCd 매핑용 별칭)
@@ -272,7 +270,7 @@ public class ParkingDetailVO {
     // 실외 자주식
     private Integer outdrSelfTotSpaceCnt;   // 실외자주식_총주차대수
     private Integer outdrSelfFlrCnt;        // 실외자주식_층수
-    private Integer outdrSelfCheckCnt;      // 실외자주식_체크수
+    private Integer outdrSelfDeckCnt;      // 실외자주식_체크수
     // 실외 기계식
     private Integer outdrMechTotSpaceCnt;   // 실외기계식_총주차대수
     private Integer outdrMechFlrCnt;        // 실외기계식_층수

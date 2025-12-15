@@ -90,12 +90,14 @@
 
         .search-content {
             max-height: calc(100vh - 280px) !important;
-            overflow: hidden !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
             transition: max-height 0.3s ease !important;
         }
 
         .search-panel.collapsed .search-content {
             max-height: 0 !important;
+            overflow: hidden !important;
         }
 
         .search-section {
@@ -288,7 +290,7 @@
             font-weight: 600 !important;
             color: #64748b !important;
             margin-bottom: 10px !important;
-            display: flex !important;
+            display: flex !important; /* 기본 flex 레이아웃 유지 (JS에서 필요시 !important로 덮어씀) */
             align-items: center !important;
             justify-content: space-between !important;
             padding: 8px !important;
@@ -570,7 +572,13 @@
                     <select id="searchSigungu" class="search-input" disabled>
                         <option value="">시군구 선택</option>
                     </select>
-                    <input id="searchParkingName" class="search-input" type="text" placeholder="주차장명 (선택)"/>
+                    <div style="display:flex; gap:8px;">
+                        <select id="searchKeywordType" class="search-input" style="flex:0 0 110px;">
+                            <option value="name">주차장명</option>
+                            <option value="addr">상세주소</option>
+                        </select>
+                        <input id="searchParkingName" class="search-input" type="text" placeholder="검색어"/>
+                    </div>
                 </div>
                 <div class="radius-select-group">
                     <div class="radius-label">반경 범위</div>
@@ -839,7 +847,8 @@
     async function searchParkingByRegion() {
         const sidoCd = document.getElementById('searchSido').value;
         const sigunguCd = document.getElementById('searchSigungu').value;
-        const parkingName = (document.getElementById('searchParkingName')?.value || '').trim();
+        const keywordValue = (document.getElementById('searchParkingName')?.value || '').trim();
+        const keywordType = document.getElementById('searchKeywordType')?.value || 'name';
 
         const sidoSelect = document.getElementById('searchSido');
         const sigunguSelect = document.getElementById('searchSigungu');
@@ -852,22 +861,19 @@
             sidoText: sidoText,
             sigunguCd: sigunguCd,
             sigunguText: sigunguText,
-            parkingName: parkingName
+            keywordValue: keywordValue,
+            keywordType: keywordType
         });
-
-        if (!sidoCd) {
-            showSearchResult('시도를 선택해주세요', true);
-            return;
-        }
 
         try {
             showMessage('🔍 주차장 검색 중...', 'info');
 
-            const params = {sidoCd: sidoCd};
+        const params = {}; // 🔍 시도 선택이 비어 있어도 전체 검색 가능 (sidoCd 없으면 전체 조회)
+            if (sidoCd) params.sidoCd = sidoCd;
             if (sigunguCd) params.sigunguCd = sigunguCd;
-            if (parkingName) {
-                params.keyword = parkingName;
-                params.keywordType = 'name'; // API에서 이름 검색
+            if (keywordValue) {
+                params.keyword = keywordValue;
+                params.keywordType = keywordType || 'name';
             }
 
             console.log('📤 전송 파라미터:', params);
@@ -904,12 +910,13 @@
                 displayParkingMarkers([]);
                 displayParkingList([]);
 
-                let searchCondition = sidoText;
-                if (sigunguText && sigunguText !== '시군구 선택') {
+                let searchCondition = sidoCd ? sidoText : '전체 시도';
+                if (sigunguCd && sigunguText && sigunguText !== '시군구 선택') {
                     searchCondition += ' ' + sigunguText;
                 }
-                if (parkingName) {
-                    searchCondition += (searchCondition ? ' / ' : '') + '주차장명: ' + parkingName;
+                if (keywordValue) {
+                    const label = keywordType === 'addr' ? '주소' : '주차장명';
+                    searchCondition += (searchCondition ? ' / ' : '') + label + ': ' + keywordValue;
                 }
 
                 showSearchResult(searchCondition + ': 검색 결과 없음', true);
@@ -1003,12 +1010,12 @@
         const countEl = document.getElementById('parkingCount');
 
         if (!parkingList || parkingList.length === 0) {
-            headerEl.style.display = 'none';
+            headerEl.style.setProperty('display', 'none', 'important'); // 헤더 감출 때 CSS !important와 충돌 방지
             itemsContainer.innerHTML = '<div class="parking-list-empty">검색 결과가 없습니다</div>';
             return;
         }
 
-        headerEl.style.display = 'flex';
+        headerEl.style.setProperty('display', 'flex', 'important');
         countEl.textContent = parkingList.length + '개';
 
         itemsContainer.innerHTML = parkingList.map(parking => {

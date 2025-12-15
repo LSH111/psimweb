@@ -80,4 +80,6 @@ public interface PrkDefPlceInfoMapper {
 
     // ========== 상태 변경 ==========
     int updateStatusToPending(Map<String, Object> params);
+
+    List<Map<String, Object>> selectParkingCompletionStatus(Map<String, Object> params);
 }

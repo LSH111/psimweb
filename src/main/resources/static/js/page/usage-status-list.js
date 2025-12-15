@@ -214,7 +214,7 @@
                 // 🔥 지도 중심 이동 제거 - InfoWindow만 표시
                 if (items.length === 1) {
                     showInfoWindow(marker, items[0]);
-                    scrollToCard(items[0].cmplSn);
+                    //scrollToCard(items[0].cmplSn);
                 } else {
                     showMultipleInfoWindow(marker, items);
                 }
@@ -259,36 +259,36 @@
 
         const isLegal = (item.lawCd === '1');
         const statusColor = isLegal ? '#3b82f6' : '#ef4444';
-        const statusText = isLegal ? '적법 주차' : '불법 주차';
+        const statusText = isLegal ? '적법' : '불법';
         const timeDisplay = [item.examinTimelge || '', item.dyntDvNm || ''].filter(Boolean).join(' · ') || '-';
         const vehicleDisplay = item.vhctyNm || item.vhctyCd || '-';
 
         const content = document.createElement('div');
-        content.style.cssText = 'position:relative; background:white; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.2); border:1px solid #e5e7eb;';
+        content.style.cssText = 'position:relative; background:white; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.2); border:1px solid #e5e7eb; max-width:350px;';
         content.innerHTML = `
-                <div style="padding:15px; min-width:200px;">
+                <div style="padding:15px; min-width:300px;">
                     <button onclick="closeInfoWindow()" 
                             style="position:absolute; top:8px; right:8px; width:24px; height:24px; 
                                    border:none; background:#f1f5f9; cursor:pointer; 
                                    font-size:18px; color:#64748b; border-radius:4px;">
                         ×
                     </button>
-                    <div style="font-weight:bold; color:${statusColor}; margin-bottom:8px;">
+                    <div style="font-size:12px; padding:3px 10px; background:${statusColor};color:white; border-radius:12px;">
                         ${statusText}
                     </div>
-                    <div style="margin-bottom:6px;">
+                    <div style="font-weight:600; color:#1e293b; font-size:15px;">
                         <strong>차량번호:</strong> ${item.vhcleNo || '-'}
                     </div>
-                    <div style="margin-bottom:6px;">
+                    <div style="font-size:13px; color:#64748b; margin-bottom:4px;">
                         <strong>조사일:</strong> ${item.examinDd || '-'}
                     </div>
-                    <div style="margin-bottom:6px;">
+                    <div style="font-size:13px; color:#64748b;">
                         <strong>조사시간대:</strong> ${timeDisplay}
                     </div>
-                    <div style="margin-bottom:6px;">
+                    <div style="font-size:13px; color: #64748b;">
                         <strong>조사원:</strong> ${item.srvyId || '-'}
                     </div>
-                    <div style="margin-bottom:6px;">
+                    <div style="font-size:13px; color:#64748b; margin-top:2px;">
                         <strong>차종:</strong> ${vehicleDisplay}
                     </div>
                 </div>
@@ -318,12 +318,12 @@
             const statusText = isLegal ? '적법' : '불법';
             const timeDisplay = [item.examinTimelge || '', item.dyntDvNm || ''].filter(Boolean).join(' · ') || '-';
             const vehicleDisplay = item.vhctyNm || item.vhctyCd || '-';
-
+            /*onclick="window.handleMultiItemClick('${item.cmplSn}')">*/
             return `
                     <div style="padding:12px; border-bottom:1px solid #e2e8f0; cursor:pointer; transition: background 0.2s;"
                          onmouseover="this.style.background='#f8fafc'"
-                         onmouseout="this.style.background='white'"
-                         onclick="window.handleMultiItemClick('${item.cmplSn}')">
+                         onmouseout="this.style.background='white'">
+                         
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                             <span style="font-weight:600; color:#1e293b; font-size:15px;">
                                 ${idx + 1}. ${item.vhcleNo || '-'}

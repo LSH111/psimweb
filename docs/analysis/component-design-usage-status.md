@@ -82,10 +82,10 @@
 | USG-C05-CL01 | `AttchPicMngInfoService` | 파일 업로드, 메타데이터 저장/조회 지원. |
 | USG-C05-CL02 | `AttchPicMngInfoVO`      | 첨부파일 메타데이터 VO.          |
 
-| ID           | 인터페이스명                   | 오퍼레이션명                                                               | 구분      |
-|--------------|--------------------------|----------------------------------------------------------------------|---------|
-| USG-C05-IF01 | `AttchPicMngInfoService` | `getAttchPicMngInfoListByCmplSn(cmplSn, "USG_PHOTO")`                | Service |
-| USG-C05-IF02 | `AttchPicMngInfoService` | `uploadAndSaveFilesForUsage(cmplSn, "USG_PHOTO", files, userId, ip)` | Service |
+| ID           | 인터페이스명                   | 오퍼레이션명                                                 | 구분      |
+|--------------|--------------------------|--------------------------------------------------------|---------|
+| USG-C05-IF01 | `AttchPicMngInfoService` | `getAttchPicMngInfoListByCmplSn(cmplSn, "USG_PHOTO")`  | Service |
+| USG-C05-IF02 | `AttchPicMngInfoService` | `uploadAndSaveFilesForUsage(cmplSn, "USG_PHOTO", files)` | Service |
 
 ---
 

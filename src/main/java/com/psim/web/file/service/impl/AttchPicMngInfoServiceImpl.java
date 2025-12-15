@@ -1,15 +1,24 @@
 package com.psim.web.file.service.impl;
 
 import com.psim.media.storage.PhotoStorage;
+import com.psim.web.cmm.vo.CoUserVO;
 import com.psim.web.file.mapper.AttchPicMngInfoMapper;
 import com.psim.web.file.service.AttchPicMngInfoService;
 import com.psim.web.file.vo.AttchPicMngInfoVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.nio.file.InvalidPathException;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -22,6 +31,9 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
     private static final Set<String> ALLOWED_EXTENSIONS = Collections.unmodifiableSet(
             new HashSet<>(Arrays.asList("jpg", "jpeg", "png", "gif", "bmp", "webp")));
     private static final long MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024L; // 10MB
+    private static final String DEFAULT_AUDIT_USER = "SYSTEM";
+    private static final String DEFAULT_AUDIT_IP = "127.0.0.1";
+    private static final String SESSION_LOGIN_USER = "loginUser";
     private final AttchPicMngInfoMapper mapper;
     private final PhotoStorage photoStorage;
 
@@ -57,6 +69,8 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
         try {
             PhotoStorage.SaveResult saved = photoStorage.save(safePrkImgId, file);
             String extension = getFileExtension(file.getOriginalFilename());
+            LocalDateTime now = LocalDateTime.now();
+            AuditMetadata audit = resolveAuditMetadata();
 
             AttchPicMngInfoVO vo = new AttchPicMngInfoVO();
             vo.setPrkPlceManageNo(prkPlceManageNo);
@@ -67,7 +81,12 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             vo.setFileNm(saved.savedFileName());
             vo.setFilePath(saved.relativePath());
             vo.setExtNm(extension);
-            vo.setRegDt(LocalDateTime.now());
+            vo.setRegDt(now);
+            vo.setUpdtDt(now);
+            vo.setRgstId(audit.getUserId());
+            vo.setRgstIpAddr(audit.getIpAddr());
+            vo.setUpdusrId(audit.getUserId());
+            vo.setUpdusrIpAddr(audit.getIpAddr());
 
             mapper.insertAttchPicMngInfo(vo);
 
@@ -159,6 +178,8 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
         try {
             PhotoStorage.SaveResult saved = photoStorage.save(safePrkImgId, file);
             String extension = getFileExtension(file.getOriginalFilename());
+            LocalDateTime now = LocalDateTime.now();
+            AuditMetadata audit = resolveAuditMetadata();
 
             AttchPicMngInfoVO vo = new AttchPicMngInfoVO();
             vo.setPrkPlceManageNo(prkPlceManageNo);
@@ -169,9 +190,12 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             vo.setFileNm(saved.savedFileName());
             vo.setFilePath(saved.relativePath());
             vo.setExtNm(extension);
-            vo.setRegDt(LocalDateTime.now());
-            vo.setRgstId("SYSTEM");
-            vo.setRgstIpAddr("127.0.0.1");
+            vo.setRegDt(now);
+            vo.setUpdtDt(now);
+            vo.setRgstId(audit.getUserId());
+            vo.setRgstIpAddr(audit.getIpAddr());
+            vo.setUpdusrId(audit.getUserId());
+            vo.setUpdusrIpAddr(audit.getIpAddr());
 
             mapper.insertAttchPicMngInfo(vo);
 
@@ -193,9 +217,7 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
             String prkPlceManageNo,
             String cmplSn,
             String prkImgId,
-            List<MultipartFile> files,
-            String userId,
-            String userIp) {
+            List<MultipartFile> files) {
 
         if (files == null || files.isEmpty()) {
             throw new IllegalArgumentException("파일 목록이 비어있습니다.");
@@ -208,6 +230,9 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
         Integer infoSn = parseInfoSn(cmplSn);
         int seqNo = getNextSeqNoForUsage(infoSn, prkImgId);
         String safePrkImgId = sanitizeIdentifier(prkImgId);
+        AuditMetadata audit = resolveAuditMetadata();
+        String effectiveUserId = audit.getUserId();
+        String effectiveUserIp = audit.getIpAddr();
 
         for (MultipartFile file : files) {
             if (file.isEmpty()) {
@@ -237,9 +262,13 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
                 vo.setFilePath(relativePath);
                 vo.setFileNm(saved.savedFileName());
                 vo.setRealFileNm(originalFileName);
-                vo.setRgstId(userId);
-                vo.setRgstIpAddr(userIp);
-                vo.setRegDt(LocalDateTime.now());
+                LocalDateTime now = LocalDateTime.now();
+                vo.setRegDt(now);
+                vo.setUpdtDt(now);
+                vo.setRgstId(effectiveUserId);
+                vo.setRgstIpAddr(effectiveUserIp);
+                vo.setUpdusrId(effectiveUserId);
+                vo.setUpdusrIpAddr(effectiveUserIp);
 
                 mapper.insertAttchPicMngInfo(vo);
 
@@ -472,6 +501,112 @@ public class AttchPicMngInfoServiceImpl implements AttchPicMngInfoService {
                 return "image/webp";
             default:
                 return "application/octet-stream";
+        }
+    }
+
+    private AuditMetadata resolveAuditMetadata() {
+        String userId = DEFAULT_AUDIT_USER;
+        String ipAddr = DEFAULT_AUDIT_IP;
+
+        try {
+            RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+            if (requestAttributes instanceof ServletRequestAttributes) {
+                HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
+                if (request != null) {
+                    String remoteAddr = request.getRemoteAddr();
+                    String resolvedIp = normalizeValue(remoteAddr); // reuse trim logic, allows null safe
+                    if (resolvedIp != null) {
+                        ipAddr = resolvedIp;
+                    }
+                    HttpSession session = request.getSession(false);
+                    if (session != null) {
+                        CoUserVO loginUser = null;
+                        try {
+                            loginUser = (CoUserVO) session.getAttribute(SESSION_LOGIN_USER);
+                        } catch (ClassCastException castEx) {
+                            log.warn("Unexpected loginUser type in session", castEx);
+                        }
+                        if (loginUser != null) {
+                            String candidateId = normalizeValue(loginUser.getUserId());
+                            if (candidateId != null) {
+                                userId = candidateId;
+                            }
+                        }
+
+                        if (DEFAULT_AUDIT_USER.equals(userId)) {
+                            Object sessionUserId = session.getAttribute("userId");
+                            String candidateId = (sessionUserId instanceof String)
+                                    ? normalizeValue((String) sessionUserId)
+                                    : null;
+                            if (candidateId != null) {
+                                userId = candidateId;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.debug("Failed to resolve audit metadata", e);
+        }
+
+        if (DEFAULT_AUDIT_USER.equals(userId)) {
+            String securityUserId = resolveUserIdFromSecurityContext();
+            if (securityUserId != null) {
+                userId = securityUserId;
+            }
+        }
+
+        return new AuditMetadata(userId, ipAddr);
+    }
+
+    private String resolveUserIdFromSecurityContext() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return null;
+            }
+            Object principal = authentication.getPrincipal();
+            if (principal instanceof CoUserVO) {
+                return normalizeValue(((CoUserVO) principal).getUserId());
+            }
+            if (principal instanceof UserDetails) {
+                return normalizeValue(((UserDetails) principal).getUsername());
+            }
+            if (principal instanceof String) {
+                String candidate = (String) principal;
+                if (!"anonymousUser".equalsIgnoreCase(candidate)) {
+                    return normalizeValue(candidate);
+                }
+            }
+        } catch (Exception e) {
+            log.debug("Failed to resolve userId from SecurityContext", e);
+        }
+        return null;
+    }
+
+    private String normalizeValue(String candidate) {
+        if (candidate == null) {
+            return null;
+        }
+        String trimmed = candidate.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private static final class AuditMetadata {
+        private final String userId;
+        private final String ipAddr;
+
+        private AuditMetadata(String userId, String ipAddr) {
+            this.userId = userId;
+            this.ipAddr = ipAddr;
+        }
+
+        public String getUserId() {
+            return userId;
+        }
+
+        public String getIpAddr() {
+            return ipAddr;
         }
     }
 }
